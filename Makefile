@@ -1,5 +1,5 @@
 
-SOURCES = brot2.c
+SOURCES = brot2.c mandel.c
 OBJS    = ${SOURCES:.c=.o}
 CFLAGS  = `pkg-config gtk+-2.0 --cflags` -g -O0
 LDADD   = `pkg-config gtk+-2.0 --libs`

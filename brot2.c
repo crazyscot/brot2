@@ -1,4 +1,5 @@
 #include <gtk/gtk.h>
+#include "mandel.h"
 
 static gboolean delete_event(GtkWidget *widget, GdkEvent *event, gpointer data)
 {
@@ -52,12 +53,8 @@ static gboolean configure_event(GtkWidget *widget, GdkEventConfigure *event)
 			widget->allocation.width,
 			widget->allocation.height,
 			-1);
-	gdk_draw_rectangle (render,
-			widget->style->white_gc,
-			TRUE,
-			0, 0,
-			widget->allocation.width,
-			widget->allocation.height);
+	draw_set(render, widget->style->white_gc,
+			0, 0, widget->allocation.width, widget->allocation.height);
 	return TRUE;
 }
 
