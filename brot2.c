@@ -1,10 +1,11 @@
 #include <gtk/gtk.h>
 #include <sys/time.h>
 #include <stdlib.h>
-#include "mandel.h"
+#include "mandelbrot.h"
 
 static GdkPixmap *render;
 static GtkStatusbar *statusbar;
+static mandelbrot_ctx *ctx;
 
 struct timeval tv_subtract (struct timeval tv1, struct timeval tv2)
 {
@@ -75,7 +76,7 @@ static gboolean configure_event(GtkWidget *widget, GdkEventConfigure *event)
 	gtk_statusbar_pop(statusbar, 0);
 	gtk_statusbar_push(statusbar, 0, "Drawing..."); // FIXME: Doesn't update. Possibly leave this until we get computation multithreaded and asynch?
 	gettimeofday(&tv_before,0);
-	draw_set(render, widget->style->white_gc,
+	mandelbrot_draw(ctx, render, widget->style->white_gc,
 			0, 0, widget->allocation.width, widget->allocation.height);
 	gettimeofday(&tv_after,0);
 
@@ -83,7 +84,7 @@ static gboolean configure_event(GtkWidget *widget, GdkEventConfigure *event)
 	double timetaken = tv_diff.tv_sec + (tv_diff.tv_usec / 1e6);
 
 	gtk_statusbar_pop(statusbar, 0);
-	const char * info = get_set_info();
+	const char * info = mandelbrot_info(ctx);
 	char * full_info = 0;
 	asprintf(&full_info, "%s; render time was %lf", info, timetaken);
 	gtk_statusbar_push(statusbar, 0, full_info);
@@ -137,6 +138,13 @@ int main (int argc, char**argv)
 	GtkWidget *window, *main_vbox, *menubar;
 	GtkWidget *canvas;
 
+	ctx = mandelbrot_new();
+	// TODO proper configury.
+	ctx->centre.re = -0.7;
+	ctx->centre.im = 0.0;
+	ctx->size.re = 3.0;
+	ctx->size.im = 3.0;
+
 	gtk_init(&argc, &argv);
 	window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 
@@ -177,5 +185,6 @@ int main (int argc, char**argv)
 
 	gtk_widget_show_all(window);
 	gtk_main();
+	mandelbrot_destroy(&ctx);
 	return 0;
 }

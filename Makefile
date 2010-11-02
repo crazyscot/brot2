@@ -1,5 +1,5 @@
 
-SOURCES:= brot2.c mandel.c
+SOURCES:= brot2.c mandelbrot.c
 OBJS   := ${SOURCES:.c=.o}
 DEPS   := $(SOURCES:.c=.d)
 CFLAGS := `pkg-config gtk+-2.0 --cflags` -g -O0

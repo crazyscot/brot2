@@ -1,14 +1,25 @@
 #define _GNU_SOURCE
 #include <stdio.h>
-#include <gtk/gtk.h>
 #include <stdlib.h>
-#include "mandel.h"
+#include <gtk/gtk.h>
+#include <string.h>
+#include "mandelbrot.h"
 
 #define MAXITER 1000
 
-typedef struct {
-	double re, im;
-} complexF;
+mandelbrot_ctx * mandelbrot_new(void)
+{
+	mandelbrot_ctx *rv = malloc(sizeof(mandelbrot_ctx));
+	return rv;
+}
+
+void mandelbrot_destroy(mandelbrot_ctx **ctx)
+{
+	memset(*ctx, 0, sizeof(*ctx));
+	free(*ctx);
+	*ctx = 0;
+}
+
 
 struct {
 	guchar r,g,b;
@@ -28,14 +39,17 @@ static void init_coltab(void) {
 	coltab_inited = 1;
 }
 
-const char * get_set_info(void)
+const char *mandelbrot_info(mandelbrot_ctx *ctx)
 {
 	char *rv = 0;
-	asprintf(&rv, "Centre re=-0.7 im=0.0; size re=3.076 im=3.0");
+	asprintf(&rv, "Centre re=%f im=%f; size re=%f im=%f",
+			ctx->centre.re, ctx->centre.im,
+			ctx->size.re, ctx->size.im);
 	return rv;
 }
 
-void draw_set(GdkPixmap * dest, GdkGC *gc, gint xx, gint yy, gint width, gint height)
+void mandelbrot_draw(mandelbrot_ctx *ctx,
+		GdkPixmap * dest, GdkGC *gc, gint xx, gint yy, gint width, gint height)
 {
 	init_coltab();
 
@@ -43,21 +57,17 @@ void draw_set(GdkPixmap * dest, GdkGC *gc, gint xx, gint yy, gint width, gint he
 	const gint rowstride = rowbytes + 8-(rowbytes%8);
 	guchar *buf = malloc(rowstride * height); // packed 24-bit data
 
-	const complexF Mcentre = {-0.7, 0.0};
-	const complexF Msize =  {3.076, 3.0};
-
-	const double pixwide = Msize.re / width,
-		  		 pixhigh  = Msize.im / height;
+	const double pixwide = ctx->size.re / width,
+		  		 pixhigh  = ctx->size.im / height;
 	const complexF Mstart = {
-		Mcentre.re - Msize.re/2,
-		Mcentre.im - Msize.im/2
+		ctx->centre.re - ctx->size.re/2,
+		ctx->centre.im - ctx->size.im/2
 	};
-
 
 	int x,y;
 	for (y=0; y<height; y++) {
 		guchar *row = &buf[y*rowstride];
-		double xpoint = Mstart.re, 
+		double xpoint = Mstart.re,
 			   ypoint = Mstart.im + pixhigh * y;
 
 		for (x=0; x<width; x++) {
