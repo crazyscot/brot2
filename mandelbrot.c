@@ -51,6 +51,9 @@ const char *mandelbrot_info(mandelbrot_ctx *ctx)
 void mandelbrot_draw(mandelbrot_ctx *ctx,
 		GdkPixmap * dest, GdkGC *gc, gint xx, gint yy, gint width, gint height)
 {
+	ctx->priv_x = width;
+	ctx->priv_y = height;
+
 	init_coltab();
 
 	const gint rowbytes = width * 3;
@@ -64,13 +67,13 @@ void mandelbrot_draw(mandelbrot_ctx *ctx,
 		ctx->centre.im - ctx->size.im/2
 	};
 
-	int x,y;
-	for (y=0; y<height; y++) {
-		guchar *row = &buf[y*rowstride];
+	int i,j;
+	for (j=0; j<height; j++) {
+		guchar *row = &buf[j*rowstride];
 		double xpoint = Mstart.re,
-			   ypoint = Mstart.im + pixhigh * y;
+			   ypoint = Mstart.im + pixhigh * j;
 
-		for (x=0; x<width; x++) {
+		for (i=0; i<width; i++) {
 			unsigned iter = 0;
 			double re=0, im=0;
 			while ( ((re*re + im*im) <= 4.0) && iter < MAXITER) {
@@ -94,4 +97,23 @@ void mandelbrot_draw(mandelbrot_ctx *ctx,
 			xx, yy, width, height, GDK_RGB_DITHER_NONE, buf, rowstride);
 
 	free(buf);
+}
+
+/* Converts an (x,y) pair on the render (say, from a mouse click) to their complex co-ordinates */
+int mandelbrot_pixel_to_set(mandelbrot_ctx *ctx, gint x, gint y, complexF * set)
+{
+	if ((x < 0) || (y < 0) || (x > ctx->priv_x) || (y > ctx->priv_y))
+		return 0;
+
+	const complexF Mstart = {
+		ctx->centre.re - ctx->size.re/2,
+		ctx->centre.im - ctx->size.im/2
+	};
+
+	const double pixwide = ctx->size.re / ctx->priv_x,
+		  		 pixhigh  = ctx->size.im / ctx->priv_y;
+
+	set->re = Mstart.re + pixwide*x;
+	set->im = Mstart.im + pixhigh*y;
+	return 1;
 }
