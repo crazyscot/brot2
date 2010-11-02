@@ -1,8 +1,24 @@
 #include <gtk/gtk.h>
+#include <sys/time.h>
+#include <stdlib.h>
 #include "mandel.h"
 
 static GdkPixmap *render;
 static GtkStatusbar *statusbar;
+
+struct timeval tv_subtract (struct timeval tv1, struct timeval tv2)
+{
+	struct timeval rv;
+	rv.tv_sec = tv1.tv_sec - tv2.tv_sec;
+	if (tv1.tv_usec < tv2.tv_usec) {
+		rv.tv_usec = tv1.tv_usec + 1e6 - tv2.tv_usec;
+		--rv.tv_sec;
+	} else {
+		rv.tv_usec = tv1.tv_usec - tv2.tv_usec;
+	}
+
+	return rv;
+}
 
 static gboolean delete_event(GtkWidget *widget, GdkEvent *event, gpointer data)
 {
@@ -48,21 +64,31 @@ static GtkWidget *get_menubar_menu( GtkWidget  *window )
 
 static gboolean configure_event(GtkWidget *widget, GdkEventConfigure *event)
 {
+	struct timeval tv_before, tv_after, tv_diff;
+
 	if (render)
 		g_object_unref(render);
 	render = gdk_pixmap_new(widget->window,
 			widget->allocation.width,
 			widget->allocation.height,
 			-1);
-	// XXX time it
 	gtk_statusbar_pop(statusbar, 0);
 	gtk_statusbar_push(statusbar, 0, "Drawing..."); // FIXME: Doesn't update. Possibly leave this until we get computation multithreaded and asynch?
+	gettimeofday(&tv_before,0);
 	draw_set(render, widget->style->white_gc,
 			0, 0, widget->allocation.width, widget->allocation.height);
+	gettimeofday(&tv_after,0);
+
+	tv_diff = tv_subtract(tv_after, tv_before);
+	double timetaken = tv_diff.tv_sec + (tv_diff.tv_usec / 1e6);
+
 	gtk_statusbar_pop(statusbar, 0);
 	const char * info = get_set_info();
-	gtk_statusbar_push(statusbar, 0, info);
-	free(info);
+	char * full_info = 0;
+	asprintf(&full_info, "%s; render time was %lf", info, timetaken);
+	gtk_statusbar_push(statusbar, 0, full_info);
+	free((char*)info);
+	free(full_info);
 	return TRUE;
 }
 
