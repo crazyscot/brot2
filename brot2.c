@@ -41,9 +41,10 @@ void configure_mandelbrot(mandelbrot_ctx *ctx)
 			GTK_STOCK_CANCEL, GTK_RESPONSE_REJECT,
 			NULL);
 	GtkWidget * content_area = gtk_dialog_get_content_area(GTK_DIALOG(dlg));
+	GtkWidget * label;
 
-	GtkWidget * label = gtk_label_new ("Configuration");
-	gtk_container_add (GTK_CONTAINER (content_area), label);
+	//label = gtk_label_new ("Configuration");
+	//gtk_container_add (GTK_CONTAINER (content_area), label);
 
 	GtkWidget *c_re, *c_im, *size_re, *size_im;
 	c_re = gtk_entry_new();
@@ -119,8 +120,8 @@ static void destroy_event(GtkWidget *widget, gpointer data)
 
 static GtkItemFactoryEntry menu_items[] = {
 	{ "/_Main", 0, 0, 0, "<Branch>" },
-	{ "/Main/_Params", "<control>P", do_config, 0, "<StockItem>" },
-	{ "/Main/_Quit", "<control>Q", gtk_main_quit, 0, "<StockItem>" },
+	{ "/Main/_Params", "<control>P", do_config, 0, "<Item>" },
+	{ "/Main/_Quit", "<control>Q", gtk_main_quit, 0, "<Item>" },
 };
 
 static gint nmenu_items = sizeof (menu_items) / sizeof (menu_items[0]);
