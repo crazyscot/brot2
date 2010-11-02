@@ -70,29 +70,10 @@ static gboolean expose_event( GtkWidget *widget, GdkEventExpose *event )
 	return FALSE;
 }
 
-static void paint_it(GtkWidget *widget, gdouble xx, gdouble yy)
-{
-	GdkRectangle update_rect;
-
-	update_rect.x = xx;
-	update_rect.y = yy;
-	update_rect.width = 10;
-	update_rect.height = 10;
-	gdk_draw_rectangle (render,
-			widget->style->black_gc,
-			TRUE,
-			update_rect.x, update_rect.y,
-			update_rect.width, update_rect.height);
-	gtk_widget_queue_draw_area (widget, 		      
-			update_rect.x, update_rect.y,
-			update_rect.width, update_rect.height);
-
-}
-
 static gboolean button_press_event( GtkWidget *widget, GdkEventButton *event )
 {
 	if (event->button == 1 && render != NULL)
-		paint_it(widget, event->x, event->y);
+		/* do something! */ ;
 
 	return TRUE;
 }
@@ -112,7 +93,7 @@ static gboolean motion_notify_event( GtkWidget *widget, GdkEventMotion *event )
 	}
 
 	if (state & GDK_BUTTON1_MASK && render != NULL)
-		paint_it(widget, x, y);
+		/* do something! */;
 
 	return TRUE;
 }
