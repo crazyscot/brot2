@@ -1,11 +1,96 @@
+#define _GNU_SOURCE
 #include <gtk/gtk.h>
 #include <sys/time.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include "mandelbrot.h"
 
+static GtkWidget *window;
 static GdkPixmap *render;
 static GtkStatusbar *statusbar;
-static mandelbrot_ctx *ctx;
+static mandelbrot_ctx *main_ctx;
+
+static void do_redraw(GtkWidget *widget);
+
+static void update_entry_float(GtkWidget *entry, double val)
+{
+	char * tmp = 0;
+	asprintf(&tmp, "%f", val);
+	gtk_entry_set_text(GTK_ENTRY(entry), tmp);
+	free(tmp);
+}
+
+static void read_entry_float(GtkWidget *entry, double *val_out)
+{
+	long double tmp;
+	const gchar * raw = gtk_entry_get_text(GTK_ENTRY(entry));
+	if (1 == sscanf(raw, "%Lf", &tmp)) {
+		*val_out = tmp;
+		// TODO: Better error handling. Perhaps a validity check at dialog run time?
+	}
+}
+
+void configure_mandelbrot(mandelbrot_ctx *ctx)
+{
+	// TODO: generate from renderer parameters!
+	GtkWidget *dlg = gtk_dialog_new_with_buttons("Configuration", GTK_WINDOW(window), GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT,
+			GTK_STOCK_OK, GTK_RESPONSE_ACCEPT,
+			GTK_STOCK_CANCEL, GTK_RESPONSE_REJECT,
+			NULL);
+	GtkWidget * content_area = gtk_dialog_get_content_area(GTK_DIALOG(dlg));
+
+	GtkWidget * label = gtk_label_new ("Configuration");
+	gtk_container_add (GTK_CONTAINER (content_area), label);
+
+	GtkWidget *c_re, *c_im, *size_re, *size_im;
+	c_re = gtk_entry_new();
+	update_entry_float(c_re, ctx->centre.re);
+	c_im = gtk_entry_new();
+	update_entry_float(c_im, ctx->centre.im);
+	size_re = gtk_entry_new();
+	update_entry_float(size_re, ctx->size.re);
+	size_im = gtk_entry_new();
+	update_entry_float(size_im, ctx->size.im);
+
+	GtkWidget * box = gtk_table_new(4, 2, TRUE);
+
+	label = gtk_label_new("Centre Real (x)");
+	gtk_table_attach_defaults(GTK_TABLE(box), label, 0, 1, 0, 1);
+	gtk_table_attach_defaults(GTK_TABLE(box), c_re, 1, 2, 0, 1);
+
+	label = gtk_label_new("Centre Imaginary (y)");
+	gtk_table_attach_defaults(GTK_TABLE(box), label, 0, 1, 1, 2);
+	gtk_table_attach_defaults(GTK_TABLE(box), c_im, 1, 2, 1, 2);
+
+	label = gtk_label_new("Size Real (x)");
+	gtk_table_attach_defaults(GTK_TABLE(box), label, 0, 1, 2, 3);
+	gtk_table_attach_defaults(GTK_TABLE(box), size_re, 1, 2, 2, 3);
+
+	label = gtk_label_new("Size Imaginary (y)");
+	gtk_table_attach_defaults(GTK_TABLE(box), label, 0, 1, 3, 4);
+	gtk_table_attach_defaults(GTK_TABLE(box), size_im, 1, 2, 3, 4);
+
+	gtk_container_add (GTK_CONTAINER (content_area), box);
+
+	gtk_widget_show_all(dlg);
+	gint result = gtk_dialog_run(GTK_DIALOG(dlg));
+	if (result == GTK_RESPONSE_ACCEPT) {
+		read_entry_float(c_re, &ctx->centre.re);
+		read_entry_float(c_im, &ctx->centre.im);
+		read_entry_float(size_re, &ctx->size.re);
+		read_entry_float(size_im, &ctx->size.im);
+		do_redraw(window);
+		// FIXME: This is a bit nasty, but will be fixed when renders go asynch.
+
+		gtk_widget_queue_draw(window);
+	}
+	gtk_widget_destroy(dlg);
+}
+
+void do_config(void)
+{
+	configure_mandelbrot(main_ctx);
+}
 
 struct timeval tv_subtract (struct timeval tv1, struct timeval tv2)
 {
@@ -26,13 +111,14 @@ static gboolean delete_event(GtkWidget *widget, GdkEvent *event, gpointer data)
 	return FALSE;
 }
 
-static void destroy(GtkWidget *widget, gpointer data)
+static void destroy_event(GtkWidget *widget, gpointer data)
 {
 	gtk_main_quit();
 }
 
 static GtkItemFactoryEntry menu_items[] = {
 	{ "/_Main", 0, 0, 0, "<Branch>" },
+	{ "/Main/_Params", "<control>P", do_config, 0, "<StockItem>" },
 	{ "/Main/_Quit", "<control>Q", gtk_main_quit, 0, "<StockItem>" },
 };
 
@@ -63,7 +149,7 @@ static GtkWidget *get_menubar_menu( GtkWidget  *window )
 	return gtk_item_factory_get_widget (item_factory, "<main>");
 }
 
-static gboolean configure_event(GtkWidget *widget, GdkEventConfigure *event)
+static void do_redraw(GtkWidget *widget)
 {
 	struct timeval tv_before, tv_after, tv_diff;
 
@@ -76,7 +162,7 @@ static gboolean configure_event(GtkWidget *widget, GdkEventConfigure *event)
 	gtk_statusbar_pop(statusbar, 0);
 	gtk_statusbar_push(statusbar, 0, "Drawing..."); // FIXME: Doesn't update. Possibly leave this until we get computation multithreaded and asynch?
 	gettimeofday(&tv_before,0);
-	mandelbrot_draw(ctx, render, widget->style->white_gc,
+	mandelbrot_draw(main_ctx, render, widget->style->white_gc,
 			0, 0, widget->allocation.width, widget->allocation.height);
 	gettimeofday(&tv_after,0);
 
@@ -84,12 +170,17 @@ static gboolean configure_event(GtkWidget *widget, GdkEventConfigure *event)
 	double timetaken = tv_diff.tv_sec + (tv_diff.tv_usec / 1e6);
 
 	gtk_statusbar_pop(statusbar, 0);
-	const char * info = mandelbrot_info(ctx);
+	const char * info = mandelbrot_info(main_ctx);
 	char * full_info = 0;
 	asprintf(&full_info, "%s; render time was %lf", info, timetaken);
 	gtk_statusbar_push(statusbar, 0, full_info);
 	free((char*)info);
 	free(full_info);
+}
+
+static gboolean configure_event(GtkWidget *widget, GdkEventConfigure *event)
+{
+	do_redraw(widget);
 	return TRUE;
 }
 
@@ -135,21 +226,21 @@ static gboolean motion_notify_event( GtkWidget *widget, GdkEventMotion *event )
 
 int main (int argc, char**argv)
 {
-	GtkWidget *window, *main_vbox, *menubar;
+	GtkWidget *main_vbox, *menubar;
 	GtkWidget *canvas;
 
-	ctx = mandelbrot_new();
-	// TODO proper configury.
-	ctx->centre.re = -0.7;
-	ctx->centre.im = 0.0;
-	ctx->size.re = 3.0;
-	ctx->size.im = 3.0;
+	main_ctx = mandelbrot_new();
+	// TODO proper configury. Use default params of a drawer.
+	main_ctx->centre.re = -0.7;
+	main_ctx->centre.im = 0.0;
+	main_ctx->size.re = 3.0;
+	main_ctx->size.im = 3.0;
 
 	gtk_init(&argc, &argv);
 	window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 
 	g_signal_connect(window, "delete-event", G_CALLBACK(delete_event), 0);
-	g_signal_connect(window, "destroy", G_CALLBACK(destroy), 0);
+	g_signal_connect(window, "destroy", G_CALLBACK(destroy_event), 0);
 
 	gtk_window_set_title(GTK_WINDOW(window), "brot2");
 	main_vbox = gtk_vbox_new(FALSE,1);
@@ -185,6 +276,6 @@ int main (int argc, char**argv)
 
 	gtk_widget_show_all(window);
 	gtk_main();
-	mandelbrot_destroy(&ctx);
+	mandelbrot_destroy(&main_ctx);
 	return 0;
 }
