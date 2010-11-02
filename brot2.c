@@ -200,7 +200,8 @@ static gboolean expose_event( GtkWidget *widget, GdkEventExpose *event )
 	return FALSE;
 }
 
-static gint stash_button_8_x, stash_button_8_y;
+static gint dragrect_origin_x, dragrect_origin_y,
+			dragrect_active=0, dragrect_current_x, dragrect_current_y;
 
 static gboolean button_press_event( GtkWidget *widget, GdkEventButton *event )
 {
@@ -232,11 +233,10 @@ static gboolean button_press_event( GtkWidget *widget, GdkEventButton *event )
 			}
 			if (event->button==8) {
 				// mouse down: store it
-				stash_button_8_x = (int)event->x;
-				stash_button_8_y = (int)event->y;
-				// TODO: trace out rectangle? enable a flag...
+				dragrect_origin_x = dragrect_current_x = (int)event->x;
+				dragrect_origin_y = dragrect_current_y = (int)event->y;
+				dragrect_active = 1;
 			}
-			// TODO button 8 : drag out a rectangle to zoom to?
 		}
 		if (redraw)
 			do_redraw(window); // TODO: asynch drawing
@@ -250,13 +250,13 @@ static gboolean button_release_event( GtkWidget *widget, GdkEventButton *event )
 	if (event->button != 8)
 		return FALSE;
 
-	printf("button %d UP @ %d,%d\n", event->button, (int)event->x, (int)event->y);
+	//printf("button %d UP @ %d,%d\n", event->button, (int)event->x, (int)event->y);
 
 	if (render != NULL) {
-		int l = MIN(event->x, stash_button_8_x);
-		int r = MAX(event->x, stash_button_8_x);
-		int t = MIN(event->y, stash_button_8_y);
-		int b = MAX(event->y, stash_button_8_y);
+		int l = MIN(event->x, dragrect_origin_x);
+		int r = MAX(event->x, dragrect_origin_x);
+		int t = MIN(event->y, dragrect_origin_y);
+		int b = MAX(event->y, dragrect_origin_y);
 
 		// centres
 		complexF TL, BR;
@@ -273,14 +273,28 @@ static gboolean button_release_event( GtkWidget *widget, GdkEventButton *event )
 		main_ctx->size.re = BR.re - TL.re;
 		main_ctx->size.im = BR.im - TL.im;
 
+		dragrect_active = 0;
+
 		do_redraw(window); // TODO: asynch drawing
 	}
+	return TRUE;
+}
+
+static void draw_rect(GtkWidget *widget, GdkPixmap *pix, int L, int R, int T, int B)
+{
+	gdk_gc_set_function(window->style->black_gc, GDK_INVERT);
+	gdk_draw_line(pix, widget->style->black_gc, L, T, R, T);
+	gdk_draw_line(pix, widget->style->black_gc, R, T, R, B);
+	gdk_draw_line(pix, widget->style->black_gc, R, B, L, B);
+	gdk_draw_line(pix, widget->style->black_gc, L, B, L, T);
 }
 
 static gboolean motion_notify_event( GtkWidget *widget, GdkEventMotion *event )
 {
 	int x, y;
 	GdkModifierType state;
+
+	if (!dragrect_active) return FALSE;
 
 	if (event->is_hint)
 		gdk_window_get_pointer (event->window, &x, &y, &state);
@@ -290,7 +304,18 @@ static gboolean motion_notify_event( GtkWidget *widget, GdkEventMotion *event )
 		y = event->y;
 		state = event->state;
 	}
-	// TODO: IF we are dragging THEN plot a rectangle!
+
+	// turn off previous hilight rect
+	draw_rect(widget, render, dragrect_origin_x, dragrect_current_x, dragrect_origin_y, dragrect_current_y);
+
+	// turn on our new one
+	draw_rect(widget, render, dragrect_origin_x, x, dragrect_origin_y, y);
+	dragrect_current_x = x;
+	dragrect_current_y = y;
+
+	gtk_widget_queue_draw (widget);
+	// TODO queue_draw_area() instead
+
 	//printf("button %d @ %d,%d\n", state, x, y);//XXX
 	return TRUE;
 }
