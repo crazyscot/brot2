@@ -1,3 +1,5 @@
+#define _GNU_SOURCE
+#include <stdio.h>
 #include <gtk/gtk.h>
 #include <stdlib.h>
 #include "mandel.h"
@@ -24,6 +26,13 @@ static void init_coltab(void) {
 	}
 	coltab[MAXITER].r = coltab[MAXITER].g = coltab[MAXITER].b = 0;
 	coltab_inited = 1;
+}
+
+const char * get_set_info(void)
+{
+	char *rv = 0;
+	asprintf(&rv, "Centre re=-0.7 im=0.0; size re=3.076 im=3.0");
+	return rv;
 }
 
 void draw_set(GdkPixmap * dest, GdkGC *gc, gint xx, gint yy, gint width, gint height)

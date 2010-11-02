@@ -1,6 +1,9 @@
 #include <gtk/gtk.h>
 #include "mandel.h"
 
+static GdkPixmap *render;
+static GtkStatusbar *statusbar;
+
 static gboolean delete_event(GtkWidget *widget, GdkEvent *event, gpointer data)
 {
 	return FALSE;
@@ -43,8 +46,6 @@ static GtkWidget *get_menubar_menu( GtkWidget  *window )
 	return gtk_item_factory_get_widget (item_factory, "<main>");
 }
 
-static GdkPixmap *render;
-
 static gboolean configure_event(GtkWidget *widget, GdkEventConfigure *event)
 {
 	if (render)
@@ -53,8 +54,15 @@ static gboolean configure_event(GtkWidget *widget, GdkEventConfigure *event)
 			widget->allocation.width,
 			widget->allocation.height,
 			-1);
+	// XXX time it
+	gtk_statusbar_pop(statusbar, 0);
+	gtk_statusbar_push(statusbar, 0, "Drawing..."); // FIXME: Doesn't update. Possibly leave this until we get computation multithreaded and asynch?
 	draw_set(render, widget->style->white_gc,
 			0, 0, widget->allocation.width, widget->allocation.height);
+	gtk_statusbar_pop(statusbar, 0);
+	const char * info = get_set_info();
+	gtk_statusbar_push(statusbar, 0, info);
+	free(info);
 	return TRUE;
 }
 
@@ -133,8 +141,13 @@ int main (int argc, char**argv)
 			| GDK_POINTER_MOTION_MASK
 			| GDK_POINTER_MOTION_HINT_MASK);
 
-	gtk_box_pack_start(GTK_BOX(main_vbox), menubar, FALSE, TRUE, 0);
+	statusbar = GTK_STATUSBAR(gtk_statusbar_new());
+	gtk_statusbar_push(statusbar, 0, "Initialising");
+	gtk_statusbar_set_has_resize_grip(statusbar, 0);
+
+	gtk_box_pack_start(GTK_BOX(main_vbox), menubar, FALSE, FALSE, 0);
 	gtk_box_pack_start(GTK_BOX(main_vbox), canvas, TRUE, TRUE, 0);
+	gtk_box_pack_end(GTK_BOX(main_vbox), GTK_WIDGET(statusbar), FALSE, FALSE, 0);
 
 	gtk_widget_show_all(window);
 	gtk_main();
