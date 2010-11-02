@@ -5,6 +5,9 @@
 #include <stdio.h>
 #include "mandelbrot.h"
 
+#define MAX(a,b)	(((a) > (b)) ? (a) : (b))
+#define MIN(a,b)	(((a) < (b)) ? (a) : (b))
+
 static GtkWidget *window;
 static GdkPixmap *render;
 static GtkStatusbar *statusbar;
@@ -81,8 +84,6 @@ void configure_mandelbrot(mandelbrot_ctx *ctx)
 		read_entry_float(size_im, &ctx->size.im);
 		do_redraw(window);
 		// FIXME: This is a bit nasty, but will be fixed when renders go asynch.
-
-		gtk_widget_queue_draw(window);
 	}
 	gtk_widget_destroy(dlg);
 }
@@ -149,6 +150,7 @@ static GtkWidget *get_menubar_menu( GtkWidget  *window )
 	return gtk_item_factory_get_widget (item_factory, "<main>");
 }
 
+// Redraws us onto a given widget (window), then queues an expose event
 static void do_redraw(GtkWidget *widget)
 {
 	struct timeval tv_before, tv_after, tv_diff;
@@ -176,6 +178,8 @@ static void do_redraw(GtkWidget *widget)
 	gtk_statusbar_push(statusbar, 0, full_info);
 	free((char*)info);
 	free(full_info);
+
+	gtk_widget_queue_draw(widget);
 }
 
 static gboolean configure_event(GtkWidget *widget, GdkEventConfigure *event)
@@ -196,21 +200,21 @@ static gboolean expose_event( GtkWidget *widget, GdkEventExpose *event )
 	return FALSE;
 }
 
-
+static gint stash_button_8_x, stash_button_8_y;
 
 static gboolean button_press_event( GtkWidget *widget, GdkEventButton *event )
 {
+#define ZOOM_FACTOR 2.0f
 	if (render != NULL) {
 		int redraw=0;
 		complexF new_ctr;
 		if (1==mandelbrot_pixel_to_set(main_ctx, event->x, event->y, &new_ctr)) {
-			printf("button %d @ %d,%d -> %f,%f\n", event->button, (int)event->x, (int)event->y, new_ctr.re, new_ctr.im);
+			//printf("button %d @ %d,%d -> %f,%f\n", event->button, (int)event->x, (int)event->y, new_ctr.re, new_ctr.im);
 			if (event->button >= 1 && event->button <= 3) {
 				main_ctx->centre.re = new_ctr.re;
 				main_ctx->centre.im = new_ctr.im;
 				switch(event->button) {
 				case 1:
-#define ZOOM_FACTOR 2.0f
 					// LEFT: zoom in a bit
 					main_ctx->size.re /= ZOOM_FACTOR;
 					main_ctx->size.im /= ZOOM_FACTOR;
@@ -226,15 +230,51 @@ static gboolean button_press_event( GtkWidget *widget, GdkEventButton *event )
 				}
 				redraw = 1;
 			}
+			if (event->button==8) {
+				// mouse down: store it
+				stash_button_8_x = (int)event->x;
+				stash_button_8_y = (int)event->y;
+				// TODO: trace out rectangle? enable a flag...
+			}
 			// TODO button 8 : drag out a rectangle to zoom to?
 		}
-		if (redraw) {
+		if (redraw)
 			do_redraw(window); // TODO: asynch drawing
-			gtk_widget_queue_draw(window);
-		}
 	}
 
 	return TRUE;
+}
+
+static gboolean button_release_event( GtkWidget *widget, GdkEventButton *event )
+{
+	if (event->button != 8)
+		return FALSE;
+
+	printf("button %d UP @ %d,%d\n", event->button, (int)event->x, (int)event->y);
+
+	if (render != NULL) {
+		int l = MIN(event->x, stash_button_8_x);
+		int r = MAX(event->x, stash_button_8_x);
+		int t = MIN(event->y, stash_button_8_y);
+		int b = MAX(event->y, stash_button_8_y);
+
+		// centres
+		complexF TL, BR;
+		if (0==mandelbrot_pixel_to_set(main_ctx, l, t, &TL)) {
+			printf("argh, top left is outside of current render\n"); //XXX
+			return FALSE;
+		}
+		if (0==mandelbrot_pixel_to_set(main_ctx, r, b, &BR)) {
+			printf("argh, bottom right is outside of current render\n"); //XXX
+			return FALSE;
+		}
+		main_ctx->centre.re = (TL.re + BR.re) / 2;
+		main_ctx->centre.im = (TL.im + BR.im) / 2;
+		main_ctx->size.re = BR.re - TL.re;
+		main_ctx->size.im = BR.im - TL.im;
+
+		do_redraw(window); // TODO: asynch drawing
+	}
 }
 
 static gboolean motion_notify_event( GtkWidget *widget, GdkEventMotion *event )
@@ -250,12 +290,8 @@ static gboolean motion_notify_event( GtkWidget *widget, GdkEventMotion *event )
 		y = event->y;
 		state = event->state;
 	}
-
-	if (state & GDK_BUTTON1_MASK && render != NULL) {
-		/* do something! event->x,y */
-		// TODO button 8 -> drag ???
-	}
-
+	// TODO: IF we are dragging THEN plot a rectangle!
+	//printf("button %d @ %d,%d\n", state, x, y);//XXX
 	return TRUE;
 }
 
@@ -294,10 +330,13 @@ int main (int argc, char**argv)
 			(GtkSignalFunc) motion_notify_event, NULL);
 	gtk_signal_connect (GTK_OBJECT (canvas), "button_press_event",
 			(GtkSignalFunc) button_press_event, NULL);
+	gtk_signal_connect (GTK_OBJECT (canvas), "button_release_event",
+			(GtkSignalFunc) button_release_event, NULL);
 
 	gtk_widget_set_events (canvas, GDK_EXPOSURE_MASK
 			| GDK_LEAVE_NOTIFY_MASK
 			| GDK_BUTTON_PRESS_MASK
+			| GDK_BUTTON_RELEASE_MASK
 			| GDK_POINTER_MOTION_MASK
 			| GDK_POINTER_MOTION_HINT_MASK);
 
