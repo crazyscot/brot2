@@ -196,10 +196,43 @@ static gboolean expose_event( GtkWidget *widget, GdkEventExpose *event )
 	return FALSE;
 }
 
+
+
 static gboolean button_press_event( GtkWidget *widget, GdkEventButton *event )
 {
-	if (event->button == 1 && render != NULL)
-		/* do something! */ ;
+	if (render != NULL) {
+		int redraw=0;
+		complexF new_ctr;
+		if (1==mandelbrot_pixel_to_set(main_ctx, event->x, event->y, &new_ctr)) {
+			printf("button %d @ %d,%d -> %f,%f\n", event->button, (int)event->x, (int)event->y, new_ctr.re, new_ctr.im);
+			if (event->button >= 1 && event->button <= 3) {
+				main_ctx->centre.re = new_ctr.re;
+				main_ctx->centre.im = new_ctr.im;
+				switch(event->button) {
+				case 1:
+#define ZOOM_FACTOR 2.0f
+					// LEFT: zoom in a bit
+					main_ctx->size.re /= ZOOM_FACTOR;
+					main_ctx->size.im /= ZOOM_FACTOR;
+					break;
+				case 3:
+					// RIGHT: zoom out
+					main_ctx->size.re *= ZOOM_FACTOR;
+					main_ctx->size.im *= ZOOM_FACTOR;
+					break;
+				case 2:
+					// MIDDLE: simple pan
+					break;
+				}
+				redraw = 1;
+			}
+			// TODO button 8 : drag out a rectangle to zoom to?
+		}
+		if (redraw) {
+			do_redraw(window); // TODO: asynch drawing
+			gtk_widget_queue_draw(window);
+		}
+	}
 
 	return TRUE;
 }
@@ -218,8 +251,10 @@ static gboolean motion_notify_event( GtkWidget *widget, GdkEventMotion *event )
 		state = event->state;
 	}
 
-	if (state & GDK_BUTTON1_MASK && render != NULL)
-		/* do something! */;
+	if (state & GDK_BUTTON1_MASK && render != NULL) {
+		/* do something! event->x,y */
+		// TODO button 8 -> drag ???
+	}
 
 	return TRUE;
 }
