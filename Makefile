@@ -1,6 +1,6 @@
 
 CSRC   := brot2.c mandelbrot.c
-CXXSRC := palette.cpp
+CXXSRC := palette.cpp Fractal.cpp
 COBJ   := $(CSRC:.c=.o)
 CXXOBJ := $(CXXSRC:.cpp=.o)
 OBJS   := $(COBJ) $(CXXOBJ)
