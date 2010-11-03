@@ -42,6 +42,8 @@ public:
 	const unsigned maxiter;
 	const unsigned width, height; // plot size in pixels
 
+	const cdbl origin() { return centre - size/2.0; }
+
 	// Returns a human-readable summary of this plot for the status bar.
 	virtual string info_short();
 
@@ -50,6 +52,10 @@ public:
 		if (!plot_data_) render();
 		return plot_data_;
 	}
+
+	/* Converts an (x,y) pair on the render (say, from a mouse click) to their complex co-ordinates.
+	 * Returns 1 for success, 0 if the point was outside of the render */
+	cdbl pixel_to_set(int x, int y);
 
 protected:
 	FPoint *plot_data_;

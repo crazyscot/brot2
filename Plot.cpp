@@ -19,6 +19,7 @@
 #include <string>
 #include <sstream>
 #include <iostream>
+#include <assert.h>
 #include "Fractal.h"
 #include "Plot.h"
 
@@ -45,8 +46,7 @@ void Plot::render() {
 	plot_data_ = new FPoint[width * height];
 	unsigned i,j;
 	FPoint * out = plot_data_;
-	// we have centre, need to work that back to origin
-	cdbl origin = centre - size/2.0;
+	const cdbl _origin = origin();
 	//std::cout << "render centre " << centre << "; size " << size << "; origin " << origin << std::endl;
 
 	complex<double> foo = complex<double>(1,2);
@@ -54,7 +54,7 @@ void Plot::render() {
 	cdbl rowstep = cdbl(0, imag(size) / height);
 	//std::cout << "rowstep " << rowstep << "; colstep "<<colstep << std::endl;
 
-	cdbl render_point = origin;
+	cdbl render_point = _origin;
 	// keep running points.
 	for (j=0; j<height; j++) {
 		for (i=0; i<width; i++) {
@@ -63,7 +63,17 @@ void Plot::render() {
 			++out;
 			render_point += colstep;
 		}
-		render_point.real(real(origin));
+		render_point.real(real(_origin));
 		render_point += rowstep;
 	}
+}
+
+/* Converts an (x,y) pair on the render (say, from a mouse click) to their complex co-ordinates */
+cdbl Plot::pixel_to_set(int x, int y)
+{
+	assert (x>=0 && (unsigned)x<width && y>=0 && (unsigned)y<height);
+	const double pixwide = real(size) / width,
+		  		 pixhigh  = imag(size) / height;
+	cdbl delta (x*pixwide, y*pixhigh);
+	return origin() + delta;
 }
