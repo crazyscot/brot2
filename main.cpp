@@ -21,6 +21,7 @@
 #include <sys/time.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <iostream>
 #include <sstream>
 #include <complex>
 
@@ -78,7 +79,8 @@ static void do_redraw(GtkWidget *widget);
 static void update_entry_float(GtkWidget *entry, double val)
 {
 	char * tmp = 0;
-	asprintf(&tmp, "%f", val);
+	if (-1==asprintf(&tmp, "%f", val))
+		abort(); // gah
 	gtk_entry_set_text(GTK_ENTRY(entry), tmp);
 	free(tmp);
 }
@@ -140,7 +142,7 @@ void do_config(void)
 	gtk_widget_show_all(dlg);
 	gint result = gtk_dialog_run(GTK_DIALOG(dlg));
 	if (result == GTK_RESPONSE_ACCEPT) {
-		double res;
+		double res=0;
 		read_entry_float(c_re, &res);
 		_main_ctx.centre.real(res);
 		read_entry_float(c_im, &res);
@@ -245,6 +247,7 @@ static void do_redraw(GtkWidget *widget)
 	gtk_statusbar_pop(statusbar, 0);
 	std::ostringstream info;
 	info << _main_ctx.plot->info_short() << "; render time was " << timetaken;
+	std::cout << info.str() << std::endl; // TODO: TEMP
 	gtk_statusbar_push(statusbar, 0, info.str().c_str());
 
 	gtk_widget_queue_draw(widget);
