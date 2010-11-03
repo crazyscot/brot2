@@ -20,7 +20,7 @@
 
 map<string,DiscretePalette*> DiscretePalette::registry;
 
-DiscretePalette::DiscretePalette(int n, string nam) : size(n), name(nam) {
+DiscretePalette::DiscretePalette(int n, string nam) : name(nam), size(n) {
 	table = new colour[size];
 	isRegistered = 0;
 }
@@ -35,4 +35,18 @@ DiscretePalette* DiscretePalette::factory(string name, int size, PaletteGenerato
 	int i;
 	for (i=0; i<size; i++)
 		rv->table[i] = genone(i, size);
+	return rv;
+}
+
+static colour generate_greenish(int step, int nsteps) {
+	colour rv;
+	rv.r = step*255/nsteps;
+	rv.g = (nsteps-step)*255/nsteps;
+	rv.b = step*255/nsteps;
+	return rv;
+}
+
+void init_discretes() {
+	DiscretePalette * greenish = DiscretePalette::factory("greenish32", 32, generate_greenish);
+	greenish->reg();
 }

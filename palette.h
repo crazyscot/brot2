@@ -34,7 +34,8 @@ struct colour {
 /* Palette generation function.
  * Will be called repeatedly with 0 <= step <= nsteps, expected to be
  * idempotent.
- * Generators are usually expected to set r=g=b=0 if step==nsteps.
+ * nsteps is the number of colours, NOT the iteration limit! In other
+ * words, don't set r=g=b=0 at nsteps.
  */
 typedef colour (*PaletteGenerator)(int step, int nsteps);
 
@@ -45,12 +46,15 @@ public:
 	DiscretePalette(int newsize, string newname);
 
 	// Destructor will not deregister either, on the grounds that it
-	// shouldn't ever be called on a registered palette!
+	// shouldn't be called on a registered palette... right?
 	virtual ~DiscretePalette();
 
 	const std::string name;
 	const int size; // number of elements in table
 	colour *table; // memory owned by constructor
+
+	colour& operator[](int i) { return table[i]; }
+	const colour& operator[](int i) const { return table[i]; }
 
 	static map<string,DiscretePalette*> registry;
 
@@ -68,11 +72,7 @@ protected:
 	int isRegistered;
 };
 
-// XXX operator[]
-// XXX set up initial palette from the C via the factory and TEST IT.
-
-
-// TODO: ContinuousPalette extends DiscretePalette and
-// allows the results to be cached for discrete use?
+// Initialise our discrete palettes.
+void init_discretes();
 
 #endif /* PALETTE_H_ */
