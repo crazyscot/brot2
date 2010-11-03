@@ -1,28 +1,41 @@
 
-SOURCES:= brot2.c mandelbrot.c
-OBJS   := ${SOURCES:.c=.o}
-DEPS   := $(SOURCES:.c=.d)
+CSRC   := brot2.c mandelbrot.c
+CXXSRC := 
+COBJ   := $(CSRC:.c=.o)
+CXXOBJ := $(CXXSRC:.cpp=.o)
+OBJS   := $(COBJ) $(CXXOBJ)
+DEPS   := $(CSRC:.c=.d) $(CXXSRC:.cpp=.d)
+
 CFLAGS := `pkg-config gtk+-2.0 --cflags` -g -O0
+CXXFLAGS := `pkg-config gtk+-2.0 --cflags` -g -O0
 LDADD  := `pkg-config gtk+-2.0 --libs`
 CC     := gcc
-PACKAGE:= brot2
+CXX    := g++
 
 all: brot2
 
-brot2 : ${OBJS}
-	  ${CC} -o $@ ${OBJS} ${LDADD}
+brot2 : $(OBJS)
+	  $(CXX) -o $@ $(OBJS) $(LDADD)
 
- %.d: %.c
+%.d: %.c
 	 @set -e; rm -f $@; \
 		 $(CC) -MM $(CFLAGS) $< > $@.$$$$; \
 		 sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@; \
 		 rm -f $@.$$$$
 
+%.d: %.cpp
+	 @set -e; rm -f $@; \
+		 $(CXX) -MM $(CXXFLAGS) $< > $@.$$$$; \
+		 sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@; \
+		 rm -f $@.$$$$
+
 .c.o:
-	  ${CC} ${CFLAGS} -c $<
+	  $(CC) $(CFLAGS) -c $<
+
+.cpp.o:
+	  $(CXX) $(CXXFLAGS) -c $<
 
 clean:
 	rm -f $(OBJS) $(DEPS)
 
 include $(DEPS)
-
