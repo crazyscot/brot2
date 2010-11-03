@@ -6,8 +6,9 @@ CXXOBJ := $(CXXSRC:.cpp=.o)
 OBJS   := $(COBJ) $(CXXOBJ)
 DEPS   := $(CSRC:.c=.d) $(CXXSRC:.cpp=.d)
 
-CFLAGS := `pkg-config gtk+-2.0 --cflags` -g -O0
-CXXFLAGS := `pkg-config gtk+-2.0 --cflags` -g -O0
+COMMON_CFLAGS := `pkg-config gtk+-2.0 --cflags` -g -O0 -Wall -Werror
+CFLAGS := $(COMMON_CFLAGS)
+CXXFLAGS := $(COMMON_CFLAGS)
 LDADD  := `pkg-config gtk+-2.0 --libs`
 CC     := gcc
 CXX    := g++
