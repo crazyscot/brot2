@@ -273,53 +273,43 @@ static gint dragrect_origin_x, dragrect_origin_y,
 
 static gboolean button_press_event( GtkWidget *widget, GdkEventButton *event )
 {
-#if 0 // FIXME
 #define ZOOM_FACTOR 2.0f
 	if (render != NULL) {
 		int redraw=0;
-		complexF new_ctr;
-		if (1==mandelbrot_pixel_to_set(main_ctx, event->x, event->y, &new_ctr)) {
-			//printf("button %d @ %d,%d -> %f,%f\n", event->button, (int)event->x, (int)event->y, new_ctr.re, new_ctr.im);
-			if (event->button >= 1 && event->button <= 3) {
-				main_ctx->centre.re = new_ctr.re;
-				main_ctx->centre.im = new_ctr.im;
-				switch(event->button) {
-				case 1:
-					// LEFT: zoom in a bit
-					main_ctx->size.re /= ZOOM_FACTOR;
-					main_ctx->size.im /= ZOOM_FACTOR;
-					break;
-				case 3:
-					// RIGHT: zoom out
-					main_ctx->size.re *= ZOOM_FACTOR;
-					main_ctx->size.im *= ZOOM_FACTOR;
-					break;
-				case 2:
-					// MIDDLE: simple pan
-					break;
-				}
-				redraw = 1;
+		cdbl new_ctr = _main_ctx.plot->pixel_to_set(event->x, event->y);
+
+		if (event->button >= 1 && event->button <= 3) {
+			_main_ctx.centre = new_ctr;
+			switch(event->button) {
+			case 1:
+				// LEFT: zoom in a bit
+				_main_ctx.size /= ZOOM_FACTOR;
+				break;
+			case 3:
+				// RIGHT: zoom out
+				_main_ctx.size *= ZOOM_FACTOR;
+				break;
+			case 2:
+				// MIDDLE: simple pan
+				break;
 			}
-			if (event->button==8) {
-				// mouse down: store it
-				dragrect_origin_x = dragrect_current_x = (int)event->x;
-				dragrect_origin_y = dragrect_current_y = (int)event->y;
-				dragrect_active = 1;
-			}
+			redraw = 1;
+		}
+		if (event->button==8) {
+			// mouse down: store it
+			dragrect_origin_x = dragrect_current_x = (int)event->x;
+			dragrect_origin_y = dragrect_current_y = (int)event->y;
+			dragrect_active = 1;
 		}
 		if (redraw)
 			do_redraw(window); // TODO: asynch drawing
 	}
 
 	return TRUE;
-#else
-	return FALSE;
-#endif
 }
 
 static gboolean button_release_event( GtkWidget *widget, GdkEventButton *event )
 {
-#if 0 // XXX FIXME
 	if (event->button != 8)
 		return FALSE;
 
@@ -332,28 +322,16 @@ static gboolean button_release_event( GtkWidget *widget, GdkEventButton *event )
 		int b = MAX(event->y, dragrect_origin_y);
 
 		// centres
-		complexF TL, BR;
-		if (0==mandelbrot_pixel_to_set(main_ctx, l, t, &TL)) {
-			printf("argh, top left is outside of current render\n"); //XXX
-			return FALSE;
-		}
-		if (0==mandelbrot_pixel_to_set(main_ctx, r, b, &BR)) {
-			printf("argh, bottom right is outside of current render\n"); //XXX
-			return FALSE;
-		}
-		main_ctx->centre.re = (TL.re + BR.re) / 2;
-		main_ctx->centre.im = (TL.im + BR.im) / 2;
-		main_ctx->size.re = BR.re - TL.re;
-		main_ctx->size.im = BR.im - TL.im;
+		cdbl TL = _main_ctx.plot->pixel_to_set(l,t);
+		cdbl BR = _main_ctx.plot->pixel_to_set(r,b);
+		_main_ctx.centre = (TL+BR)/2.0;
+		_main_ctx.size = BR - TL;
 
 		dragrect_active = 0;
 
 		do_redraw(window); // TODO: asynch drawing
 	}
 	return TRUE;
-#else
-	return FALSE;
-#endif
 }
 
 static void draw_rect(GtkWidget *widget, GdkPixmap *pix, int L, int R, int T, int B)
@@ -392,7 +370,7 @@ static gboolean motion_notify_event( GtkWidget *widget, GdkEventMotion *event )
 	gtk_widget_queue_draw (widget);
 	// TODO queue_draw_area() instead
 
-	//printf("button %d @ %d,%d\n", state, x, y);//XXX
+	//printf("button %d @ %d,%d\n", state, x, y);
 	return TRUE;
 }
 
