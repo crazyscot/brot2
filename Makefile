@@ -1,12 +1,12 @@
 
-CSRC   := brot2.c mandelbrot.c
-CXXSRC := palette.cpp Fractal.cpp Plot.cpp
+CSRC   := 
+CXXSRC := main.cpp palette.cpp Fractal.cpp Plot.cpp
 COBJ   := $(CSRC:.c=.o)
 CXXOBJ := $(CXXSRC:.cpp=.o)
 OBJS   := $(COBJ) $(CXXOBJ)
 DEPS   := $(CSRC:.c=.d) $(CXXSRC:.cpp=.d)
 
-COMMON_CFLAGS := `pkg-config gtk+-2.0 --cflags` -g -O0 -Wall -Werror
+COMMON_CFLAGS := `pkg-config gtk+-2.0 --cflags` -g -O0 -Wall -Werror -std=c++0x
 CFLAGS := $(COMMON_CFLAGS)
 CXXFLAGS := $(COMMON_CFLAGS)
 LDADD  := `pkg-config gtk+-2.0 --libs`

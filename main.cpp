@@ -1,5 +1,5 @@
 /*
-    brot2.c: Yet Another Mandelbrot Plotter (main program)
+    brot2/main.cpp: Yet Another Mandelbrot Plotter (main program)
     Copyright (C) 2010 Ross Younger
 
     This program is free software: you can redistribute it and/or modify
@@ -16,12 +16,17 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#define _GNU_SOURCE
+#define _GNU_SOURCE 1
 #include <gtk/gtk.h>
 #include <sys/time.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include "mandelbrot.h"
+#include <sstream>
+#include <complex>
+
+#include "Plot.h"
+#include "Fractal.h"
+#include "palette.h"
 
 #define MAX(a,b)	(((a) > (b)) ? (a) : (b))
 #define MIN(a,b)	(((a) < (b)) ? (a) : (b))
@@ -29,7 +34,44 @@
 static GtkWidget *window;
 static GdkPixmap *render;
 static GtkStatusbar *statusbar;
-static mandelbrot_ctx *main_ctx;
+
+struct _ctx {
+	Fractal *fractal;
+	cdbl centre, size;
+	unsigned width, height, maxiter;
+	Plot * plot;
+	DiscretePalette * pal;
+} _main_ctx;
+
+static void render_gdk(GdkPixmap *dest, GdkGC *gc, const struct _ctx & ctx) {
+	const gint rowbytes = ctx.width * 3;
+	const gint rowstride = rowbytes + 8-(rowbytes%8);
+	guchar *buf = new guchar[rowstride * ctx.height]; // packed 24-bit data
+
+	const FPoint * data = ctx.plot->plot_data();
+
+	unsigned i,j;
+	for (j=0; j<ctx.height; j++) {
+		guchar *row = &buf[j*rowstride];
+		for (i=0; i<ctx.width; i++) {
+			if (data->iter == ctx.maxiter) {
+				row[0] = row[1] = row[2] = 0;
+			} else {
+				colour& col = (*ctx.pal)[data->iter];
+				row[0] = col.r;
+				row[1] = col.g;
+				row[2] = col.b;
+			}
+			row += 3;
+			++data;
+		}
+	}
+
+	gdk_draw_rgb_image(dest, gc,
+			0, 0, ctx.width, ctx.height, GDK_RGB_DITHER_NONE, buf, rowstride);
+
+	delete[] buf;
+}
 
 static void do_redraw(GtkWidget *widget);
 
@@ -51,10 +93,11 @@ static void read_entry_float(GtkWidget *entry, double *val_out)
 	}
 }
 
-void configure_mandelbrot(mandelbrot_ctx *ctx)
+void do_config(void)
 {
 	// TODO: generate from renderer parameters!
-	GtkWidget *dlg = gtk_dialog_new_with_buttons("Configuration", GTK_WINDOW(window), GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT,
+	GtkWidget *dlg = gtk_dialog_new_with_buttons("Configuration", GTK_WINDOW(window),
+			GtkDialogFlags(GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT),
 			GTK_STOCK_OK, GTK_RESPONSE_ACCEPT,
 			GTK_STOCK_CANCEL, GTK_RESPONSE_REJECT,
 			NULL);
@@ -66,13 +109,13 @@ void configure_mandelbrot(mandelbrot_ctx *ctx)
 
 	GtkWidget *c_re, *c_im, *size_re, *size_im;
 	c_re = gtk_entry_new();
-	update_entry_float(c_re, ctx->centre.re);
+	update_entry_float(c_re, real(_main_ctx.centre));
 	c_im = gtk_entry_new();
-	update_entry_float(c_im, ctx->centre.im);
+	update_entry_float(c_im, imag(_main_ctx.centre));
 	size_re = gtk_entry_new();
-	update_entry_float(size_re, ctx->size.re);
+	update_entry_float(size_re, real(_main_ctx.size));
 	size_im = gtk_entry_new();
-	update_entry_float(size_im, ctx->size.im);
+	update_entry_float(size_im, imag(_main_ctx.size));
 
 	GtkWidget * box = gtk_table_new(4, 2, TRUE);
 
@@ -97,19 +140,19 @@ void configure_mandelbrot(mandelbrot_ctx *ctx)
 	gtk_widget_show_all(dlg);
 	gint result = gtk_dialog_run(GTK_DIALOG(dlg));
 	if (result == GTK_RESPONSE_ACCEPT) {
-		read_entry_float(c_re, &ctx->centre.re);
-		read_entry_float(c_im, &ctx->centre.im);
-		read_entry_float(size_re, &ctx->size.re);
-		read_entry_float(size_im, &ctx->size.im);
+		double res;
+		read_entry_float(c_re, &res);
+		_main_ctx.centre.real(res);
+		read_entry_float(c_im, &res);
+		_main_ctx.centre.imag(res);
+		read_entry_float(size_re, &res);
+		_main_ctx.size.real(res);
+		read_entry_float(size_im, &res);
+		_main_ctx.size.imag(res);
 		do_redraw(window);
 		// FIXME: This is a bit nasty, but will be fixed when renders go asynch.
 	}
 	gtk_widget_destroy(dlg);
-}
-
-void do_config(void)
-{
-	configure_mandelbrot(main_ctx);
 }
 
 struct timeval tv_subtract (struct timeval tv1, struct timeval tv2)
@@ -136,11 +179,13 @@ static void destroy_event(GtkWidget *widget, gpointer data)
 	gtk_main_quit();
 }
 
+#define _ (char*)
 static GtkItemFactoryEntry menu_items[] = {
-	{ "/_Main", 0, 0, 0, "<Branch>" },
-	{ "/Main/_Params", "<control>P", do_config, 0, "<Item>" },
-	{ "/Main/_Quit", "<control>Q", gtk_main_quit, 0, "<Item>" },
+	{ _"/_Main", 0, 0, 0, _"<Branch>" },
+	{ _"/Main/_Params", _"<control>P", do_config, 0, _"<Item>" },
+	{ _"/Main/_Quit", _"<control>Q", gtk_main_quit, 0, _"<Item>" },
 };
+#undef _
 
 static gint nmenu_items = sizeof (menu_items) / sizeof (menu_items[0]);
 
@@ -180,23 +225,27 @@ static void do_redraw(GtkWidget *widget)
 			widget->allocation.width,
 			widget->allocation.height,
 			-1);
+	_main_ctx.width = widget->allocation.width;
+	_main_ctx.height = widget->allocation.height;
+
 	gtk_statusbar_pop(statusbar, 0);
 	gtk_statusbar_push(statusbar, 0, "Drawing..."); // FIXME: Doesn't update. Possibly leave this until we get computation multithreaded and asynch?
 	gettimeofday(&tv_before,0);
-	mandelbrot_draw(main_ctx, render, widget->style->white_gc,
-			0, 0, widget->allocation.width, widget->allocation.height);
+	if (_main_ctx.plot) delete _main_ctx.plot;
+	_main_ctx.plot = new Plot(_main_ctx.fractal, _main_ctx.centre, _main_ctx.size, _main_ctx.maxiter, _main_ctx.width, _main_ctx.height);
+	_main_ctx.plot->plot_data();
+	// And now turn it into an RGB.
+	render_gdk(render, widget->style->white_gc, _main_ctx);
+	// TODO convert to cairo.
 	gettimeofday(&tv_after,0);
 
 	tv_diff = tv_subtract(tv_after, tv_before);
 	double timetaken = tv_diff.tv_sec + (tv_diff.tv_usec / 1e6);
 
 	gtk_statusbar_pop(statusbar, 0);
-	const char * info = mandelbrot_info(main_ctx);
-	char * full_info = 0;
-	asprintf(&full_info, "%s; render time was %lf", info, timetaken);
-	gtk_statusbar_push(statusbar, 0, full_info);
-	free((char*)info);
-	free(full_info);
+	std::ostringstream info;
+	info << _main_ctx.plot->info_short() << "; render time was " << timetaken;
+	gtk_statusbar_push(statusbar, 0, info.str().c_str());
 
 	gtk_widget_queue_draw(widget);
 }
@@ -224,6 +273,7 @@ static gint dragrect_origin_x, dragrect_origin_y,
 
 static gboolean button_press_event( GtkWidget *widget, GdkEventButton *event )
 {
+#if 0 // FIXME
 #define ZOOM_FACTOR 2.0f
 	if (render != NULL) {
 		int redraw=0;
@@ -262,10 +312,14 @@ static gboolean button_press_event( GtkWidget *widget, GdkEventButton *event )
 	}
 
 	return TRUE;
+#else
+	return FALSE;
+#endif
 }
 
 static gboolean button_release_event( GtkWidget *widget, GdkEventButton *event )
 {
+#if 0 // XXX FIXME
 	if (event->button != 8)
 		return FALSE;
 
@@ -297,6 +351,9 @@ static gboolean button_release_event( GtkWidget *widget, GdkEventButton *event )
 		do_redraw(window); // TODO: asynch drawing
 	}
 	return TRUE;
+#else
+	return FALSE;
+#endif
 }
 
 static void draw_rect(GtkWidget *widget, GdkPixmap *pix, int L, int R, int T, int B)
@@ -321,7 +378,7 @@ static gboolean motion_notify_event( GtkWidget *widget, GdkEventMotion *event )
 	{
 		x = event->x;
 		y = event->y;
-		state = event->state;
+		state = GdkModifierType(event->state);
 	}
 
 	// turn off previous hilight rect
@@ -344,12 +401,11 @@ int main (int argc, char**argv)
 	GtkWidget *main_vbox, *menubar;
 	GtkWidget *canvas;
 
-	main_ctx = mandelbrot_new();
-	// TODO proper configury. Use default params of a drawer.
-	main_ctx->centre.re = -0.7;
-	main_ctx->centre.im = 0.0;
-	main_ctx->size.re = 3.0;
-	main_ctx->size.im = 3.0;
+	_main_ctx.fractal = new Mandelbrot();
+	_main_ctx.centre = { -0.7, 0.0 };
+	_main_ctx.size = { 3.0, 3.0 };
+	_main_ctx.maxiter = 1000;
+	_main_ctx.pal = DiscretePalette::registry["greenish32"];
 
 	gtk_init(&argc, &argv);
 	window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
@@ -394,6 +450,6 @@ int main (int argc, char**argv)
 
 	gtk_widget_show_all(window);
 	gtk_main();
-	mandelbrot_destroy(&main_ctx);
+	delete _main_ctx.plot;
 	return 0;
 }
