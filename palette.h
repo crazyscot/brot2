@@ -53,8 +53,8 @@ public:
 	const int size; // number of elements in table
 	colour *table; // memory owned by constructor
 
-	colour& operator[](int i) { return table[i]; }
-	const colour& operator[](int i) const { return table[i]; }
+	colour& operator[](int i) { return table[i%size]; }
+	const colour& operator[](int i) const { return table[i%size]; }
 
 	static map<string,DiscretePalette*> registry;
 
@@ -71,8 +71,5 @@ public:
 protected:
 	int isRegistered;
 };
-
-// Initialise our discrete palettes.
-void init_discretes();
 
 #endif /* PALETTE_H_ */
