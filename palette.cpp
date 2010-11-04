@@ -46,17 +46,29 @@ static colour generate_greenish(int step, int nsteps) {
 	return rv;
 }
 
+static colour generate_redish(int step, int nsteps) {
+	colour rv;
+	rv.r = (nsteps-step)*255/nsteps;
+	rv.g = step*255/nsteps;
+	rv.b = step*255/nsteps;
+	return rv;
+}
+
 // Nothing else sees this class, but it exists to create static instances.
 class _all {
-	DiscretePalette * greenish;
+	DiscretePalette *greenish, *redish;
 public:
 	_all() {
 		greenish = DiscretePalette::factory("greenish32", 32, generate_greenish);
 		greenish->reg();
+		redish = DiscretePalette::factory("redish32", 32, generate_redish);
+		redish->reg();
 	};
 	~_all() {
 		greenish->dereg();
 		delete greenish;
+		redish->dereg();
+		delete redish;
 	};
 };
 
