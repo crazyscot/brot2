@@ -35,6 +35,10 @@
 static GtkWidget *window;
 static GdkPixmap *render;
 static GtkStatusbar *statusbar;
+static GtkWidget * colour_menu;
+
+static void do_redraw(GtkWidget *widget);
+static void recolour(GtkWidget * widget);
 
 struct _ctx {
 	Fractal *fractal;
@@ -43,6 +47,7 @@ struct _ctx {
 	Plot * plot;
 	DiscretePalette * pal;
 } _main_ctx;
+
 
 static void render_gdk(GdkPixmap *dest, GdkGC *gc, const struct _ctx & ctx) {
 	const gint rowbytes = ctx.width * 3;
@@ -73,8 +78,6 @@ static void render_gdk(GdkPixmap *dest, GdkGC *gc, const struct _ctx & ctx) {
 
 	delete[] buf;
 }
-
-static void do_redraw(GtkWidget *widget);
 
 static void update_entry_float(GtkWidget *entry, double val)
 {
@@ -216,6 +219,38 @@ static GtkWidget *get_menubar_menu( GtkWidget  *window )
 	return gtk_item_factory_get_widget (item_factory, "<main>");
 }
 
+static void colour_menu_selection(void* p)
+{
+	DiscretePalette * sel = (DiscretePalette*)p;
+	_main_ctx.pal = sel;
+	//std::cout<<"selected "<<sel->name <<std::endl;
+	recolour(window);
+}
+
+static void setup_colour_menu(GtkWidget *menubar)
+{
+	colour_menu = gtk_menu_new();
+	std::map<std::string,DiscretePalette*>::iterator it;
+	for (it = DiscretePalette::registry.begin(); it != DiscretePalette::registry.end(); it++) {
+		GtkWidget * item = gtk_menu_item_new_with_label(it->first.c_str());
+		gtk_menu_append(GTK_MENU(colour_menu), item);
+		gtk_signal_connect_object(GTK_OBJECT(item), "activate", GTK_SIGNAL_FUNC(colour_menu_selection), it->second);
+		gtk_widget_show(item);
+	}
+
+    GtkWidget* colour_item = gtk_menu_item_new_with_mnemonic ("_Colour");
+    gtk_widget_show (colour_item);
+
+    gtk_menu_item_set_submenu (GTK_MENU_ITEM (colour_item), colour_menu);
+    gtk_menu_bar_append(GTK_MENU_BAR(menubar), colour_item);
+}
+
+static void recolour(GtkWidget * widget)
+{
+	render_gdk(render, widget->style->white_gc, _main_ctx);
+	gtk_widget_queue_draw(widget);
+}
+
 // Redraws us onto a given widget (window), then queues an expose event
 static void do_redraw(GtkWidget *widget)
 {
@@ -237,7 +272,7 @@ static void do_redraw(GtkWidget *widget)
 	_main_ctx.plot = new Plot(_main_ctx.fractal, _main_ctx.centre, _main_ctx.size, _main_ctx.maxiter, _main_ctx.width, _main_ctx.height);
 	_main_ctx.plot->plot_data();
 	// And now turn it into an RGB.
-	render_gdk(render, widget->style->white_gc, _main_ctx);
+	recolour(widget);
 	// TODO convert to cairo.
 	gettimeofday(&tv_after,0);
 
@@ -400,6 +435,7 @@ int main (int argc, char**argv)
 	gtk_container_add (GTK_CONTAINER (window), main_vbox);
 
 	menubar = get_menubar_menu(window);
+	setup_colour_menu(menubar);
 
 	canvas = gtk_drawing_area_new();
 	gtk_widget_set_size_request (GTK_WIDGET(canvas), 200, 200);
