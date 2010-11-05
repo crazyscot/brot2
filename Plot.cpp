@@ -33,11 +33,18 @@ Plot::~Plot() {
 }
 
 string Plot::info_short() {
+	char buf[128];
 	std::ostringstream rv;
 	rv << fract->name
-	   << ": centre=(" << real(centre) << "," << imag(centre) <<
-			"), size=(" << real(size) << "," << imag(size) <<
-			"), maxiter=" << maxiter;
+	   << ": ctr=(" << real(centre) << "," << imag(centre) << ")";
+
+	double avgzoom = 2.0 / (real(size)+imag(size));
+	unsigned rr = snprintf(buf, sizeof buf, "%g", avgzoom);
+	assert (rr < sizeof buf);
+	rv << ", zoom=" << buf;
+	rv << ", max=" << maxiter;
+
+	//rv <<   "size=(" << scientific << real(size) << "," << imag(size) << ")";
 	return rv.str();
 }
 
