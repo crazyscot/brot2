@@ -21,22 +21,20 @@
 
 map<string,DiscretePalette*> DiscretePalette::registry;
 
-DiscretePalette::DiscretePalette(int n, string nam) : name(nam), size(n) {
+DiscretePalette::DiscretePalette(int n, string nam) : name(nam), size(n), isRegistered(0) {
 	table = new rgb[size];
-	isRegistered = 0;
 }
 
 DiscretePalette::~DiscretePalette() {
-	delete[] table;
+	if (table) delete[] table;
+	dereg();
 }
 
-DiscretePalette* DiscretePalette::factory(string name, int size, PaletteGenerator genfn)
-{
-	DiscretePalette * rv = new DiscretePalette(size,name);
-	int i;
-	for (i=0; i<size; i++)
-		rv->table[i] = genfn(i, size);
-	return rv;
+DiscretePalette::DiscretePalette(string nam, int n, PaletteGenerator gen_fn) : name(nam), size(n) {
+	table = new rgb[size];
+	for (int i=0; i<size; i++)
+		table[i] = gen_fn(i, size);
+	reg();
 }
 
 static rgb generate_greenish(int step, int nsteps) {
@@ -93,29 +91,9 @@ static rgb generate_orange_green(int step, int nsteps) {
 				255/nsteps);
 }
 
-// Nothing else sees this class, but it exists to create static instances.
-class _all {
-	DiscretePalette *greenish32, *redish32, *blueish16,
-					*hsv16, *orange_green;
-public:
-	_all() {
-		greenish32 = DiscretePalette::factory("green+pink", 32, generate_greenish);
-		greenish32->reg();
-		redish32 = DiscretePalette::factory("red-cyan", 32, generate_redish);
-		redish32->reg();
-		blueish16 = DiscretePalette::factory("blue-purple", 16, generate_blueish);
-		blueish16->reg();
-		hsv16 = DiscretePalette::factory("Strident primaries", 100, generate_hsv);
-		hsv16->reg();
-		orange_green = DiscretePalette::factory("orange-green", 16, generate_orange_green);
-		orange_green->reg();
-	};
-	~_all() {
-		greenish32->dereg();
-		delete greenish32;
-		redish32->dereg();
-		delete redish32;
-	};
-};
-
-static _all _autoreg;
+// Static instances:
+DiscretePalette green_pink("green+pink", 32, generate_greenish);
+DiscretePalette blue_purple("blue-purple", 16, generate_blueish);
+DiscretePalette red_cyan("red-cyan", 32, generate_redish);
+DiscretePalette hsv100("strident primaries", 100, generate_hsv);
+DiscretePalette orange_green("orange-green", 16, generate_orange_green);

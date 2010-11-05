@@ -53,11 +53,13 @@ typedef rgb (*PaletteGenerator)(int step, int nsteps);
 class DiscretePalette {
 
 public:
-	// Constructor does *NOT* register; caller may do so at their choice.
+	// Base constructor does *NOT* register the class; caller may do so at their choice when they've set up the table.
 	DiscretePalette(int newsize, string newname);
 
-	// Destructor will not deregister either, on the grounds that it
-	// shouldn't be called on a registered palette... right?
+	// Construction, initialisation and registration in one go.
+	DiscretePalette(string newname, int newsize, PaletteGenerator gen_fn);
+
+	// Destructor will deregister iff the instance was registered.
 	virtual ~DiscretePalette();
 
 	const std::string name;
@@ -76,8 +78,6 @@ public:
 			registry.erase(name);
 		isRegistered = 0;
 	}
-
-	static DiscretePalette* factory(string name, int size, PaletteGenerator gen);
 
 protected:
 	int isRegistered;
