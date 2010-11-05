@@ -17,6 +17,7 @@
 */
 
 #include "palette.h"
+#include <math.h>
 
 map<string,DiscretePalette*> DiscretePalette::registry;
 
@@ -54,21 +55,67 @@ static colour generate_redish(int step, int nsteps) {
 	return rv;
 }
 
+static colour generate_blueish(int step, int nsteps) {
+	colour rv;
+	rv.r = (nsteps-step)*128/nsteps;
+	rv.g = step*127/nsteps;
+	rv.b = 128+step*127/nsteps;
+	return rv;
+}
+
+hsv::operator colour() {
+	if (isnan(h)) return colour(v,v,v); // "undefined" case
+	float hh = 6.0*h/255.0, ss = s/255.0, vv = v/255.0, m, n, f;
+	int i;
+
+	if (hh == 0) hh=0.01;
+
+    i = floor(hh);
+	f = hh - i;
+	if(!(i & 1)) f = 1 - f; // if i is even
+	m = vv * (1 - ss);
+	n = vv * (1 - ss * f);
+	switch (i)
+	{
+	case 6:
+	case 0: return colour(v, n, m);
+	case 1: return colour(n, v, m);
+	case 2: return colour(m, v, n);
+	case 3: return colour(m, n, v);
+	case 4: return colour(n, m, v);
+	case 5: return colour(v, m, n);
+	}
+	return colour(0, 0, 0);
+}
+
+static colour generate_hsv(int step, int nsteps) {
+	hsv c(255.0*step/nsteps, 255, 255);
+	return c;
+}
+
 // Nothing else sees this class, but it exists to create static instances.
 class _all {
-	DiscretePalette *greenish, *redish;
+	DiscretePalette *greenish32, *redish32, *greenish16, *blueish16, *hsv16;
 public:
 	_all() {
-		greenish = DiscretePalette::factory("greenish32", 32, generate_greenish);
-		greenish->reg();
-		redish = DiscretePalette::factory("redish32", 32, generate_redish);
-		redish->reg();
+		greenish32 = DiscretePalette::factory("greenish32", 32, generate_greenish);
+		greenish32->reg();
+		greenish16 = DiscretePalette::factory("greenish16", 16, generate_greenish);
+		greenish16->reg();
+		redish32 = DiscretePalette::factory("redish32", 32, generate_redish);
+		redish32->reg();
+		blueish16 = DiscretePalette::factory("blueish16", 16, generate_blueish);
+		blueish16->reg();
+		hsv16 = DiscretePalette::factory("hsv16", 16, generate_hsv);
+		hsv16->reg();
 	};
 	~_all() {
-		greenish->dereg();
-		delete greenish;
-		redish->dereg();
-		delete redish;
+		greenish32->dereg();
+		delete greenish32;
+		greenish16->dereg();
+		delete greenish16;
+		redish32->dereg();
+		delete redish32;
 	};
 };
 

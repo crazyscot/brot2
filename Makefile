@@ -9,7 +9,7 @@ DEPS   := $(CSRC:.c=.d) $(CXXSRC:.cpp=.d)
 COMMON_CFLAGS := `pkg-config gtk+-2.0 --cflags` -g -O0 -Wall -Werror -std=c++0x
 CFLAGS := $(COMMON_CFLAGS)
 CXXFLAGS := $(COMMON_CFLAGS)
-LDADD  := `pkg-config gtk+-2.0 --libs`
+LDADD  := `pkg-config gtk+-2.0 --libs` -lm
 CC     := gcc
 CXX    := g++
 

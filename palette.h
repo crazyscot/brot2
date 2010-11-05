@@ -27,8 +27,18 @@ using namespace std;
 
 typedef struct colour colour;
 
+class hsv {
+public:
+	hsv() {};
+	hsv(guchar hh,guchar ss,guchar vv) : h(hh), s(ss), v(vv) {};
+	guchar h,s,v;
+	operator colour();
+};
+
 struct colour {
 	guchar r,g,b;
+	colour () {};
+	colour (guchar rr, guchar gg, guchar bb) : r(rr), g(gg), b(bb) {};
 };
 
 /* Palette generation function.
