@@ -63,7 +63,7 @@ static void render_gdk(GdkPixmap *dest, GdkGC *gc, const struct _ctx & ctx) {
 			if (data->iter == ctx.maxiter) {
 				row[0] = row[1] = row[2] = 0;
 			} else {
-				colour& col = (*ctx.pal)[data->iter];
+				rgb& col = (*ctx.pal)[data->iter];
 				row[0] = col.r;
 				row[1] = col.g;
 				row[2] = col.b;

@@ -22,7 +22,7 @@
 map<string,DiscretePalette*> DiscretePalette::registry;
 
 DiscretePalette::DiscretePalette(int n, string nam) : name(nam), size(n) {
-	table = new colour[size];
+	table = new rgb[size];
 	isRegistered = 0;
 }
 
@@ -39,32 +39,27 @@ DiscretePalette* DiscretePalette::factory(string name, int size, PaletteGenerato
 	return rv;
 }
 
-static colour generate_greenish(int step, int nsteps) {
-	colour rv;
-	rv.r = step*255/nsteps;
-	rv.g = (nsteps-step)*255/nsteps;
-	rv.b = step*255/nsteps;
-	return rv;
+static rgb generate_greenish(int step, int nsteps) {
+	return rgb(step*255/nsteps,
+			   (nsteps-step)*255/nsteps,
+			   step*255/nsteps);
 }
 
-static colour generate_redish(int step, int nsteps) {
-	colour rv;
-	rv.r = (nsteps-step)*255/nsteps;
-	rv.g = step*255/nsteps;
-	rv.b = step*255/nsteps;
-	return rv;
+static rgb generate_redish(int step, int nsteps) {
+	return rgb((nsteps-step)*255/nsteps,
+			   step*255/nsteps,
+			   step*255/nsteps);
 }
 
-static colour generate_blueish(int step, int nsteps) {
-	colour rv;
-	rv.r = (nsteps-step)*128/nsteps;
-	rv.g = step*127/nsteps;
-	rv.b = 128+step*127/nsteps;
-	return rv;
+static rgb generate_blueish(int step, int nsteps) {
+	return rgb((nsteps-step)*128/nsteps,
+				step*127/nsteps,
+				128+step*127/nsteps);
 }
 
-hsv::operator colour() {
-	if (isnan(h)) return colour(v,v,v); // "undefined" case
+// HSV->RGB conversion algorithm found under a rock on the 'net.
+hsv::operator rgb() {
+	if (isnan(h)) return rgb(v,v,v); // "undefined" case
 	float hh = 6.0*h/255.0, ss = s/255.0, vv = v/255.0, m, n, f;
 	int i;
 
@@ -78,19 +73,18 @@ hsv::operator colour() {
 	switch (i)
 	{
 	case 6:
-	case 0: return colour(v, n, m);
-	case 1: return colour(n, v, m);
-	case 2: return colour(m, v, n);
-	case 3: return colour(m, n, v);
-	case 4: return colour(n, m, v);
-	case 5: return colour(v, m, n);
+	case 0: return rgb(v, n, m);
+	case 1: return rgb(n, v, m);
+	case 2: return rgb(m, v, n);
+	case 3: return rgb(m, n, v);
+	case 4: return rgb(n, m, v);
+	case 5: return rgb(v, m, n);
 	}
-	return colour(0, 0, 0);
+	return rgb(0, 0, 0);
 }
 
-static colour generate_hsv(int step, int nsteps) {
-	hsv c(255.0*step/nsteps, 255, 255);
-	return c;
+static rgb generate_hsv(int step, int nsteps) {
+	return hsv(255.0*step/nsteps, 255, 255);
 }
 
 // Nothing else sees this class, but it exists to create static instances.

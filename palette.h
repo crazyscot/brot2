@@ -25,20 +25,21 @@
 
 using namespace std;
 
-typedef struct colour colour;
+typedef struct rgb colour;
 
 class hsv {
 public:
 	hsv() {};
 	hsv(guchar hh,guchar ss,guchar vv) : h(hh), s(ss), v(vv) {};
 	guchar h,s,v;
-	operator colour();
+	operator rgb();
 };
 
-struct colour {
+class rgb {
+public:
 	guchar r,g,b;
-	colour () {};
-	colour (guchar rr, guchar gg, guchar bb) : r(rr), g(gg), b(bb) {};
+	rgb () {};
+	rgb (guchar rr, guchar gg, guchar bb) : r(rr), g(gg), b(bb) {};
 };
 
 /* Palette generation function.
@@ -47,7 +48,7 @@ struct colour {
  * nsteps is the number of colours, NOT the iteration limit! In other
  * words, don't set r=g=b=0 at nsteps.
  */
-typedef colour (*PaletteGenerator)(int step, int nsteps);
+typedef rgb (*PaletteGenerator)(int step, int nsteps);
 
 class DiscretePalette {
 
@@ -61,10 +62,10 @@ public:
 
 	const std::string name;
 	const int size; // number of elements in table
-	colour *table; // memory owned by constructor
+	rgb *table; // memory owned by constructor
 
-	colour& operator[](int i) { return table[i%size]; }
-	const colour& operator[](int i) const { return table[i%size]; }
+	rgb& operator[](int i) { return table[i%size]; }
+	const rgb& operator[](int i) const { return table[i%size]; }
 
 	static map<string,DiscretePalette*> registry;
 
