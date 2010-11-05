@@ -28,7 +28,7 @@ void Mandelbrot::plot_pixel(const cdbl origin, const unsigned maxiter, unsigned 
 {
 	unsigned iter = 0;
 	cdbl z = cdbl(0,0);
-	while (abs(z) <= 4.0 && iter < maxiter) {
+	while (abs(z) <= 2.0 && iter < maxiter) {
 		z = z*z + origin;
 		++iter;
 	}
