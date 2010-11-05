@@ -30,12 +30,12 @@ DiscretePalette::~DiscretePalette() {
 	delete[] table;
 }
 
-DiscretePalette* DiscretePalette::factory(string name, int size, PaletteGenerator genone)
+DiscretePalette* DiscretePalette::factory(string name, int size, PaletteGenerator genfn)
 {
 	DiscretePalette * rv = new DiscretePalette(size,name);
 	int i;
 	for (i=0; i<size; i++)
-		rv->table[i] = genone(i, size);
+		rv->table[i] = genfn(i, size);
 	return rv;
 }
 
@@ -87,27 +87,32 @@ static rgb generate_hsv(int step, int nsteps) {
 	return hsv(255.0*step/nsteps, 255, 255);
 }
 
+static rgb generate_orange_green(int step, int nsteps) {
+	return rgb((nsteps-step)*255/nsteps,
+				255*acos(step/nsteps),
+				255/nsteps);
+}
+
 // Nothing else sees this class, but it exists to create static instances.
 class _all {
-	DiscretePalette *greenish32, *redish32, *greenish16, *blueish16, *hsv16;
+	DiscretePalette *greenish32, *redish32, *blueish16,
+					*hsv16, *orange_green;
 public:
 	_all() {
-		greenish32 = DiscretePalette::factory("greenish32", 32, generate_greenish);
+		greenish32 = DiscretePalette::factory("green+pink", 32, generate_greenish);
 		greenish32->reg();
-		greenish16 = DiscretePalette::factory("greenish16", 16, generate_greenish);
-		greenish16->reg();
-		redish32 = DiscretePalette::factory("redish32", 32, generate_redish);
+		redish32 = DiscretePalette::factory("red-cyan", 32, generate_redish);
 		redish32->reg();
-		blueish16 = DiscretePalette::factory("blueish16", 16, generate_blueish);
+		blueish16 = DiscretePalette::factory("blue-purple", 16, generate_blueish);
 		blueish16->reg();
-		hsv16 = DiscretePalette::factory("hsv16", 16, generate_hsv);
+		hsv16 = DiscretePalette::factory("Strident primaries", 100, generate_hsv);
 		hsv16->reg();
+		orange_green = DiscretePalette::factory("orange-green", 16, generate_orange_green);
+		orange_green->reg();
 	};
 	~_all() {
 		greenish32->dereg();
 		delete greenish32;
-		greenish16->dereg();
-		delete greenish16;
 		redish32->dereg();
 		delete redish32;
 	};
