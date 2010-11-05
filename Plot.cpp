@@ -78,7 +78,9 @@ void Plot::render() {
 /* Converts an (x,y) pair on the render (say, from a mouse click) to their complex co-ordinates */
 cdbl Plot::pixel_to_set(int x, int y)
 {
-	assert (x>=0 && (unsigned)x<width && y>=0 && (unsigned)y<height);
+	if (x<0) x=0; else if ((unsigned)x>width) x=width;
+	if (y<0) y=0; else if ((unsigned)y>height) y=height;
+
 	const double pixwide = real(size) / width,
 		  		 pixhigh  = imag(size) / height;
 	cdbl delta (x*pixwide, y*pixhigh);
