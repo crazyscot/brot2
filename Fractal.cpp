@@ -26,12 +26,22 @@ Mandelbrot::~Mandelbrot() {}
 
 void Mandelbrot::plot_pixel(const cdbl origin, const unsigned maxiter, unsigned *iters_out) const
 {
-	unsigned iter = 0;
-	cdbl z = cdbl(0,0);
-	while (abs(z) <= 2.0 && iter < maxiter) {
-		z = z*z + origin;
-		++iter;
+	// Speed notes:
+	// Don't use cdbl in the actual calculation - using straight doubles and
+	// doing the complex maths by hand is about 6x faster for me.
+	// Also, we know that 0^2 + origin = origin, so skip the first iter.
+	unsigned iter;
+	double o_re = real(origin), o_im = imag(origin);
+	double z_re = o_re, z_im = o_im, tmp;
+	for (iter=1; iter<maxiter; iter++) {
+		if (z_re * z_re + z_im*z_im > 4.0) {
+			*iters_out = iter;
+			return;
+		}
+		tmp = z_re * z_re - z_im * z_im + o_re;
+		z_im = 2 * z_re * z_im + o_im;
+		z_re = tmp;
 	}
-	*iters_out = iter;
+	*iters_out = maxiter;
 	// TODO: Further plot params - radius(cabs), dist(carg?).
 }
