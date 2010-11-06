@@ -18,6 +18,11 @@
 
 #include "palette.h"
 #include <math.h>
+#include <stdio.h>
+#include <iostream>
+
+#define DEBUG_DUMP_ALL 0
+#define DEBUG_DUMP_HSV 0
 
 map<string,DiscretePalette*> DiscretePalette::registry;
 
@@ -31,9 +36,16 @@ DiscretePalette::~DiscretePalette() {
 }
 
 DiscretePalette::DiscretePalette(string nam, int n, PaletteGenerator gen_fn) : name(nam), size(n) {
+#if DEBUG_DUMP_ALL
+	cout << nam << endl;
+#endif
 	table = new rgb[size];
-	for (int i=0; i<size; i++)
+	for (int i=0; i<size; i++) {
 		table[i] = gen_fn(i, size);
+#if DEBUG_DUMP_ALL
+		printf("%3u: r=%3u, g=%3u, b=%3u\n", i, table[i].r, table[i].g, table[i].b);
+#endif
+	}
 	reg();
 }
 
@@ -71,18 +83,23 @@ hsv::operator rgb() {
 	switch (i)
 	{
 	case 6:
-	case 0: return rgb(v, n, m);
-	case 1: return rgb(n, v, m);
-	case 2: return rgb(m, v, n);
-	case 3: return rgb(m, n, v);
-	case 4: return rgb(n, m, v);
-	case 5: return rgb(v, m, n);
+	case 0: return rgbf(v, n, m);
+	case 1: return rgbf(n, v, m);
+	case 2: return rgbf(m, v, n);
+	case 3: return rgbf(m, n, v);
+	case 4: return rgbf(n, m, v);
+	case 5: return rgbf(v, m, n);
 	}
 	return rgb(0, 0, 0);
 }
 
 static rgb generate_hsv(int step, int nsteps) {
-	return hsv(255*cos(step), 128, 255);
+	hsv h(255*cos(step), 128, 255);
+	rgb r(h);
+#if DEBUG_DUMP_HSV
+	printf("h=%3u s=%3u v=%3u --> r=%3u g=%3u b=%3u\n", h.h, h.s, h.v, r.r, r.g, r.b);
+#endif
+	return r;
 }
 
 static rgb generate_hsv2(int step, int nsteps) {
@@ -91,26 +108,26 @@ static rgb generate_hsv2(int step, int nsteps) {
 
 static rgb generate_orange_green(int step, int nsteps) {
 	return rgb((nsteps-step)*255/nsteps,
-				255*acos(step/nsteps),
+				144,
 				0);
 }
 
 static rgb generate_pastel1(int step, int nsteps) {
 	return rgb((nsteps-step)*255/nsteps,
-				255*acos(step/nsteps),
+				144,
 				255*cos(step));
 }
 
 static rgb generate_pastel2(int step, int nsteps) {
 	return rgb( 255*sin(step),
 				255*cos(step),
-				255*acos(step/nsteps));
+				144);
 }
 
 static rgb generate_pastel3(int step, int nsteps) {
-	return rgb( 255*sin(step),
-				255*cos(step),
-				255*asin(step/nsteps));
+	return rgb( 255*cos(step),
+				144,
+				255*sin(step));
 }
 
 
@@ -121,8 +138,8 @@ static rgb generate_pastel3(int step, int nsteps) {
 P(green_pink, Gradient green-pink, 32, generate_greenish);
 P(blue_purple, Gradient blue-purple, 16, generate_blueish);
 P(red_cyan, Gradient red-cyan, 32, generate_redish);
-P(hsv1, R/G/B eyebleeding, 100, generate_hsv);
-P(hsv2, R/G/B regions, 100, generate_hsv2);
+P(hsv1, Kaleidoscopic, 100, generate_hsv);
+P(hsv2, Gradient RGB, 100, generate_hsv2);
 P(orange_green, Gradient orange-green, 16, generate_orange_green);
 P(pastel1, Pastel fruit salad 1, 16, generate_pastel1);
 P(pastel2, Pastel fruit salad 2, 16, generate_pastel2);
