@@ -82,18 +82,45 @@ hsv::operator rgb() {
 }
 
 static rgb generate_hsv(int step, int nsteps) {
-	return hsv(255.0*step/nsteps, 255, 255);
+	return hsv(255*cos(step), 128, 255);
+}
+
+static rgb generate_hsv2(int step, int nsteps) {
+	return hsv(255*step/nsteps, 255, 255);
 }
 
 static rgb generate_orange_green(int step, int nsteps) {
 	return rgb((nsteps-step)*255/nsteps,
 				255*acos(step/nsteps),
-				255/nsteps);
+				0);
 }
 
+static rgb generate_pastel1(int step, int nsteps) {
+	return rgb((nsteps-step)*255/nsteps,
+				255*acos(step/nsteps),
+				255*cos(step));
+}
+
+static rgb generate_pastel2(int step, int nsteps) {
+	return rgb( 255*sin(step),
+				255*cos(step),
+				255*acos(step/nsteps));
+}
+
+static rgb generate_pastel3(int step, int nsteps) {
+	return rgb( 255*sin(step),
+				255*cos(step),
+				255*asin(step/nsteps));
+}
+
+
 // Static instances:
-DiscretePalette green_pink("green+pink", 32, generate_greenish);
-DiscretePalette blue_purple("blue-purple", 16, generate_blueish);
-DiscretePalette red_cyan("red-cyan", 32, generate_redish);
-DiscretePalette hsv100("strident primaries", 100, generate_hsv);
-DiscretePalette orange_green("orange-green", 16, generate_orange_green);
+DiscretePalette green_pink("Gradient green-pink", 32, generate_greenish);
+DiscretePalette blue_purple("Gradient blue-purple", 16, generate_blueish);
+DiscretePalette red_cyan("Gradient red-cyan", 32, generate_redish);
+DiscretePalette hsv1("R/G/B eyebleeding", 100, generate_hsv);
+DiscretePalette hsv2("R/G/B regions", 100, generate_hsv2);
+DiscretePalette orange_green("Gradient orange-green", 16, generate_orange_green);
+DiscretePalette pastel1("Pastel fruit salad 1", 16, generate_pastel1);
+DiscretePalette pastel2("Pastel fruit salad 2", 16, generate_pastel2);
+DiscretePalette pastel3("Pastel fruit salad 3", 16, generate_pastel3);
