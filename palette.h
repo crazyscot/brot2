@@ -42,6 +42,12 @@ public:
 	rgb (guchar rr, guchar gg, guchar bb) : r(rr), g(gg), b(bb) {};
 };
 
+class rgbf : public rgb {
+public:
+	rgbf () : rgb() {};
+	rgbf (float rr, float gg, float bb) : rgb(255*rr, 255*gg, 255*bb) {};
+};
+
 /* Palette generation function.
  * Will be called repeatedly with 0 <= step <= nsteps, expected to be
  * idempotent.
