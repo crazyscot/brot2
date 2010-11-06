@@ -421,7 +421,8 @@ int main (int argc, char**argv)
 	_main_ctx.centre = { -0.7, 0.0 };
 	_main_ctx.size = { 3.0, 3.0 };
 	_main_ctx.maxiter = 1000;
-	_main_ctx.pal = DiscretePalette::registry["green+pink"];
+	_main_ctx.pal = DiscretePalette::registry.begin()->second;
+	// TODO MAYBE: restore last-used palette?
 
 	gtk_init(&argc, &argv);
 	window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
