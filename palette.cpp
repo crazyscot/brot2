@@ -115,12 +115,15 @@ static rgb generate_pastel3(int step, int nsteps) {
 
 
 // Static instances:
-DiscretePalette green_pink("Gradient green-pink", 32, generate_greenish);
-DiscretePalette blue_purple("Gradient blue-purple", 16, generate_blueish);
-DiscretePalette red_cyan("Gradient red-cyan", 32, generate_redish);
-DiscretePalette hsv1("R/G/B eyebleeding", 100, generate_hsv);
-DiscretePalette hsv2("R/G/B regions", 100, generate_hsv2);
-DiscretePalette orange_green("Gradient orange-green", 16, generate_orange_green);
-DiscretePalette pastel1("Pastel fruit salad 1", 16, generate_pastel1);
-DiscretePalette pastel2("Pastel fruit salad 2", 16, generate_pastel2);
-DiscretePalette pastel3("Pastel fruit salad 3", 16, generate_pastel3);
+#define P(label,desc,n,gen) \
+	DiscretePalette label(#desc, n, gen)
+
+P(green_pink, Gradient green-pink, 32, generate_greenish);
+P(blue_purple, Gradient blue-purple, 16, generate_blueish);
+P(red_cyan, Gradient red-cyan, 32, generate_redish);
+P(hsv1, R/G/B eyebleeding, 100, generate_hsv);
+P(hsv2, R/G/B regions, 100, generate_hsv2);
+P(orange_green, Gradient orange-green, 16, generate_orange_green);
+P(pastel1, Pastel fruit salad 1, 16, generate_pastel1);
+P(pastel2, Pastel fruit salad 2, 16, generate_pastel2);
+P(pastel3, Pastel fruit salad 3, 16, generate_pastel3);
