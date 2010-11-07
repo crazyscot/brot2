@@ -49,30 +49,6 @@ DiscretePalette::DiscretePalette(string nam, int n, PaletteGenerator gen_fn) : n
 	reg();
 }
 
-const rgbf point1 (0.0,1.0,0.0);
-const rgbf point2 (1.0,0.0,1.0);
-
-static rgb generate_greenish(int step, int nsteps) {
-	float tau = sin(M_PI * step / nsteps);
-	rgbf r = point1 * tau + point2 * (1.0-tau);
-#if 0
-	printf("step=%d t=%f r=%f g=%f b=%f\n",step, tau, r.r, r.g, r.b);
-#endif
-	return r;
-}
-
-static rgb generate_redish(int step, int nsteps) {
-	return rgb((nsteps-step)*255/nsteps,
-			   step*255/nsteps,
-			   step*255/nsteps);
-}
-
-static rgb generate_blueish(int step, int nsteps) {
-	return rgb((nsteps-step)*128/nsteps,
-				step*127/nsteps,
-				128+step*127/nsteps);
-}
-
 // HSV->RGB conversion algorithm found under a rock on the 'net.
 hsv::operator rgb() {
 	if (isnan(h)) return rgb(v,v,v); // "undefined" case
@@ -100,7 +76,7 @@ hsv::operator rgb() {
 }
 
 static rgb generate_hsv(int step, int nsteps) {
-	hsv h(255*cos(step), 128, 255);
+	hsv h(255*cos(step), 224, 224);
 	rgb r(h);
 	// This one jumps at random around the hue space.
 #if DEBUG_DUMP_HSV
@@ -119,41 +95,63 @@ static rgb generate_hsv2(int step, int nsteps) {
 	return r;
 }
 
-static rgb generate_orange_green(int step, int nsteps) {
-	return rgb((nsteps-step)*255/nsteps,
-				144,
-				0);
-}
-
 static rgb generate_pastel1(int step, int nsteps) {
 	return rgb((nsteps-step)*255/nsteps,
 				144,
 				255*cos(step));
 }
 
-static rgb generate_pastel2(int step, int nsteps) {
-	return rgb( 255*sin(step),
-				255*cos(step),
-				144);
-}
-
-static rgb generate_pastel3(int step, int nsteps) {
-	return rgb( 255*cos(step),
-				144,
-				255*sin(step));
-}
-
-
 // Static instances:
 #define P(label,desc,n,gen) \
 	DiscretePalette label(#desc, n, gen)
 
-P(green_pink, Gradient green-pink, 32, generate_greenish);
-P(blue_purple, Gradient blue-purple, 16, generate_blueish);
-P(red_cyan, Gradient red-cyan, 32, generate_redish);
 P(hsv1, Kaleidoscopic, 100, generate_hsv);
 P(hsv2, Gradient RGB, 100, generate_hsv2);
-P(orange_green, Gradient orange-green, 16, generate_orange_green);
 P(pastel1, Pastel fruit salad 1, 16, generate_pastel1);
-P(pastel2, Pastel fruit salad 2, 16, generate_pastel2);
-P(pastel3, Pastel fruit salad 3, 16, generate_pastel3);
+
+class TwoPointGradient : public DiscretePalette {
+	typedef rgb TWG_generate_fn(TwoPointGradient *t, int step);
+public:
+	rgbf point1, point2;
+	TwoPointGradient(string nam, int n, const rgbf p1, const rgbf p2, TWG_generate_fn gen_fn) : DiscretePalette(n,nam), point1(p1), point2(p2) {
+#if DEBUG_DUMP_ALL
+		cout << nam << endl;
+#endif
+		table = new rgb[size];
+		for (int i=0; i<size; i++) {
+			table[i] = gen_fn(this, i);
+#if DEBUG_DUMP_ALL
+			printf("%3u: r=%3u, g=%3u, b=%3u\n", i, table[i].r, table[i].g, table[i].b);
+#endif
+		}
+		reg();
+	}
+};
+
+#if 0
+// Sinusoids don't seem to work so well, the variation in gradient of sin(t)
+// blurs arbitrary regions.
+static rgb generate_sinusoid(TwoPointGradient *t, int step) {
+	float tau = sin(M_PI * step / t->size);
+	rgbf r = t->point1 * tau + t->point2 * (1.0-tau);
+	return r;
+}
+TwoPointGradient test("test1 sinu", 16, rgbf(1,0,0), rgbf(0,0,1), generate_sinusoid);
+#endif
+
+static rgb generate_sawtooth(TwoPointGradient *t, int step) {
+	float tau = 2.0 * step / t->size;
+	if (step > (t->size/2)) tau = 2.0 - tau;
+	rgbf r = t->point1 * tau + t->point2 * (1.0-tau);
+	return r;
+}
+
+#define SAWTOOTH(id,desc,n,p1,p2) \
+	TwoPointGradient id(#desc, n, p1, p2, generate_sawtooth)
+
+SAWTOOTH(saw_red_blue, Gradient red-blue, 16, rgbf(1,0,0), rgbf(0,0,1));
+SAWTOOTH(saw_green_pink, Gradient green-pink, 16, rgbf(0,1,0), rgbf(1,0,1));
+SAWTOOTH(saw_red_cyan, Gradient red-cyan, 16, rgbf(0,1,1), rgbf(1,0,0));
+SAWTOOTH(saw_blue_purple, Gradient blue-purple, 16, rgbf(0.5,0,0.5), rgbf(0,0.5,1));
+SAWTOOTH(saw_org_green, Gradient orange-green, 16, rgbf(1,0.56,0), rgbf(0,0.56,0));
+
