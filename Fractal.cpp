@@ -33,6 +33,20 @@ void Mandelbrot::plot_pixel(const cdbl origin, const unsigned maxiter, unsigned 
 	unsigned iter;
 	double o_re = real(origin), o_im = imag(origin);
 	double z_re = o_re, z_im = o_im, tmp;
+
+	{
+		// Cardioid check:
+		double t = o_re - 0.25;
+		double yy = o_im * o_im;
+		double q = t * t + yy;
+		if (q*(q + o_re - 0.25) < 0.25*yy)
+			goto SHORTCUT;
+		// Period-2 bulb check:
+		t = o_re + 1.0;
+		if (t * t + yy < 0.0625)
+			goto SHORTCUT;
+	}
+
 	for (iter=1; iter<maxiter; iter++) {
 		if (z_re * z_re + z_im*z_im > 4.0) {
 			*iters_out = iter;
@@ -42,6 +56,7 @@ void Mandelbrot::plot_pixel(const cdbl origin, const unsigned maxiter, unsigned 
 		z_im = 2 * z_re * z_im + o_im;
 		z_re = tmp;
 	}
+	SHORTCUT:
 	*iters_out = maxiter;
 	// TODO: Further plot params - radius(cabs), dist(carg?).
 }
