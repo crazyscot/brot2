@@ -22,6 +22,7 @@
 #include <gtk/gtk.h>
 #include <string>
 #include <map>
+#include <iostream>
 
 using namespace std;
 
@@ -42,10 +43,54 @@ public:
 	rgb (guchar rr, guchar gg, guchar bb) : r(rr), g(gg), b(bb) {};
 };
 
-class rgbf : public rgb {
+class rgbf {
+protected:
+	inline void clip() {
+		if (r < 0.0) r=0.0;
+		else if (r > 1.0) r=1.0;
+		if (g < 0.0) g=0.0;
+		else if (g > 1.0) g=1.0;
+		if (b < 0.0) b=0.0;
+		else if (b > 1.0) b=1.0;
+	}
 public:
-	rgbf () : rgb() {};
-	rgbf (float rr, float gg, float bb) : rgb(255*rr, 255*gg, 255*bb) {};
+	float r,g,b; // 0..1
+	rgbf (const rgbf& i) : r(i.r), g(i.g), b(i.b) {};
+	rgbf (rgb i) {
+		r = i.r/255.0;
+		g = i.g/255.0;
+		b = i.b/255.0;
+		clip();
+	};
+	rgbf (float rr, float gg, float bb) : r(rr), g(gg), b(bb) {};
+	operator rgb() {
+		rgb rv;
+		rv.r = 255*r;
+		rv.g = 255*g;
+		rv.b = 255*b;
+		return rv;
+	}
+	rgbf operator+ (const rgbf &t) const {
+		rgbf rv(*this);
+		rv.r += t.r;
+		rv.g += t.g;
+		rv.b += t.b;
+		rv.clip();
+		return rv;
+	}
+	rgbf operator* (float f) const {
+		rgbf rv(*this);
+		rv.r *= f;
+		rv.g *= f;
+		rv.b *= f;
+		rv.clip();
+		return rv;
+	}
+#if 0
+	void dump() {
+		cout << "r="<<r<<" g="<<g<<" b="<<b;
+	}
+#endif
 };
 
 /* Palette generation function.
