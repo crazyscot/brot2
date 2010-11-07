@@ -281,7 +281,13 @@ static void do_redraw(GtkWidget *widget)
 
 	gtk_statusbar_pop(statusbar, 0);
 	std::ostringstream info;
-	info << _main_ctx.plot->info_short() << "; render time was " << timetaken;
+	info << _main_ctx.plot->info_short();
+
+	std::cout << info.str() << std::endl; // TODO: TEMP
+	gtk_window_set_title(GTK_WINDOW(window), info.str().c_str());
+
+	info.str("");
+	info << "rendered in " << timetaken << "s";
 	std::cout << info.str() << std::endl; // TODO: TEMP
 	gtk_statusbar_push(statusbar, 0, info.str().c_str());
 
@@ -430,7 +436,7 @@ int main (int argc, char**argv)
 	g_signal_connect(window, "delete-event", G_CALLBACK(delete_event), 0);
 	g_signal_connect(window, "destroy", G_CALLBACK(destroy_event), 0);
 
-	gtk_window_set_title(GTK_WINDOW(window), "brot2");
+	gtk_window_set_title(GTK_WINDOW(window), "brot2"); // will be updated by renderer..
 	main_vbox = gtk_vbox_new(FALSE,1);
 	gtk_container_set_border_width (GTK_CONTAINER (main_vbox), 1);
 	gtk_container_add (GTK_CONTAINER (window), main_vbox);

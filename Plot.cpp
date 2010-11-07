@@ -36,7 +36,7 @@ string Plot::info_short() {
 	char buf[128];
 	std::ostringstream rv;
 	rv << fract->name
-	   << ": ctr=(" << real(centre) << "," << imag(centre) << ")";
+	   << "@(" << real(centre) << ", " << imag(centre) << ")";
 
 	double avgzoom = 2.0 / (real(size)+imag(size));
 	unsigned rr = snprintf(buf, sizeof buf, "%g", avgzoom);
