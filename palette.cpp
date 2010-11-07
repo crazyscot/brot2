@@ -83,12 +83,12 @@ hsv::operator rgb() {
 	switch (i)
 	{
 	case 6:
-	case 0: return rgbf(v, n, m);
-	case 1: return rgbf(n, v, m);
-	case 2: return rgbf(m, v, n);
-	case 3: return rgbf(m, n, v);
-	case 4: return rgbf(n, m, v);
-	case 5: return rgbf(v, m, n);
+	case 0: return rgbf(vv, n,  m);
+	case 1: return rgbf(n,  vv, m);
+	case 2: return rgbf(m,  vv, n);
+	case 3: return rgbf(m,  n,  vv);
+	case 4: return rgbf(n,  m,  vv);
+	case 5: return rgbf(vv, m,  n);
 	}
 	return rgb(0, 0, 0);
 }
@@ -103,7 +103,12 @@ static rgb generate_hsv(int step, int nsteps) {
 }
 
 static rgb generate_hsv2(int step, int nsteps) {
-	return hsv(255*step/nsteps, 255, 255);
+	hsv h(255*step/nsteps, 255, 255);
+	rgb r(h);
+#if DEBUG_DUMP_HSV
+	printf("h=%3u s=%3u v=%3u --> r=%3u g=%3u b=%3u\n", h.h, h.s, h.v, r.r, r.g, r.b);
+#endif
+	return r;
 }
 
 static rgb generate_orange_green(int step, int nsteps) {
