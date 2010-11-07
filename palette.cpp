@@ -49,10 +49,16 @@ DiscretePalette::DiscretePalette(string nam, int n, PaletteGenerator gen_fn) : n
 	reg();
 }
 
+const rgbf point1 (0.0,1.0,0.0);
+const rgbf point2 (1.0,0.0,1.0);
+
 static rgb generate_greenish(int step, int nsteps) {
-	return rgb(step*255/nsteps,
-			   (nsteps-step)*255/nsteps,
-			   step*255/nsteps);
+	float tau = sin(M_PI * step / nsteps);
+	rgbf r = point1 * tau + point2 * (1.0-tau);
+#if 0
+	printf("step=%d t=%f r=%f g=%f b=%f\n",step, tau, r.r, r.g, r.b);
+#endif
+	return r;
 }
 
 static rgb generate_redish(int step, int nsteps) {
@@ -96,6 +102,7 @@ hsv::operator rgb() {
 static rgb generate_hsv(int step, int nsteps) {
 	hsv h(255*cos(step), 128, 255);
 	rgb r(h);
+	// This one jumps at random around the hue space.
 #if DEBUG_DUMP_HSV
 	printf("h=%3u s=%3u v=%3u --> r=%3u g=%3u b=%3u\n", h.h, h.s, h.v, r.r, r.g, r.b);
 #endif
@@ -103,6 +110,7 @@ static rgb generate_hsv(int step, int nsteps) {
 }
 
 static rgb generate_hsv2(int step, int nsteps) {
+	// This is a continuous gradient.
 	hsv h(255*step/nsteps, 255, 255);
 	rgb r(h);
 #if DEBUG_DUMP_HSV
