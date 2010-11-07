@@ -55,7 +55,7 @@ static void render_gdk(GdkPixmap *dest, GdkGC *gc, const struct _ctx & ctx) {
 	const gint rowstride = rowbytes + 8-(rowbytes%8);
 	guchar *buf = new guchar[rowstride * ctx.height]; // packed 24-bit data
 
-	const FPoint * data = ctx.plot->plot_data();
+	const fractal_point * data = ctx.plot->plot_data();
 
 	unsigned i,j;
 	for (j=0; j<ctx.height; j++) {

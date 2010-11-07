@@ -25,6 +25,11 @@ using namespace std;
 
 typedef complex<double> cdbl;
 
+class fractal_point {
+public:
+	unsigned iter;
+};
+
 // Base fractal definition. An instance knows all about a fractal _type_
 // but nothing about an individual _plot_ of it (meta-instance?)
 class Fractal {
@@ -38,7 +43,7 @@ public:
 	// type ?
 	// describe any other params.
 
-	virtual void plot_pixel(const cdbl origin, const unsigned maxiter, unsigned *iters_out) const = 0;
+	virtual void plot_pixel(const cdbl origin, const unsigned maxiter, fractal_point& out) const = 0;
 
 	// Per-image setup? Orbit? Engine?
 	// What is expected of PixelPlot: iters? radius? angle?
@@ -48,7 +53,7 @@ class Mandelbrot : public Fractal {
 public:
 	Mandelbrot();
 	~Mandelbrot();
-	virtual void plot_pixel(const cdbl origin, const unsigned maxiter, unsigned *iters_out) const;
+	virtual void plot_pixel(const cdbl origin, const unsigned maxiter, fractal_point& iters_out) const;
 };
 
 #endif /* FRACTAL_H_ */

@@ -50,9 +50,8 @@ string Plot::info_short() {
 
 void Plot::render() {
 	if (plot_data_) delete[] plot_data_;
-	plot_data_ = new FPoint[width * height];
-	unsigned i,j;
-	FPoint * out = plot_data_;
+	plot_data_ = new fractal_point[width * height];
+	unsigned i,j, out_index = 0;
 	const cdbl _origin = origin();
 	//std::cout << "render centre " << centre << "; size " << size << "; origin " << origin << std::endl;
 
@@ -65,9 +64,9 @@ void Plot::render() {
 	// keep running points.
 	for (j=0; j<height; j++) {
 		for (i=0; i<width; i++) {
-			fract->plot_pixel(render_point, maxiter, &out->iter);
+			fract->plot_pixel(render_point, maxiter, plot_data_[out_index]);
 			//std::cout << "Plot " << render_point << " i=" << out->iter << std::endl;
-			++out;
+			++out_index;
 			render_point += colstep;
 		}
 		render_point.real(real(_origin));

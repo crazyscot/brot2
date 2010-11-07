@@ -25,10 +25,6 @@ using namespace std;
 
 #include "Fractal.h"
 
-struct FPoint {
-	unsigned iter;
-};
-
 // A plot is an abstract rendering of a Fractal.
 // It has fractal centre co-ordinates and size, as well as a plotting size in pixels.
 // The rendered data is abstract (iteration count etc).
@@ -48,7 +44,7 @@ public:
 	virtual string info_short();
 
 	// Returns the plot. The data is packed one row at a time, top row first; left-to-right within each row.
-	const FPoint * plot_data() {
+	const fractal_point * plot_data() {
 		if (!plot_data_) render();
 		return plot_data_;
 	}
@@ -58,7 +54,7 @@ public:
 	cdbl pixel_to_set(int x, int y);
 
 protected:
-	FPoint *plot_data_;
+	fractal_point *plot_data_;
 
 
 	// Goes out to actually plot the fractal.

@@ -24,7 +24,7 @@ Fractal::~Fractal() {}
 Mandelbrot::Mandelbrot() : Fractal("Mandelbrot", -3.0, 3.0, -3.0, 3.0) {}
 Mandelbrot::~Mandelbrot() {}
 
-void Mandelbrot::plot_pixel(const cdbl origin, const unsigned maxiter, unsigned *iters_out) const
+void Mandelbrot::plot_pixel(const cdbl origin, const unsigned maxiter, fractal_point& out) const
 {
 	// Speed notes:
 	// Don't use cdbl in the actual calculation - using straight doubles and
@@ -49,7 +49,7 @@ void Mandelbrot::plot_pixel(const cdbl origin, const unsigned maxiter, unsigned 
 
 	for (iter=1; iter<maxiter; iter++) {
 		if (z_re * z_re + z_im*z_im > 4.0) {
-			*iters_out = iter;
+			out.iter = iter;
 			return;
 		}
 		tmp = z_re * z_re - z_im * z_im + o_re;
@@ -57,6 +57,6 @@ void Mandelbrot::plot_pixel(const cdbl origin, const unsigned maxiter, unsigned 
 		z_re = tmp;
 	}
 	SHORTCUT:
-	*iters_out = maxiter;
+	out.iter = maxiter;
 	// TODO: Further plot params - radius(cabs), dist(carg?).
 }
