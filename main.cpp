@@ -33,17 +33,17 @@
 #define MAX(a,b)	(((a) > (b)) ? (a) : (b))
 #define MIN(a,b)	(((a) < (b)) ? (a) : (b))
 
-struct _ctx {
+typedef struct _render_ctx {
+	Plot * plot;
+	DiscretePalette * pal;
+	// Yes, the following are mostly the same as in the Plot - but the plot is torn down and recreated frequently.
 	Fractal *fractal;
 	cdbl centre, size;
 	unsigned width, height, maxiter;
-	Plot * plot;
-	DiscretePalette * pal;
-};
-// XXX rename to plot_ctx ? move to plot ??
+} _render_ctx;
 
 typedef struct _gtk_ctx {
-	struct _ctx * mainctx;
+	_render_ctx * mainctx;
 	GtkWidget *window;
 	GdkPixmap *render;
 	GtkStatusbar *statusbar;
@@ -52,11 +52,8 @@ typedef struct _gtk_ctx {
 } _gtk_ctx;
 
 static void do_redraw(GtkWidget *widget, _gtk_ctx *ctx);
-static void recolour(GtkWidget * widget, _gtk_ctx *ctx);
-// XXX kill fwd defs if poss.
 
-
-static void render_gdk(GdkPixmap *dest, GdkGC *gc, struct _ctx & ctx) {
+static void render_gdk(GdkPixmap *dest, GdkGC *gc, _render_ctx & ctx) {
 	const gint rowbytes = ctx.width * 3;
 	const gint rowstride = rowbytes + 8-(rowbytes%8);
 	guchar *buf = new guchar[rowstride * ctx.height]; // packed 24-bit data
@@ -218,6 +215,57 @@ static GtkWidget *make_menubar( GtkWidget  *window, GtkItemFactoryEntry* menu_it
 	return gtk_item_factory_get_widget (item_factory, "<main>");
 }
 
+
+static void recolour(GtkWidget * widget, _gtk_ctx *ctx)
+{
+	render_gdk(ctx->render, widget->style->white_gc, *ctx->mainctx);
+	gtk_widget_queue_draw(widget);
+}
+
+// Redraws us onto a given widget (window), then queues an expose event
+static void do_redraw(GtkWidget *widget, _gtk_ctx *ctx)
+{
+	struct timeval tv_before, tv_after, tv_diff;
+
+	if (ctx->render)
+		g_object_unref(ctx->render);
+
+	ctx->render = gdk_pixmap_new(widget->window,
+			widget->allocation.width,
+			widget->allocation.height,
+			-1);
+	ctx->mainctx->width = widget->allocation.width;
+	ctx->mainctx->height = widget->allocation.height;
+
+	gtk_statusbar_pop(ctx->statusbar, 0);
+	gtk_statusbar_push(ctx->statusbar, 0, "Drawing..."); // FIXME: Doesn't update. Possibly leave this until we get computation multithreaded and asynch?
+	gettimeofday(&tv_before,0);
+	if (ctx->mainctx->plot) delete ctx->mainctx->plot;
+	ctx->mainctx->plot = new Plot(ctx->mainctx->fractal, ctx->mainctx->centre, ctx->mainctx->size, ctx->mainctx->maxiter, ctx->mainctx->width, ctx->mainctx->height);
+	ctx->mainctx->plot->plot_data();
+	// And now turn it into an RGB.
+	recolour(widget,ctx);
+	// TODO convert to cairo.
+	gettimeofday(&tv_after,0);
+
+	tv_diff = tv_subtract(tv_after, tv_before);
+	double timetaken = tv_diff.tv_sec + (tv_diff.tv_usec / 1e6);
+
+	gtk_statusbar_pop(ctx->statusbar, 0);
+	std::ostringstream info;
+	info << ctx->mainctx->plot->info_short();
+
+	std::cout << info.str() << std::endl; // TODO: TEMP
+	gtk_window_set_title(GTK_WINDOW(ctx->window), info.str().c_str());
+
+	info.str("");
+	info << "rendered in " << timetaken << "s";
+	std::cout << info.str() << std::endl; // TODO: TEMP
+	gtk_statusbar_push(ctx->statusbar, 0, info.str().c_str());
+
+	gtk_widget_queue_draw(widget);
+}
+
 static void colour_menu_selection(_gtk_ctx *ctx, DiscretePalette *sel)
 {
 	ctx->mainctx->pal = sel;
@@ -257,57 +305,6 @@ static void setup_colour_menu(_gtk_ctx *ctx, GtkWidget *menubar, DiscretePalette
 
     gtk_menu_item_set_submenu (GTK_MENU_ITEM (colour_item), ctx->colour_menu);
     gtk_menu_bar_append(GTK_MENU_BAR(menubar), colour_item);
-}
-
-static void recolour(GtkWidget * widget, _gtk_ctx *ctx)
-{
-	render_gdk(ctx->render, widget->style->white_gc, *ctx->mainctx);
-	gtk_widget_queue_draw(widget);
-}
-
-// Redraws us onto a given widget (window), then queues an expose event
-static void do_redraw(GtkWidget *widget, _gtk_ctx *ctx)
-{
-	struct timeval tv_before, tv_after, tv_diff;
-
-	if (ctx->render)
-		g_object_unref(ctx->render);
-
-	ctx->render = gdk_pixmap_new(widget->window,
-			widget->allocation.width,
-			widget->allocation.height,
-			-1);
-	ctx->mainctx->width = widget->allocation.width;
-	ctx->mainctx->height = widget->allocation.height;
-
-	gtk_statusbar_pop(ctx->statusbar, 0);
-	gtk_statusbar_push(ctx->statusbar, 0, "Drawing..."); // FIXME: Doesn't update. Possibly leave this until we get computation multithreaded and asynch?
-	gettimeofday(&tv_before,0);
-	if (ctx->mainctx->plot) delete ctx->mainctx->plot;
-	ctx->mainctx->plot = new Plot(ctx->mainctx->fractal, ctx->mainctx->centre, ctx->mainctx->size, ctx->mainctx->maxiter, ctx->mainctx->width, ctx->mainctx->height);
-	// XXX make the above line a fn of Plot
-	ctx->mainctx->plot->plot_data();
-	// And now turn it into an RGB.
-	recolour(widget,ctx);
-	// TODO convert to cairo.
-	gettimeofday(&tv_after,0);
-
-	tv_diff = tv_subtract(tv_after, tv_before);
-	double timetaken = tv_diff.tv_sec + (tv_diff.tv_usec / 1e6);
-
-	gtk_statusbar_pop(ctx->statusbar, 0);
-	std::ostringstream info;
-	info << ctx->mainctx->plot->info_short();
-
-	std::cout << info.str() << std::endl; // TODO: TEMP
-	gtk_window_set_title(GTK_WINDOW(ctx->window), info.str().c_str());
-
-	info.str("");
-	info << "rendered in " << timetaken << "s";
-	std::cout << info.str() << std::endl; // TODO: TEMP
-	gtk_statusbar_push(ctx->statusbar, 0, info.str().c_str());
-
-	gtk_widget_queue_draw(widget);
 }
 
 static gboolean configure_event(GtkWidget *widget, GdkEventConfigure *event, gpointer *dat)
@@ -452,12 +449,12 @@ static gboolean motion_notify_event( GtkWidget *widget, GdkEventMotion *event, g
 /////////////////////////////////////////////////////////////////
 
 static _gtk_ctx gtk_ctx;
-static _ctx main_ctx;
+static _render_ctx render_ctx;
 
 int main (int argc, char**argv)
 {
 	memset(&gtk_ctx, 0, sizeof gtk_ctx);
-	memset(&main_ctx, 0, sizeof main_ctx);
+	memset(&render_ctx, 0, sizeof render_ctx);
 #define _ (char*)
 	GtkItemFactoryEntry main_menu_items[] = {
 			{ _"/_Main", 0, 0, 0, _"<Branch>" },
@@ -471,13 +468,13 @@ int main (int argc, char**argv)
 	GtkWidget *main_vbox, *menubar;
 	GtkWidget *canvas;
 
-	main_ctx.fractal = new Mandelbrot();
-	main_ctx.centre = { -0.7, 0.0 };
-	main_ctx.size = { 3.0, 3.0 };
-	main_ctx.maxiter = 1000;
+	render_ctx.fractal = new Mandelbrot();
+	render_ctx.centre = { -0.7, 0.0 };
+	render_ctx.size = { 3.0, 3.0 };
+	render_ctx.maxiter = 1000;
 	// _main_ctx.pal initial setting by setup_colour_menu().
 
-	gtk_ctx.mainctx = &main_ctx;
+	gtk_ctx.mainctx = &render_ctx;
 	gtk_init(&argc, &argv);
 	GtkWidget * window = gtk_ctx.window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 
@@ -522,7 +519,7 @@ int main (int argc, char**argv)
 
 	gtk_widget_show_all(window);
 	gtk_main();
-	delete main_ctx.plot;
-	delete main_ctx.fractal;
+	delete render_ctx.plot;
+	delete render_ctx.fractal;
 	return 0;
 }
