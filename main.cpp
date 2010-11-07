@@ -21,6 +21,7 @@
 #include <sys/time.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 #include <iostream>
 #include <sstream>
 #include <complex>
@@ -32,25 +33,30 @@
 #define MAX(a,b)	(((a) > (b)) ? (a) : (b))
 #define MIN(a,b)	(((a) < (b)) ? (a) : (b))
 
-static GtkWidget *window;
-static GdkPixmap *render;
-static GtkStatusbar *statusbar;
-static GtkWidget * colour_menu;
-static GSList * colours_radio_group = 0;
-
-static void do_redraw(GtkWidget *widget);
-static void recolour(GtkWidget * widget);
-
 struct _ctx {
 	Fractal *fractal;
 	cdbl centre, size;
 	unsigned width, height, maxiter;
 	Plot * plot;
 	DiscretePalette * pal;
-} _main_ctx;
+};
+// XXX rename to plot_ctx ? move to plot ??
+
+typedef struct _gtk_ctx {
+	struct _ctx * mainctx;
+	GtkWidget *window;
+	GdkPixmap *render;
+	GtkStatusbar *statusbar;
+	GtkWidget * colour_menu;
+	GSList * colours_radio_group;
+} _gtk_ctx;
+
+static void do_redraw(GtkWidget *widget, _gtk_ctx *ctx);
+static void recolour(GtkWidget * widget, _gtk_ctx *ctx);
+// XXX kill fwd defs if poss.
 
 
-static void render_gdk(GdkPixmap *dest, GdkGC *gc, const struct _ctx & ctx) {
+static void render_gdk(GdkPixmap *dest, GdkGC *gc, struct _ctx & ctx) {
 	const gint rowbytes = ctx.width * 3;
 	const gint rowstride = rowbytes + 8-(rowbytes%8);
 	guchar *buf = new guchar[rowstride * ctx.height]; // packed 24-bit data
@@ -99,10 +105,11 @@ static void read_entry_float(GtkWidget *entry, double *val_out)
 	}
 }
 
-void do_config(void)
+void do_config(gpointer _ctx, guint callback_action, GtkWidget *widget)
 {
+	_gtk_ctx * ctx = (_gtk_ctx*)_ctx;
 	// TODO: generate from renderer parameters!
-	GtkWidget *dlg = gtk_dialog_new_with_buttons("Configuration", GTK_WINDOW(window),
+	GtkWidget *dlg = gtk_dialog_new_with_buttons("Configuration", GTK_WINDOW(ctx->window),
 			GtkDialogFlags(GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT),
 			GTK_STOCK_OK, GTK_RESPONSE_ACCEPT,
 			GTK_STOCK_CANCEL, GTK_RESPONSE_REJECT,
@@ -115,13 +122,13 @@ void do_config(void)
 
 	GtkWidget *c_re, *c_im, *size_re, *size_im;
 	c_re = gtk_entry_new();
-	update_entry_float(c_re, real(_main_ctx.centre));
+	update_entry_float(c_re, real(ctx->mainctx->centre));
 	c_im = gtk_entry_new();
-	update_entry_float(c_im, imag(_main_ctx.centre));
+	update_entry_float(c_im, imag(ctx->mainctx->centre));
 	size_re = gtk_entry_new();
-	update_entry_float(size_re, real(_main_ctx.size));
+	update_entry_float(size_re, real(ctx->mainctx->size));
 	size_im = gtk_entry_new();
-	update_entry_float(size_im, imag(_main_ctx.size));
+	update_entry_float(size_im, imag(ctx->mainctx->size));
 
 	GtkWidget * box = gtk_table_new(4, 2, TRUE);
 
@@ -148,14 +155,14 @@ void do_config(void)
 	if (result == GTK_RESPONSE_ACCEPT) {
 		double res=0;
 		read_entry_float(c_re, &res);
-		_main_ctx.centre.real(res);
+		ctx->mainctx->centre.real(res);
 		read_entry_float(c_im, &res);
-		_main_ctx.centre.imag(res);
+		ctx->mainctx->centre.imag(res);
 		read_entry_float(size_re, &res);
-		_main_ctx.size.real(res);
+		ctx->mainctx->size.real(res);
 		read_entry_float(size_im, &res);
-		_main_ctx.size.imag(res);
-		do_redraw(window);
+		ctx->mainctx->size.imag(res);
+		do_redraw(ctx->window, ctx);
 		// FIXME: This is a bit nasty, but will be fixed when renders go asynch.
 	}
 	gtk_widget_destroy(dlg);
@@ -185,18 +192,9 @@ static void destroy_event(GtkWidget *widget, gpointer data)
 	gtk_main_quit();
 }
 
-#define _ (char*)
-static GtkItemFactoryEntry menu_items[] = {
-	{ _"/_Main", 0, 0, 0, _"<Branch>" },
-	{ _"/Main/_Params", _"<control>P", do_config, 0, _"<Item>" },
-	{ _"/Main/_Quit", _"<control>Q", gtk_main_quit, 0, _"<Item>" },
-};
-#undef _
-
-static gint nmenu_items = sizeof (menu_items) / sizeof (menu_items[0]);
 
 /* Returns a menubar widget made from the above menu */
-static GtkWidget *get_menubar_menu( GtkWidget  *window )
+static GtkWidget *make_menubar( GtkWidget  *window, GtkItemFactoryEntry* menu_items, gint nmenu_items )
 {
 	GtkItemFactory *item_factory;
 	GtkAccelGroup *accel_group;
@@ -220,100 +218,111 @@ static GtkWidget *get_menubar_menu( GtkWidget  *window )
 	return gtk_item_factory_get_widget (item_factory, "<main>");
 }
 
-static void colour_menu_selection(void* p)
+static void colour_menu_selection(_gtk_ctx *ctx, DiscretePalette *sel)
 {
-	DiscretePalette * sel = (DiscretePalette*)p;
-	_main_ctx.pal = sel;
-	if (_main_ctx.plot)
-		recolour(window);
+	ctx->mainctx->pal = sel;
+	if (ctx->mainctx->plot)
+		recolour(ctx->window, ctx);
 }
 
-static void setup_colour_menu(GtkWidget *menubar, DiscretePalette *initial)
+static void colour_menu_selection1(gpointer *dat, GtkMenuItem *mi)
 {
-	colour_menu = gtk_menu_new();
+	const char * lbl = gtk_menu_item_get_label(mi);
+	_gtk_ctx * ctx = (_gtk_ctx*) dat;
+	DiscretePalette * sel = DiscretePalette::registry[lbl];
+	colour_menu_selection(ctx, sel);
+}
+
+
+static void setup_colour_menu(_gtk_ctx *ctx, GtkWidget *menubar, DiscretePalette *initial)
+{
+	ctx->colour_menu = gtk_menu_new();
 
 	std::map<std::string,DiscretePalette*>::iterator it;
 	for (it = DiscretePalette::registry.begin(); it != DiscretePalette::registry.end(); it++) {
-		GtkWidget * item = gtk_radio_menu_item_new_with_label(colours_radio_group, it->first.c_str());
-		colours_radio_group = gtk_radio_menu_item_get_group(GTK_RADIO_MENU_ITEM(item));
+		GtkWidget * item = gtk_radio_menu_item_new_with_label(ctx->colours_radio_group, it->first.c_str());
+		ctx->colours_radio_group = gtk_radio_menu_item_get_group(GTK_RADIO_MENU_ITEM(item));
 
-		gtk_menu_append(GTK_MENU(colour_menu), item);
+		gtk_menu_append(GTK_MENU(ctx->colour_menu), item);
 		if (it->second == initial) {
 			gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(item), TRUE);
 		}
-		gtk_signal_connect_object(GTK_OBJECT(item), "activate", GTK_SIGNAL_FUNC(colour_menu_selection), it->second);
+		gtk_signal_connect_object(GTK_OBJECT(item), "activate", GTK_SIGNAL_FUNC(colour_menu_selection1), ctx);
 		gtk_widget_show(item);
 	}
-	colour_menu_selection(initial);
+	colour_menu_selection(ctx, initial);
 
     GtkWidget* colour_item = gtk_menu_item_new_with_mnemonic ("_Colour");
     gtk_widget_show (colour_item);
 
-    gtk_menu_item_set_submenu (GTK_MENU_ITEM (colour_item), colour_menu);
+    gtk_menu_item_set_submenu (GTK_MENU_ITEM (colour_item), ctx->colour_menu);
     gtk_menu_bar_append(GTK_MENU_BAR(menubar), colour_item);
 }
 
-static void recolour(GtkWidget * widget)
+static void recolour(GtkWidget * widget, _gtk_ctx *ctx)
 {
-	render_gdk(render, widget->style->white_gc, _main_ctx);
+	render_gdk(ctx->render, widget->style->white_gc, *ctx->mainctx);
 	gtk_widget_queue_draw(widget);
 }
 
 // Redraws us onto a given widget (window), then queues an expose event
-static void do_redraw(GtkWidget *widget)
+static void do_redraw(GtkWidget *widget, _gtk_ctx *ctx)
 {
 	struct timeval tv_before, tv_after, tv_diff;
 
-	if (render)
-		g_object_unref(render);
+	if (ctx->render)
+		g_object_unref(ctx->render);
 
-	render = gdk_pixmap_new(widget->window,
+	ctx->render = gdk_pixmap_new(widget->window,
 			widget->allocation.width,
 			widget->allocation.height,
 			-1);
-	_main_ctx.width = widget->allocation.width;
-	_main_ctx.height = widget->allocation.height;
+	ctx->mainctx->width = widget->allocation.width;
+	ctx->mainctx->height = widget->allocation.height;
 
-	gtk_statusbar_pop(statusbar, 0);
-	gtk_statusbar_push(statusbar, 0, "Drawing..."); // FIXME: Doesn't update. Possibly leave this until we get computation multithreaded and asynch?
+	gtk_statusbar_pop(ctx->statusbar, 0);
+	gtk_statusbar_push(ctx->statusbar, 0, "Drawing..."); // FIXME: Doesn't update. Possibly leave this until we get computation multithreaded and asynch?
 	gettimeofday(&tv_before,0);
-	if (_main_ctx.plot) delete _main_ctx.plot;
-	_main_ctx.plot = new Plot(_main_ctx.fractal, _main_ctx.centre, _main_ctx.size, _main_ctx.maxiter, _main_ctx.width, _main_ctx.height);
-	_main_ctx.plot->plot_data();
+	if (ctx->mainctx->plot) delete ctx->mainctx->plot;
+	ctx->mainctx->plot = new Plot(ctx->mainctx->fractal, ctx->mainctx->centre, ctx->mainctx->size, ctx->mainctx->maxiter, ctx->mainctx->width, ctx->mainctx->height);
+	// XXX make the above line a fn of Plot
+	ctx->mainctx->plot->plot_data();
 	// And now turn it into an RGB.
-	recolour(widget);
+	recolour(widget,ctx);
 	// TODO convert to cairo.
 	gettimeofday(&tv_after,0);
 
 	tv_diff = tv_subtract(tv_after, tv_before);
 	double timetaken = tv_diff.tv_sec + (tv_diff.tv_usec / 1e6);
 
-	gtk_statusbar_pop(statusbar, 0);
+	gtk_statusbar_pop(ctx->statusbar, 0);
 	std::ostringstream info;
-	info << _main_ctx.plot->info_short();
+	info << ctx->mainctx->plot->info_short();
 
 	std::cout << info.str() << std::endl; // TODO: TEMP
-	gtk_window_set_title(GTK_WINDOW(window), info.str().c_str());
+	gtk_window_set_title(GTK_WINDOW(ctx->window), info.str().c_str());
 
 	info.str("");
 	info << "rendered in " << timetaken << "s";
 	std::cout << info.str() << std::endl; // TODO: TEMP
-	gtk_statusbar_push(statusbar, 0, info.str().c_str());
+	gtk_statusbar_push(ctx->statusbar, 0, info.str().c_str());
 
 	gtk_widget_queue_draw(widget);
 }
 
-static gboolean configure_event(GtkWidget *widget, GdkEventConfigure *event)
+static gboolean configure_event(GtkWidget *widget, GdkEventConfigure *event, gpointer *dat)
 {
-	do_redraw(widget);
+	_gtk_ctx * ctx = (_gtk_ctx*) dat;
+	do_redraw(widget, ctx);
 	return TRUE;
 }
 
-static gboolean expose_event( GtkWidget *widget, GdkEventExpose *event )
+static gboolean expose_event( GtkWidget *widget, GdkEventExpose *event, gpointer *dat )
 {
+	_gtk_ctx * ctx = (_gtk_ctx*) dat;
 	gdk_draw_drawable(widget->window,
 			widget->style->fg_gc[gtk_widget_get_state (widget)],
-			render,
+			ctx->render,
 			event->area.x, event->area.y,
 			event->area.x, event->area.y,
 			event->area.width, event->area.height);
@@ -324,30 +333,31 @@ static gboolean expose_event( GtkWidget *widget, GdkEventExpose *event )
 static gint dragrect_origin_x, dragrect_origin_y,
 			dragrect_active=0, dragrect_current_x, dragrect_current_y;
 
-static gboolean button_press_event( GtkWidget *widget, GdkEventButton *event )
+static gboolean button_press_event( GtkWidget *widget, GdkEventButton *event, gpointer *dat )
 {
 #define ZOOM_FACTOR 2.0f
-	if (render != NULL) {
+	_gtk_ctx * ctx = (_gtk_ctx*) dat;
+	if (ctx->render != NULL) {
 		int redraw=0;
-		cdbl new_ctr = _main_ctx.plot->pixel_to_set(event->x, event->y);
+		cdbl new_ctr = ctx->mainctx->plot->pixel_to_set(event->x, event->y);
 
 		if (event->button >= 1 && event->button <= 3) {
-			_main_ctx.centre = new_ctr;
+			ctx->mainctx->centre = new_ctr;
 			switch(event->button) {
 			case 1:
 				// LEFT: zoom in a bit
-				_main_ctx.size /= ZOOM_FACTOR;
+				ctx->mainctx->size /= ZOOM_FACTOR;
 				break;
 			case 3:
 				// RIGHT: zoom out
-				_main_ctx.size *= ZOOM_FACTOR;
+				ctx->mainctx->size *= ZOOM_FACTOR;
 				{
-					double d = real(_main_ctx.size), lim = _main_ctx.fractal->xmax - _main_ctx.fractal->xmin;
+					double d = real(ctx->mainctx->size), lim = ctx->mainctx->fractal->xmax - ctx->mainctx->fractal->xmin;
 					if (d > lim)
-						_main_ctx.size.real(lim);
-					d = imag(_main_ctx.size), lim = _main_ctx.fractal->ymax - _main_ctx.fractal->ymin;
+						ctx->mainctx->size.real(lim);
+					d = imag(ctx->mainctx->size), lim = ctx->mainctx->fractal->ymax - ctx->mainctx->fractal->ymin;
 					if (d > lim)
-						_main_ctx.size.imag(lim);
+						ctx->mainctx->size.imag(lim);
 				}
 				break;
 			case 2:
@@ -363,49 +373,52 @@ static gboolean button_press_event( GtkWidget *widget, GdkEventButton *event )
 			dragrect_active = 1;
 		}
 		if (redraw)
-			do_redraw(window); // TODO: asynch drawing
+			do_redraw(ctx->window, ctx); // TODO: asynch drawing
 	}
 
 	return TRUE;
 }
 
-static gboolean button_release_event( GtkWidget *widget, GdkEventButton *event )
+static gboolean button_release_event( GtkWidget *widget, GdkEventButton *event, gpointer *dat )
 {
+	_gtk_ctx * ctx = (_gtk_ctx*) dat;
 	if (event->button != 8)
 		return FALSE;
 
 	//printf("button %d UP @ %d,%d\n", event->button, (int)event->x, (int)event->y);
 
-	if (render != NULL) {
+	if (ctx->render != NULL) {
 		int l = MIN(event->x, dragrect_origin_x);
 		int r = MAX(event->x, dragrect_origin_x);
 		int t = MIN(event->y, dragrect_origin_y);
 		int b = MAX(event->y, dragrect_origin_y);
 
 		// centres
-		cdbl TL = _main_ctx.plot->pixel_to_set(l,t);
-		cdbl BR = _main_ctx.plot->pixel_to_set(r,b);
-		_main_ctx.centre = (TL+BR)/2.0;
-		_main_ctx.size = BR - TL;
+		cdbl TL = ctx->mainctx->plot->pixel_to_set(l,t);
+		cdbl BR = ctx->mainctx->plot->pixel_to_set(r,b);
+		ctx->mainctx->centre = (TL+BR)/2.0;
+		ctx->mainctx->size = BR - TL;
 
 		dragrect_active = 0;
 
-		do_redraw(window); // TODO: asynch drawing
+		do_redraw(ctx->window, ctx); // TODO: asynch drawing
 	}
 	return TRUE;
 }
 
-static void draw_rect(GtkWidget *widget, GdkPixmap *pix, int L, int R, int T, int B)
+static void draw_rect(GtkWidget *widget, _gtk_ctx *ctx, int L, int R, int T, int B)
 {
-	gdk_gc_set_function(window->style->black_gc, GDK_INVERT);
+	GdkPixmap * const pix = ctx->render;
+	gdk_gc_set_function(ctx->window->style->black_gc, GDK_INVERT);
 	gdk_draw_line(pix, widget->style->black_gc, L, T, R, T);
 	gdk_draw_line(pix, widget->style->black_gc, R, T, R, B);
 	gdk_draw_line(pix, widget->style->black_gc, R, B, L, B);
 	gdk_draw_line(pix, widget->style->black_gc, L, B, L, T);
 }
 
-static gboolean motion_notify_event( GtkWidget *widget, GdkEventMotion *event )
+static gboolean motion_notify_event( GtkWidget *widget, GdkEventMotion *event, gpointer * _dat)
 {
+	_gtk_ctx * ctx = (_gtk_ctx*) _dat;
 	int x, y;
 	GdkModifierType state;
 
@@ -421,10 +434,10 @@ static gboolean motion_notify_event( GtkWidget *widget, GdkEventMotion *event )
 	}
 
 	// turn off previous hilight rect
-	draw_rect(widget, render, dragrect_origin_x, dragrect_current_x, dragrect_origin_y, dragrect_current_y);
+	draw_rect(widget, ctx, dragrect_origin_x, dragrect_current_x, dragrect_origin_y, dragrect_current_y);
 
 	// turn on our new one
-	draw_rect(widget, render, dragrect_origin_x, x, dragrect_origin_y, y);
+	draw_rect(widget, ctx, dragrect_origin_x, x, dragrect_origin_y, y);
 	dragrect_current_x = x;
 	dragrect_current_y = y;
 
@@ -435,19 +448,38 @@ static gboolean motion_notify_event( GtkWidget *widget, GdkEventMotion *event )
 	return TRUE;
 }
 
+
+/////////////////////////////////////////////////////////////////
+
+static _gtk_ctx gtk_ctx;
+static _ctx main_ctx;
+
 int main (int argc, char**argv)
 {
+	memset(&gtk_ctx, 0, sizeof gtk_ctx);
+	memset(&main_ctx, 0, sizeof main_ctx);
+#define _ (char*)
+	GtkItemFactoryEntry main_menu_items[] = {
+			{ _"/_Main", 0, 0, 0, _"<Branch>" },
+			{ _"/Main/_Params", _"<control>P", (GtkItemFactoryCallback)do_config, 0, _"<Item>", &gtk_ctx },
+			{ _"/Main/_Quit", _"<control>Q", gtk_main_quit, 0, _"<Item>", &gtk_ctx },
+	};
+#undef _
+
+	gint n_main_menu_items = sizeof (main_menu_items) / sizeof (main_menu_items[0]);
+
 	GtkWidget *main_vbox, *menubar;
 	GtkWidget *canvas;
 
-	_main_ctx.fractal = new Mandelbrot();
-	_main_ctx.centre = { -0.7, 0.0 };
-	_main_ctx.size = { 3.0, 3.0 };
-	_main_ctx.maxiter = 1000;
+	main_ctx.fractal = new Mandelbrot();
+	main_ctx.centre = { -0.7, 0.0 };
+	main_ctx.size = { 3.0, 3.0 };
+	main_ctx.maxiter = 1000;
 	// _main_ctx.pal initial setting by setup_colour_menu().
 
+	gtk_ctx.mainctx = &main_ctx;
 	gtk_init(&argc, &argv);
-	window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+	GtkWidget * window = gtk_ctx.window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 
 	g_signal_connect(window, "delete-event", G_CALLBACK(delete_event), 0);
 	g_signal_connect(window, "destroy", G_CALLBACK(destroy_event), 0);
@@ -457,21 +489,21 @@ int main (int argc, char**argv)
 	gtk_container_set_border_width (GTK_CONTAINER (main_vbox), 1);
 	gtk_container_add (GTK_CONTAINER (window), main_vbox);
 
-	menubar = get_menubar_menu(window);
-	setup_colour_menu(menubar, DiscretePalette::registry["Gradient RGB"]);
+	menubar = make_menubar(gtk_ctx.window, main_menu_items, n_main_menu_items);
+	setup_colour_menu(&gtk_ctx, menubar, DiscretePalette::registry["Gradient RGB"]);
 
 	canvas = gtk_drawing_area_new();
 	gtk_widget_set_size_request (GTK_WIDGET(canvas), 300, 300);
 	gtk_signal_connect (GTK_OBJECT (canvas), "expose_event",
-			(GtkSignalFunc) expose_event, NULL);
+			(GtkSignalFunc) expose_event, &gtk_ctx);
 	gtk_signal_connect (GTK_OBJECT(canvas),"configure_event",
-			(GtkSignalFunc) configure_event, NULL);
+			(GtkSignalFunc) configure_event, &gtk_ctx);
 	gtk_signal_connect (GTK_OBJECT (canvas), "motion_notify_event",
-			(GtkSignalFunc) motion_notify_event, NULL);
+			(GtkSignalFunc) motion_notify_event, &gtk_ctx);
 	gtk_signal_connect (GTK_OBJECT (canvas), "button_press_event",
-			(GtkSignalFunc) button_press_event, NULL);
+			(GtkSignalFunc) button_press_event, &gtk_ctx);
 	gtk_signal_connect (GTK_OBJECT (canvas), "button_release_event",
-			(GtkSignalFunc) button_release_event, NULL);
+			(GtkSignalFunc) button_release_event, &gtk_ctx);
 
 	gtk_widget_set_events (canvas, GDK_EXPOSURE_MASK
 			| GDK_LEAVE_NOTIFY_MASK
@@ -480,17 +512,17 @@ int main (int argc, char**argv)
 			| GDK_POINTER_MOTION_MASK
 			| GDK_POINTER_MOTION_HINT_MASK);
 
-	statusbar = GTK_STATUSBAR(gtk_statusbar_new());
-	gtk_statusbar_push(statusbar, 0, "Initialising");
-	gtk_statusbar_set_has_resize_grip(statusbar, 0);
+	gtk_ctx.statusbar = GTK_STATUSBAR(gtk_statusbar_new());
+	gtk_statusbar_push(gtk_ctx.statusbar, 0, "Initialising");
+	gtk_statusbar_set_has_resize_grip(gtk_ctx.statusbar, 0);
 
 	gtk_box_pack_start(GTK_BOX(main_vbox), menubar, FALSE, FALSE, 0);
 	gtk_box_pack_start(GTK_BOX(main_vbox), canvas, TRUE, TRUE, 0);
-	gtk_box_pack_end(GTK_BOX(main_vbox), GTK_WIDGET(statusbar), FALSE, FALSE, 0);
+	gtk_box_pack_end(GTK_BOX(main_vbox), GTK_WIDGET(gtk_ctx.statusbar), FALSE, FALSE, 0);
 
 	gtk_widget_show_all(window);
 	gtk_main();
-	delete _main_ctx.plot;
-	delete _main_ctx.fractal;
+	delete main_ctx.plot;
+	delete main_ctx.fractal;
 	return 0;
 }
