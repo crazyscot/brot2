@@ -36,6 +36,7 @@ static GtkWidget *window;
 static GdkPixmap *render;
 static GtkStatusbar *statusbar;
 static GtkWidget * colour_menu;
+static GSList * colours_radio_group = 0;
 
 static void do_redraw(GtkWidget *widget);
 static void recolour(GtkWidget * widget);
@@ -223,20 +224,27 @@ static void colour_menu_selection(void* p)
 {
 	DiscretePalette * sel = (DiscretePalette*)p;
 	_main_ctx.pal = sel;
-	//std::cout<<"selected "<<sel->name <<std::endl;
-	recolour(window);
+	if (_main_ctx.plot)
+		recolour(window);
 }
 
-static void setup_colour_menu(GtkWidget *menubar)
+static void setup_colour_menu(GtkWidget *menubar, DiscretePalette *initial)
 {
 	colour_menu = gtk_menu_new();
+
 	std::map<std::string,DiscretePalette*>::iterator it;
 	for (it = DiscretePalette::registry.begin(); it != DiscretePalette::registry.end(); it++) {
-		GtkWidget * item = gtk_menu_item_new_with_label(it->first.c_str());
+		GtkWidget * item = gtk_radio_menu_item_new_with_label(colours_radio_group, it->first.c_str());
+		colours_radio_group = gtk_radio_menu_item_get_group(GTK_RADIO_MENU_ITEM(item));
+
 		gtk_menu_append(GTK_MENU(colour_menu), item);
+		if (it->second == initial) {
+			gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(item), TRUE);
+		}
 		gtk_signal_connect_object(GTK_OBJECT(item), "activate", GTK_SIGNAL_FUNC(colour_menu_selection), it->second);
 		gtk_widget_show(item);
 	}
+	colour_menu_selection(initial);
 
     GtkWidget* colour_item = gtk_menu_item_new_with_mnemonic ("_Colour");
     gtk_widget_show (colour_item);
@@ -258,6 +266,7 @@ static void do_redraw(GtkWidget *widget)
 
 	if (render)
 		g_object_unref(render);
+
 	render = gdk_pixmap_new(widget->window,
 			widget->allocation.width,
 			widget->allocation.height,
@@ -427,8 +436,7 @@ int main (int argc, char**argv)
 	_main_ctx.centre = { -0.7, 0.0 };
 	_main_ctx.size = { 3.0, 3.0 };
 	_main_ctx.maxiter = 1000;
-	_main_ctx.pal = DiscretePalette::registry.begin()->second;
-	// TODO MAYBE: restore last-used palette?
+	// _main_ctx.pal initial setting by setup_colour_menu().
 
 	gtk_init(&argc, &argv);
 	window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
@@ -442,10 +450,10 @@ int main (int argc, char**argv)
 	gtk_container_add (GTK_CONTAINER (window), main_vbox);
 
 	menubar = get_menubar_menu(window);
-	setup_colour_menu(menubar);
+	setup_colour_menu(menubar, DiscretePalette::registry["Gradient RGB"]);
 
 	canvas = gtk_drawing_area_new();
-	gtk_widget_set_size_request (GTK_WIDGET(canvas), 200, 200);
+	gtk_widget_set_size_request (GTK_WIDGET(canvas), 300, 300);
 	gtk_signal_connect (GTK_OBJECT (canvas), "expose_event",
 			(GtkSignalFunc) expose_event, NULL);
 	gtk_signal_connect (GTK_OBJECT(canvas),"configure_event",
@@ -475,5 +483,6 @@ int main (int argc, char**argv)
 	gtk_widget_show_all(window);
 	gtk_main();
 	delete _main_ctx.plot;
+	delete _main_ctx.fractal;
 	return 0;
 }
