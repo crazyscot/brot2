@@ -105,9 +105,9 @@ static rgb generate_pastel1(int step, int nsteps) {
 #define P(label,desc,n,gen) \
 	DiscretePalette label(#desc, n, gen)
 
-P(hsv1, Kaleidoscopic, 100, generate_hsv);
-P(hsv2, Gradient RGB, 100, generate_hsv2);
-P(pastel1, Pastel fruit salad 1, 16, generate_pastel1);
+P(hsv1, Kaleidoscopic, 32, generate_hsv);
+P(hsv2, Gradient RGB, 32, generate_hsv2);
+P(pastel1, Pastel salad, 16, generate_pastel1);
 
 class TwoPointGradient : public DiscretePalette {
 	typedef rgb TWG_generate_fn(TwoPointGradient *t, int step);
