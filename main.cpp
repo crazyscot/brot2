@@ -341,6 +341,14 @@ static gboolean button_press_event( GtkWidget *widget, GdkEventButton *event )
 			case 3:
 				// RIGHT: zoom out
 				_main_ctx.size *= ZOOM_FACTOR;
+				{
+					double d = real(_main_ctx.size), lim = _main_ctx.fractal->xmax - _main_ctx.fractal->xmin;
+					if (d > lim)
+						_main_ctx.size.real(lim);
+					d = imag(_main_ctx.size), lim = _main_ctx.fractal->ymax - _main_ctx.fractal->ymin;
+					if (d > lim)
+						_main_ctx.size.imag(lim);
+				}
 				break;
 			case 2:
 				// MIDDLE: simple pan
