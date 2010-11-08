@@ -296,15 +296,25 @@ static void do_redraw(GtkWidget *widget, _gtk_ctx *ctx)
 		return;
 	}
 
-	if (ctx->render)
-		g_object_unref(ctx->render);
+	if ((ctx->mainctx->width != (unsigned)widget->allocation.width) ||
+			(ctx->mainctx->height != (unsigned)widget->allocation.height)) {
+		// Size has changed!
+		ctx->mainctx->width = widget->allocation.width;
+		ctx->mainctx->height = widget->allocation.height;
+		if (ctx->render) {
+			g_object_unref(ctx->render);
+			ctx->render = 0;
+		}
+	}
 
-	ctx->render = gdk_pixmap_new(widget->window,
-			widget->allocation.width,
-			widget->allocation.height,
-			-1);
-	ctx->mainctx->width = widget->allocation.width;
-	ctx->mainctx->height = widget->allocation.height;
+	if (!ctx->render) {
+		ctx->render = gdk_pixmap_new(widget->window,
+				ctx->mainctx->width,
+				ctx->mainctx->height,
+				-1);
+		// mid_gc[0] gives us grey.
+		gdk_draw_rectangle(ctx->render, widget->style->mid_gc[0], true, 0, 0, ctx->mainctx->width, ctx->mainctx->height);
+	}
 
 	gtk_statusbar_pop(ctx->statusbar, 0);
 	gtk_statusbar_push(ctx->statusbar, 0, "Plotting...");
@@ -458,16 +468,6 @@ static gboolean button_release_event( GtkWidget *widget, GdkEventButton *event, 
 	return TRUE;
 }
 
-static void draw_rect(GtkWidget *widget, _gtk_ctx *ctx, int L, int R, int T, int B)
-{
-	GdkPixmap * const pix = ctx->render;
-	gdk_gc_set_function(ctx->window->style->black_gc, GDK_INVERT);
-	gdk_draw_line(pix, widget->style->black_gc, L, T, R, T);
-	gdk_draw_line(pix, widget->style->black_gc, R, T, R, B);
-	gdk_draw_line(pix, widget->style->black_gc, R, B, L, B);
-	gdk_draw_line(pix, widget->style->black_gc, L, B, L, T);
-}
-
 static gboolean motion_notify_event( GtkWidget *widget, GdkEventMotion *event, gpointer * _dat)
 {
 	_gtk_ctx * ctx = (_gtk_ctx*) _dat;
@@ -485,11 +485,19 @@ static gboolean motion_notify_event( GtkWidget *widget, GdkEventMotion *event, g
 		state = GdkModifierType(event->state);
 	}
 
+	gdk_gc_set_function(ctx->window->style->black_gc, GDK_INVERT);
+
 	// turn off previous hilight rect
-	draw_rect(widget, ctx, dragrect_origin_x, dragrect_current_x, dragrect_origin_y, dragrect_current_y);
+	gdk_draw_rectangle(ctx->render, widget->style->black_gc, false,
+			dragrect_origin_x, dragrect_origin_y,
+			dragrect_current_x - dragrect_origin_x, dragrect_current_y - dragrect_origin_y);
+
+	//draw_rect(widget, ctx, dragrect_origin_x, dragrect_current_x, dragrect_origin_y, dragrect_current_y);
 
 	// turn on our new one
-	draw_rect(widget, ctx, dragrect_origin_x, x, dragrect_origin_y, y);
+	gdk_draw_rectangle(ctx->render, widget->style->black_gc, false,
+			dragrect_origin_x, dragrect_origin_y,
+			x - dragrect_origin_x, y - dragrect_origin_y);
 	dragrect_current_x = x;
 	dragrect_current_y = y;
 
