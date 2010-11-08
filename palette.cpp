@@ -26,6 +26,16 @@ using namespace std;
 #define DEBUG_DUMP_ALL 0
 #define DEBUG_DUMP_HSV 0
 
+std::ostream& operator<<(std::ostream &stream, rgb o) {
+	  stream << "rgb(" << (int)o.r << "," << (int)o.g << "," << (int)o.b << ")";
+	  return stream;
+}
+
+std::ostream& operator<<(std::ostream &stream, rgbf o) {
+	  stream << "rgbf(" << o.r << "," << o.g << "," << o.b << ")";
+	  return stream;
+}
+
 map<string,DiscretePalette*> DiscretePalette::registry;
 
 DiscretePalette::DiscretePalette(int n, string nam) : name(nam), size(n), isRegistered(0) {
@@ -45,7 +55,7 @@ DiscretePalette::DiscretePalette(string nam, int n, PaletteGenerator gen_fn) : n
 	for (int i=0; i<size; i++) {
 		table[i] = gen_fn(i, size);
 #if DEBUG_DUMP_ALL
-		printf("%3u: r=%3u, g=%3u, b=%3u\n", i, table[i].r, table[i].g, table[i].b);
+		cout << i << ": " << table[i] << endl;
 #endif
 	}
 	reg();
@@ -77,12 +87,17 @@ hsv::operator rgb() {
 	return rgb(0, 0, 0);
 }
 
+std::ostream& operator<<(std::ostream &stream, hsv o) {
+	  stream << "hsv(" << (int)o.h << "," << (int)o.s << "," << (int)o.v << ")";
+	  return stream;
+}
+
 static rgb generate_hsv(int step, int nsteps) {
 	hsv h(255*cos(step), 224, 224);
 	rgb r(h);
 	// This one jumps at random around the hue space.
 #if DEBUG_DUMP_HSV
-	printf("h=%3u s=%3u v=%3u --> r=%3u g=%3u b=%3u\n", h.h, h.s, h.v, r.r, r.g, r.b);
+	cout << h << " --> " << r << endl;
 #endif
 	return r;
 }
@@ -92,7 +107,7 @@ static rgb generate_hsv2(int step, int nsteps) {
 	hsv h(255*step/nsteps, 255, 255);
 	rgb r(h);
 #if DEBUG_DUMP_HSV
-	printf("h=%3u s=%3u v=%3u --> r=%3u g=%3u b=%3u\n", h.h, h.s, h.v, r.r, r.g, r.b);
+	cout << h << " --> " << r << endl;
 #endif
 	return r;
 }
@@ -123,7 +138,7 @@ public:
 		for (int i=0; i<size; i++) {
 			table[i] = gen_fn(this, i);
 #if DEBUG_DUMP_ALL
-			printf("%3u: r=%3u, g=%3u, b=%3u\n", i, table[i].r, table[i].g, table[i].b);
+			cout << i << ": " << table[i] << endl;
 #endif
 		}
 		reg();

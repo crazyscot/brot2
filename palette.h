@@ -34,12 +34,16 @@ public:
 	operator rgb();
 };
 
+std::ostream& operator<<(std::ostream &stream, hsv o);
+
 class rgb {
 public:
 	guchar r,g,b;
 	rgb () {};
 	rgb (guchar rr, guchar gg, guchar bb) : r(rr), g(gg), b(bb) {};
 };
+
+std::ostream& operator<<(std::ostream &stream, rgb o);
 
 class rgbf {
 protected:
@@ -84,12 +88,9 @@ public:
 		rv.clip();
 		return rv;
 	}
-#if 0
-	void dump() {
-		cout << "r="<<r<<" g="<<g<<" b="<<b;
-	}
-#endif
 };
+
+std::ostream& operator<<(std::ostream &stream, rgbf o);
 
 /* Palette generation function.
  * Will be called repeatedly with 0 <= step <= nsteps, expected to be
