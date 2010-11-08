@@ -22,6 +22,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <assert.h>
 #include <iostream>
 #include <sstream>
 #include <complex>
@@ -106,9 +107,11 @@ static void read_entry_float(GtkWidget *entry, double *val_out)
 }
 
 void do_config(gpointer _ctx, guint callback_action, GtkWidget *widget)
+//void do_config(GtkWidget *widget, gpointer _ctx, guint callback_action)
 {
 	_gtk_ctx * ctx = (_gtk_ctx*)_ctx;
-	// TODO: generate from renderer parameters!
+	assert (ctx);
+	// TODO: generate config dialog from renderer parameters?
 	GtkWidget *dlg = gtk_dialog_new_with_buttons("Configuration", GTK_WINDOW(ctx->window),
 			GtkDialogFlags(GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT),
 			GTK_STOCK_OK, GTK_RESPONSE_ACCEPT,
@@ -194,7 +197,7 @@ static void destroy_event(GtkWidget *widget, gpointer data)
 
 
 /* Returns a menubar widget made from the above menu */
-static GtkWidget *make_menubar( GtkWidget  *window, GtkItemFactoryEntry* menu_items, gint nmenu_items )
+static GtkWidget *make_menubar( GtkWidget  *window, GtkItemFactoryEntry* menu_items, gint nmenu_items, _gtk_ctx * ctx)
 {
 	GtkItemFactory *item_factory;
 	GtkAccelGroup *accel_group;
@@ -209,7 +212,7 @@ static GtkWidget *make_menubar( GtkWidget  *window, GtkItemFactoryEntry* menu_it
 	/* This function generates the menu items. Pass the item factory,
 	   the number of items in the array, the array itself, and any
 	   callback data for the the menu items. */
-	gtk_item_factory_create_items (item_factory, nmenu_items, menu_items, NULL);
+	gtk_item_factory_create_items (item_factory, nmenu_items, menu_items, ctx);
 
 	/* Attach the new accelerator group to the window. */
 	gtk_window_add_accel_group (GTK_WINDOW (window), accel_group);
@@ -459,10 +462,11 @@ int main (int argc, char**argv)
 	memset(&gtk_ctx, 0, sizeof gtk_ctx);
 	memset(&main_ctx, 0, sizeof main_ctx);
 #define _ (char*)
+	// TODO: replace with GtkUIManager.
 	GtkItemFactoryEntry main_menu_items[] = {
 			{ _"/_Main", 0, 0, 0, _"<Branch>" },
-			{ _"/Main/_Params", _"<control>P", (GtkItemFactoryCallback)do_config, 0, _"<Item>", &gtk_ctx },
-			{ _"/Main/_Quit", _"<control>Q", gtk_main_quit, 0, _"<Item>", &gtk_ctx },
+			{ _"/Main/_Params", _"<control>P", (GtkItemFactoryCallback)do_config, 0, _"<Item>" },
+			{ _"/Main/_Quit", _"<control>Q", gtk_main_quit, 0, _"<Item>" },
 	};
 #undef _
 
@@ -489,7 +493,7 @@ int main (int argc, char**argv)
 	gtk_container_set_border_width (GTK_CONTAINER (main_vbox), 1);
 	gtk_container_add (GTK_CONTAINER (window), main_vbox);
 
-	menubar = make_menubar(gtk_ctx.window, main_menu_items, n_main_menu_items);
+	menubar = make_menubar(gtk_ctx.window, main_menu_items, n_main_menu_items, &gtk_ctx);
 	setup_colour_menu(&gtk_ctx, menubar, DiscretePalette::registry["Gradient RGB"]);
 
 	canvas = gtk_drawing_area_new();
