@@ -237,6 +237,21 @@ static void recolour(GtkWidget * widget, _gtk_ctx *ctx)
 	gtk_widget_queue_draw(widget);
 }
 
+/* per sub-thread context/info */
+typedef struct _thread_ctx {
+	GThread * thread;
+	_render_ctx * rdr;
+	unsigned firstrow, nrows;
+	_thread_ctx() : thread(0), rdr(0) {};
+} _thread_ctx;
+
+static gpointer render_sub_thread(gpointer arg)
+{
+	_thread_ctx * tctx = (_thread_ctx*) arg;
+	tctx->rdr->plot->do_some(tctx->firstrow, tctx->nrows);
+	return 0;
+}
+
 /*
  * statusbar contexts:
  * 0 = general info
@@ -245,6 +260,7 @@ static void recolour(GtkWidget * widget, _gtk_ctx *ctx)
 
 static gpointer main_render_thread(gpointer arg)
 {
+	int i;
 	struct timeval tv_start, tv_after, tv_diff;
 	_gtk_ctx *ctx = (_gtk_ctx*)arg;
 
@@ -253,9 +269,30 @@ static gpointer main_render_thread(gpointer arg)
 
 	if (ctx->mainctx->plot) delete ctx->mainctx->plot;
 
-	// TODO: Multi-threaded plot.
+	// TODO: preference for how many threads
+#define NTHREADS 2
+	_thread_ctx threads[NTHREADS];
+
 	ctx->mainctx->plot = new Plot(ctx->mainctx->fractal, ctx->mainctx->centre, ctx->mainctx->size, ctx->mainctx->maxiter, ctx->mainctx->width, ctx->mainctx->height);
-	ctx->mainctx->plot->do_all();
+	ctx->mainctx->plot->prepare();
+	const unsigned step = ctx->mainctx->height / NTHREADS;
+	GError * err = 0;
+
+	for (i=0; i<NTHREADS; i++) {
+		threads[i].rdr = ctx->mainctx;
+		threads[i].firstrow = step*i;
+		threads[i].nrows = step;
+		threads[i].thread = g_thread_create(render_sub_thread, &threads[i], TRUE, &err);
+		if (!threads[i].thread) {
+			fprintf(stderr, "Could not spawn render thread %d: %d: %s\n", i, err->code, err->message);
+			abort();
+			// TODO: gtk error message? this is pretty dire though.
+		}
+	}
+
+	for (i=0; i<NTHREADS; i++)
+		g_thread_join(threads[i].thread); // ignore rv.
+
 	// And now turn it into an RGB.
 	gdk_threads_enter();
 	recolour(ctx->window,ctx);
@@ -464,7 +501,7 @@ static gboolean button_release_event( GtkWidget *widget, GdkEventButton *event, 
 
 		dragrect_active = 0;
 
-		do_redraw(ctx->window, ctx); // TODO: asynch drawing
+		do_redraw(ctx->window, ctx);
 	}
 	return TRUE;
 }
