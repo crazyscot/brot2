@@ -25,6 +25,7 @@
 #include <iostream>
 #include <sstream>
 #include <complex>
+#include <pthread.h>
 
 #include "Plot.h"
 #include "Fractal.h"
@@ -40,6 +41,8 @@ typedef struct _render_ctx {
 	Fractal *fractal;
 	cdbl centre, size;
 	unsigned width, height, maxiter;
+
+	_render_ctx(): plot(0), pal(0), fractal(0) {};
 } _render_ctx;
 
 typedef struct _gtk_ctx {
@@ -49,6 +52,13 @@ typedef struct _gtk_ctx {
 	GtkStatusbar *statusbar;
 	GtkWidget * colour_menu;
 	GSList * colours_radio_group;
+
+	pthread_mutex_t render_lock; // lock before starting a render, unlock when complete
+	GThread * t_render_main;
+
+	_gtk_ctx() : mainctx(0), window(0), render(0), statusbar(0), colour_menu(0), colours_radio_group(0), t_render_main(0) {
+		pthread_mutex_init(&render_lock, 0);
+	};
 } _gtk_ctx;
 
 static void do_redraw(GtkWidget *widget, _gtk_ctx *ctx);
@@ -160,7 +170,6 @@ void do_config(gpointer _ctx, guint callback_action, GtkWidget *widget)
 		read_entry_float(size_im, &res);
 		ctx->mainctx->size.imag(res);
 		do_redraw(ctx->window, ctx);
-		// FIXME: This is a bit nasty, but will be fixed when renders go asynch.
 	}
 	gtk_widget_destroy(dlg);
 }
@@ -222,33 +231,33 @@ static void recolour(GtkWidget * widget, _gtk_ctx *ctx)
 	gtk_widget_queue_draw(widget);
 }
 
-// Redraws us onto a given widget (window), then queues an expose event
-static void do_redraw(GtkWidget *widget, _gtk_ctx *ctx)
+/*
+ * statusbar contexts:
+ * 0 = general info
+ * 1 = semi-alert e.g. "drawing already in progress"
+ */
+
+static gpointer main_render_thread(gpointer arg)
 {
-	struct timeval tv_before, tv_after, tv_diff;
+	struct timeval tv_start, tv_after, tv_diff;
+	_gtk_ctx *ctx = (_gtk_ctx*)arg;
 
-	if (ctx->render)
-		g_object_unref(ctx->render);
+	// N.B. This (gtk/gdk lib calls from non-main thread) will not work at all on win32; will need to refactor if I ever port.
+	gettimeofday(&tv_start,0);
 
-	ctx->render = gdk_pixmap_new(widget->window,
-			widget->allocation.width,
-			widget->allocation.height,
-			-1);
-	ctx->mainctx->width = widget->allocation.width;
-	ctx->mainctx->height = widget->allocation.height;
-
-	gtk_statusbar_pop(ctx->statusbar, 0);
-	gtk_statusbar_push(ctx->statusbar, 0, "Drawing..."); // FIXME: Doesn't update. Possibly leave this until we get computation multithreaded and asynch?
-	gettimeofday(&tv_before,0);
 	if (ctx->mainctx->plot) delete ctx->mainctx->plot;
+
+	// TODO: Multi-threaded plot.
 	ctx->mainctx->plot = new Plot(ctx->mainctx->fractal, ctx->mainctx->centre, ctx->mainctx->size, ctx->mainctx->maxiter, ctx->mainctx->width, ctx->mainctx->height);
 	ctx->mainctx->plot->plot_data();
 	// And now turn it into an RGB.
-	recolour(widget,ctx);
+	gdk_threads_enter();
+	recolour(ctx->window,ctx);
 	// TODO convert to cairo.
 	gettimeofday(&tv_after,0);
 
-	tv_diff = tv_subtract(tv_after, tv_before);
+
+	tv_diff = tv_subtract(tv_after, tv_start);
 	double timetaken = tv_diff.tv_sec + (tv_diff.tv_usec / 1e6);
 
 	gtk_statusbar_pop(ctx->statusbar, 0);
@@ -262,8 +271,49 @@ static void do_redraw(GtkWidget *widget, _gtk_ctx *ctx)
 	info << "rendered in " << timetaken << "s";
 	std::cout << info.str() << std::endl; // TODO: TEMP
 	gtk_statusbar_push(ctx->statusbar, 0, info.str().c_str());
+	gtk_statusbar_pop(ctx->statusbar, 1);
 
-	gtk_widget_queue_draw(widget);
+	gtk_widget_queue_draw(ctx->window);
+	gdk_flush();
+	gdk_threads_leave();
+
+	pthread_mutex_unlock(&ctx->render_lock);
+
+	return 0;
+}
+
+
+// Redraws us onto a given widget (window), then queues an expose event
+static void do_redraw(GtkWidget *widget, _gtk_ctx *ctx)
+{
+	if (0 != pthread_mutex_trylock(&ctx->render_lock)) {
+		gtk_statusbar_push(ctx->statusbar, 1, "Plot already in progress");
+		return;
+	}
+
+	if (ctx->render)
+		g_object_unref(ctx->render);
+
+	ctx->render = gdk_pixmap_new(widget->window,
+			widget->allocation.width,
+			widget->allocation.height,
+			-1);
+	ctx->mainctx->width = widget->allocation.width;
+	ctx->mainctx->height = widget->allocation.height;
+
+	gtk_statusbar_pop(ctx->statusbar, 0);
+	gtk_statusbar_push(ctx->statusbar, 0, "Plotting...");
+
+	GError * err = 0;
+	ctx->t_render_main = g_thread_create(main_render_thread, ctx, FALSE, &err);
+	// Not joinable, i.e. when it's done, it's done.
+	if (!ctx->t_render_main) {
+		fprintf(stderr, "Could not spawn thread: %d: %s\n", err->code, err->message);
+		abort();
+		// TODO: gtk error message? this is pretty dire though.
+	}
+
+
 }
 
 static void colour_menu_selection(_gtk_ctx *ctx, DiscretePalette *sel)
@@ -370,7 +420,7 @@ static gboolean button_press_event( GtkWidget *widget, GdkEventButton *event, gp
 			dragrect_active = 1;
 		}
 		if (redraw)
-			do_redraw(ctx->window, ctx); // TODO: asynch drawing
+			do_redraw(ctx->window, ctx);
 	}
 
 	return TRUE;
@@ -453,8 +503,6 @@ static _render_ctx render_ctx;
 
 int main (int argc, char**argv)
 {
-	memset(&gtk_ctx, 0, sizeof gtk_ctx);
-	memset(&render_ctx, 0, sizeof render_ctx);
 #define _ (char*)
 	GtkItemFactoryEntry main_menu_items[] = {
 			{ _"/_Main", 0, 0, 0, _"<Branch>" },
@@ -475,6 +523,8 @@ int main (int argc, char**argv)
 	// _main_ctx.pal initial setting by setup_colour_menu().
 
 	gtk_ctx.mainctx = &render_ctx;
+	g_thread_init(0);
+	gdk_threads_init();
 	gtk_init(&argc, &argv);
 	GtkWidget * window = gtk_ctx.window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 
@@ -518,7 +568,9 @@ int main (int argc, char**argv)
 	gtk_box_pack_end(GTK_BOX(main_vbox), GTK_WIDGET(gtk_ctx.statusbar), FALSE, FALSE, 0);
 
 	gtk_widget_show_all(window);
+	gdk_threads_enter();
 	gtk_main();
+	gdk_threads_leave();
 	delete render_ctx.plot;
 	delete render_ctx.fractal;
 	return 0;
