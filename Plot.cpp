@@ -49,21 +49,31 @@ string Plot::info_short() {
 	return rv.str();
 }
 
-void Plot::render() {
+void Plot::prepare() {
 	if (plot_data_) delete[] plot_data_;
 	plot_data_ = new fractal_point[width * height];
-	unsigned i,j, out_index = 0;
-	const cdbl _origin = origin();
+}
+
+void Plot::do_some(const unsigned firstrow, unsigned n_rows) {
+	unsigned i,j;
+	const cdbl _origin = origin(); // origin of the _whole plot_, not of firstrow
 	//std::cout << "render centre " << centre << "; size " << size << "; origin " << origin << std::endl;
 
-	complex<double> foo = complex<double>(1,2);
+	// Sanity check: don't overrun the plot.
+	if (firstrow + n_rows > height)
+		n_rows = height - firstrow;
+	const unsigned endpoint = firstrow + n_rows;
+
 	cdbl colstep = cdbl(real(size) / width,0);
 	cdbl rowstep = cdbl(0, imag(size) / height);
 	//std::cout << "rowstep " << rowstep << "; colstep "<<colstep << std::endl;
 
 	cdbl render_point = _origin;
+	render_point.imag(render_point.imag() + firstrow*imag(rowstep));
+
+	unsigned out_index = firstrow * width;
 	// keep running points.
-	for (j=0; j<height; j++) {
+	for (j=firstrow; j<endpoint; j++) {
 		for (i=0; i<width; i++) {
 			fract->plot_pixel(render_point, maxiter, plot_data_[out_index]);
 			//std::cout << "Plot " << render_point << " i=" << out->iter << std::endl;
@@ -73,6 +83,11 @@ void Plot::render() {
 		render_point.real(real(_origin));
 		render_point += rowstep;
 	}
+}
+
+void Plot::do_all() {
+	prepare();
+	do_some(0, height);
 }
 
 /* Converts an (x,y) pair on the render (say, from a mouse click) to their complex co-ordinates */

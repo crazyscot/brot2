@@ -71,7 +71,8 @@ static void render_gdk(GdkPixmap *dest, GdkGC *gc, _render_ctx & ctx) {
 	const gint rowstride = rowbytes + 8-(rowbytes%8);
 	guchar *buf = new guchar[rowstride * ctx.height]; // packed 24-bit data
 
-	const fractal_point * data = ctx.plot->plot_data();
+	const fractal_point * data = ctx.plot->get_plot_data();
+	assert(data);
 
 	unsigned i,j;
 	for (j=0; j<ctx.height; j++) {
@@ -254,7 +255,7 @@ static gpointer main_render_thread(gpointer arg)
 
 	// TODO: Multi-threaded plot.
 	ctx->mainctx->plot = new Plot(ctx->mainctx->fractal, ctx->mainctx->centre, ctx->mainctx->size, ctx->mainctx->maxiter, ctx->mainctx->width, ctx->mainctx->height);
-	ctx->mainctx->plot->plot_data();
+	ctx->mainctx->plot->do_all();
 	// And now turn it into an RGB.
 	gdk_threads_enter();
 	recolour(ctx->window,ctx);
