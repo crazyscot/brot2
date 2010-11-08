@@ -21,6 +21,8 @@
 #include <stdio.h>
 #include <iostream>
 
+using namespace std;
+
 #define DEBUG_DUMP_ALL 0
 #define DEBUG_DUMP_HSV 0
 

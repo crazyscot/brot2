@@ -20,7 +20,6 @@
 #define PLOT_H_
 
 #include <string>
-using namespace std;
 #include <complex>
 
 #include "Fractal.h"
@@ -41,7 +40,7 @@ public:
 	const cdbl origin() { return centre - size/2.0; }
 
 	// Returns a human-readable summary of this plot for the status bar.
-	virtual string info_short();
+	virtual std::string info_short();
 
 	// Returns the plot. The data is packed one row at a time, top row first; left-to-right within each row.
 	const fractal_point * plot_data() {

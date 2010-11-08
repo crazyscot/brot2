@@ -22,6 +22,7 @@
 #include <assert.h>
 #include "Fractal.h"
 #include "Plot.h"
+using namespace std;
 
 Plot::Plot(Fractal* f, cdbl centre, cdbl size,
 		unsigned maxiter, unsigned width, unsigned height) :

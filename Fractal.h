@@ -20,10 +20,9 @@
 #define FRACTAL_H_
 
 #include <string>
-using namespace std;
 #include <complex>
 
-typedef complex<double> cdbl;
+typedef std::complex<double> cdbl;
 
 class fractal_point {
 public:
@@ -34,10 +33,10 @@ public:
 // but nothing about an individual _plot_ of it (meta-instance?)
 class Fractal {
 public:
-	Fractal(string name, double xmin, double xmax, double ymin, double ymax);
+	Fractal(std::string name, double xmin, double xmax, double ymin, double ymax);
 	virtual ~Fractal();
 
-	string name; // Human-readable
+	std::string name; // Human-readable
 	double xmin, xmax, ymin, ymax; // Maximum useful complex area
 
 	// type ?

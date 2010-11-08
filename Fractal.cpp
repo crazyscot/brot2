@@ -17,6 +17,7 @@
 */
 
 #include "Fractal.h"
+using namespace std;
 
 Fractal::Fractal(string name, double xmin, double xmax, double ymin, double ymax) : name(name), xmin(xmin), xmax(xmax), ymin(ymin), ymax(ymax) {}
 Fractal::~Fractal() {}

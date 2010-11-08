@@ -24,8 +24,6 @@
 #include <map>
 #include <iostream>
 
-using namespace std;
-
 typedef struct rgb colour;
 
 class hsv {
@@ -105,10 +103,10 @@ class DiscretePalette {
 
 public:
 	// Base constructor does *NOT* register the class; caller may do so at their choice when they've set up the table.
-	DiscretePalette(int newsize, string newname);
+	DiscretePalette(int newsize, std::string newname);
 
 	// Construction, initialisation and registration in one go.
-	DiscretePalette(string newname, int newsize, PaletteGenerator gen_fn);
+	DiscretePalette(std::string newname, int newsize, PaletteGenerator gen_fn);
 
 	// Destructor will deregister iff the instance was registered.
 	virtual ~DiscretePalette();
@@ -120,7 +118,7 @@ public:
 	rgb& operator[](int i) { return table[i%size]; }
 	const rgb& operator[](int i) const { return table[i%size]; }
 
-	static map<string,DiscretePalette*> registry;
+	static std::map<std::string,DiscretePalette*> registry;
 
 	void reg() { registry[name] = this; isRegistered = 1; }
 	void dereg()
