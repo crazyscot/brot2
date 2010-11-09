@@ -74,8 +74,12 @@ static void render_gdk(GdkPixmap *dest, GdkGC *gc, _render_ctx & ctx) {
 	const fractal_point * data = ctx.plot->get_plot_data();
 	assert(data);
 
-	unsigned i,j;
-	for (j=0; j<ctx.height; j++) {
+	// Slight twist: We've plotted the fractal from a bottom-left origin,
+	// but gdk assumes a top-left origin.
+
+	unsigned i;
+	int j;
+	for (j=ctx.height-1; j>=0; j--) {
 		guchar *row = &buf[j*rowstride];
 		for (i=0; i<ctx.width; i++) {
 			if (data->iter == ctx.maxiter) {
@@ -439,7 +443,7 @@ static gboolean button_press_event( GtkWidget *widget, GdkEventButton *event, gp
 	_gtk_ctx * ctx = (_gtk_ctx*) dat;
 	if (ctx->render != NULL) {
 		int redraw=0;
-		cdbl new_ctr = ctx->mainctx->plot->pixel_to_set(event->x, event->y);
+		cdbl new_ctr = ctx->mainctx->plot->pixel_to_set_tlo(event->x, event->y);
 
 		if (event->button >= 1 && event->button <= 3) {
 			ctx->mainctx->centre = new_ctr;
@@ -494,8 +498,8 @@ static gboolean button_release_event( GtkWidget *widget, GdkEventButton *event, 
 		int b = MAX(event->y, dragrect_origin_y);
 
 		// centres
-		cdbl TL = ctx->mainctx->plot->pixel_to_set(l,t);
-		cdbl BR = ctx->mainctx->plot->pixel_to_set(r,b);
+		cdbl TL = ctx->mainctx->plot->pixel_to_set_tlo(l,t);
+		cdbl BR = ctx->mainctx->plot->pixel_to_set_tlo(r,b);
 		ctx->mainctx->centre = (TL+BR)/(long double)2.0;
 		ctx->mainctx->size = BR - TL;
 

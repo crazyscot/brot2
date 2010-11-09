@@ -57,8 +57,17 @@ public:
 	void do_all();
 
 	/* Converts an (x,y) pair on the render (say, from a mouse click) to their complex co-ordinates.
-	 * Returns 1 for success, 0 if the point was outside of the render */
+	 * Returns 1 for success, 0 if the point was outside of the render.
+	 * N.B. that we assume that pixel co-ordinates have a bottom-left origin! */
 	cdbl pixel_to_set(int x, int y);
+
+	/* Converts an (x,y) pair on the render (say, from a mouse click) to their complex co-ordinates.
+	 * Returns 1 for success, 0 if the point was outside of the render.
+	 * This is a variant form for pixels with a top-left origin, such as
+	 * those of gtk/gdk. */
+	cdbl pixel_to_set_tlo(int xx, int yy) {
+		return pixel_to_set(xx, height-yy-1);
+	};
 
 protected:
 	fractal_point *plot_data_;
