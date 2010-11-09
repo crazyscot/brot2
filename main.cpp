@@ -64,8 +64,6 @@ typedef struct _gtk_ctx {
 	};
 } _gtk_ctx;
 
-static void do_redraw(GtkWidget *widget, _gtk_ctx *ctx);
-
 static void draw_hud_gdk(GtkWidget * widget, _gtk_ctx *gctx)
 {
 	GdkPixmap *dest = gctx->render;
@@ -132,89 +130,6 @@ static void render_gdk(GtkWidget * widget, _gtk_ctx *gctx) {
 		draw_hud_gdk(widget, gctx);
 
 	delete[] buf;
-}
-
-static void update_entry_float(GtkWidget *entry, long double val)
-{
-	char * tmp = 0;
-	if (-1==asprintf(&tmp, "%Lf", val))
-		abort(); // gah
-	gtk_entry_set_text(GTK_ENTRY(entry), tmp);
-	free(tmp);
-}
-
-static void read_entry_float(GtkWidget *entry, long double *val_out)
-{
-	long double tmp;
-	const gchar * raw = gtk_entry_get_text(GTK_ENTRY(entry));
-	if (1 == sscanf(raw, "%Lf", &tmp)) {
-		*val_out = tmp;
-		// TODO: Better error handling. Perhaps a validity check at dialog run time?
-	}
-}
-
-void do_config(gpointer _ctx, guint callback_action, GtkWidget *widget)
-//void do_config(GtkWidget *widget, gpointer _ctx, guint callback_action)
-{
-	_gtk_ctx * ctx = (_gtk_ctx*)_ctx;
-	assert (ctx);
-	// TODO: generate config dialog from renderer parameters?
-	GtkWidget *dlg = gtk_dialog_new_with_buttons("Configuration", GTK_WINDOW(ctx->window),
-			GtkDialogFlags(GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT),
-			GTK_STOCK_OK, GTK_RESPONSE_ACCEPT,
-			GTK_STOCK_CANCEL, GTK_RESPONSE_REJECT,
-			NULL);
-	GtkWidget * content_area = gtk_dialog_get_content_area(GTK_DIALOG(dlg));
-	GtkWidget * label;
-
-	//label = gtk_label_new ("Configuration");
-	//gtk_container_add (GTK_CONTAINER (content_area), label);
-
-	GtkWidget *c_re, *c_im, *size_re, *size_im;
-	c_re = gtk_entry_new();
-	update_entry_float(c_re, real(ctx->mainctx->centre));
-	c_im = gtk_entry_new();
-	update_entry_float(c_im, imag(ctx->mainctx->centre));
-	size_re = gtk_entry_new();
-	update_entry_float(size_re, real(ctx->mainctx->size));
-	size_im = gtk_entry_new();
-	update_entry_float(size_im, imag(ctx->mainctx->size));
-
-	GtkWidget * box = gtk_table_new(4, 2, TRUE);
-
-	label = gtk_label_new("Centre Real (x)");
-	gtk_table_attach_defaults(GTK_TABLE(box), label, 0, 1, 0, 1);
-	gtk_table_attach_defaults(GTK_TABLE(box), c_re, 1, 2, 0, 1);
-
-	label = gtk_label_new("Centre Imaginary (y)");
-	gtk_table_attach_defaults(GTK_TABLE(box), label, 0, 1, 1, 2);
-	gtk_table_attach_defaults(GTK_TABLE(box), c_im, 1, 2, 1, 2);
-
-	label = gtk_label_new("Size Real (x)");
-	gtk_table_attach_defaults(GTK_TABLE(box), label, 0, 1, 2, 3);
-	gtk_table_attach_defaults(GTK_TABLE(box), size_re, 1, 2, 2, 3);
-
-	label = gtk_label_new("Size Imaginary (y)");
-	gtk_table_attach_defaults(GTK_TABLE(box), label, 0, 1, 3, 4);
-	gtk_table_attach_defaults(GTK_TABLE(box), size_im, 1, 2, 3, 4);
-
-	gtk_container_add (GTK_CONTAINER (content_area), box);
-
-	gtk_widget_show_all(dlg);
-	gint result = gtk_dialog_run(GTK_DIALOG(dlg));
-	if (result == GTK_RESPONSE_ACCEPT) {
-		long double res=0;
-		read_entry_float(c_re, &res);
-		ctx->mainctx->centre.real(res);
-		read_entry_float(c_im, &res);
-		ctx->mainctx->centre.imag(res);
-		read_entry_float(size_re, &res);
-		ctx->mainctx->size.real(res);
-		read_entry_float(size_im, &res);
-		ctx->mainctx->size.imag(res);
-		do_redraw(ctx->window, ctx);
-	}
-	gtk_widget_destroy(dlg);
 }
 
 struct timeval tv_subtract (struct timeval tv1, struct timeval tv2)
@@ -592,6 +507,90 @@ static gboolean motion_notify_event( GtkWidget *widget, GdkEventMotion *event, g
 	return TRUE;
 }
 
+
+/////////////////////////////////////////////////////////////////
+
+static void update_entry_float(GtkWidget *entry, long double val)
+{
+	char * tmp = 0;
+	if (-1==asprintf(&tmp, "%Lf", val))
+		abort(); // gah
+	gtk_entry_set_text(GTK_ENTRY(entry), tmp);
+	free(tmp);
+}
+
+static void read_entry_float(GtkWidget *entry, long double *val_out)
+{
+	long double tmp;
+	const gchar * raw = gtk_entry_get_text(GTK_ENTRY(entry));
+	if (1 == sscanf(raw, "%Lf", &tmp)) {
+		*val_out = tmp;
+		// TODO: Better error handling. Perhaps a validity check at dialog run time?
+	}
+}
+
+void do_config(gpointer _ctx, guint callback_action, GtkWidget *widget)
+{
+	_gtk_ctx * ctx = (_gtk_ctx*)_ctx;
+	assert (ctx);
+	// TODO: generate config dialog from renderer parameters?
+	GtkWidget *dlg = gtk_dialog_new_with_buttons("Configuration", GTK_WINDOW(ctx->window),
+			GtkDialogFlags(GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT),
+			GTK_STOCK_OK, GTK_RESPONSE_ACCEPT,
+			GTK_STOCK_CANCEL, GTK_RESPONSE_REJECT,
+			NULL);
+	GtkWidget * content_area = gtk_dialog_get_content_area(GTK_DIALOG(dlg));
+	GtkWidget * label;
+
+	//label = gtk_label_new ("Configuration");
+	//gtk_container_add (GTK_CONTAINER (content_area), label);
+
+	GtkWidget *c_re, *c_im, *size_re, *size_im;
+	c_re = gtk_entry_new();
+	update_entry_float(c_re, real(ctx->mainctx->centre));
+	c_im = gtk_entry_new();
+	update_entry_float(c_im, imag(ctx->mainctx->centre));
+	size_re = gtk_entry_new();
+	update_entry_float(size_re, real(ctx->mainctx->size));
+	size_im = gtk_entry_new();
+	update_entry_float(size_im, imag(ctx->mainctx->size));
+
+	GtkWidget * box = gtk_table_new(4, 2, TRUE);
+
+	label = gtk_label_new("Centre Real (x)");
+	gtk_table_attach_defaults(GTK_TABLE(box), label, 0, 1, 0, 1);
+	gtk_table_attach_defaults(GTK_TABLE(box), c_re, 1, 2, 0, 1);
+
+	label = gtk_label_new("Centre Imaginary (y)");
+	gtk_table_attach_defaults(GTK_TABLE(box), label, 0, 1, 1, 2);
+	gtk_table_attach_defaults(GTK_TABLE(box), c_im, 1, 2, 1, 2);
+
+	label = gtk_label_new("Size Real (x)");
+	gtk_table_attach_defaults(GTK_TABLE(box), label, 0, 1, 2, 3);
+	gtk_table_attach_defaults(GTK_TABLE(box), size_re, 1, 2, 2, 3);
+
+	label = gtk_label_new("Size Imaginary (y)");
+	gtk_table_attach_defaults(GTK_TABLE(box), label, 0, 1, 3, 4);
+	gtk_table_attach_defaults(GTK_TABLE(box), size_im, 1, 2, 3, 4);
+
+	gtk_container_add (GTK_CONTAINER (content_area), box);
+
+	gtk_widget_show_all(dlg);
+	gint result = gtk_dialog_run(GTK_DIALOG(dlg));
+	if (result == GTK_RESPONSE_ACCEPT) {
+		long double res=0;
+		read_entry_float(c_re, &res);
+		ctx->mainctx->centre.real(res);
+		read_entry_float(c_im, &res);
+		ctx->mainctx->centre.imag(res);
+		read_entry_float(size_re, &res);
+		ctx->mainctx->size.real(res);
+		read_entry_float(size_im, &res);
+		ctx->mainctx->size.imag(res);
+		do_redraw(ctx->window, ctx);
+	}
+	gtk_widget_destroy(dlg);
+}
 
 /////////////////////////////////////////////////////////////////
 
