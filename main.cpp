@@ -44,8 +44,10 @@ typedef struct _render_ctx {
 	Fractal *fractal;
 	cdbl centre, size;
 	unsigned width, height, maxiter;
+	bool draw_hud;
+	bool initializing; // Disables certain event actions when set.
 
-	_render_ctx(): plot(0), pal(0), fractal(0) {};
+	_render_ctx(): plot(0), pal(0), fractal(0), initializing(true) {};
 } _render_ctx;
 
 typedef struct _gtk_ctx {
@@ -126,7 +128,7 @@ static void render_gdk(GtkWidget * widget, _gtk_ctx *gctx) {
 	gdk_draw_rgb_image(dest, gc,
 			0, 0, rctx->width, rctx->height, GDK_RGB_DITHER_NONE, buf, rowstride);
 
-	if (1)
+	if (rctx->draw_hud)
 		draw_hud_gdk(widget, gctx);
 
 	delete[] buf;
@@ -157,7 +159,10 @@ static void destroy_event(GtkWidget *widget, gpointer data)
 }
 
 
-/* Returns a menubar widget made from the above menu */
+#define OPTIONS_DRAW_HUD "/Options/Draw HUD"
+
+/* Factory-generates our main menubar widget.
+ * TODO: Convert to later XML-based factory. */
 static GtkWidget *make_menubar( GtkWidget  *window, GtkItemFactoryEntry* menu_items, gint nmenu_items, _gtk_ctx * ctx)
 {
 	GtkItemFactory *item_factory;
@@ -178,6 +183,11 @@ static GtkWidget *make_menubar( GtkWidget  *window, GtkItemFactoryEntry* menu_it
 	/* Attach the new accelerator group to the window. */
 	gtk_window_add_accel_group (GTK_WINDOW (window), accel_group);
 
+	/* Initial item state setup */
+	GtkWidget *drawhud = gtk_item_factory_get_widget(item_factory, OPTIONS_DRAW_HUD);
+	gtk_check_menu_item_set_active(
+		GTK_CHECK_MENU_ITEM (drawhud),
+		ctx->mainctx->draw_hud);
 	/* Finally, return the actual menu bar created by the item factory. */
 	return gtk_item_factory_get_widget (item_factory, "<main>");
 }
@@ -592,6 +602,18 @@ void do_config(gpointer _ctx, guint callback_action, GtkWidget *widget)
 	gtk_widget_destroy(dlg);
 }
 
+void toggle_hud(gpointer _ctx, guint callback_action, GtkWidget *widget)
+{
+	_gtk_ctx * ctx = (_gtk_ctx*)_ctx;
+	assert (ctx);
+
+	if (!ctx->mainctx->initializing) {
+		// There must surely be a more idiomatic way to achieve the correct initial state??
+		ctx->mainctx->draw_hud = !ctx->mainctx->draw_hud;
+		do_redraw(ctx->window, ctx);
+	}
+}
+
 /////////////////////////////////////////////////////////////////
 
 static _gtk_ctx gtk_ctx;
@@ -605,21 +627,27 @@ int main (int argc, char**argv)
 			{ _"/_Main", 0, 0, 0, _"<Branch>" },
 			{ _"/Main/_Params", _"<control>P", (GtkItemFactoryCallback)do_config, 0, _"<Item>" },
 			{ _"/Main/_Quit", _"<control>Q", gtk_main_quit, 0, _"<Item>" },
+			{ _"/Options", 0, 0, 0, _"<Branch>" },
+			{ _ OPTIONS_DRAW_HUD, 0, (GtkItemFactoryCallback)toggle_hud, 0, _"<CheckItem>" },
 	};
 #undef _
 
 	gint n_main_menu_items = sizeof (main_menu_items) / sizeof (main_menu_items[0]);
 
-	GtkWidget *main_vbox, *menubar;
-	GtkWidget *canvas;
-
+	// Initial settings (set up BEFORE make_menubar):
 	render_ctx.fractal = new Mandelbrot();
 	render_ctx.centre = { -0.7, 0.0 };
 	render_ctx.size = { 3.0, 3.0 };
 	render_ctx.maxiter = 1000;
+
+	render_ctx.draw_hud = true;
 	// _main_ctx.pal initial setting by setup_colour_menu().
 
 	gtk_ctx.mainctx = &render_ctx;
+
+	GtkWidget *main_vbox, *menubar;
+	GtkWidget *canvas;
+
 	g_thread_init(0);
 	gdk_threads_init();
 	gtk_init(&argc, &argv);
@@ -664,6 +692,7 @@ int main (int argc, char**argv)
 	gtk_box_pack_start(GTK_BOX(main_vbox), canvas, TRUE, TRUE, 0);
 	gtk_box_pack_end(GTK_BOX(main_vbox), GTK_WIDGET(gtk_ctx.statusbar), FALSE, FALSE, 0);
 
+	render_ctx.initializing = false;
 	gtk_widget_show_all(window);
 	gdk_threads_enter();
 	gtk_main();
