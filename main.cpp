@@ -66,12 +66,42 @@ typedef struct _gtk_ctx {
 
 static void do_redraw(GtkWidget *widget, _gtk_ctx *ctx);
 
-static void render_gdk(GdkPixmap *dest, GdkGC *gc, _render_ctx & ctx) {
-	const gint rowbytes = ctx.width * 3;
-	const gint rowstride = rowbytes + 8-(rowbytes%8);
-	guchar *buf = new guchar[rowstride * ctx.height]; // packed 24-bit data
+static void draw_hud_gdk(GtkWidget * widget, _gtk_ctx *gctx)
+{
+	GdkPixmap *dest = gctx->render;
+	_render_ctx * rctx = gctx->mainctx;
+	PangoLayout * lyt = gtk_widget_create_pango_layout(widget,
+			gctx->mainctx->plot->info_short().c_str());
+	PangoFontDescription * fontdesc = pango_font_description_from_string ("Luxi Sans 9");
+	pango_layout_set_font_description (lyt, fontdesc);
+	pango_layout_set_width(lyt, PANGO_SCALE * rctx->width);
+	pango_layout_set_wrap(lyt, PANGO_WRAP_WORD_CHAR);
 
-	const fractal_point * data = ctx.plot->get_plot_data();
+	PangoRectangle rect;
+	pango_layout_get_extents(lyt, &rect, 0);
+
+	// N.B. If we want to use a gdkgc to actually render, need to use gdk_draw_text().
+	int ploty = rctx->height - PANGO_PIXELS(rect.height) - PANGO_PIXELS(rect.y) - 1;
+
+	GdkColor white = {0,65535,65535,65535}, black = {0,0,0,0};
+	gdk_draw_layout_with_colors(dest, widget->style->white_gc,
+			0, ploty,
+			lyt, &white, &black);
+
+	pango_font_description_free (fontdesc);
+	g_object_unref (lyt);
+}
+
+static void render_gdk(GtkWidget * widget, _gtk_ctx *gctx) {
+	GdkPixmap *dest = gctx->render;
+	GdkGC *gc = widget->style->white_gc;
+	_render_ctx * rctx = gctx->mainctx;
+
+	const gint rowbytes = rctx->width * 3;
+	const gint rowstride = rowbytes + 8-(rowbytes%8);
+	guchar *buf = new guchar[rowstride * rctx->height]; // packed 24-bit data
+
+	const fractal_point * data = rctx->plot->get_plot_data();
 	assert(data);
 
 	// Slight twist: We've plotted the fractal from a bottom-left origin,
@@ -79,13 +109,13 @@ static void render_gdk(GdkPixmap *dest, GdkGC *gc, _render_ctx & ctx) {
 
 	unsigned i;
 	int j;
-	for (j=ctx.height-1; j>=0; j--) {
+	for (j=rctx->height-1; j>=0; j--) {
 		guchar *row = &buf[j*rowstride];
-		for (i=0; i<ctx.width; i++) {
-			if (data->iter == ctx.maxiter) {
+		for (i=0; i<rctx->width; i++) {
+			if (data->iter == rctx->maxiter) {
 				row[0] = row[1] = row[2] = 0;
 			} else {
-				rgb& col = (*ctx.pal)[data->iter];
+				rgb& col = (*rctx->pal)[data->iter];
 				row[0] = col.r;
 				row[1] = col.g;
 				row[2] = col.b;
@@ -96,7 +126,10 @@ static void render_gdk(GdkPixmap *dest, GdkGC *gc, _render_ctx & ctx) {
 	}
 
 	gdk_draw_rgb_image(dest, gc,
-			0, 0, ctx.width, ctx.height, GDK_RGB_DITHER_NONE, buf, rowstride);
+			0, 0, rctx->width, rctx->height, GDK_RGB_DITHER_NONE, buf, rowstride);
+
+	if (1)
+		draw_hud_gdk(widget, gctx);
 
 	delete[] buf;
 }
@@ -237,7 +270,7 @@ static GtkWidget *make_menubar( GtkWidget  *window, GtkItemFactoryEntry* menu_it
 
 static void recolour(GtkWidget * widget, _gtk_ctx *ctx)
 {
-	render_gdk(ctx->render, widget->style->white_gc, *ctx->mainctx);
+	render_gdk(widget, ctx);
 	gtk_widget_queue_draw(widget);
 }
 
@@ -303,7 +336,6 @@ static gpointer main_render_thread(gpointer arg)
 	// TODO convert to cairo.
 	gettimeofday(&tv_after,0);
 
-
 	tv_diff = tv_subtract(tv_after, tv_start);
 	double timetaken = tv_diff.tv_sec + (tv_diff.tv_usec / 1e6);
 
@@ -311,12 +343,10 @@ static gpointer main_render_thread(gpointer arg)
 	std::ostringstream info;
 	info << ctx->mainctx->plot->info_short();
 
-	std::cout << info.str() << std::endl; // TODO: TEMP
 	gtk_window_set_title(GTK_WINDOW(ctx->window), info.str().c_str());
 
 	info.str("");
 	info << "rendered in " << timetaken << "s";
-	std::cout << info.str() << std::endl; // TODO: TEMP
 	gtk_statusbar_push(ctx->statusbar, 0, info.str().c_str());
 	gtk_statusbar_pop(ctx->statusbar, 1);
 
@@ -331,24 +361,8 @@ static gpointer main_render_thread(gpointer arg)
 
 
 // Redraws us onto a given widget (window), then queues an expose event
-static void do_redraw(GtkWidget *widget, _gtk_ctx *ctx)
+static void do_redraw_locked(GtkWidget *widget, _gtk_ctx *ctx)
 {
-	if (0 != pthread_mutex_trylock(&ctx->render_lock)) {
-		gtk_statusbar_push(ctx->statusbar, 1, "Plot already in progress");
-		return;
-	}
-
-	if ((ctx->mainctx->width != (unsigned)widget->allocation.width) ||
-			(ctx->mainctx->height != (unsigned)widget->allocation.height)) {
-		// Size has changed!
-		ctx->mainctx->width = widget->allocation.width;
-		ctx->mainctx->height = widget->allocation.height;
-		if (ctx->render) {
-			g_object_unref(ctx->render);
-			ctx->render = 0;
-		}
-	}
-
 	if (!ctx->render) {
 		ctx->render = gdk_pixmap_new(widget->window,
 				ctx->mainctx->width,
@@ -367,11 +381,39 @@ static void do_redraw(GtkWidget *widget, _gtk_ctx *ctx)
 	if (!ctx->t_render_main) {
 		fprintf(stderr, "Could not spawn thread: %d: %s\n", err->code, err->message);
 		abort();
-		// TODO: gtk error message? this is pretty dire though.
+		// TODO: gtk alert? this is pretty dire though.
+	}
+}
+
+static void do_redraw(GtkWidget *widget, _gtk_ctx *ctx)
+{
+	if (0 != pthread_mutex_trylock(&ctx->render_lock)) {
+		gtk_statusbar_push(ctx->statusbar, 1, "Plot already in progress");
+		return;
+	}
+	do_redraw_locked(widget,ctx);
+}
+
+static void do_resize(GtkWidget *widget, _gtk_ctx *ctx, unsigned width, unsigned height)
+{
+	if (0 != pthread_mutex_trylock(&ctx->render_lock)) {
+		gtk_statusbar_push(ctx->statusbar, 1, "Plot already in progress");
+		return;
 	}
 
-
+	if ((ctx->mainctx->width != width) ||
+			(ctx->mainctx->height != height)) {
+		// Size has changed!
+		ctx->mainctx->width = width;
+		ctx->mainctx->height = height;
+		if (ctx->render) {
+			g_object_unref(ctx->render);
+			ctx->render = 0;
+		}
+	}
+	do_redraw_locked(widget,ctx);
 }
+
 
 static void colour_menu_selection(_gtk_ctx *ctx, DiscretePalette *sel)
 {
@@ -417,7 +459,7 @@ static void setup_colour_menu(_gtk_ctx *ctx, GtkWidget *menubar, DiscretePalette
 static gboolean configure_event(GtkWidget *widget, GdkEventConfigure *event, gpointer *dat)
 {
 	_gtk_ctx * ctx = (_gtk_ctx*) dat;
-	do_redraw(widget, ctx);
+	do_resize(widget, ctx, event->width, event->height);
 	return TRUE;
 }
 
