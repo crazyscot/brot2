@@ -97,16 +97,16 @@ static void render_gdk(GdkPixmap *dest, GdkGC *gc, _render_ctx & ctx) {
 	delete[] buf;
 }
 
-static void update_entry_float(GtkWidget *entry, double val)
+static void update_entry_float(GtkWidget *entry, long double val)
 {
 	char * tmp = 0;
-	if (-1==asprintf(&tmp, "%f", val))
+	if (-1==asprintf(&tmp, "%Lf", val))
 		abort(); // gah
 	gtk_entry_set_text(GTK_ENTRY(entry), tmp);
 	free(tmp);
 }
 
-static void read_entry_float(GtkWidget *entry, double *val_out)
+static void read_entry_float(GtkWidget *entry, long double *val_out)
 {
 	long double tmp;
 	const gchar * raw = gtk_entry_get_text(GTK_ENTRY(entry));
@@ -166,7 +166,7 @@ void do_config(gpointer _ctx, guint callback_action, GtkWidget *widget)
 	gtk_widget_show_all(dlg);
 	gint result = gtk_dialog_run(GTK_DIALOG(dlg));
 	if (result == GTK_RESPONSE_ACCEPT) {
-		double res=0;
+		long double res=0;
 		read_entry_float(c_re, &res);
 		ctx->mainctx->centre.real(res);
 		read_entry_float(c_im, &res);
@@ -496,7 +496,7 @@ static gboolean button_release_event( GtkWidget *widget, GdkEventButton *event, 
 		// centres
 		cdbl TL = ctx->mainctx->plot->pixel_to_set(l,t);
 		cdbl BR = ctx->mainctx->plot->pixel_to_set(r,b);
-		ctx->mainctx->centre = (TL+BR)/2.0;
+		ctx->mainctx->centre = (TL+BR)/(long double)2.0;
 		ctx->mainctx->size = BR - TL;
 
 		dragrect_active = 0;

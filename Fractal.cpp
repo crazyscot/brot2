@@ -32,14 +32,14 @@ void Mandelbrot::plot_pixel(const cdbl origin, const unsigned maxiter, fractal_p
 	// doing the complex maths by hand is about 6x faster for me.
 	// Also, we know that 0^2 + origin = origin, so skip the first iter.
 	unsigned iter;
-	double o_re = real(origin), o_im = imag(origin);
-	double z_re = o_re, z_im = o_im, tmp;
+	long double o_re = real(origin), o_im = imag(origin);
+	long double z_re = o_re, z_im = o_im, tmp;
 
 	{
 		// Cardioid check:
-		double t = o_re - 0.25;
-		double yy = o_im * o_im;
-		double q = t * t + yy;
+		long double t = o_re - 0.25;
+		long double yy = o_im * o_im;
+		long double q = t * t + yy;
 		if (q*(q + o_re - 0.25) < 0.25*yy)
 			goto SHORTCUT;
 		// Period-2 bulb check:

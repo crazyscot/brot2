@@ -22,7 +22,7 @@
 #include <string>
 #include <complex>
 
-typedef std::complex<double> cdbl;
+typedef std::complex<long double> cdbl;
 
 class fractal_point {
 public:

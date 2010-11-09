@@ -37,7 +37,7 @@ public:
 	const unsigned maxiter;
 	const unsigned width, height; // plot size in pixels
 
-	const cdbl origin() { return centre - size/2.0; }
+	const cdbl origin() { return centre - size/(long double)2.0; }
 
 	// Returns a human-readable summary of this plot for the status bar.
 	virtual std::string info_short();
