@@ -37,6 +37,16 @@ using namespace std;
 #define MAX(a,b)	(((a) > (b)) ? (a) : (b))
 #define MIN(a,b)	(((a) < (b)) ? (a) : (b))
 
+static gint dragrect_origin_x, dragrect_origin_y,
+			dragrect_active=0, dragrect_current_x, dragrect_current_y;
+
+/*
+ * TODO: Replace use of deprecated gtk UI calls:
+ * replace gtk_signal_connect() with g_signal_connect()
+ * convert to use cairo
+ * use GtkUIManager instead of GtkItemFactory
+ */
+
 typedef struct _render_ctx {
 	Plot * plot;
 	DiscretePalette * pal;
@@ -162,7 +172,7 @@ static void destroy_event(GtkWidget *widget, gpointer data)
 #define OPTIONS_DRAW_HUD "/Options/Draw HUD"
 
 /* Factory-generates our main menubar widget.
- * TODO: Convert to later XML-based factory. */
+ * To be converted to GtkUIManager... */
 static GtkWidget *make_menubar( GtkWidget  *window, GtkItemFactoryEntry* menu_items, gint nmenu_items, _gtk_ctx * ctx)
 {
 	GtkItemFactory *item_factory;
@@ -231,7 +241,6 @@ static gpointer main_render_thread(gpointer arg)
 
 	if (ctx->mainctx->plot) delete ctx->mainctx->plot;
 
-	// TODO: preference for how many threads
 #define NTHREADS 2
 	_thread_ctx threads[NTHREADS];
 
@@ -246,9 +255,18 @@ static gpointer main_render_thread(gpointer arg)
 		threads[i].nrows = step;
 		threads[i].thread = g_thread_create(render_sub_thread, &threads[i], TRUE, &err);
 		if (!threads[i].thread) {
-			fprintf(stderr, "Could not spawn render thread %d: %d: %s\n", i, err->code, err->message);
+			fprintf(stderr, "Could not start render thread %d: %d: %s\n", i, err->code, err->message);
+			gdk_threads_enter();
+			GtkWidget * dialog = gtk_message_dialog_new (GTK_WINDOW(ctx->window),
+			                                 GTK_DIALOG_DESTROY_WITH_PARENT,
+			                                 GTK_MESSAGE_ERROR,
+			                                 GTK_BUTTONS_CLOSE,
+			                                 "SEVERE: Could not start render thread %d: code %d: %s",
+			                                 i, err->code, err->message);
+			gtk_dialog_run (GTK_DIALOG (dialog));
+			gtk_widget_destroy (dialog);
+			gdk_threads_leave();
 			abort();
-			// TODO: gtk error message? this is pretty dire though.
 		}
 	}
 
@@ -258,7 +276,6 @@ static gpointer main_render_thread(gpointer arg)
 	// And now turn it into an RGB.
 	gdk_threads_enter();
 	recolour(ctx->window,ctx);
-	// TODO convert to cairo.
 	gettimeofday(&tv_after,0);
 
 	tv_diff = tv_subtract(tv_after, tv_start);
@@ -304,9 +321,18 @@ static void do_redraw_locked(GtkWidget *widget, _gtk_ctx *ctx)
 	ctx->t_render_main = g_thread_create(main_render_thread, ctx, FALSE, &err);
 	// Not joinable, i.e. when it's done, it's done.
 	if (!ctx->t_render_main) {
-		fprintf(stderr, "Could not spawn thread: %d: %s\n", err->code, err->message);
+		fprintf(stderr, "Could not start main render thread: %d: %s\n", err->code, err->message);
+		gdk_threads_enter();
+		GtkWidget * dialog = gtk_message_dialog_new (GTK_WINDOW(ctx->window),
+		                                 GTK_DIALOG_DESTROY_WITH_PARENT,
+		                                 GTK_MESSAGE_ERROR,
+		                                 GTK_BUTTONS_CLOSE,
+		                                 "SEVERE: Could not start main render thread: code %d: %s",
+		                                 err->code, err->message);
+		gtk_dialog_run (GTK_DIALOG (dialog));
+		gtk_widget_destroy (dialog);
+		gdk_threads_leave();
 		abort();
-		// TODO: gtk alert? this is pretty dire though.
 	}
 }
 
@@ -400,9 +426,6 @@ static gboolean expose_event( GtkWidget *widget, GdkEventExpose *event, gpointer
 
 	return FALSE;
 }
-
-static gint dragrect_origin_x, dragrect_origin_y,
-			dragrect_active=0, dragrect_current_x, dragrect_current_y;
 
 static gboolean button_press_event( GtkWidget *widget, GdkEventButton *event, gpointer *dat )
 {
@@ -511,7 +534,6 @@ static gboolean motion_notify_event( GtkWidget *widget, GdkEventMotion *event, g
 	dragrect_current_y = y;
 
 	gtk_widget_queue_draw (widget);
-	// TODO queue_draw_area() instead
 
 	//printf("button %d @ %d,%d\n", state, x, y);
 	return TRUE;
@@ -535,7 +557,6 @@ static void read_entry_float(GtkWidget *entry, long double *val_out)
 	const gchar * raw = gtk_entry_get_text(GTK_ENTRY(entry));
 	if (1 == sscanf(raw, "%Lf", &tmp)) {
 		*val_out = tmp;
-		// TODO: Better error handling. Perhaps a validity check at dialog run time?
 	}
 }
 
@@ -543,7 +564,6 @@ void do_config(gpointer _ctx, guint callback_action, GtkWidget *widget)
 {
 	_gtk_ctx * ctx = (_gtk_ctx*)_ctx;
 	assert (ctx);
-	// TODO: generate config dialog from renderer parameters?
 	GtkWidget *dlg = gtk_dialog_new_with_buttons("Configuration", GTK_WINDOW(ctx->window),
 			GtkDialogFlags(GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT),
 			GTK_STOCK_OK, GTK_RESPONSE_ACCEPT,
@@ -622,7 +642,6 @@ static _render_ctx render_ctx;
 int main (int argc, char**argv)
 {
 #define _ (char*)
-	// TODO: replace with GtkUIManager.
 	GtkItemFactoryEntry main_menu_items[] = {
 			{ _"/_Main", 0, 0, 0, _"<Branch>" },
 			{ _"/Main/_Params", _"<control>P", (GtkItemFactoryCallback)do_config, 0, _"<Item>" },
