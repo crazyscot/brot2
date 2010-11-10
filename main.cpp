@@ -232,9 +232,18 @@ static gpointer render_sub_thread(gpointer arg)
 
 static gpointer main_render_thread(gpointer arg)
 {
-	int i;
+	int i, clip=0;
 	struct timeval tv_start, tv_after, tv_diff;
 	_gtk_ctx *ctx = (_gtk_ctx*)arg;
+
+	if (fabs(real(ctx->mainctx->size)/ctx->mainctx->width) < MINIMUM_PIXEL_SIZE) {
+		ctx->mainctx->size.real(MINIMUM_PIXEL_SIZE*ctx->mainctx->width);
+		clip = 1;
+	}
+	if (fabs(imag(ctx->mainctx->size)/ctx->mainctx->height) < MINIMUM_PIXEL_SIZE) {
+		ctx->mainctx->size.imag(MINIMUM_PIXEL_SIZE*ctx->mainctx->height);
+		clip = 1;
+	}
 
 	// N.B. This (gtk/gdk lib calls from non-main thread) will not work at all on win32; will need to refactor if I ever port.
 	gettimeofday(&tv_start,0);
@@ -289,6 +298,9 @@ static gpointer main_render_thread(gpointer arg)
 
 	info.str("");
 	info << "rendered in " << timetaken << "s";
+	if (clip)
+		info << ". Resolution limit reached, cannot zoom further!";
+
 	gtk_statusbar_push(ctx->statusbar, 0, info.str().c_str());
 	gtk_statusbar_pop(ctx->statusbar, 1);
 
