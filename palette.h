@@ -34,7 +34,17 @@ public:
 	operator rgb();
 };
 
+class hsvf {
+public:
+	float h,s,v; // 0..1
+	hsvf() {};
+	hsvf(float hh, float ss, float vv) : h(hh), s(ss), v(vv) {};
+	operator hsv();
+};
+
 std::ostream& operator<<(std::ostream &stream, hsv o);
+
+std::ostream& operator<<(std::ostream &stream, hsvf o);
 
 class rgb {
 public:

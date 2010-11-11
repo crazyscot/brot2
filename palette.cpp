@@ -92,6 +92,15 @@ std::ostream& operator<<(std::ostream &stream, hsv o) {
 	  return stream;
 }
 
+hsvf::operator hsv() {
+	return hsv(h*255.0, s*255.0, v*255.0);
+}
+
+std::ostream& operator<<(std::ostream &stream, hsvf o) {
+	  stream << "hsvf(" << o.h << "," << o.s << "," << o.v << ")";
+	  return stream;
+}
+
 static rgb generate_hsv(int step, int nsteps) {
 	hsv h(255*cos(step), 224, 224);
 	rgb r(h);
