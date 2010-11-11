@@ -488,6 +488,7 @@ static gboolean button_press_event( GtkWidget *widget, GdkEventButton *event, gp
 static gboolean button_release_event( GtkWidget *widget, GdkEventButton *event, gpointer *dat )
 {
 	_gtk_ctx * ctx = (_gtk_ctx*) dat;
+	int silly = 0;
 	if (event->button != 8)
 		return FALSE;
 
@@ -499,6 +500,8 @@ static gboolean button_release_event( GtkWidget *widget, GdkEventButton *event, 
 		int t = MIN(event->y, dragrect_origin_y);
 		int b = MAX(event->y, dragrect_origin_y);
 
+		if (abs(l-r)<2 || abs(t-b)<2) silly=1;
+
 		// centres
 		cdbl TL = ctx->mainctx->plot->pixel_to_set_tlo(l,t);
 		cdbl BR = ctx->mainctx->plot->pixel_to_set_tlo(r,b);
@@ -507,7 +510,8 @@ static gboolean button_release_event( GtkWidget *widget, GdkEventButton *event, 
 
 		dragrect_active = 0;
 
-		do_redraw(ctx->window, ctx);
+		if (!silly)
+			do_redraw(ctx->window, ctx);
 	}
 	return TRUE;
 }
