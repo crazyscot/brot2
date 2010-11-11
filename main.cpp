@@ -498,10 +498,11 @@ static gboolean button_release_event( GtkWidget *widget, GdkEventButton *event, 
 		int b = MAX(event->y, dragrect_origin_y);
 
 		// centres
-		cdbl TL = ctx->mainctx->plot->pixel_to_set_tlo(l,t);
-		cdbl BR = ctx->mainctx->plot->pixel_to_set_tlo(r,b);
-		ctx->mainctx->centre = (TL+BR)/(long double)2.0;
-		ctx->mainctx->size = BR - TL;
+		cdbl TR = ctx->mainctx->plot->pixel_to_set_tlo(r,t);
+		cdbl BL = ctx->mainctx->plot->pixel_to_set_tlo(l,b);
+
+		ctx->mainctx->centre = (TR+BL)/(long double)2.0;
+		ctx->mainctx->size = TR - BL;
 
 		dragrect_active = 0;
 
