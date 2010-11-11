@@ -232,10 +232,16 @@ static gpointer render_sub_thread(gpointer arg)
 
 static gpointer main_render_thread(gpointer arg)
 {
-	int i, clip=0;
+	int i, clip=0, aspectfix=0;
 	struct timeval tv_start, tv_after, tv_diff;
+	double aspect;
 	_gtk_ctx *ctx = (_gtk_ctx*)arg;
 
+	aspect = (double)ctx->mainctx->width / ctx->mainctx->height;
+	if (imag(ctx->mainctx->size) * aspect != real(ctx->mainctx->size)) {
+		ctx->mainctx->size.imag(real(ctx->mainctx->size)/aspect);
+		aspectfix=1;
+	}
 	if (fabs(real(ctx->mainctx->size)/ctx->mainctx->width) < MINIMUM_PIXEL_SIZE) {
 		ctx->mainctx->size.real(MINIMUM_PIXEL_SIZE*ctx->mainctx->width);
 		clip = 1;
@@ -297,9 +303,11 @@ static gpointer main_render_thread(gpointer arg)
 	gtk_window_set_title(GTK_WINDOW(ctx->window), info.str().c_str());
 
 	info.str("");
-	info << "rendered in " << timetaken << "s";
+	info << "rendered in " << timetaken << "s.";
+	if (aspectfix)
+		info << " Aspect ratio autofixed.";
 	if (clip)
-		info << ". Resolution limit reached, cannot zoom further!";
+		info << " Resolution limit reached, cannot zoom further!";
 
 	gtk_statusbar_push(ctx->statusbar, 0, info.str().c_str());
 	gtk_statusbar_pop(ctx->statusbar, 1);
