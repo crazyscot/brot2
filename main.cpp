@@ -50,6 +50,7 @@ static gint dragrect_origin_x, dragrect_origin_y,
 typedef struct _render_ctx {
 	Plot * plot;
 	DiscretePalette * pal;
+	SmoothPalette * pals;
 	// Yes, the following are mostly the same as in the Plot - but the plot is torn down and recreated frequently.
 	Fractal *fractal;
 	cdbl centre, size;
@@ -125,7 +126,11 @@ static void render_gdk(GtkWidget * widget, _gtk_ctx *gctx) {
 			if (data->iter == rctx->maxiter) {
 				row[0] = row[1] = row[2] = 0;
 			} else {
-				rgb& col = (*rctx->pal)[data->iter];
+				rgb col;
+				if (rctx->pal)
+					col = (*rctx->pal)[data->iter];
+				else if (rctx->pals)
+					col = rctx->pals->get(*data);
 				row[0] = col.r;
 				row[1] = col.g;
 				row[2] = col.b;
@@ -386,9 +391,18 @@ static void do_resize(GtkWidget *widget, _gtk_ctx *ctx, unsigned width, unsigned
 }
 
 
-static void colour_menu_selection(_gtk_ctx *ctx, DiscretePalette *sel)
+static void colour_menu_selection(_gtk_ctx *ctx, string lbl)
 {
-	ctx->mainctx->pal = sel;
+	DiscretePalette * sel = DiscretePalette::registry[lbl];
+	if (sel != 0) {
+		ctx->mainctx->pal = sel;
+		ctx->mainctx->pals = 0;
+	}
+	SmoothPalette *sel2 = SmoothPalette::registry[lbl];
+	if (sel2 != 0) {
+		ctx->mainctx->pal = 0;
+		ctx->mainctx->pals = sel2;
+	}
 	if (ctx->mainctx->plot)
 		recolour(ctx->window, ctx);
 }
@@ -397,14 +411,17 @@ static void colour_menu_selection1(gpointer *dat, GtkMenuItem *mi)
 {
 	const char * lbl = gtk_menu_item_get_label(mi);
 	_gtk_ctx * ctx = (_gtk_ctx*) dat;
-	DiscretePalette * sel = DiscretePalette::registry[lbl];
-	colour_menu_selection(ctx, sel);
+	colour_menu_selection(ctx, lbl);
 }
 
 
-static void setup_colour_menu(_gtk_ctx *ctx, GtkWidget *menubar, DiscretePalette *initial)
+static void setup_colour_menu(_gtk_ctx *ctx, GtkWidget *menubar, string initial)
 {
 	ctx->colour_menu = gtk_menu_new();
+
+	GtkWidget *sep =  gtk_menu_item_new_with_label("Discrete");
+	gtk_widget_set_sensitive(sep, false);
+	gtk_menu_append(GTK_MENU(ctx->colour_menu), sep);
 
 	std::map<std::string,DiscretePalette*>::iterator it;
 	for (it = DiscretePalette::registry.begin(); it != DiscretePalette::registry.end(); it++) {
@@ -412,12 +429,33 @@ static void setup_colour_menu(_gtk_ctx *ctx, GtkWidget *menubar, DiscretePalette
 		ctx->colours_radio_group = gtk_radio_menu_item_get_group(GTK_RADIO_MENU_ITEM(item));
 
 		gtk_menu_append(GTK_MENU(ctx->colour_menu), item);
-		if (it->second == initial) {
+		if (0==strcmp(initial.c_str(),it->second->name.c_str())) {
 			gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(item), TRUE);
 		}
 		gtk_signal_connect_object(GTK_OBJECT(item), "activate", GTK_SIGNAL_FUNC(colour_menu_selection1), ctx);
 		gtk_widget_show(item);
 	}
+
+	sep = gtk_separator_menu_item_new();
+	gtk_menu_append(GTK_MENU(ctx->colour_menu), sep);
+
+	sep =  gtk_menu_item_new_with_label("Smooth");
+	gtk_widget_set_sensitive(sep, false);
+	gtk_menu_append(GTK_MENU(ctx->colour_menu), sep);
+
+	std::map<std::string,SmoothPalette*>::iterator it2;
+	for (it2 = SmoothPalette::registry.begin(); it2 != SmoothPalette::registry.end(); it2++) {
+		GtkWidget * item = gtk_radio_menu_item_new_with_label(ctx->colours_radio_group, it2->first.c_str());
+		ctx->colours_radio_group = gtk_radio_menu_item_get_group(GTK_RADIO_MENU_ITEM(item));
+
+		gtk_menu_append(GTK_MENU(ctx->colour_menu), item);
+		if (0==strcmp(initial.c_str(),it2->second->name.c_str())) {
+			gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(item), TRUE);
+		}
+		gtk_signal_connect_object(GTK_OBJECT(item), "activate", GTK_SIGNAL_FUNC(colour_menu_selection1), ctx);
+		gtk_widget_show(item);
+	}
+
 	colour_menu_selection(ctx, initial);
 
     GtkWidget* colour_item = gtk_menu_item_new_with_mnemonic ("_Colour");
@@ -706,7 +744,7 @@ int main (int argc, char**argv)
 	gtk_container_add (GTK_CONTAINER (window), main_vbox);
 
 	menubar = make_menubar(gtk_ctx.window, main_menu_items, n_main_menu_items, &gtk_ctx);
-	setup_colour_menu(&gtk_ctx, menubar, DiscretePalette::registry["Gradient RGB"]);
+	setup_colour_menu(&gtk_ctx, menubar, "Smooth Mid green");
 
 	canvas = gtk_drawing_area_new();
 	gtk_widget_set_size_request (GTK_WIDGET(canvas), 300, 300);
