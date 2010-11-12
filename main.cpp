@@ -1,20 +1,21 @@
-/*
-    brot2/main.cpp: Yet Another Mandelbrot Plotter (main program)
-    Copyright (C) 2010 Ross Younger
+/* main.cpp: main GTK program for brot2, license text follows */
+static const char* license_text = "\
+brot2: Yet Another Mandelbrot Plotter\n\
+Copyright (C) 2010 Ross Younger\n\
+\n\
+This program is free software: you can redistribute it and/or modify \
+it under the terms of the GNU General Public License as published by \
+the Free Software Foundation, either version 3 of the License, or \
+(at your option) any later version.\n\
+\n\
+This program is distributed in the hope that it will be useful, \
+but WITHOUT ANY WARRANTY; without even the implied warranty of \
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the \
+GNU General Public License for more details.\n\
+\n\
+You should have received a copy of the GNU General Public License \
+along with this program.  If not, see <http://www.gnu.org/licenses/>.";
 
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
 
 #define _GNU_SOURCE 1
 #include <gtk/gtk.h>
@@ -699,6 +700,18 @@ void toggle_hud(gpointer _ctx, guint callback_action, GtkWidget *widget)
 
 /////////////////////////////////////////////////////////////////
 
+void do_about(gpointer _ctx, guint callback_action)
+{
+	_gtk_ctx * ctx = (_gtk_ctx*)_ctx;
+	gtk_show_about_dialog(GTK_WINDOW(ctx->window),
+			"comments", "In memory of Benoît B. Mandelbrot.",
+			"copyright", "(c) 2010 Ross Younger",
+			"license", license_text,
+			"wrap-license", TRUE, 
+			"version", "0.01",
+			NULL);
+}
+
 static _gtk_ctx gtk_ctx;
 static _render_ctx render_ctx;
 
@@ -707,6 +720,7 @@ int main (int argc, char**argv)
 #define _ (char*)
 	GtkItemFactoryEntry main_menu_items[] = {
 			{ _"/_Main", 0, 0, 0, _"<Branch>" },
+			{ _"/_Main/_About", 0, (GtkItemFactoryCallback)do_about, 0, _"<Item>" },
 			{ _"/Main/_Params", _"<control>P", (GtkItemFactoryCallback)do_config, 0, _"<Item>" },
 			{ _"/Main/_Quit", _"<control>Q", gtk_main_quit, 0, _"<Item>" },
 			{ _"/Options", 0, 0, 0, _"<Branch>" },
