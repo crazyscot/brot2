@@ -17,6 +17,7 @@
 */
 
 #include "palette.h"
+#include "Fractal.h"
 #include <math.h>
 #include <stdio.h>
 #include <iostream>
@@ -181,3 +182,39 @@ SAWTOOTH(saw_red_cyan, Gradient red-cyan, 16, rgbf(0,1,1), rgbf(1,0,0));
 SAWTOOTH(saw_blue_purple, Gradient blue-purple, 16, rgbf(0.5,0,0.5), rgbf(0,0.5,1));
 SAWTOOTH(saw_org_green, Gradient orange-green, 16, rgbf(1,0.56,0), rgbf(0,0.56,0));
 
+////////////////////////////////////////////////////////////////
+
+std::map<std::string,SmoothPalette*> SmoothPalette::registry;
+
+class HueCycle : public SmoothPalette {
+public:
+	const double wrap;
+	const hsvf pointa, pointb; // Points to smooth between
+	HueCycle(std::string name, float wrap, hsvf pa, hsvf pb) : SmoothPalette(name), wrap(wrap), pointa(pa), pointb(pb) {};
+	rgb get(const fractal_point &pt) const {
+		float tau = pt.iterf / wrap;
+		tau -= floor(tau);
+		float taup = 1.0 - tau;
+		hsvf rv (pointa.h*tau + pointb.h*taup,
+				 pointa.s*tau + pointb.s*taup,
+				 pointa.v*tau + pointb.v*taup);
+		return hsv(rv);
+	};
+};
+
+#define HUECYCLE(id,name,wrap,a,b) \
+	HueCycle id(#name, wrap, a, b)
+
+HUECYCLE(red_violet_64, Deep red-yellow, 64, hsvf(1,1,1), hsvf(0,1,1));
+HUECYCLE(red_violet_32, Mid orange, 32, hsvf(1,1,1), hsvf(0,1,1));
+HUECYCLE(red_violet_16, Shallow yellow, 16, hsvf(1,1,1), hsvf(0,1,1));
+HUECYCLE(viol_red_64, Deep red-pink, 64, hsvf(0,1,1), hsvf(1,1,1));
+HUECYCLE(viol_red_32, Mid pink, 32, hsvf(0,1,1), hsvf(1,1,1));
+HUECYCLE(viol_red_16, Shallow greenish, 16, hsvf(0,1,1), hsvf(1,1,1));
+
+// In fact my HSV space conversion just copes with values >1, so you can do this:
+HUECYCLE(green_base, Mid green, 32, hsvf(0.5,1,1), hsvf(1.5,1,1));
+HUECYCLE(green_16, Shallow green, 16, hsvf(0.5,1,1), hsvf(1.5,1,1));
+HUECYCLE(green_64, Deep green, 64, hsvf(0.5,1,1), hsvf(1.5,1,1));
+
+// TODO make main use a smooth pal by default.

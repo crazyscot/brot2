@@ -23,6 +23,7 @@
 #include <string>
 #include <map>
 #include <iostream>
+#include "Fractal.h"
 
 typedef struct rgb colour;
 
@@ -138,6 +139,35 @@ public:
 			registry.erase(name);
 		isRegistered = 0;
 	}
+
+protected:
+	int isRegistered;
+};
+
+///////////////////////////////////////////////////////////////////
+
+class SmoothPalette {
+public:
+	// Base constructor registers the class.
+	SmoothPalette(std::string newname) : name (newname) { reg(); };
+
+	// Destructor will deregister iff the instance was registered.
+	virtual ~SmoothPalette() {
+		dereg();
+	}
+
+	const std::string name;
+	static std::map<std::string,SmoothPalette*> registry;
+
+	void reg() { registry[name] = this; isRegistered = 1; }
+	void dereg()
+	{
+		if (isRegistered)
+			registry.erase(name);
+		isRegistered = 0;
+	}
+
+	virtual rgb get(const fractal_point &pt) const = 0;
 
 protected:
 	int isRegistered;
