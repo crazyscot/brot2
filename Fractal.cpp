@@ -48,16 +48,26 @@ void Mandelbrot::plot_pixel(const cdbl origin, const unsigned maxiter, fractal_p
 			goto SHORTCUT;
 	}
 
+#define ITER() do { 							\
+		tmp = z_re * z_re - z_im * z_im + o_re;	\
+		z_im = 2 * z_re * z_im + o_im;			\
+		z_re = tmp;								\
+} while (0)
+
 	for (iter=1; iter<maxiter; iter++) {
-		if (z_re * z_re + z_im*z_im > 4.0) {
+		double mod2 = z_re * z_re + z_im*z_im;
+		if (mod2 > 4.0) {
+			// Fractional escape count: See http://linas.org/art-gallery/escape/escape.html
+			ITER(); ++iter;
 			out.iter = iter;
+			double mod = sqrt(mod2);
+			out.iterf = iter - log(log(mod)) / log(2.0);
 			return;
 		}
-		tmp = z_re * z_re - z_im * z_im + o_re;
-		z_im = 2 * z_re * z_im + o_im;
-		z_re = tmp;
+		ITER();
 	}
 	SHORTCUT:
 	out.iter = maxiter;
+	out.iterf = maxiter;
 	// TODO: Further plot params - radius(cabs), dist(carg?).
 }

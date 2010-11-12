@@ -29,6 +29,7 @@ typedef std::complex<long double> cdbl;
 class fractal_point {
 public:
 	unsigned iter;
+	double iterf; // where available: smooth iterations count
 };
 
 // Base fractal definition. An instance knows all about a fractal _type_
