@@ -486,23 +486,22 @@ static gboolean expose_event( GtkWidget *widget, GdkEventExpose *event, gpointer
 	return FALSE;
 }
 
-static gboolean button_press_event( GtkWidget *widget, GdkEventButton *event, gpointer *dat )
-{
-#define ZOOM_FACTOR 2.0f
-	_gtk_ctx * ctx = (_gtk_ctx*) dat;
-	if (ctx->render != NULL) {
-		int redraw=0;
-		cdbl new_ctr = ctx->mainctx->plot->pixel_to_set_tlo(event->x, event->y);
+enum zooms {
+	REDRAW_ONLY=1,
+	ZOOM_IN,
+	ZOOM_OUT,
+};
 
-		if (event->button >= 1 && event->button <= 3) {
-			ctx->mainctx->centre = new_ctr;
-			switch(event->button) {
-			case 1:
-				// LEFT: zoom in a bit
+#define ZOOM_FACTOR 2.0f
+static void do_zoom(gpointer _ctx, guint callback_action, GtkWidget *widget)
+{
+	_gtk_ctx * ctx = (_gtk_ctx*) _ctx;
+	if (ctx->render != NULL) {
+		switch (callback_action) {
+			case ZOOM_IN:
 				ctx->mainctx->size /= ZOOM_FACTOR;
 				break;
-			case 3:
-				// RIGHT: zoom out
+			case ZOOM_OUT:
 				ctx->mainctx->size *= ZOOM_FACTOR;
 				{
 					double d = real(ctx->mainctx->size), lim = ctx->mainctx->fractal->xmax - ctx->mainctx->fractal->xmin;
@@ -513,11 +512,35 @@ static gboolean button_press_event( GtkWidget *widget, GdkEventButton *event, gp
 						ctx->mainctx->size.imag(lim);
 				}
 				break;
+			case REDRAW_ONLY:
+				break;
+		}
+		do_redraw(ctx->window, ctx);
+	}
+}
+
+static gboolean button_press_event( GtkWidget *widget, GdkEventButton *event, gpointer *dat )
+{
+	_gtk_ctx * ctx = (_gtk_ctx*) dat;
+	if (ctx->render != NULL) {
+		cdbl new_ctr = ctx->mainctx->plot->pixel_to_set_tlo(event->x, event->y);
+
+		if (event->button >= 1 && event->button <= 3) {
+			ctx->mainctx->centre = new_ctr;
+			switch(event->button) {
+			case 1:
+				// LEFT: zoom in a bit
+				do_zoom(ctx, ZOOM_IN, widget);
+				return TRUE;
+			case 3:
+				// RIGHT: zoom out
+				do_zoom(ctx, ZOOM_OUT, widget);
+				return TRUE;
 			case 2:
 				// MIDDLE: simple pan
-				break;
+				do_zoom(ctx, REDRAW_ONLY, widget);
+				return TRUE;
 			}
-			redraw = 1;
 		}
 		if (event->button==8) {
 			// mouse down: store it
@@ -525,8 +548,6 @@ static gboolean button_press_event( GtkWidget *widget, GdkEventButton *event, gp
 			dragrect_origin_y = dragrect_current_y = (int)event->y;
 			dragrect_active = 1;
 		}
-		if (redraw)
-			do_redraw(ctx->window, ctx);
 	}
 
 	return TRUE;
@@ -740,6 +761,9 @@ int main (int argc, char**argv)
 			{ _"/Main/_Quit", _"<control>Q", gtk_main_quit, 0, _"<Item>" },
 			{ _"/Options", 0, 0, 0, _"<Branch>" },
 			{ _ OPTIONS_DRAW_HUD, 0, (GtkItemFactoryCallback)toggle_hud, 0, _"<CheckItem>" },
+			{ _"/Navigation", 0, 0, 0, _"<Branch>" },
+			{ _"/Navigation/Zoom In", _"plus", (GtkItemFactoryCallback)do_zoom, ZOOM_IN, _"<Item>" },
+			{ _"/Navigation/Zoom Out", _"minus", (GtkItemFactoryCallback)do_zoom, ZOOM_OUT, _"<Item>" },
 	};
 #undef _
 
