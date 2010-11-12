@@ -19,6 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.";
 
 #define _GNU_SOURCE 1
 #include <gtk/gtk.h>
+#include <gdk/gdkkeysyms.h>
 #include <sys/time.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -553,6 +554,21 @@ static gboolean button_press_event( GtkWidget *widget, GdkEventButton *event, gp
 	return TRUE;
 }
 
+// Map keypad + and - into their accelerator counterparts.
+static gboolean key_press_event( GtkWidget *widget, GdkEventKey *event, gpointer *dat )
+{
+	_gtk_ctx * ctx = (_gtk_ctx*) dat;
+	switch(event->keyval) {
+		case GDK_KP_Add:
+			do_zoom(ctx, ZOOM_IN, widget);
+			return TRUE;
+		case GDK_KP_Subtract:
+			do_zoom(ctx, ZOOM_OUT, widget);
+			return TRUE;
+	}
+	return FALSE;
+}
+
 static gboolean button_release_event( GtkWidget *widget, GdkEventButton *event, gpointer *dat )
 {
 	_gtk_ctx * ctx = (_gtk_ctx*) dat;
@@ -811,6 +827,8 @@ int main (int argc, char**argv)
 			(GtkSignalFunc) button_press_event, &gtk_ctx);
 	gtk_signal_connect (GTK_OBJECT (canvas), "button_release_event",
 			(GtkSignalFunc) button_release_event, &gtk_ctx);
+	gtk_signal_connect (GTK_OBJECT (window), "key_press_event",
+			(GtkSignalFunc) key_press_event, &gtk_ctx);
 
 	gtk_widget_set_events (canvas, GDK_EXPOSURE_MASK
 			| GDK_LEAVE_NOTIFY_MASK
