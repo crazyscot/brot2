@@ -744,7 +744,7 @@ int main (int argc, char**argv)
 	gtk_container_add (GTK_CONTAINER (window), main_vbox);
 
 	menubar = make_menubar(gtk_ctx.window, main_menu_items, n_main_menu_items, &gtk_ctx);
-	setup_colour_menu(&gtk_ctx, menubar, "Smooth Mid green");
+	setup_colour_menu(&gtk_ctx, menubar, "Mid green");
 
 	canvas = gtk_drawing_area_new();
 	gtk_widget_set_size_request (GTK_WIDGET(canvas), 300, 300);
