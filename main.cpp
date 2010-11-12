@@ -544,8 +544,8 @@ static gboolean button_release_event( GtkWidget *widget, GdkEventButton *event, 
 	if (ctx->render != NULL) {
 		int l = MIN(event->x, dragrect_origin_x);
 		int r = MAX(event->x, dragrect_origin_x);
-		int t = MIN(event->y, dragrect_origin_y);
-		int b = MAX(event->y, dragrect_origin_y);
+		int t = MAX(event->y, dragrect_origin_y);
+		int b = MIN(event->y, dragrect_origin_y);
 
 		if (abs(l-r)<2 || abs(t-b)<2) silly=1;
 
@@ -562,6 +562,21 @@ static gboolean button_release_event( GtkWidget *widget, GdkEventButton *event, 
 			do_redraw(ctx->window, ctx);
 	}
 	return TRUE;
+}
+
+// Wrapper function to allow negative dimensions
+static void my_gdk_draw_rectangle (GdkDrawable *drawable, GdkGC *gc,
+		gboolean filled, gint x, gint y, gint width, gint height)
+{
+	if (width < 0) {
+		x += width;
+		width = -width;
+	}
+	if (height < 0) {
+		y += height;
+		height = -height;
+	}
+	gdk_draw_rectangle(drawable, gc, filled, x, y, width, height);
 }
 
 static gboolean motion_notify_event( GtkWidget *widget, GdkEventMotion *event, gpointer * _dat)
@@ -584,14 +599,14 @@ static gboolean motion_notify_event( GtkWidget *widget, GdkEventMotion *event, g
 	gdk_gc_set_function(ctx->window->style->black_gc, GDK_INVERT);
 
 	// turn off previous hilight rect
-	gdk_draw_rectangle(ctx->render, widget->style->black_gc, false,
+	my_gdk_draw_rectangle(ctx->render, widget->style->black_gc, false,
 			dragrect_origin_x, dragrect_origin_y,
 			dragrect_current_x - dragrect_origin_x, dragrect_current_y - dragrect_origin_y);
 
 	//draw_rect(widget, ctx, dragrect_origin_x, dragrect_current_x, dragrect_origin_y, dragrect_current_y);
 
 	// turn on our new one
-	gdk_draw_rectangle(ctx->render, widget->style->black_gc, false,
+	my_gdk_draw_rectangle(ctx->render, widget->style->black_gc, false,
 			dragrect_origin_x, dragrect_origin_y,
 			x - dragrect_origin_x, y - dragrect_origin_y);
 	dragrect_current_x = x;
