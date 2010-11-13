@@ -658,27 +658,32 @@ static gboolean motion_notify_event( GtkWidget *widget, GdkEventMotion *event, g
 
 static void update_entry_float(GtkWidget *entry, long double val)
 {
-	char * tmp = 0;
-	if (-1==asprintf(&tmp, "%Lf", val))
-		abort(); // gah
-	gtk_entry_set_text(GTK_ENTRY(entry), tmp);
-	free(tmp);
+	ostringstream tmp;
+	tmp.precision(MAXIMAL_DECIMAL_PRECISION);
+	tmp << val;
+	gtk_entry_set_text(GTK_ENTRY(entry), tmp.str().c_str());
 }
 
-static void read_entry_float(GtkWidget *entry, long double *val_out)
+static bool read_entry_float(GtkWidget *entry, long double *val_out)
 {
-	long double tmp;
 	const gchar * raw = gtk_entry_get_text(GTK_ENTRY(entry));
-	if (1 == sscanf(raw, "%Lf", &tmp)) {
-		*val_out = tmp;
-	}
+	istringstream tmp(raw, istringstream::in);
+	tmp.precision(MAXIMAL_DECIMAL_PRECISION);
+	long double rv=0;
+
+	tmp >> rv;
+	if (tmp.fail())
+		return false;
+
+	*val_out = rv;
+	return true;
 }
 
-void do_config(gpointer _ctx, guint callback_action, GtkWidget *widget)
+void do_params_dialog(gpointer _ctx, guint callback_action, GtkWidget *widget)
 {
 	_gtk_ctx * ctx = (_gtk_ctx*)_ctx;
 	assert (ctx);
-	GtkWidget *dlg = gtk_dialog_new_with_buttons("Configuration", GTK_WINDOW(ctx->window),
+	GtkWidget *dlg = gtk_dialog_new_with_buttons("Plot parameters", GTK_WINDOW(ctx->window),
 			GtkDialogFlags(GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT),
 			GTK_STOCK_OK, GTK_RESPONSE_ACCEPT,
 			GTK_STOCK_CANCEL, GTK_RESPONSE_REJECT,
@@ -689,50 +694,65 @@ void do_config(gpointer _ctx, guint callback_action, GtkWidget *widget)
 	//label = gtk_label_new ("Configuration");
 	//gtk_container_add (GTK_CONTAINER (content_area), label);
 
-	GtkWidget *c_re, *c_im, *size_re, *size_im;
+	GtkWidget *c_re, *c_im, *size_re;
 	c_re = gtk_entry_new();
 	update_entry_float(c_re, real(ctx->mainctx->centre));
 	c_im = gtk_entry_new();
 	update_entry_float(c_im, imag(ctx->mainctx->centre));
 	size_re = gtk_entry_new();
 	update_entry_float(size_re, real(ctx->mainctx->size));
-	size_im = gtk_entry_new();
-	update_entry_float(size_im, imag(ctx->mainctx->size));
 
-	GtkWidget * box = gtk_table_new(4, 2, TRUE);
+	GtkWidget * box = gtk_table_new(3, 2, FALSE);
 
-	label = gtk_label_new("Centre Real (x)");
+	label = gtk_label_new("Centre Real (x) ");
+	gtk_misc_set_alignment(GTK_MISC(label), 1, 0.5);
 	gtk_table_attach_defaults(GTK_TABLE(box), label, 0, 1, 0, 1);
 	gtk_table_attach_defaults(GTK_TABLE(box), c_re, 1, 2, 0, 1);
 
-	label = gtk_label_new("Centre Imaginary (y)");
+	label = gtk_label_new("Centre Imaginary (y) ");
+	gtk_misc_set_alignment(GTK_MISC(label), 1, 0.5);
 	gtk_table_attach_defaults(GTK_TABLE(box), label, 0, 1, 1, 2);
 	gtk_table_attach_defaults(GTK_TABLE(box), c_im, 1, 2, 1, 2);
 
-	label = gtk_label_new("Size Real (x)");
+	label = gtk_label_new("Real (x) axis length ");
+	gtk_misc_set_alignment(GTK_MISC(label), 1, 0.5);
 	gtk_table_attach_defaults(GTK_TABLE(box), label, 0, 1, 2, 3);
 	gtk_table_attach_defaults(GTK_TABLE(box), size_re, 1, 2, 2, 3);
-
-	label = gtk_label_new("Size Imaginary (y)");
-	gtk_table_attach_defaults(GTK_TABLE(box), label, 0, 1, 3, 4);
-	gtk_table_attach_defaults(GTK_TABLE(box), size_im, 1, 2, 3, 4);
+	// Don't bother with imaginary axis length, it's implicit from the aspect ratio.
 
 	gtk_container_add (GTK_CONTAINER (content_area), box);
 
 	gtk_widget_show_all(dlg);
-	gint result = gtk_dialog_run(GTK_DIALOG(dlg));
-	if (result == GTK_RESPONSE_ACCEPT) {
-		long double res=0;
-		read_entry_float(c_re, &res);
-		ctx->mainctx->centre.real(res);
-		read_entry_float(c_im, &res);
-		ctx->mainctx->centre.imag(res);
-		read_entry_float(size_re, &res);
-		ctx->mainctx->size.real(res);
-		read_entry_float(size_im, &res);
-		ctx->mainctx->size.imag(res);
-		do_redraw(ctx->window, ctx);
-	}
+	bool error;
+	gint result;
+	do {
+		error = false;
+		result = gtk_dialog_run(GTK_DIALOG(dlg));
+		if (result == GTK_RESPONSE_ACCEPT) {
+			long double res=0;
+			if (read_entry_float(c_re, &res))
+				ctx->mainctx->centre.real(res);
+			else error = true;
+			if (read_entry_float(c_im, &res))
+				ctx->mainctx->centre.imag(res);
+			else error = true;
+			if (read_entry_float(size_re, &res))
+				ctx->mainctx->size.real(res);
+			else error = true;
+			// imaginary axis length is implicit.
+
+			if (error) {
+				GtkWidget * errdlg = gtk_message_dialog_new (GTK_WINDOW(dlg),
+				                                 GTK_DIALOG_DESTROY_WITH_PARENT,
+				                                 GTK_MESSAGE_QUESTION,
+				                                 GTK_BUTTONS_OK,
+				                                 "Sorry, I could not parse that; care to try again?");
+				gtk_dialog_run (GTK_DIALOG (errdlg));
+				gtk_widget_destroy (errdlg);
+			} else
+				do_redraw(ctx->window, ctx);
+		}
+	} while (error && result == GTK_RESPONSE_ACCEPT);
 	gtk_widget_destroy(dlg);
 }
 
@@ -771,13 +791,13 @@ int main (int argc, char**argv)
 	GtkItemFactoryEntry main_menu_items[] = {
 			{ _"/_Main", 0, 0, 0, _"<Branch>" },
 			{ _"/_Main/_About", 0, (GtkItemFactoryCallback)do_about, 0, _"<Item>" },
-			{ _"/Main/_Params", _"<control>P", (GtkItemFactoryCallback)do_config, 0, _"<Item>" },
 			{ _"/Main/_Quit", _"<control>Q", gtk_main_quit, 0, _"<Item>" },
 			{ _"/Options", 0, 0, 0, _"<Branch>" },
 			{ _ OPTIONS_DRAW_HUD, _"<control>H", (GtkItemFactoryCallback)toggle_hud, 0, _"<CheckItem>" },
 			{ _"/Navigation", 0, 0, 0, _"<Branch>" },
 			{ _"/Navigation/Zoom In", _"plus", (GtkItemFactoryCallback)do_zoom, ZOOM_IN, _"<Item>" },
 			{ _"/Navigation/Zoom Out", _"minus", (GtkItemFactoryCallback)do_zoom, ZOOM_OUT, _"<Item>" },
+			{ _"/Navigation/_Parameters", _"<control>P", (GtkItemFactoryCallback)do_params_dialog, 0, _"<Item>" },
 	};
 #undef _
 
