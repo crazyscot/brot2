@@ -35,6 +35,7 @@ Plot::~Plot() {
 
 string Plot::info(bool verbose) {
 	std::ostringstream rv;
+	rv.precision(MAXIMAL_DECIMAL_PRECISION);
 	rv << fract->name
 	   << "@(" << real(centre) << ", " << imag(centre) << ")";
 	rv << ( verbose ? ", maxiter=" : ", max=");
@@ -43,6 +44,7 @@ string Plot::info(bool verbose) {
 	// Now that we autofix the aspect ratio, our pixels are square.
 	double zoom = 1.0/real(size);
 
+	rv.precision(4); // Don't need more than this for the axis length or pixsize.
 	if (verbose) {
 		char buf[128];
 		unsigned rr = snprintf(buf, sizeof buf, "%g", zoom);
