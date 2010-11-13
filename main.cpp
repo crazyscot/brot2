@@ -178,7 +178,8 @@ static void destroy_event(GtkWidget *widget, gpointer data)
 }
 
 
-#define OPTIONS_DRAW_HUD "/Options/Draw HUD"
+#define OPTIONS_DRAW_HUD "/_Options/Draw _HUD"
+#define OPTIONS_DRAW_HUD_NO_MNEMONIC "/Options/Draw HUD"
 
 /* Factory-generates our main menubar widget.
  * To be converted to GtkUIManager... */
@@ -202,11 +203,15 @@ static GtkWidget *make_menubar( GtkWidget  *window, GtkItemFactoryEntry* menu_it
 	/* Attach the new accelerator group to the window. */
 	gtk_window_add_accel_group (GTK_WINDOW (window), accel_group);
 
-	/* Initial item state setup */
-	GtkWidget *drawhud = gtk_item_factory_get_widget(item_factory, OPTIONS_DRAW_HUD);
+
+	/* Initial item state setup... grr, these have to be done without
+	 * their `_' (signalling keypress mnemonics) in place */
+	GtkWidget *drawhud = gtk_item_factory_get_item(item_factory, OPTIONS_DRAW_HUD_NO_MNEMONIC);
+	assert(drawhud!=0);
 	gtk_check_menu_item_set_active(
 		GTK_CHECK_MENU_ITEM (drawhud),
 		ctx->mainctx->draw_hud);
+
 	/* Finally, return the actual menu bar created by the item factory. */
 	return gtk_item_factory_get_widget (item_factory, "<main>");
 }
@@ -819,14 +824,14 @@ int main (int argc, char**argv)
 			{ _"/_Main", 0, 0, 0, _"<Branch>" },
 			{ _"/_Main/_About", 0, (GtkItemFactoryCallback)do_about, 0, _"<Item>" },
 			{ _"/Main/_Quit", _"<control>Q", gtk_main_quit, 0, _"<Item>" },
-			{ _"/Options", 0, 0, 0, _"<Branch>" },
+			{ _"/_Options", 0, 0, 0, _"<Branch>" },
 			{ _ OPTIONS_DRAW_HUD, _"<control>H", (GtkItemFactoryCallback)toggle_hud, 0, _"<CheckItem>" },
-			{ _"/Navigation", 0, 0, 0, _"<Branch>" },
-			{ _"/Navigation/Undo", _"<control>Z", (GtkItemFactoryCallback)do_undo, 0, _"<Item>" },
+			{ _"/_Navigation", 0, 0, 0, _"<Branch>" },
+			{ _"/Navigation/_Undo", _"<control>Z", (GtkItemFactoryCallback)do_undo, 0, _"<Item>" },
 			{ _"/Navigation/_Parameters", _"<control>P", (GtkItemFactoryCallback)do_params_dialog, 0, _"<Item>" },
 			{ _"/Navigation/sep1", 0, 0, 0, _"<Separator>" },
-			{ _"/Navigation/Zoom In", _"plus", (GtkItemFactoryCallback)do_zoom, ZOOM_IN, _"<Item>" },
-			{ _"/Navigation/Zoom Out", _"minus", (GtkItemFactoryCallback)do_zoom, ZOOM_OUT, _"<Item>" },
+			{ _"/Navigation/Zoom _In", _"plus", (GtkItemFactoryCallback)do_zoom, ZOOM_IN, _"<Item>" },
+			{ _"/Navigation/Zoom _Out", _"minus", (GtkItemFactoryCallback)do_zoom, ZOOM_OUT, _"<Item>" },
 	};
 #undef _
 
