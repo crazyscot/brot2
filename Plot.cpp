@@ -38,7 +38,7 @@ string Plot::info(bool verbose) {
 	rv.precision(MAXIMAL_DECIMAL_PRECISION);
 	rv << fract->name
 	   << "@(" << real(centre) << ", " << imag(centre) << ")";
-	rv << ( verbose ? ", maxiter=" : ", max=");
+	rv << ( verbose ? ", maxiter=" : " max=");
 	rv << maxiter;
 
 	// Now that we autofix the aspect ratio, our pixels are square.
@@ -52,7 +52,7 @@ string Plot::info(bool verbose) {
 		rv << ", zoom=" << buf;
 		rv << " / axis length=" << size << " / pixel size=" << real(size)/width;
 	} else {
-		rv << ", axis=" <<size;
+		rv << " axis=" <<size;
 	}
 
 	return rv.str();
