@@ -38,14 +38,15 @@ string Plot::info_short() {
 	std::ostringstream rv;
 	rv << fract->name
 	   << "@(" << real(centre) << ", " << imag(centre) << ")";
+	rv << ", maxiter=" << maxiter;
 
-	double avgzoom = 2.0 / (real(size)+imag(size));
-	unsigned rr = snprintf(buf, sizeof buf, "%g", avgzoom);
+	// Now that we autofix the aspect ratio, our pixels are square.
+	double zoom = 1.0/real(size);
+	unsigned rr = snprintf(buf, sizeof buf, "%g", zoom);
 	assert (rr < sizeof buf);
 	rv << ", zoom=" << buf;
-	rv << ", max=" << maxiter;
+	rv << " / axis length=" << size << " / pixel size=" << real(size)/width;
 
-	//rv <<   "size=(" << scientific << real(size) << "," << imag(size) << ")";
 	return rv.str();
 }
 
