@@ -60,8 +60,7 @@ void Mandelbrot::plot_pixel(const cdbl origin, const unsigned maxiter, fractal_p
 			// Fractional escape count: See http://linas.org/art-gallery/escape/escape.html
 			ITER(); ++iter;
 			out.iter = iter;
-			double mod = sqrt(mod2);
-			out.iterf = iter - log(log(mod)) / log(2.0);
+			out.iterf = iter - log(log(mod2)) / log(2.0);
 			return;
 		}
 		ITER();
