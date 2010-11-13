@@ -19,6 +19,9 @@
 #include "Fractal.h"
 using namespace std;
 
+const double _consts::log2 = log(2.0);
+_consts consts;
+
 Fractal::Fractal(string name, double xmin, double xmax, double ymin, double ymax) : name(name), xmin(xmin), xmax(xmax), ymin(ymin), ymax(ymax) {}
 Fractal::~Fractal() {}
 
@@ -59,8 +62,9 @@ void Mandelbrot::plot_pixel(const cdbl origin, const unsigned maxiter, fractal_p
 		if (mod2 > 4.0) {
 			// Fractional escape count: See http://linas.org/art-gallery/escape/escape.html
 			ITER(); ++iter;
+			ITER(); ++iter;
 			out.iter = iter;
-			out.iterf = iter - log(log(mod2)) / log(2.0);
+			out.iterf = iter - log(log(mod2)) / consts.log2;
 			return;
 		}
 		ITER();

@@ -32,6 +32,11 @@ public:
 	double iterf; // where available: smooth iterations count
 };
 
+class _consts {
+public:
+	static const double log2;
+};
+
 // Base fractal definition. An instance knows all about a fractal _type_
 // but nothing about an individual _plot_ of it (meta-instance?)
 class Fractal {
