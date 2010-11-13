@@ -33,19 +33,25 @@ Plot::~Plot() {
 	if (plot_data_) delete[] plot_data_;
 }
 
-string Plot::info_short() {
-	char buf[128];
+string Plot::info(bool verbose) {
 	std::ostringstream rv;
 	rv << fract->name
 	   << "@(" << real(centre) << ", " << imag(centre) << ")";
-	rv << ", maxiter=" << maxiter;
+	rv << ( verbose ? ", maxiter=" : ", max=");
+	rv << maxiter;
 
 	// Now that we autofix the aspect ratio, our pixels are square.
 	double zoom = 1.0/real(size);
-	unsigned rr = snprintf(buf, sizeof buf, "%g", zoom);
-	assert (rr < sizeof buf);
-	rv << ", zoom=" << buf;
-	rv << " / axis length=" << size << " / pixel size=" << real(size)/width;
+
+	if (verbose) {
+		char buf[128];
+		unsigned rr = snprintf(buf, sizeof buf, "%g", zoom);
+		assert (rr < sizeof buf);
+		rv << ", zoom=" << buf;
+		rv << " / axis length=" << size << " / pixel size=" << real(size)/width;
+	} else {
+		rv << ", axis=" <<size;
+	}
 
 	return rv.str();
 }

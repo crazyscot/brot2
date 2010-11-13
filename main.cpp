@@ -84,7 +84,7 @@ static void draw_hud_gdk(GtkWidget * widget, _gtk_ctx *gctx)
 	GdkPixmap *dest = gctx->render;
 	_render_ctx * rctx = gctx->mainctx;
 	PangoLayout * lyt = gtk_widget_create_pango_layout(widget,
-			gctx->mainctx->plot->info_short().c_str());
+			gctx->mainctx->plot->info(true).c_str());
 	PangoFontDescription * fontdesc = pango_font_description_from_string ("Luxi Sans 9");
 	pango_layout_set_font_description (lyt, fontdesc);
 	pango_layout_set_width(lyt, PANGO_SCALE * rctx->width);
@@ -304,12 +304,10 @@ static gpointer main_render_thread(gpointer arg)
 	double timetaken = tv_diff.tv_sec + (tv_diff.tv_usec / 1e6);
 
 	gtk_statusbar_pop(ctx->statusbar, 0);
+
+	gtk_window_set_title(GTK_WINDOW(ctx->window), ctx->mainctx->plot->info(false).c_str());
+
 	std::ostringstream info;
-	info << ctx->mainctx->plot->info_short();
-
-	gtk_window_set_title(GTK_WINDOW(ctx->window), info.str().c_str());
-
-	info.str("");
 	info << "rendered in " << timetaken << "s.";
 	if (aspectfix)
 		info << " Aspect ratio autofixed.";
