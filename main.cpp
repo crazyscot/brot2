@@ -746,7 +746,7 @@ void toggle_hud(gpointer _ctx, guint callback_action, GtkWidget *widget)
 	if (!ctx->mainctx->initializing) {
 		// There must surely be a more idiomatic way to achieve the correct initial state??
 		ctx->mainctx->draw_hud = !ctx->mainctx->draw_hud;
-		do_redraw(ctx->window, ctx);
+		recolour(ctx->window, ctx);
 	}
 }
 
