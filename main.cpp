@@ -51,6 +51,7 @@ static gint dragrect_origin_x, dragrect_origin_y,
 
 typedef struct _render_ctx {
 	Plot * plot;
+	Plot * plot_prev;
 	DiscretePalette * pal;
 	SmoothPalette * pals;
 	// Yes, the following are mostly the same as in the Plot - but the plot is torn down and recreated frequently.
@@ -60,7 +61,8 @@ typedef struct _render_ctx {
 	bool draw_hud;
 	bool initializing; // Disables certain event actions when set.
 
-	_render_ctx(): plot(0), pal(0), fractal(0), initializing(true) {};
+	_render_ctx(): plot(0), plot_prev(0), pal(0), fractal(0), initializing(true) {};
+	~_render_ctx() { if (plot) delete plot; if (plot_prev) delete plot_prev; }
 } _render_ctx;
 
 typedef struct _gtk_ctx {
@@ -261,7 +263,9 @@ static gpointer main_render_thread(gpointer arg)
 	// N.B. This (gtk/gdk lib calls from non-main thread) will not work at all on win32; will need to refactor if I ever port.
 	gettimeofday(&tv_start,0);
 
-	if (ctx->mainctx->plot) delete ctx->mainctx->plot;
+	if (ctx->mainctx->plot_prev) delete ctx->mainctx->plot_prev;
+	ctx->mainctx->plot_prev = ctx->mainctx->plot;
+	ctx->mainctx->plot = 0;
 
 #define NTHREADS 2
 	_thread_ctx threads[NTHREADS];
@@ -483,6 +487,29 @@ static gboolean expose_event( GtkWidget *widget, GdkEventExpose *event, gpointer
 			event->area.width, event->area.height);
 
 	return FALSE;
+}
+
+static void do_undo(gpointer _ctx, guint callback_action, GtkWidget *widget)
+{
+	_gtk_ctx * ctx = (_gtk_ctx*) _ctx;
+	if (ctx->render == NULL) return;
+	if (!ctx->mainctx->plot_prev) {
+		gtk_statusbar_pop(ctx->statusbar, 1);
+		gtk_statusbar_push(ctx->statusbar, 1, "Nothing to undo");
+		return;
+	}
+
+	_render_ctx * main = ctx->mainctx;
+	Plot * tmp = main->plot;
+	main->plot = main->plot_prev;
+	main->plot_prev = tmp;
+
+	main->centre = main->plot->centre;
+	main->size = main->plot->size;
+	main->width = main->plot->width;
+	main->height = main->plot->height;
+	main->maxiter = main->plot->maxiter;
+	recolour(ctx->window, ctx);
 }
 
 enum zooms {
@@ -795,9 +822,11 @@ int main (int argc, char**argv)
 			{ _"/Options", 0, 0, 0, _"<Branch>" },
 			{ _ OPTIONS_DRAW_HUD, _"<control>H", (GtkItemFactoryCallback)toggle_hud, 0, _"<CheckItem>" },
 			{ _"/Navigation", 0, 0, 0, _"<Branch>" },
+			{ _"/Navigation/Undo", _"<control>Z", (GtkItemFactoryCallback)do_undo, 0, _"<Item>" },
+			{ _"/Navigation/_Parameters", _"<control>P", (GtkItemFactoryCallback)do_params_dialog, 0, _"<Item>" },
+			{ _"/Navigation/sep1", 0, 0, 0, _"<Separator>" },
 			{ _"/Navigation/Zoom In", _"plus", (GtkItemFactoryCallback)do_zoom, ZOOM_IN, _"<Item>" },
 			{ _"/Navigation/Zoom Out", _"minus", (GtkItemFactoryCallback)do_zoom, ZOOM_OUT, _"<Item>" },
-			{ _"/Navigation/_Parameters", _"<control>P", (GtkItemFactoryCallback)do_params_dialog, 0, _"<Item>" },
 	};
 #undef _
 
@@ -868,7 +897,6 @@ int main (int argc, char**argv)
 	gdk_threads_enter();
 	gtk_main();
 	gdk_threads_leave();
-	delete render_ctx.plot;
 	delete render_ctx.fractal;
 	return 0;
 }
