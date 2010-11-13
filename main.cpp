@@ -774,7 +774,7 @@ int main (int argc, char**argv)
 			{ _"/Main/_Params", _"<control>P", (GtkItemFactoryCallback)do_config, 0, _"<Item>" },
 			{ _"/Main/_Quit", _"<control>Q", gtk_main_quit, 0, _"<Item>" },
 			{ _"/Options", 0, 0, 0, _"<Branch>" },
-			{ _ OPTIONS_DRAW_HUD, 0, (GtkItemFactoryCallback)toggle_hud, 0, _"<CheckItem>" },
+			{ _ OPTIONS_DRAW_HUD, _"<control>H", (GtkItemFactoryCallback)toggle_hud, 0, _"<CheckItem>" },
 			{ _"/Navigation", 0, 0, 0, _"<Branch>" },
 			{ _"/Navigation/Zoom In", _"plus", (GtkItemFactoryCallback)do_zoom, ZOOM_IN, _"<Item>" },
 			{ _"/Navigation/Zoom Out", _"minus", (GtkItemFactoryCallback)do_zoom, ZOOM_OUT, _"<Item>" },
