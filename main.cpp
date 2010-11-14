@@ -29,6 +29,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.";
 #include <sstream>
 #include <complex>
 #include <pthread.h>
+#include <png.h>
 
 #include "Plot.h"
 #include "Fractal.h"
@@ -822,16 +823,16 @@ int main (int argc, char**argv)
 #define _ (char*)
 	GtkItemFactoryEntry main_menu_items[] = {
 			{ _"/_Main", 0, 0, 0, _"<Branch>" },
-			{ _"/_Main/_About", 0, (GtkItemFactoryCallback)do_about, 0, _"<Item>" },
-			{ _"/Main/_Quit", _"<control>Q", gtk_main_quit, 0, _"<Item>" },
+			{ _"/Main/_About", 0, (GtkItemFactoryCallback)do_about, 0, _"<StockItem>", GTK_STOCK_ABOUT },
+			{ _"/Main/_Quit", _"<control>Q", gtk_main_quit, 0, _"<StockItem>", GTK_STOCK_QUIT },
 			{ _"/_Options", 0, 0, 0, _"<Branch>" },
 			{ _ OPTIONS_DRAW_HUD, _"<control>H", (GtkItemFactoryCallback)toggle_hud, 0, _"<CheckItem>" },
 			{ _"/_Navigation", 0, 0, 0, _"<Branch>" },
-			{ _"/Navigation/_Undo", _"<control>Z", (GtkItemFactoryCallback)do_undo, 0, _"<Item>" },
-			{ _"/Navigation/_Parameters", _"<control>P", (GtkItemFactoryCallback)do_params_dialog, 0, _"<Item>" },
+			{ _"/Navigation/_Undo", _"<control>Z", (GtkItemFactoryCallback)do_undo, 0, _"<StockItem>", GTK_STOCK_UNDO },
+			{ _"/Navigation/_Parameters", _"<control>P", (GtkItemFactoryCallback)do_params_dialog, 0, _"<StockItem>", GTK_STOCK_PROPERTIES },
 			{ _"/Navigation/sep1", 0, 0, 0, _"<Separator>" },
-			{ _"/Navigation/Zoom _In", _"plus", (GtkItemFactoryCallback)do_zoom, ZOOM_IN, _"<Item>" },
-			{ _"/Navigation/Zoom _Out", _"minus", (GtkItemFactoryCallback)do_zoom, ZOOM_OUT, _"<Item>" },
+			{ _"/Navigation/Zoom _In", _"plus", (GtkItemFactoryCallback)do_zoom, ZOOM_IN, _"<StockItem>", GTK_STOCK_ZOOM_IN },
+			{ _"/Navigation/Zoom _Out", _"minus", (GtkItemFactoryCallback)do_zoom, ZOOM_OUT, _"<StockItem>", GTK_STOCK_ZOOM_OUT },
 	};
 #undef _
 
