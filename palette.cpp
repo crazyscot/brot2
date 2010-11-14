@@ -39,7 +39,7 @@ std::ostream& operator<<(std::ostream &stream, rgbf o) {
 
 map<string,DiscretePalette*> DiscretePalette::registry;
 
-DiscretePalette::DiscretePalette(int n, string nam) : name(nam), size(n), isRegistered(0) {
+DiscretePalette::DiscretePalette(int n, string nam) : BasePalette(nam), size(n), isRegistered(0) {
 	table = new rgb[size];
 }
 
@@ -48,7 +48,7 @@ DiscretePalette::~DiscretePalette() {
 	dereg();
 }
 
-DiscretePalette::DiscretePalette(string nam, int n, PaletteGenerator gen_fn) : name(nam), size(n) {
+DiscretePalette::DiscretePalette(string nam, int n, PaletteGenerator gen_fn) : BasePalette(nam), size(n) {
 #if DEBUG_DUMP_ALL
 	cout << nam << endl;
 #endif

@@ -58,8 +58,7 @@ static gint dragrect_origin_x, dragrect_origin_y,
 typedef struct _render_ctx {
 	Plot * plot;
 	Plot * plot_prev;
-	DiscretePalette * pal;
-	SmoothPalette * pals;
+	BasePalette * pal;
 	// Yes, the following are mostly the same as in the Plot - but the plot is torn down and recreated frequently.
 	Fractal *fractal;
 	cdbl centre, size;
@@ -67,7 +66,7 @@ typedef struct _render_ctx {
 	bool draw_hud;
 	bool initializing; // Disables certain event actions when set.
 
-	_render_ctx(): plot(0), plot_prev(0), pal(0), fractal(0), initializing(true) {};
+	_render_ctx(): initializing(true) {};
 	~_render_ctx() { if (plot) delete plot; if (plot_prev) delete plot_prev; }
 } _render_ctx;
 
@@ -154,11 +153,7 @@ static void plot_to_png(_gtk_ctx *ctx, char *filename)
 			if (pdata->iter == ctx->mainctx->maxiter) {
 				out[0] = out[1] = out[2] = 0;
 			} else {
-				rgb col;
-				if (ctx->mainctx->pal)
-					col = (*ctx->mainctx->pal)[pdata->iter];
-				else if (ctx->mainctx->pals)
-					col = ctx->mainctx->pals->get(*pdata);
+				rgb col = ctx->mainctx->pal->get(*pdata);
 				out[0] = col.r;
 				out[1] = col.g;
 				out[2] = col.b;
@@ -260,11 +255,7 @@ static void render_gdk(GtkWidget * widget, _gtk_ctx *gctx) {
 			if (data->iter == rctx->maxiter) {
 				row[0] = row[1] = row[2] = 0;
 			} else {
-				rgb col;
-				if (rctx->pal)
-					col = (*rctx->pal)[data->iter];
-				else if (rctx->pals)
-					col = rctx->pals->get(*data);
+				rgb col = rctx->pal->get(*data);
 				row[0] = col.r;
 				row[1] = col.g;
 				row[2] = col.b;
@@ -532,15 +523,12 @@ static void do_resize(GtkWidget *widget, _gtk_ctx *ctx, unsigned width, unsigned
 
 static void colour_menu_selection(_gtk_ctx *ctx, string lbl)
 {
-	DiscretePalette * sel = DiscretePalette::registry[lbl];
-	if (sel != 0) {
-		ctx->mainctx->pal = sel;
-		ctx->mainctx->pals = 0;
-	}
-	SmoothPalette *sel2 = SmoothPalette::registry[lbl];
-	if (sel2 != 0) {
-		ctx->mainctx->pal = 0;
-		ctx->mainctx->pals = sel2;
+	DiscretePalette * selS = DiscretePalette::registry[lbl];
+	SmoothPalette *selD = SmoothPalette::registry[lbl];
+	if (selS) {
+		ctx->mainctx->pal = selS;
+	} else if (selD) {
+		ctx->mainctx->pal = selD;
 	}
 	if (ctx->mainctx->plot)
 		recolour(ctx->window, ctx);

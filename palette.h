@@ -111,7 +111,15 @@ std::ostream& operator<<(std::ostream &stream, rgbf o);
  */
 typedef rgb (*PaletteGenerator)(int step, int nsteps);
 
-class DiscretePalette {
+class BasePalette {
+public:
+	BasePalette(std::string nam): name(nam) {}
+	const std::string name;
+	virtual rgb get(const fractal_point &pt) const = 0;
+};
+
+
+class DiscretePalette : public BasePalette {
 
 public:
 	// Base constructor does *NOT* register the class; caller may do so at their choice when they've set up the table.
@@ -123,12 +131,14 @@ public:
 	// Destructor will deregister iff the instance was registered.
 	virtual ~DiscretePalette();
 
-	const std::string name;
 	const int size; // number of elements in table
 	rgb *table; // memory owned by constructor
 
 	rgb& operator[](int i) { return table[i%size]; }
 	const rgb& operator[](int i) const { return table[i%size]; }
+	virtual rgb get(const fractal_point &pt) const {
+		return table[pt.iter%size];
+	};
 
 	static std::map<std::string,DiscretePalette*> registry;
 
@@ -146,17 +156,16 @@ protected:
 
 ///////////////////////////////////////////////////////////////////
 
-class SmoothPalette {
+class SmoothPalette : public BasePalette {
 public:
 	// Base constructor registers the class.
-	SmoothPalette(std::string newname) : name (newname) { reg(); };
+	SmoothPalette(std::string newname) : BasePalette(newname) { reg(); };
 
 	// Destructor will deregister iff the instance was registered.
 	virtual ~SmoothPalette() {
 		dereg();
 	}
 
-	const std::string name;
 	static std::map<std::string,SmoothPalette*> registry;
 
 	void reg() { registry[name] = this; isRegistered = 1; }
