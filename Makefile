@@ -6,10 +6,14 @@ CXXOBJ := $(CXXSRC:.cpp=.o)
 OBJS   := $(COBJ) $(CXXOBJ)
 DEPS   := $(CSRC:.c=.d) $(CXXSRC:.cpp=.d)
 
-COMMON_CFLAGS := `pkg-config gtk+-2.0 --cflags` -g -O0 -Wall -Werror -std=c++0x
+COMMON_CFLAGS := `pkg-config gtk+-2.0 --cflags` \
+			`libpng12-config --cflags` \
+			-g -O0 -Wall -Werror -std=c++0x
 CFLAGS := $(COMMON_CFLAGS)
 CXXFLAGS := $(COMMON_CFLAGS)
-LDADD  := `pkg-config gtk+-2.0 --libs` -lm
+LDADD  := `pkg-config gtk+-2.0 --libs` \
+			`libpng12-config --ldflags`	\
+			-lm
 CC     := gcc
 CXX    := g++
 

@@ -20,7 +20,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.";
 #define _GNU_SOURCE 1
 #include <gtk/gtk.h>
 #include <gdk/gdkkeysyms.h>
+#include <png.h>
+
 #include <sys/time.h>
+#include <setjmp.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -29,7 +32,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.";
 #include <sstream>
 #include <complex>
 #include <pthread.h>
-#include <png.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
 
 #include "Plot.h"
 #include "Fractal.h"
@@ -81,6 +86,130 @@ typedef struct _gtk_ctx {
 		pthread_mutex_init(&render_lock, 0);
 	};
 } _gtk_ctx;
+
+#define ALERT_DIALOG(parent, msg, args...) do { \
+	GtkWidget * dialog = gtk_message_dialog_new (GTK_WINDOW(ctx->window), 	\
+	                                 GTK_DIALOG_DESTROY_WITH_PARENT, 		\
+	                                 GTK_MESSAGE_ERROR,						\
+	                                 GTK_BUTTONS_CLOSE,						\
+	                                 msg, ## args);							\
+	gtk_dialog_run (GTK_DIALOG (dialog));									\
+	gtk_widget_destroy (dialog);											\
+} while(0)
+
+static void plot_to_png(_gtk_ctx *ctx, char *filename)
+{
+	FILE *f;
+
+	f = fopen(filename, "wb");
+	if (f==NULL) {
+		ALERT_DIALOG(ctx->window, "Could not open file for writing: %d (%s)", errno, strerror(errno));
+		return;
+	}
+
+	png_structp png = png_create_write_struct(PNG_LIBPNG_VER_STRING, 0, 0, 0);
+	png_infop png_info=0;
+	if (png)
+		png_info = png_create_info_struct(png);
+	if (!png_info) {
+		ALERT_DIALOG(ctx->window, "Could not create PNG structs (out of memory?)");
+		if (png)
+			png_destroy_write_struct(&png, 0);
+		return;
+	}
+	jmp_buf jbuf;
+	if (setjmp(jbuf)) {
+		fclose(f);
+		return;
+	}
+
+	const unsigned width = ctx->mainctx->width,
+			height = ctx->mainctx->height;
+
+	png_init_io(png, f);
+
+	png_set_compression_level(png, Z_BEST_SPEED);
+	png_set_IHDR(png, png_info,
+			width, height, 8 /* 24bpp */,
+			PNG_COLOR_TYPE_RGB, PNG_INTERLACE_NONE,
+			PNG_COMPRESSION_TYPE_DEFAULT, PNG_FILTER_TYPE_DEFAULT);
+
+	string comment = ctx->mainctx->plot->info(true);
+	png_text texts[2] = {
+			{PNG_TEXT_COMPRESSION_NONE, (char*)"Software", (char*)"brot2"},
+			{PNG_TEXT_COMPRESSION_NONE, (char*)"Comment", (char*)comment.c_str()},
+	};
+	png_set_text(png, png_info, texts, 2);
+
+	png_write_info(png, png_info);
+#define BYTES_PER_PIXEL 3
+	png_byte row[width * BYTES_PER_PIXEL];
+	png_bytep rowp = row;
+
+	const fractal_point * pdata = ctx->mainctx->plot->get_plot_data();
+
+	for (unsigned k=0; k<height; k++) {
+		png_bytep out = row;
+		for (unsigned l=0; l<width; l++) {
+			if (pdata->iter == ctx->mainctx->maxiter) {
+				out[0] = out[1] = out[2] = 0;
+			} else {
+				rgb col;
+				if (ctx->mainctx->pal)
+					col = (*ctx->mainctx->pal)[pdata->iter];
+				else if (ctx->mainctx->pals)
+					col = ctx->mainctx->pals->get(*pdata);
+				out[0] = col.r;
+				out[1] = col.g;
+				out[2] = col.b;
+			}
+			out += BYTES_PER_PIXEL;
+			pdata++;
+		}
+		png_write_rows(png, &rowp, 1);
+	}
+	png_write_end(png,png_info);
+	png_destroy_write_struct(&png, &png_info);
+
+	gtk_statusbar_pop(ctx->statusbar, 0);
+	if (0==fclose(f))
+		gtk_statusbar_push(ctx->statusbar, 0, "Successfully saved");
+	else
+		ALERT_DIALOG(ctx->window, "Error closing the save: %d: %s", errno, strerror(errno));
+}
+
+static void do_save(gpointer _ctx, guint callback_action, GtkWidget *widget)
+{
+	_gtk_ctx *ctx = (_gtk_ctx*) _ctx;
+	GtkWidget *dialog;
+	dialog = gtk_file_chooser_dialog_new ("Save File",
+					      GTK_WINDOW(ctx->window),
+					      GTK_FILE_CHOOSER_ACTION_SAVE,
+					      GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
+					      GTK_STOCK_SAVE, GTK_RESPONSE_ACCEPT,
+					      NULL);
+	gtk_file_chooser_set_do_overwrite_confirmation (GTK_FILE_CHOOSER (dialog), TRUE);
+
+	{
+		ostringstream str;
+		str << "/home/" << getenv("USERNAME") << "/Documents/";
+		gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (dialog), str.str().c_str());
+	}
+
+	{
+		ostringstream str;
+		str << ctx->mainctx->plot->info().c_str() << ".png";
+		gtk_file_chooser_set_current_name (GTK_FILE_CHOOSER (dialog), str.str().c_str());
+	}
+
+    if (gtk_dialog_run (GTK_DIALOG (dialog)) == GTK_RESPONSE_ACCEPT) {
+    	char *filename;
+    	filename = gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (dialog));
+    	plot_to_png(ctx, filename);
+    	g_free (filename);
+    }
+    gtk_widget_destroy (dialog);
+}
 
 static void draw_hud_gdk(GtkWidget * widget, _gtk_ctx *gctx)
 {
@@ -824,6 +953,7 @@ int main (int argc, char**argv)
 	GtkItemFactoryEntry main_menu_items[] = {
 			{ _"/_Main", 0, 0, 0, _"<Branch>" },
 			{ _"/Main/_About", 0, (GtkItemFactoryCallback)do_about, 0, _"<StockItem>", GTK_STOCK_ABOUT },
+			{ _"/Main/_Save", 0, (GtkItemFactoryCallback)do_save, 0, _"<StockItem>", GTK_STOCK_SAVE },
 			{ _"/Main/_Quit", _"<control>Q", gtk_main_quit, 0, _"<StockItem>", GTK_STOCK_QUIT },
 			{ _"/_Options", 0, 0, 0, _"<Branch>" },
 			{ _ OPTIONS_DRAW_HUD, _"<control>H", (GtkItemFactoryCallback)toggle_hud, 0, _"<CheckItem>" },
