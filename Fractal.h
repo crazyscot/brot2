@@ -30,7 +30,7 @@ typedef std::complex<long double> cdbl;
 
 class fractal_point {
 public:
-	unsigned iter;
+	int iter; // -1 may mean our current working value of "infinity", if that's a movable feast.
 	double iterf; // where available: smooth iterations count
 };
 
