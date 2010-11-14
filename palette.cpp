@@ -39,28 +39,6 @@ std::ostream& operator<<(std::ostream &stream, rgbf o) {
 
 map<string,DiscretePalette*> DiscretePalette::registry;
 
-DiscretePalette::DiscretePalette(int n, string nam) : BasePalette(nam), size(n), isRegistered(0) {
-	table = new rgb[size];
-}
-
-DiscretePalette::~DiscretePalette() {
-	if (table) delete[] table;
-	dereg();
-}
-
-DiscretePalette::DiscretePalette(string nam, int n, PaletteGenerator gen_fn) : BasePalette(nam), size(n) {
-#if DEBUG_DUMP_ALL
-	cout << nam << endl;
-#endif
-	table = new rgb[size];
-	for (int i=0; i<size; i++) {
-		table[i] = gen_fn(i, size);
-#if DEBUG_DUMP_ALL
-		cout << i << ": " << table[i] << endl;
-#endif
-	}
-	reg();
-}
 
 // HSV->RGB conversion algorithm found under a rock on the 'net.
 hsv::operator rgb() {
@@ -102,79 +80,71 @@ std::ostream& operator<<(std::ostream &stream, hsvf o) {
 	  return stream;
 }
 
-static rgb generate_hsv(int step, int nsteps) {
-	hsv h(255*cos(step), 224, 224);
-	rgb r(h);
-	// This one jumps at random around the hue space.
-#if DEBUG_DUMP_HSV
-	cout << h << " --> " << r << endl;
-#endif
-	return r;
-}
+/////////////////////////////////////////////////////////////////////////
 
-static rgb generate_hsv2(int step, int nsteps) {
-	// This is a continuous gradient.
-	hsv h(255*step/nsteps, 255, 255);
-	rgb r(h);
-#if DEBUG_DUMP_HSV
-	cout << h << " --> " << r << endl;
-#endif
-	return r;
-}
-
-static rgb generate_pastel1(int step, int nsteps) {
-	return rgb((nsteps-step)*255/nsteps,
-				144,
-				255*cos(step));
-}
-
-// Static instances:
-#define P(label,desc,n,gen) \
-	DiscretePalette label(#desc, n, gen)
-
-P(hsv1, Kaleidoscopic, 32, generate_hsv);
-P(hsv2, Gradient RGB, 32, generate_hsv2);
-P(pastel1, Pastel salad, 16, generate_pastel1);
-
-class TwoPointGradient : public DiscretePalette {
-	typedef rgb TWG_generate_fn(TwoPointGradient *t, int step);
+class Kaleidoscopic : DiscretePalette {
 public:
+	Kaleidoscopic(string name, int n) : DiscretePalette(name,n) {};
+	virtual rgb get(const fractal_point &pt) const {
+		// This one jumps at random around the hue space.
+			hsv h(255*cos(pt.iter), 224, 224);
+			rgb r(h);
+		#if DEBUG_DUMP_HSV
+			cout << h << " --> " << r << endl;
+		#endif
+			return r;
+	};
+};
+
+Kaleidoscopic kaleido32("Kaleidoscopic", 32);
+
+class Rainbow : DiscretePalette {
+public:
+	Rainbow(string name, int n) : DiscretePalette(name, n) {};
+	virtual rgb get(const fractal_point &pt) const {
+		// This is a continuous "gradient" around the Hue wheel.
+		hsv h(255*pt.iter/size, 255, 255);
+		rgb r(h);
+	#if DEBUG_DUMP_HSV
+		cout << h << " --> " << r << endl;
+	#endif
+		return r;
+	};
+};
+
+Rainbow grad32("Rainbow", 32);
+
+class PastelSalad : DiscretePalette {
+public:
+	PastelSalad(string name, int n) : DiscretePalette(name, n) {};
+	virtual rgb get(const fractal_point &pt) const {
+		return rgb((size-pt.iter)*255/size,
+					144,
+					255*cos(pt.iter));
+
+	};
+};
+
+PastelSalad pastel32("Pastel Salad", 32);
+
+class SawtoothGradient : public DiscretePalette {
+protected:
 	rgbf point1, point2;
-	TwoPointGradient(string nam, int n, const rgbf p1, const rgbf p2, TWG_generate_fn gen_fn) : DiscretePalette(n,nam), point1(p1), point2(p2) {
-#if DEBUG_DUMP_ALL
-		cout << nam << endl;
-#endif
-		table = new rgb[size];
-		for (int i=0; i<size; i++) {
-			table[i] = gen_fn(this, i);
-#if DEBUG_DUMP_ALL
-			cout << i << ": " << table[i] << endl;
-#endif
-		}
-		reg();
+public:
+	SawtoothGradient(string nam, int n, const rgbf p1, const rgbf p2) : DiscretePalette(nam,n), point1(p1), point2(p2) {};
+
+	virtual rgb get(const fractal_point &pt) const {
+		// I tried a sinusoid function here as well, but it didn't work so well.
+		int iter = pt.iter % size;
+		float tau = 2.0 * iter / size;
+		if (iter > (size/2)) tau = 2.0 - tau;
+		rgbf r = point1 * tau + point2 * (1.0-tau);
+		return r;
 	}
 };
 
-#if 0
-// Sinusoids don't seem to work so well, the variation in gradient of sin(t)
-// blurs arbitrary regions.
-static rgb generate_sinusoid(TwoPointGradient *t, int step) {
-	float tau = sin(M_PI * step / t->size);
-	rgbf r = t->point1 * tau + t->point2 * (1.0-tau);
-	return r;
-}
-TwoPointGradient test("test1 sinu", 16, rgbf(1,0,0), rgbf(0,0,1), generate_sinusoid);
-#endif
-
-static rgb generate_sawtooth(TwoPointGradient *t, int step) {
-	float tau = 2.0 * step / t->size;
-	if (step > (t->size/2)) tau = 2.0 - tau;
-	rgbf r = t->point1 * tau + t->point2 * (1.0-tau);
-	return r;
-}
-
 #define SAWTOOTH(id,desc,n,p1,p2) \
-	TwoPointGradient id(#desc, n, p1, p2, generate_sawtooth)
+	SawtoothGradient id(#desc, n, p1, p2)
 
 SAWTOOTH(saw_red_blue, Gradient red-blue, 16, rgbf(1,0,0), rgbf(0,0,1));
 SAWTOOTH(saw_green_pink, Gradient green-pink, 16, rgbf(0,1,0), rgbf(1,0,1));

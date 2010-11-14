@@ -103,14 +103,6 @@ public:
 
 std::ostream& operator<<(std::ostream &stream, rgbf o);
 
-/* Palette generation function.
- * Will be called repeatedly with 0 <= step <= nsteps, expected to be
- * idempotent.
- * nsteps is the number of colours, NOT the iteration limit! In other
- * words, don't set r=g=b=0 at nsteps.
- */
-typedef rgb (*PaletteGenerator)(int step, int nsteps);
-
 class BasePalette {
 public:
 	BasePalette(std::string nam): name(nam) {}
@@ -120,25 +112,21 @@ public:
 
 
 class DiscretePalette : public BasePalette {
-
 public:
-	// Base constructor does *NOT* register the class; caller may do so at their choice when they've set up the table.
-	DiscretePalette(int newsize, std::string newname);
-
-	// Construction, initialisation and registration in one go.
-	DiscretePalette(std::string newname, int newsize, PaletteGenerator gen_fn);
+	// Construction registration in one go.
+	DiscretePalette(std::string nam, int n) : BasePalette(nam), size(n) {
+		reg();
+	};
 
 	// Destructor will deregister iff the instance was registered.
-	virtual ~DiscretePalette();
-
-	const int size; // number of elements in table
-	rgb *table; // memory owned by constructor
-
-	rgb& operator[](int i) { return table[i%size]; }
-	const rgb& operator[](int i) const { return table[i%size]; }
-	virtual rgb get(const fractal_point &pt) const {
-		return table[pt.iter%size];
+	virtual ~DiscretePalette() {
+		dereg();
 	};
+
+	const int size; // number of colours in the palette
+
+	// Instances must implement:
+	// virtual rgb get(const fractal_point &pt) const = 0;
 
 	static std::map<std::string,DiscretePalette*> registry;
 
