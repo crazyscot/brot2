@@ -150,7 +150,7 @@ static void plot_to_png(_gtk_ctx *ctx, char *filename)
 	for (unsigned k=0; k<height; k++) {
 		png_bytep out = row;
 		for (unsigned l=0; l<width; l++) {
-			if (pdata->iter == (int)ctx->mainctx->maxiter) {
+			if (pdata->iter >= (int)ctx->mainctx->maxiter || pdata->iter < 0) {
 				out[0] = out[1] = out[2] = 0;
 			} else {
 				rgb col = ctx->mainctx->pal->get(*pdata);
@@ -252,7 +252,7 @@ static void render_gdk(GtkWidget * widget, _gtk_ctx *gctx) {
 	for (j=rctx->height-1; j>=0; j--) {
 		guchar *row = &buf[j*rowstride];
 		for (i=0; i<rctx->width; i++) {
-			if (data->iter == (int)rctx->maxiter) {
+			if (data->iter == (int)rctx->maxiter || data->iter<0) {
 				row[0] = row[1] = row[2] = 0;
 			} else {
 				rgb col = rctx->pal->get(*data);

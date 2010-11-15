@@ -70,7 +70,7 @@ void Mandelbrot::plot_pixel(const cdbl origin, const unsigned maxiter, fractal_p
 		ITER();
 	}
 	SHORTCUT:
-	out.iter = maxiter;
-	out.iterf = maxiter;
+	out.iter = -1;
+	out.iterf = -1;
 	// TODO: Further plot params - radius(cabs), dist(carg?).
 }
