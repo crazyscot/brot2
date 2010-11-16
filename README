@@ -16,5 +16,39 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-Needs libgtk2.0-dev and libpng12-dev in order to build.
+A GTK-based interactive Mandelbrot set explorer.
+
+Mouse click operations (currently hard-wired):
+	Button 1 (left): Zoom in (around the clicked point)
+	Button 2 (middle): Recentre
+	Button 3 (right): Zoom out (around the clicked point)
+	Button 8 (4th button on my Kensington Expert Mouse): Drag out a rectangle
+	         to zoom into. What you get won't quite match, as the aspect
+			 ratio autofix kicks in to ensure you get square pixels.
+
+`Undo' is only single-step, designed to let you recover from the "oh dear
+I accidentally dragged out a silly rectangle, where was I?" scenario.
+
+
+Building
+--------
+
+You will need libgtk2.0-dev and libpng12-dev.
+One day I may build it into a Debian package.
+
+
+What's in a name? 
+-----------------
+
+This is my second Mandelbrotter.
+
+The first was cryptically named 'brot'; both the origins of its name, and
+the code, are lost in the mists of time circa 2001. It was a bit pants,
+even by the standards of the time; it took its parameters on the command
+line and output as a TIFF, ASCII art or to a terminal which understood
+ANSI graphics codes. (I claim this as a dubiously legitimate reason for
+setting xterm to 'unreadable' :-) )
+
+This one is a bit better featured, but to me it's logically the heir to its
+now-departed ancestor, hence the name.
 
