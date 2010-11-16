@@ -941,7 +941,7 @@ int main (int argc, char**argv)
 	GtkItemFactoryEntry main_menu_items[] = {
 			{ _"/_Main", 0, 0, 0, _"<Branch>" },
 			{ _"/Main/_About", 0, (GtkItemFactoryCallback)do_about, 0, _"<StockItem>", GTK_STOCK_ABOUT },
-			{ _"/Main/_Save", 0, (GtkItemFactoryCallback)do_save, 0, _"<StockItem>", GTK_STOCK_SAVE },
+			{ _"/Main/_Save image...", 0, (GtkItemFactoryCallback)do_save, 0, _"<StockItem>", GTK_STOCK_SAVE },
 			{ _"/Main/_Quit", _"<control>Q", gtk_main_quit, 0, _"<StockItem>", GTK_STOCK_QUIT },
 			{ _"/_Options", 0, 0, 0, _"<Branch>" },
 			{ _ OPTIONS_DRAW_HUD, _"<control>H", (GtkItemFactoryCallback)toggle_hud, 0, _"<CheckItem>" },
