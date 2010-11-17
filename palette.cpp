@@ -27,6 +27,9 @@ using namespace std;
 #define DEBUG_DUMP_ALL 0
 #define DEBUG_DUMP_HSV 0
 
+rgb white(255,255,255);
+rgb black(0,0,0);
+
 std::ostream& operator<<(std::ostream &stream, rgb o) {
 	  stream << "rgb(" << (int)o.r << "," << (int)o.g << "," << (int)o.b << ")";
 	  return stream;
@@ -185,6 +188,22 @@ HUECYCLE(viol_red_16, Shallow greenish, 16, hsvf(0,1,1), hsvf(1,1,1));
 */
 
 // In fact my HSV space conversion just copes with values >1, so you can do this:
-HUECYCLE(green_32, Mid rainbow, 32, hsvf(0.5,1,1), hsvf(1.5,1,1));
-HUECYCLE(green_16, Shallow rainbow, 16, hsvf(0.5,1,1), hsvf(1.5,1,1));
-HUECYCLE(green_64, Deep rainbow, 64, hsvf(0.5,1,1), hsvf(1.5,1,1));
+HUECYCLE(green_32, Linear rainbow, 32, hsvf(0.5,1,1), hsvf(1.5,1,1));
+//HUECYCLE(green_16, Shallow rainbow, 16, hsvf(0.5,1,1), hsvf(1.5,1,1));
+//HUECYCLE(green_64, Deep rainbow, 64, hsvf(0.5,1,1), hsvf(1.5,1,1));
+
+class LogSmoothed : public SmoothPalette {
+public:
+	LogSmoothed(std::string name) : SmoothPalette(name) {};
+	rgb get(const fractal_point &pt) const {
+		if (pt.iter <= 3) return white;
+		hsvf rv;
+		rv.h = 0.6+sin(log(pt.iterf));
+		rv.h -= floor(rv.h);
+		rv.s = 1.0;
+		rv.v = 1.0;
+		return hsv(rv);
+	};
+};
+
+LogSmoothed log_smoothed("Logarithmic rainbow");
