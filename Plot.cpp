@@ -77,9 +77,6 @@ void Plot::do_some(const unsigned firstrow, unsigned n_rows) {
 	cdbl rowstep = cdbl(0, imag(size) / height);
 	//std::cout << "rowstep " << rowstep << "; colstep "<<colstep << std::endl;
 
-	// TODO: Vertical discontinueties start to crop up around the resolution limit
-	// in multi-threaded mode. We ought to detect them and do something appropriate.
-
 	cdbl render_point = _origin;
 	render_point.imag(render_point.imag() + firstrow*imag(rowstep));
 
