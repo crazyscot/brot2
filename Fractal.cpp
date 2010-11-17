@@ -64,7 +64,8 @@ void Mandelbrot::plot_pixel(const cdbl origin, const unsigned maxiter, fractal_p
 			ITER(); ++iter;
 			ITER(); ++iter;
 			out.iter = iter;
-			out.iterf = iter - log(log(mod2)) / consts.log2;
+			out.iterf = iter - log(log(sqrt(mod2))) / consts.log2;
+			out.arg = atan2(z_im, z_re);
 			return;
 		}
 		ITER();
@@ -72,5 +73,4 @@ void Mandelbrot::plot_pixel(const cdbl origin, const unsigned maxiter, fractal_p
 	SHORTCUT:
 	out.iter = -1;
 	out.iterf = -1;
-	// TODO: Further plot params - radius(cabs), dist(carg?).
 }

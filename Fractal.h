@@ -32,6 +32,7 @@ class fractal_point {
 public:
 	int iter; // -1 may mean our current working value of "infinity", if that's a movable feast.
 	double iterf; // where available: smooth iterations count
+	double arg; // argument of final point, used in some plots
 };
 
 class _consts {
