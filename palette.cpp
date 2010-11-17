@@ -207,3 +207,20 @@ public:
 };
 
 LogSmoothed log_smoothed("Logarithmic rainbow");
+
+class LogSmoothedRays : public SmoothPalette {
+public:
+	LogSmoothedRays(std::string name) : SmoothPalette(name) {};
+	rgb get(const fractal_point &pt) const {
+		if (pt.iter <= 3) return white;
+		hsvf rv;
+		rv.h = 0.6+sin(log(pt.iterf));
+		rv.h -= floor(rv.h);
+		rv.s = cos(pt.arg);
+		rv.v = 1.0;
+		return hsv(rv);
+	};
+};
+
+LogSmoothedRays log_smoothed_with_rays("Logarithmic rainbow with rays");
+
