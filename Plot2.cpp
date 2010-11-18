@@ -21,7 +21,8 @@
 #include "Plot2.h"
 
 #define MAX_WORKER_THREADS 3
-// TODO: Make this configurable.
+#define N_WORKER_JOBS 10
+// TODO: Make these configurable.
 
 static gpointer plot2_main_threadfunc(gpointer arg);
 static void plot2_worker_threadfunc(gpointer data1, gpointer data2);
@@ -41,6 +42,8 @@ Plot2::Plot2(Fractal* f, cdbl centre, cdbl size,
 		main_thread(0), pool(0), callback(0), _data(0), _abort(false)
 {
 	g_static_mutex_init(&lock);
+	flare = g_cond_new();
+	flare_lock = g_mutex_new();
 }
 
 string Plot2::info(bool verbose) {
@@ -91,11 +94,16 @@ static gpointer plot2_main_threadfunc(gpointer arg) {
 class Plot2::worker_job {
 	friend class Plot2;
 	unsigned maxiter, first_row, n_rows;
-	worker_job(unsigned max, unsigned first, unsigned n): maxiter(max), first_row(first), n_rows(n) {};
+	bool done;
+	worker_job() {};
+	void set(const unsigned& max, const unsigned& first, const unsigned& n) {
+		maxiter=max; first_row=first; n_rows=n;
+	}
 };
 
 gpointer Plot2::_main_threadfunc()
 {
+	int i;
 	LOCK();
 	if (_data) delete[] _data;
 	_data = new fractal_point[width * height];
@@ -111,11 +119,25 @@ gpointer Plot2::_main_threadfunc()
 
 	// TODO: PREPARE the fractal (set all points to pass=1, Re, Im; precomp for cardoid etc.)
 
-	// TODO: Carve up the work! Make sure multiple threads work.
-	// XXX Initial with one worker thread.
+	worker_job jobs[N_WORKER_JOBS];
+	const unsigned step = height / N_WORKER_JOBS;
 
-	worker_job primo(maxiter, 0, height);
-	g_thread_pool_push(pool, &primo, 0);
+	for (i=0; i<N_WORKER_JOBS; i++) {
+		const unsigned z = step*i;
+		jobs[i].set(maxiter, z, step);
+		g_thread_pool_push(pool, &jobs[i], 0);
+	}
+
+	int todo;
+	g_mutex_lock(flare_lock);
+	do {
+		g_cond_wait(flare, flare_lock);
+		// TODO ALLOW STOP.
+		// XXX: timed wait ?
+		todo = g_thread_pool_unprocessed(pool);
+	} while (todo);
+	g_mutex_unlock(flare_lock);
+
 	// XXX: CALL the callback (if present), LOOP for further passes...
 
 	g_thread_pool_free(pool, false, true);
@@ -127,7 +149,7 @@ gpointer Plot2::_main_threadfunc()
 static void plot2_worker_threadfunc(gpointer data, gpointer user_data) {
 	Plot2 * plot = (Plot2*) user_data;
 	Plot2::worker_job * job = (Plot2::worker_job*) data;
-	return plot->_worker_threadfunc(job);
+	plot->_worker_threadfunc(job);
 }
 
 void Plot2::_worker_threadfunc(worker_job * job) {
@@ -162,6 +184,8 @@ void Plot2::_worker_threadfunc(worker_job * job) {
 		render_point.real(real(_origin));
 		render_point += rowstep;
 	}
+
+	signal();
 }
 
 /* Blocks, waiting for all work to finish. It may be some time! */
@@ -184,16 +208,6 @@ int Plot2::stop() {
 	return wait();
 }
 
-Plot2::~Plot2() {
-	stop();
-	delete[] _data;
-	// TODO: Anything else to free?
-	LOCK();
-	assert(!main_thread);
-	g_static_mutex_free(&lock);
-	assert (pool==0);
-}
-
 /* Converts an (x,y) pair on the render (say, from a mouse click) to their complex co-ordinates */
 cdbl Plot2::pixel_to_set(int x, int y)
 {
@@ -204,4 +218,16 @@ cdbl Plot2::pixel_to_set(int x, int y)
 		  		 pixhigh  = imag(size) / height;
 	cdbl delta (x*pixwide, y*pixhigh);
 	return origin() + delta;
+}
+
+Plot2::~Plot2() {
+	stop();
+	delete[] _data;
+	// TODO: Anything else to free?
+	LOCK();
+	assert(!main_thread);
+	g_static_mutex_free(&lock);
+	g_cond_free(flare);
+	g_mutex_free(flare_lock);
+	assert (pool==0);
 }

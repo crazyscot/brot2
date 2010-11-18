@@ -86,11 +86,18 @@ private:
 	GStaticMutex lock;
 	GThread * main_thread; // Access protected by lock.
 	GThreadPool * pool; // Worker threads
+	GCond * flare; // For individual worker threads to signal completion
+	GMutex * flare_lock;
 
 	callback_t* callback;
 	fractal_point* _data;
 	bool _abort;
 
+	void signal() {
+		g_mutex_lock(flare_lock);
+		g_cond_broadcast(flare);
+		g_mutex_unlock(flare_lock);
+	};
 };
 
 // global plot thread pool?
