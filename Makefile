@@ -1,17 +1,17 @@
 
 CSRC   := 
-CXXSRC := main.cpp palette.cpp Fractal.cpp Plot.cpp
+CXXSRC := main.cpp palette.cpp Fractal.cpp Plot.cpp Plot2.cpp
 COBJ   := $(CSRC:.c=.o)
 CXXOBJ := $(CXXSRC:.cpp=.o)
 OBJS   := $(COBJ) $(CXXOBJ)
 DEPS   := $(CSRC:.c=.d) $(CXXSRC:.cpp=.d)
 
-COMMON_CFLAGS := `pkg-config gtk+-2.0 --cflags` \
+COMMON_CFLAGS := `pkg-config gtk+-2.0 glib-2.0 --cflags` \
 			`libpng12-config --cflags` \
 			-g -O0 -Wall -Werror -std=c++0x
 CFLAGS := $(COMMON_CFLAGS)
 CXXFLAGS := $(COMMON_CFLAGS)
-LDADD  := `pkg-config gtk+-2.0 --libs` \
+LDADD  := `pkg-config gtk+-2.0 glib-2.0 --libs` \
 			`libpng12-config --ldflags`	\
 			-lm
 CC     := gcc

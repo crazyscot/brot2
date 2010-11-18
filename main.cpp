@@ -37,6 +37,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.";
 #include <unistd.h>
 
 #include "Plot.h"
+#include "Plot2.h"
 #include "Fractal.h"
 #include "palette.h"
 
@@ -56,8 +57,8 @@ static gint dragrect_origin_x, dragrect_origin_y,
  */
 
 typedef struct _render_ctx {
-	Plot * plot;
-	Plot * plot_prev;
+	Plot2 * plot;
+	Plot2 * plot_prev;
 	BasePalette * pal;
 	// Yes, the following are mostly the same as in the Plot - but the plot is torn down and recreated frequently.
 	Fractal *fractal;
@@ -145,7 +146,7 @@ static void plot_to_png(_gtk_ctx *ctx, char *filename)
 	png_byte row[width * BYTES_PER_PIXEL];
 	png_bytep rowp = row;
 
-	const fractal_point * pdata = ctx->mainctx->plot->get_plot_data();
+	const fractal_point * pdata = ctx->mainctx->plot->get_data();
 
 	for (unsigned k=0; k<height; k++) {
 		png_bytep out = row;
@@ -241,7 +242,7 @@ static void render_gdk(GtkWidget * widget, _gtk_ctx *gctx) {
 	const gint rowstride = rowbytes + 8-(rowbytes%8);
 	guchar *buf = new guchar[rowstride * rctx->height]; // packed 24-bit data
 
-	const fractal_point * data = rctx->plot->get_plot_data();
+	const fractal_point * data = rctx->plot->get_data();
 	assert(data);
 
 	// Slight twist: We've plotted the fractal from a bottom-left origin,
@@ -344,6 +345,7 @@ static void recolour(GtkWidget * widget, _gtk_ctx *ctx)
 	gtk_widget_queue_draw(widget);
 }
 
+#if 0
 /* per sub-thread context/info */
 typedef struct _thread_ctx {
 	GThread * thread;
@@ -358,6 +360,7 @@ static gpointer render_sub_thread(gpointer arg)
 	tctx->rdr->plot->do_some(tctx->firstrow, tctx->nrows);
 	return 0;
 }
+#endif
 
 /*
  * statusbar contexts:
@@ -367,7 +370,7 @@ static gpointer render_sub_thread(gpointer arg)
 
 static gpointer main_render_thread(gpointer arg)
 {
-	int i, clip=0, aspectfix=0;
+	int clip=0, aspectfix=0;
 	struct timeval tv_start, tv_after, tv_diff;
 	double aspect;
 	_gtk_ctx *ctx = (_gtk_ctx*)arg;
@@ -393,10 +396,27 @@ static gpointer main_render_thread(gpointer arg)
 	ctx->mainctx->plot_prev = ctx->mainctx->plot;
 	ctx->mainctx->plot = 0;
 
+#if 0
 #define NTHREADS 2
 	_thread_ctx threads[NTHREADS];
+#endif
 
-	ctx->mainctx->plot = new Plot(ctx->mainctx->fractal, ctx->mainctx->centre, ctx->mainctx->size, ctx->mainctx->maxiter, ctx->mainctx->width, ctx->mainctx->height);
+	ctx->mainctx->plot = new Plot2(ctx->mainctx->fractal, ctx->mainctx->centre, ctx->mainctx->size, ctx->mainctx->maxiter, ctx->mainctx->width, ctx->mainctx->height);
+	GError *err = ctx->mainctx->plot->start(0); // TODO callback.
+	if (err) {
+		gdk_threads_enter();
+		GtkWidget * dialog = gtk_message_dialog_new (GTK_WINDOW(ctx->window),
+		                                 GTK_DIALOG_DESTROY_WITH_PARENT,
+		                                 GTK_MESSAGE_ERROR,
+		                                 GTK_BUTTONS_CLOSE,
+		                                 "SEVERE: Could not start main render thread: code %d: %s",
+		                                 err->code, err->message);
+		gtk_dialog_run (GTK_DIALOG (dialog));
+		gtk_widget_destroy (dialog);
+		gdk_threads_leave();
+		abort();
+	}
+#if 0
 	ctx->mainctx->plot->prepare();
 	const unsigned step = ctx->mainctx->height / NTHREADS;
 	GError * err = 0;
@@ -424,6 +444,9 @@ static gpointer main_render_thread(gpointer arg)
 
 	for (i=0; i<NTHREADS; i++)
 		g_thread_join(threads[i].thread); // ignore rv.
+#endif
+
+	ctx->mainctx->plot->wait();
 
 	// And now turn it into an RGB.
 	gdk_threads_enter();
@@ -455,7 +478,6 @@ static gpointer main_render_thread(gpointer arg)
 
 	return 0;
 }
-
 
 // Redraws us onto a given widget (window), then queues an expose event
 static void do_redraw_locked(GtkWidget *widget, _gtk_ctx *ctx)
@@ -623,7 +645,7 @@ static void do_undo(gpointer _ctx, guint callback_action, GtkWidget *widget)
 	}
 
 	_render_ctx * main = ctx->mainctx;
-	Plot * tmp = main->plot;
+	Plot2 * tmp = main->plot;
 	main->plot = main->plot_prev;
 	main->plot_prev = tmp;
 
