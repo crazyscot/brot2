@@ -22,17 +22,21 @@
 #include <glib.h>
 #include "Fractal.h"
 
+
 class Plot2 {
 public:
+	/* Callback type. */
 	class callback_t {
-		/* Callback type.
-		 * The plotting interface calls back when it has finished a plotting pass
+	public:
+		/* The plotting interface calls back when it has finished a plotting pass
 		 * and might want to do some more. The caller may for example wish to
 		 * update the display; the plot array is guaranteed not to update under
 		 * your feet until you return from the callback.
 		 */
-	public:
-		virtual int plot_pass_complete(Plot2& plot);
+		virtual void plot_pass_complete(Plot2& plot) = 0;
+
+		/* Notification when the plotting is really finished or on stop(). */
+		virtual void plot_complete(Plot2& plot) = 0;
 	};
 
 	/* What is this plot about? */

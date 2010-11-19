@@ -22,7 +22,6 @@
 
 #define MAX_WORKER_THREADS 3
 #define N_WORKER_JOBS 10
-// TODO: Make these configurable.
 
 static gpointer plot2_main_threadfunc(gpointer arg);
 static void plot2_worker_threadfunc(gpointer data1, gpointer data2);
@@ -107,6 +106,7 @@ gpointer Plot2::_main_threadfunc()
 	LOCK();
 	if (_data) delete[] _data;
 	_data = new fractal_point[width * height];
+	_abort = false;
 	UNLOCK();
 
 	GError * err = 0;
@@ -125,23 +125,26 @@ gpointer Plot2::_main_threadfunc()
 	for (i=0; i<N_WORKER_JOBS; i++) {
 		const unsigned z = step*i;
 		jobs[i].set(maxiter, z, step);
-		g_thread_pool_push(pool, &jobs[i], 0);
 	}
 
-	int todo;
+	int out_ptr = 0;
+	for (out_ptr = 0; out_ptr < N_WORKER_JOBS; out_ptr++) {
+		g_thread_pool_push(pool, &jobs[out_ptr], 0);
+	}
+
 	g_mutex_lock(flare_lock);
 	do {
 		g_cond_wait(flare, flare_lock);
-		// TODO ALLOW STOP.
-		// XXX: timed wait ?
-		todo = g_thread_pool_unprocessed(pool);
-	} while (todo);
+		if (_abort) break;
+		g_thread_pool_push(pool, &jobs[++out_ptr], 0);
+	} while (out_ptr < N_WORKER_JOBS);
 	g_mutex_unlock(flare_lock);
-
-	// XXX: CALL the callback (if present), LOOP for further passes...
 
 	g_thread_pool_free(pool, false, true);
 	pool = 0;
+
+	if (callback && !_abort)
+		callback->plot_complete(*this);
 
 	return 0;
 }
@@ -204,8 +207,9 @@ int Plot2::wait() {
  * Blocks until it has done so, which should be fairly quick. */
 int Plot2::stop() {
 	_abort = true;
-	// TODO: TELL IT TO STOP - notify in some way ? XXX //
-	return wait();
+	signal();
+	int rv = wait();
+	return rv;
 }
 
 /* Converts an (x,y) pair on the render (say, from a mouse click) to their complex co-ordinates */
@@ -226,8 +230,8 @@ Plot2::~Plot2() {
 	// TODO: Anything else to free?
 	LOCK();
 	assert(!main_thread);
+	assert (pool==0);
 	g_static_mutex_free(&lock);
 	g_cond_free(flare);
 	g_mutex_free(flare_lock);
-	assert (pool==0);
 }
