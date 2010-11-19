@@ -69,9 +69,10 @@ typedef struct _render_ctx {
 
 	_render_ctx(): initializing(true) {};
 	~_render_ctx() { if (plot) delete plot; if (plot_prev) delete plot_prev; }
+
 } _render_ctx;
 
-typedef struct _gtk_ctx {
+typedef struct _gtk_ctx : Plot2::callback_t {
 	_render_ctx * mainctx;
 	GtkWidget *window;
 	GdkPixmap *render;
@@ -80,11 +81,16 @@ typedef struct _gtk_ctx {
 	GSList * colours_radio_group;
 
 	pthread_mutex_t render_lock; // lock before starting a render, unlock when complete
-	GThread * t_render_main;
 
-	_gtk_ctx() : mainctx(0), window(0), render(0), statusbar(0), colour_menu(0), colours_radio_group(0), t_render_main(0) {
+	struct timeval tv_start; // When did the current render start?
+	bool aspectfix, clip; // Details about the current render
+
+	_gtk_ctx() : mainctx(0), window(0), render(0), statusbar(0), colour_menu(0), colours_radio_group(0) {
 		pthread_mutex_init(&render_lock, 0);
 	};
+
+	virtual void plot_complete(Plot2& plot);
+	virtual void plot_pass_complete(Plot2& plot);
 } _gtk_ctx;
 
 #define ALERT_DIALOG(parent, msg, args...) do { \
@@ -345,64 +351,102 @@ static void recolour(GtkWidget * widget, _gtk_ctx *ctx)
 	gtk_widget_queue_draw(widget);
 }
 
-#if 0
-/* per sub-thread context/info */
-typedef struct _thread_ctx {
-	GThread * thread;
-	_render_ctx * rdr;
-	unsigned firstrow, nrows;
-	_thread_ctx() : thread(0), rdr(0) {};
-} _thread_ctx;
-
-static gpointer render_sub_thread(gpointer arg)
-{
-	_thread_ctx * tctx = (_thread_ctx*) arg;
-	tctx->rdr->plot->do_some(tctx->firstrow, tctx->nrows);
-	return 0;
-}
-#endif
-
 /*
  * statusbar contexts:
  * 0 = general info
  * 1 = semi-alert e.g. "drawing already in progress"
  */
 
-static gpointer main_render_thread(gpointer arg)
+void _gtk_ctx::plot_pass_complete(Plot2& plot) {
+	// TODO: Recolour now in a multi-pass plot.
+}
+
+void _gtk_ctx::plot_complete(Plot2& plot) {
+	struct timeval tv_after, tv_diff;
+
+	// And now turn it into an RGB.
+	if (0 != pthread_mutex_trylock(&render_lock))
+		return; // Ah well, we tried.
+
+	gdk_threads_enter();
+	recolour(window,this);
+	gettimeofday(&tv_after,0);
+
+	tv_diff = tv_subtract(tv_after, tv_start);
+	double timetaken = tv_diff.tv_sec + (tv_diff.tv_usec / 1e6);
+
+	gtk_statusbar_pop(statusbar, 0);
+
+	gtk_window_set_title(GTK_WINDOW(window), plot.info(false).c_str());
+
+	std::ostringstream info;
+	info << "rendered in " << timetaken << "s.";
+	if (aspectfix)
+		info << " Aspect ratio autofixed.";
+	if (clip)
+		info << " Resolution limit reached, cannot zoom further!";
+	clip = aspectfix = false;
+
+	gtk_statusbar_push(statusbar, 0, info.str().c_str());
+	gtk_statusbar_pop(statusbar, 1);
+
+	gtk_widget_queue_draw(window);
+	gdk_flush();
+	gdk_threads_leave();
+
+	pthread_mutex_unlock(&render_lock);
+}
+
+static void safe_stop_plot(Plot2 * p) {
+	if (p) {
+		//gdk_threads_enter();
+		p->stop();
+		//gdk_threads_leave();
+	}
+}
+
+// Redraws us onto a given widget (window), then sets up to queue an expose event when it's done.
+static void do_redraw(GtkWidget *widget, _gtk_ctx *ctx)
 {
-	int clip=0, aspectfix=0;
-	struct timeval tv_start, tv_after, tv_diff;
+	safe_stop_plot(ctx->mainctx->plot);
+
+	if (!ctx->render) {
+		ctx->render = gdk_pixmap_new(widget->window,
+				ctx->mainctx->width,
+				ctx->mainctx->height,
+				-1);
+		// mid_gc[0] gives us grey.
+		gdk_draw_rectangle(ctx->render, widget->style->mid_gc[0], true, 0, 0, ctx->mainctx->width, ctx->mainctx->height);
+	}
+
+	gtk_statusbar_pop(ctx->statusbar, 0);
+	gtk_statusbar_push(ctx->statusbar, 0, "Plotting...");
+
 	double aspect;
-	_gtk_ctx *ctx = (_gtk_ctx*)arg;
 
 	aspect = (double)ctx->mainctx->width / ctx->mainctx->height;
 	if (imag(ctx->mainctx->size) * aspect != real(ctx->mainctx->size)) {
 		ctx->mainctx->size.imag(real(ctx->mainctx->size)/aspect);
-		aspectfix=1;
+		ctx->aspectfix=1;
 	}
 	if (fabs(real(ctx->mainctx->size)/ctx->mainctx->width) < MINIMUM_PIXEL_SIZE) {
 		ctx->mainctx->size.real(MINIMUM_PIXEL_SIZE*ctx->mainctx->width);
-		clip = 1;
+		ctx->clip = 1;
 	}
 	if (fabs(imag(ctx->mainctx->size)/ctx->mainctx->height) < MINIMUM_PIXEL_SIZE) {
 		ctx->mainctx->size.imag(MINIMUM_PIXEL_SIZE*ctx->mainctx->height);
-		clip = 1;
+		ctx->clip = 1;
 	}
 
 	// N.B. This (gtk/gdk lib calls from non-main thread) will not work at all on win32; will need to refactor if I ever port.
-	gettimeofday(&tv_start,0);
+	gettimeofday(&ctx->tv_start,0);
 
 	if (ctx->mainctx->plot_prev) delete ctx->mainctx->plot_prev;
 	ctx->mainctx->plot_prev = ctx->mainctx->plot;
 	ctx->mainctx->plot = 0;
 
-#if 0
-#define NTHREADS 2
-	_thread_ctx threads[NTHREADS];
-#endif
-
 	ctx->mainctx->plot = new Plot2(ctx->mainctx->fractal, ctx->mainctx->centre, ctx->mainctx->size, ctx->mainctx->maxiter, ctx->mainctx->width, ctx->mainctx->height);
-	GError *err = ctx->mainctx->plot->start(0); // TODO callback.
+	GError *err = ctx->mainctx->plot->start(ctx);
 	if (err) {
 		gdk_threads_enter();
 		GtkWidget * dialog = gtk_message_dialog_new (GTK_WINDOW(ctx->window),
@@ -416,118 +460,11 @@ static gpointer main_render_thread(gpointer arg)
 		gdk_threads_leave();
 		abort();
 	}
-#if 0
-	ctx->mainctx->plot->prepare();
-	const unsigned step = ctx->mainctx->height / NTHREADS;
-	GError * err = 0;
-
-	for (i=0; i<NTHREADS; i++) {
-		threads[i].rdr = ctx->mainctx;
-		threads[i].firstrow = step*i;
-		threads[i].nrows = step;
-		threads[i].thread = g_thread_create(render_sub_thread, &threads[i], TRUE, &err);
-		if (!threads[i].thread) {
-			fprintf(stderr, "Could not start render thread %d: %d: %s\n", i, err->code, err->message);
-			gdk_threads_enter();
-			GtkWidget * dialog = gtk_message_dialog_new (GTK_WINDOW(ctx->window),
-			                                 GTK_DIALOG_DESTROY_WITH_PARENT,
-			                                 GTK_MESSAGE_ERROR,
-			                                 GTK_BUTTONS_CLOSE,
-			                                 "SEVERE: Could not start render thread %d: code %d: %s",
-			                                 i, err->code, err->message);
-			gtk_dialog_run (GTK_DIALOG (dialog));
-			gtk_widget_destroy (dialog);
-			gdk_threads_leave();
-			abort();
-		}
-	}
-
-	for (i=0; i<NTHREADS; i++)
-		g_thread_join(threads[i].thread); // ignore rv.
-#endif
-
-	ctx->mainctx->plot->wait();
-
-	// And now turn it into an RGB.
-	gdk_threads_enter();
-	recolour(ctx->window,ctx);
-	gettimeofday(&tv_after,0);
-
-	tv_diff = tv_subtract(tv_after, tv_start);
-	double timetaken = tv_diff.tv_sec + (tv_diff.tv_usec / 1e6);
-
-	gtk_statusbar_pop(ctx->statusbar, 0);
-
-	gtk_window_set_title(GTK_WINDOW(ctx->window), ctx->mainctx->plot->info(false).c_str());
-
-	std::ostringstream info;
-	info << "rendered in " << timetaken << "s.";
-	if (aspectfix)
-		info << " Aspect ratio autofixed.";
-	if (clip)
-		info << " Resolution limit reached, cannot zoom further!";
-
-	gtk_statusbar_push(ctx->statusbar, 0, info.str().c_str());
-	gtk_statusbar_pop(ctx->statusbar, 1);
-
-	gtk_widget_queue_draw(ctx->window);
-	gdk_flush();
-	gdk_threads_leave();
-
-	pthread_mutex_unlock(&ctx->render_lock);
-
-	return 0;
-}
-
-// Redraws us onto a given widget (window), then queues an expose event
-static void do_redraw_locked(GtkWidget *widget, _gtk_ctx *ctx)
-{
-	if (!ctx->render) {
-		ctx->render = gdk_pixmap_new(widget->window,
-				ctx->mainctx->width,
-				ctx->mainctx->height,
-				-1);
-		// mid_gc[0] gives us grey.
-		gdk_draw_rectangle(ctx->render, widget->style->mid_gc[0], true, 0, 0, ctx->mainctx->width, ctx->mainctx->height);
-	}
-
-	gtk_statusbar_pop(ctx->statusbar, 0);
-	gtk_statusbar_push(ctx->statusbar, 0, "Plotting...");
-
-	GError * err = 0;
-	ctx->t_render_main = g_thread_create(main_render_thread, ctx, FALSE, &err);
-	// Not joinable, i.e. when it's done, it's done.
-	if (!ctx->t_render_main) {
-		fprintf(stderr, "Could not start main render thread: %d: %s\n", err->code, err->message);
-		gdk_threads_enter();
-		GtkWidget * dialog = gtk_message_dialog_new (GTK_WINDOW(ctx->window),
-		                                 GTK_DIALOG_DESTROY_WITH_PARENT,
-		                                 GTK_MESSAGE_ERROR,
-		                                 GTK_BUTTONS_CLOSE,
-		                                 "SEVERE: Could not start main render thread: code %d: %s",
-		                                 err->code, err->message);
-		gtk_dialog_run (GTK_DIALOG (dialog));
-		gtk_widget_destroy (dialog);
-		gdk_threads_leave();
-		abort();
-	}
-}
-
-static void do_redraw(GtkWidget *widget, _gtk_ctx *ctx)
-{
-	if (0 != pthread_mutex_trylock(&ctx->render_lock)) {
-		gtk_statusbar_push(ctx->statusbar, 1, "Plot already in progress");
-		return;
-	}
-	do_redraw_locked(widget,ctx);
 }
 
 static void do_resize(GtkWidget *widget, _gtk_ctx *ctx, unsigned width, unsigned height)
 {
-	if (0 != pthread_mutex_trylock(&ctx->render_lock)) {
-		gtk_statusbar_push(ctx->statusbar, 1, "Plot already in progress");
-		return;
-	}
+	safe_stop_plot(ctx->mainctx->plot);
 
 	if ((ctx->mainctx->width != width) ||
 			(ctx->mainctx->height != height)) {
@@ -539,7 +476,7 @@ static void do_resize(GtkWidget *widget, _gtk_ctx *ctx, unsigned width, unsigned
 			ctx->render = 0;
 		}
 	}
-	do_redraw_locked(widget,ctx);
+	do_redraw(widget,ctx);
 }
 
 
