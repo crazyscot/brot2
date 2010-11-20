@@ -197,7 +197,7 @@ public:
 	LogSmoothed(std::string name) : SmoothPalette(name) {};
 	hsvf get_hsvf(const fractal_point &pt) const {
 		hsvf rv;
-		double t = sin(log(pt.iterf));
+		double t = log(pt.iterf);
 		rv.h = t/2.0 + 0.5;
 		rv.s = 1.0;
 		rv.v = 1.0;
@@ -228,7 +228,6 @@ public:
 	rgb get(const fractal_point &pt) const {
 		hsvf rv;
 		rv.h = 0.6+cos(log(pt.iterf)/11*M_PI);
-		rv.h -= floor(rv.h);
 		rv.s = 1.0;
 		rv.v = 1.0;
 		return hsv(rv);
@@ -236,4 +235,3 @@ public:
 };
 
 SlowLog slow_log("Slow logarithmic rainbow");
-
