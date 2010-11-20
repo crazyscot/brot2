@@ -36,7 +36,7 @@ void Mandelbrot::plot_pixel(const cdbl origin, const unsigned maxiter, fractal_p
 	// Also, we know that 0^2 + origin = origin, so skip the first iter.
 	unsigned iter;
 	long double o_re = real(origin), o_im = imag(origin);
-	long double z_re = o_re, z_im = o_im, tmp;
+	long double z_re = o_re, z_im = o_im, re2, im2;
 
 	{
 		// Cardioid check:
@@ -52,23 +52,23 @@ void Mandelbrot::plot_pixel(const cdbl origin, const unsigned maxiter, fractal_p
 	}
 
 #define ITER() do { 							\
-		tmp = z_re * z_re - z_im * z_im + o_re;	\
+		re2 = z_re * z_re;						\
+		im2 = z_im * z_im;						\
 		z_im = 2 * z_re * z_im + o_im;			\
-		z_re = tmp;								\
+		z_re = re2 - im2 + o_re;				\
 } while (0)
 
 	for (iter=1; iter<maxiter; iter++) {
-		double mod2 = z_re * z_re + z_im*z_im;
-		if (mod2 > 4.0) {
+		ITER();
+		if (re2 + im2 > 4.0) {
 			// Fractional escape count: See http://linas.org/art-gallery/escape/escape.html
 			ITER(); ++iter;
 			ITER(); ++iter;
 			out.iter = iter;
-			out.iterf = iter - log(log(sqrt(mod2))) / consts.log2;
+			out.iterf = iter - log(log(re2 + im2)) / consts.log2;
 			out.arg = atan2(z_im, z_re);
 			return;
 		}
-		ITER();
 	}
 	SHORTCUT:
 	out.iter = -1;

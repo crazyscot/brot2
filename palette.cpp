@@ -195,27 +195,27 @@ HUECYCLE(green_32, Linear rainbow, 32, hsvf(0.5,1,1), hsvf(1.5,1,1));
 class LogSmoothed : public SmoothPalette {
 public:
 	LogSmoothed(std::string name) : SmoothPalette(name) {};
-	rgb get(const fractal_point &pt) const {
+	hsvf get_hsvf(const fractal_point &pt) const {
 		hsvf rv;
-		rv.h = 0.6+sin(log(pt.iterf));
-		rv.h -= floor(rv.h);
+		double t = sin(log(pt.iterf));
+		rv.h = t/2.0 + 0.5;
 		rv.s = 1.0;
 		rv.v = 1.0;
-		return hsv(rv);
+		return rv;
+	}
+	rgb get(const fractal_point &pt) const {
+		return hsv(get_hsvf(pt));
 	};
 };
 
 LogSmoothed log_smoothed("Logarithmic rainbow");
 
-class LogSmoothedRays : public SmoothPalette {
+class LogSmoothedRays : public LogSmoothed {
 public:
-	LogSmoothedRays(std::string name) : SmoothPalette(name) {};
+	LogSmoothedRays(std::string name) : LogSmoothed(name) {};
 	rgb get(const fractal_point &pt) const {
-		hsvf rv;
-		rv.h = 0.6+sin(log(pt.iterf));
-		rv.h -= floor(rv.h);
+		hsvf rv = get_hsvf(pt);
 		rv.s = cos(pt.arg);
-		rv.v = 1.0;
 		return hsv(rv);
 	};
 };
@@ -227,8 +227,8 @@ public:
 	SlowLog(std::string name) : SmoothPalette(name) {};
 	rgb get(const fractal_point &pt) const {
 		hsvf rv;
-		double t = cos(2 * M_PI * log(pt.iterf) / 7);
-		rv.h = t/2.0 + 0.5;
+		rv.h = 0.6+cos(log(pt.iterf)/11*M_PI);
+		rv.h -= floor(rv.h);
 		rv.s = 1.0;
 		rv.v = 1.0;
 		return hsv(rv);
