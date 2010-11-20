@@ -642,10 +642,11 @@ static gboolean button_press_event( GtkWidget *widget, GdkEventButton *event, gp
 			dragrect_origin_x = dragrect_current_x = (int)event->x;
 			dragrect_origin_y = dragrect_current_y = (int)event->y;
 			dragrect_active = 1;
+			return TRUE;
 		}
 	}
 
-	return TRUE;
+	return FALSE;
 }
 
 // Map keypad + and - into their accelerator counterparts.
@@ -935,6 +936,7 @@ int main (int argc, char**argv)
 
 	g_thread_init(0);
 	gdk_threads_init();
+	gdk_threads_enter();
 	gtk_init(&argc, &argv);
 	GtkWidget * window = gtk_ctx.window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 
@@ -983,7 +985,6 @@ int main (int argc, char**argv)
 
 	render_ctx.initializing = false;
 	gtk_widget_show_all(window);
-	gdk_threads_enter();
 	gtk_main();
 	gdk_threads_leave();
 	delete render_ctx.fractal;
