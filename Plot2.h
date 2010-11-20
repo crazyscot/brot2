@@ -91,26 +91,25 @@ public:
 	};
 
 private:
-	Glib::Thread * main_thread; // Access protected by flare_lock.
-	Glib::Cond flare; // For individual worker threads to signal completion
-	Glib::Mutex flare_lock;
+	Glib::Mutex plot_lock;
+	Glib::Cond _worker_signal; // For individual worker threads to signal completion
+	Glib::Cond _plot_complete; // For the per-plot "main" thread to signal completion, also protected by plot_lock
 
-	Glib::ThreadPool * worker_pool; // Thread pool to use. Set up by constructor.
-
-	callback_t* callback;
-	fractal_point* _data;
-	volatile bool _abort;
-	int outstanding; // How many jobs are there? Protected by flare_lock.
+	callback_t* callback;  // Written few times, read many.
+	fractal_point* _data;  // Concurrently written by worker threads. Beware!
+	volatile bool _abort, _done; // Protected by plot_lock
+	int _outstanding; // How many jobs are there? Protected by plot_lock.
 
 	class worker_job; // Opaque to Plot2.cpp.
 	void _per_plot_threadfunc();
 	void _worker_threadfunc(worker_job * job);
 
-	// Calls to wake up the main thread. May optionally decrement the outstanding-jobs counter, which is protected by the same lock.
+	// Called to wake up the plot's master thread.
+	// May optionally decrement the outstanding-jobs counter (which is protected by the same lock).
 	inline void awaken(bool job_complete=false) {
-		Glib::Mutex::Lock _auto(flare_lock);
-		if (job_complete) --outstanding;
-		flare.broadcast();
+		Glib::Mutex::Lock _auto(plot_lock);
+		if (job_complete) --_outstanding;
+		_worker_signal.broadcast();
 	};
 };
 

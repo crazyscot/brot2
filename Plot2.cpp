@@ -52,6 +52,11 @@ public:
 	};
 };
 
+// Pool for the main per-plot threads
+static SingletonThreadPool per_plot_thread_pool(-1, false, 2);
+
+// Pool for the worker threads.
+// Hard limit of outstanding jobs so we don't cane the CPU unnecessarily.
 static SingletonThreadPool worker_thread_pool(MAX_WORKER_THREADS, true);
 
 using namespace std;
@@ -60,9 +65,8 @@ Plot2::Plot2(Fractal* f, cdbl centre, cdbl size,
 		unsigned maxiter, unsigned width, unsigned height) :
 		fract(f), centre(centre), size(size), maxiter(maxiter),
 		width(width), height(height),
-		main_thread(0), callback(0), _data(0), _abort(false), outstanding(0)
+		callback(0), _data(0), _abort(false), _done(false), _outstanding(0)
 {
-	worker_pool = worker_thread_pool.get();
 }
 
 string Plot2::info(bool verbose) {
@@ -92,12 +96,11 @@ string Plot2::info(bool verbose) {
 
 /* Starts a plot. A thread is spawned to do the actual work. */
 void Plot2::start(callback_t* c) {
-	Glib::Mutex::Lock _lock(flare_lock);
-	assert(!main_thread);
-	_abort = false; // Must do this here, rather than in main_threadfunc, to kill a race (if user double-clicks i.e. we get two do_redraws in quick succession).
+	Glib::Mutex::Lock _lock(plot_lock);
+	assert(!_done);
+	_done = _abort = false; // Must do this here, rather than in main_threadfunc, to kill a race (if user double-clicks i.e. we get two do_redraws in quick succession).
 	callback = c;
-	main_thread = Glib::Thread::create(sigc::mem_fun(this, &Plot2::_per_plot_threadfunc), true);
-	assert(main_thread);
+	per_plot_thread_pool.get()->push(sigc::mem_fun(this, &Plot2::_per_plot_threadfunc));
 }
 
 class Plot2::worker_job {
@@ -118,7 +121,7 @@ class Plot2::worker_job {
 void Plot2::_per_plot_threadfunc()
 {
 	int i;
-	Glib::Mutex::Lock _auto (flare_lock);
+	Glib::Mutex::Lock _auto (plot_lock);
 	if (_data) delete[] _data;
 	_data = new fractal_point[width * height];
 
@@ -136,12 +139,12 @@ void Plot2::_per_plot_threadfunc()
 	int out_ptr = 0;
 
 	while (out_ptr < N_WORKER_JOBS && !_abort) {
-		while (outstanding < MAX_WORKER_THREADS && out_ptr < N_WORKER_JOBS) {
-			++outstanding; // flare_lock is held.
-			worker_pool->push(sigc::mem_fun(jobs[out_ptr++], &worker_job::run));
+		while (_outstanding < MAX_WORKER_THREADS && out_ptr < N_WORKER_JOBS) {
+			++_outstanding; // plot_lock is held.
+			worker_thread_pool.get()->push(sigc::mem_fun(jobs[out_ptr++], &worker_job::run));
 			//printf("spawning, outstanding:=%d, out_ptr:=%d\n",outstanding,out_ptr);
 		}
-		flare.wait(flare_lock); // Signals that a job has completed, or we're asked to abort.
+		_worker_signal.wait(plot_lock); // Signals that a job has completed, or we're asked to abort.
 		if (callback) {
 			_auto.release();
 			callback->plot_progress_minor(*this);
@@ -149,9 +152,9 @@ void Plot2::_per_plot_threadfunc()
 		}
 	};
 	// Now wait for them to finish.
-	while(outstanding) {
+	while(_outstanding) {
 		//printf("waiting, o=%d\n",outstanding);
-		flare.wait(flare_lock);
+		_worker_signal.wait(plot_lock);
 		if (callback) {
 			_auto.release();
 			callback->plot_progress_minor(*this);
@@ -161,8 +164,13 @@ void Plot2::_per_plot_threadfunc()
 
 	// TODO, on multi-pass render: // if (callback) callback->plot_progress_major(*this);
 
-	if (callback && !_abort)
+	if (callback && !_abort) {
+		_auto.release();
 		callback->plot_progress_complete(*this);
+		_auto.acquire();
+	}
+	_done = true;
+	_plot_complete.broadcast();
 }
 
 void Plot2::_worker_threadfunc(worker_job * job) {
@@ -203,21 +211,19 @@ void Plot2::_worker_threadfunc(worker_job * job) {
 
 /* Blocks, waiting for all work to finish. It may be some time! */
 int Plot2::wait() {
-	if (!main_thread)
-		return -1;
-
-	main_thread->join();
-	{
-		Glib::Mutex::Lock _auto(flare_lock);
-		main_thread = 0;
-	}
+	Glib::Mutex::Lock _auto(plot_lock);
+	if (_done) return 0;
+	_plot_complete.wait(plot_lock);
 	return 0;
 }
 
 /* Instructs the running plot to stop what it's doing ASAP.
  * Blocks until it has done so, which should be fairly quick. */
 void Plot2::stop() {
-	_abort = true;
+	{
+		Glib::Mutex::Lock _auto(plot_lock);
+		_abort = true;
+	}
 	awaken(false);
 }
 
@@ -236,10 +242,10 @@ cdbl Plot2::pixel_to_set(int x, int y)
 Plot2::~Plot2() {
 	stop();
 	wait();
-	delete[] _data;
 	// TODO: Anything else to free?
 	{
-		Glib::Mutex::Lock _auto(flare_lock);
-		assert(!main_thread);
+		Glib::Mutex::Lock _auto(plot_lock);
+		delete[] _data;
+		assert(_done);
 	}
 }
