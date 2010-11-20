@@ -196,7 +196,6 @@ class LogSmoothed : public SmoothPalette {
 public:
 	LogSmoothed(std::string name) : SmoothPalette(name) {};
 	rgb get(const fractal_point &pt) const {
-		if (pt.iter <= 3) return white;
 		hsvf rv;
 		rv.h = 0.6+sin(log(pt.iterf));
 		rv.h -= floor(rv.h);
@@ -212,7 +211,6 @@ class LogSmoothedRays : public SmoothPalette {
 public:
 	LogSmoothedRays(std::string name) : SmoothPalette(name) {};
 	rgb get(const fractal_point &pt) const {
-		if (pt.iter <= 3) return white;
 		hsvf rv;
 		rv.h = 0.6+sin(log(pt.iterf));
 		rv.h -= floor(rv.h);
@@ -223,4 +221,19 @@ public:
 };
 
 LogSmoothedRays log_smoothed_with_rays("Logarithmic rainbow with rays");
+
+class SlowLog : public SmoothPalette {
+public:
+	SlowLog(std::string name) : SmoothPalette(name) {};
+	rgb get(const fractal_point &pt) const {
+		hsvf rv;
+		double t = cos(2 * M_PI * log(pt.iterf) / 7);
+		rv.h = t/2.0 + 0.5;
+		rv.s = 1.0;
+		rv.v = 1.0;
+		return hsv(rv);
+	};
+};
+
+SlowLog slow_log("Slow logarithmic rainbow");
 
