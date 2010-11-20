@@ -213,8 +213,9 @@ static void draw_hud_gdk(GtkWidget * widget, _gtk_ctx *gctx)
 {
 	GdkPixmap *dest = gctx->render;
 	_render_ctx * rctx = gctx->mainctx;
-	PangoLayout * lyt = gtk_widget_create_pango_layout(widget,
-			gctx->mainctx->plot->info(true).c_str());
+	assert(gctx->mainctx->plot); // race condition trap
+	string info = gctx->mainctx->plot->info(true);
+	PangoLayout * lyt = gtk_widget_create_pango_layout(widget, info.c_str());
 	PangoFontDescription * fontdesc = pango_font_description_from_string ("Luxi Sans 9");
 	pango_layout_set_font_description (lyt, fontdesc);
 	pango_layout_set_width(lyt, PANGO_SCALE * rctx->width);
@@ -392,8 +393,8 @@ static void safe_stop_plot(Plot2 * p) {
 	}
 }
 
-// Redraws us onto a given widget (window), then sets up to queue an expose event when it's done.
-static void do_redraw(GtkWidget *widget, _gtk_ctx *ctx)
+// (Re)draws us onto a given widget (window), then sets up to queue an expose event when it's done.
+static void do_plot(GtkWidget *widget, _gtk_ctx *ctx, bool is_same_plot = false)
 {
 	safe_stop_plot(ctx->mainctx->plot);
 
@@ -427,15 +428,25 @@ static void do_redraw(GtkWidget *widget, _gtk_ctx *ctx)
 	// N.B. This (gtk/gdk lib calls from non-main thread) will not work at all on win32; will need to refactor if I ever port.
 	gettimeofday(&ctx->tv_start,0);
 
-	if (ctx->mainctx->plot_prev) {
-		// Must release the mutex as we may block briefly to join the plot's thread...
+	Plot2 * deleteme = 0;
+	if (is_same_plot) {
+		deleteme = ctx->mainctx->plot;
+		ctx->mainctx->plot = 0;
+	} else {
+		if (ctx->mainctx->plot_prev)
+			deleteme = ctx->mainctx->plot_prev;
+		ctx->mainctx->plot_prev = ctx->mainctx->plot;
+		ctx->mainctx->plot = 0;
+	}
+
+	if (deleteme) {
+		// Must release the mutex as the thread join may block...
 		gdk_threads_leave();
-		delete ctx->mainctx->plot_prev;
+		delete deleteme;
 		gdk_threads_enter();
 	}
-	ctx->mainctx->plot_prev = ctx->mainctx->plot;
-	ctx->mainctx->plot = 0;
 
+	assert(!ctx->mainctx->plot);
 	ctx->mainctx->plot = new Plot2(ctx->mainctx->fractal, ctx->mainctx->centre, ctx->mainctx->size, ctx->mainctx->maxiter, ctx->mainctx->width, ctx->mainctx->height);
 	ctx->mainctx->plot->start(ctx); // TODO try/catch ?
 }
@@ -454,7 +465,7 @@ static void do_resize(GtkWidget *widget, _gtk_ctx *ctx, unsigned width, unsigned
 			ctx->render = 0;
 		}
 	}
-	do_redraw(widget,ctx);
+	do_plot(widget,ctx);
 }
 
 
@@ -600,7 +611,7 @@ static void do_zoom(gpointer _ctx, guint callback_action, GtkWidget *widget)
 			case REDRAW_ONLY:
 				break;
 		}
-		do_redraw(ctx->window, ctx);
+		do_plot(ctx->window, ctx);
 	}
 }
 
@@ -680,7 +691,7 @@ static gboolean button_release_event( GtkWidget *widget, GdkEventButton *event, 
 		dragrect_active = 0;
 
 		if (!silly)
-			do_redraw(ctx->window, ctx);
+			do_plot(ctx->window, ctx);
 	}
 	return TRUE;
 }
@@ -836,7 +847,7 @@ void do_params_dialog(gpointer _ctx, guint callback_action, GtkWidget *widget)
 				gtk_dialog_run (GTK_DIALOG (errdlg));
 				gtk_widget_destroy (errdlg);
 			} else
-				do_redraw(ctx->window, ctx);
+				do_plot(ctx->window, ctx);
 		}
 	} while (error && result == GTK_RESPONSE_ACCEPT);
 	gtk_widget_destroy(dlg);
@@ -866,7 +877,7 @@ void do_refresh_plot(gpointer _ctx, guint callback_action)
 {
 	_gtk_ctx * ctx = (_gtk_ctx*)_ctx;
 	assert (ctx);
-	do_redraw(ctx->window, ctx);
+	do_plot(ctx->window, ctx, true);
 }
 
 /////////////////////////////////////////////////////////////////

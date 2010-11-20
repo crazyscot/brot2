@@ -75,7 +75,7 @@ public:
 	void stop();
 
 	/* Read-only access to the plot data. */
-	const fractal_point * get_data() { return _data; }
+	const fractal_point * get_data() { assert(this); return _data; }
 
 	/* Converts an (x,y) pair on the render (say, from a mouse click) to their complex co-ordinates.
 	 * Returns 1 for success, 0 if the point was outside of the render.
