@@ -17,14 +17,36 @@
 */
 
 #include <glib.h>
+#include <glibmm.h>
 #include <assert.h>
 #include "Plot2.h"
 
-#define MAX_WORKER_THREADS 3
+#define MAX_WORKER_THREADS 2
 #define N_WORKER_JOBS 10
 
 static gpointer plot2_main_threadfunc(gpointer arg);
-static void plot2_worker_threadfunc(gpointer data1, gpointer data2);
+
+class MasterThreadPool {
+	Glib::StaticMutex mux;
+	Glib::ThreadPool * pool;
+public:
+	Glib::ThreadPool * get() {
+		mux.lock();
+		if (!pool)
+			pool = new Glib::ThreadPool(MAX_WORKER_THREADS, true);
+		mux.unlock();
+		return pool;
+	}
+	virtual ~MasterThreadPool() {
+		mux.lock();
+		if (pool) {
+			delete pool;
+			pool=0;
+		}
+	}
+};
+
+static MasterThreadPool master_pool_master;
 
 using namespace std;
 
@@ -38,8 +60,9 @@ Plot2::Plot2(Fractal* f, cdbl centre, cdbl size,
 		unsigned maxiter, unsigned width, unsigned height) :
 		fract(f), centre(centre), size(size), maxiter(maxiter),
 		width(width), height(height),
-		main_thread(0), pool(0), callback(0), _data(0), _abort(false)
+		main_thread(0), callback(0), _data(0), _abort(false), outstanding(0)
 {
+	tpool = master_pool_master.get();
 	g_static_mutex_init(&lock);
 	flare = g_cond_new();
 	flare_lock = g_mutex_new();
@@ -74,6 +97,7 @@ string Plot2::info(bool verbose) {
 GError* Plot2::start(callback_t* c) {
 	LOCK();
 	assert(!main_thread);
+	_abort = false; // Must do this here, rather than in main_threadfunc, to kill a race (if user double-clicks i.e. we get two do_redraws in quick succession).
 	callback = c;
 	GError * err = 0;
 	main_thread = g_thread_create(plot2_main_threadfunc, this, true, &err);
@@ -92,11 +116,16 @@ static gpointer plot2_main_threadfunc(gpointer arg) {
 
 class Plot2::worker_job {
 	friend class Plot2;
+	Plot2* plot;
 	unsigned maxiter, first_row, n_rows;
-	bool done;
 	worker_job() {};
-	void set(const unsigned& max, const unsigned& first, const unsigned& n) {
-		maxiter=max; first_row=first; n_rows=n;
+	void set(Plot2* p, const unsigned& max, const unsigned& first, const unsigned& n) {
+		plot = p; maxiter=max; first_row=first; n_rows=n;
+	}
+	void run() {
+		assert(this);
+		assert(plot);
+		plot->_worker_threadfunc(this);
 	}
 };
 
@@ -106,16 +135,7 @@ gpointer Plot2::_main_threadfunc()
 	LOCK();
 	if (_data) delete[] _data;
 	_data = new fractal_point[width * height];
-	_abort = false;
 	UNLOCK();
-
-	GError * err = 0;
-	assert(!pool);
-	pool = g_thread_pool_new(plot2_worker_threadfunc, this, MAX_WORKER_THREADS, true, &err);
-	if (!pool) {
-		fprintf(stderr, "Could not start render thread pool: %d: %s\n", err->code, err->message);
-		abort(); // TODO: better error handling.
-	}
 
 	// TODO: PREPARE the fractal (set all points to pass=1, Re, Im; precomp for cardoid etc.)
 
@@ -124,35 +144,31 @@ gpointer Plot2::_main_threadfunc()
 
 	for (i=0; i<N_WORKER_JOBS; i++) {
 		const unsigned z = step*i;
-		jobs[i].set(maxiter, z, step);
+		jobs[i].set(this, maxiter, z, step);
 	}
 
 	int out_ptr = 0;
-	for (out_ptr = 0; out_ptr < N_WORKER_JOBS; out_ptr++) {
-		g_thread_pool_push(pool, &jobs[out_ptr], 0);
-	}
 
 	g_mutex_lock(flare_lock);
-	do {
+	while (out_ptr < N_WORKER_JOBS && !_abort) {
+		while (outstanding < MAX_WORKER_THREADS && out_ptr < N_WORKER_JOBS) {
+			++outstanding; // flare_lock is held.
+			tpool->push(sigc::mem_fun(jobs[out_ptr++], &worker_job::run));
+			//printf("spawning, outstanding:=%d, out_ptr:=%d\n",outstanding,out_ptr);
+		}
+		g_cond_wait(flare, flare_lock); // Signals that a job has completed, or we're asked to abort.
+	};
+	// Now wait for them to finish.
+	while(outstanding) {
+		//printf("waiting, o=%d\n",outstanding);
 		g_cond_wait(flare, flare_lock);
-		if (_abort) break;
-		g_thread_pool_push(pool, &jobs[++out_ptr], 0);
-	} while (out_ptr < N_WORKER_JOBS);
+	};
 	g_mutex_unlock(flare_lock);
-
-	g_thread_pool_free(pool, false, true);
-	pool = 0;
 
 	if (callback && !_abort)
 		callback->plot_complete(*this);
 
 	return 0;
-}
-
-static void plot2_worker_threadfunc(gpointer data, gpointer user_data) {
-	Plot2 * plot = (Plot2*) user_data;
-	Plot2::worker_job * job = (Plot2::worker_job*) data;
-	plot->_worker_threadfunc(job);
 }
 
 void Plot2::_worker_threadfunc(worker_job * job) {
@@ -188,7 +204,7 @@ void Plot2::_worker_threadfunc(worker_job * job) {
 		render_point += rowstep;
 	}
 
-	signal();
+	awaken(true);
 }
 
 /* Blocks, waiting for all work to finish. It may be some time! */
@@ -205,11 +221,9 @@ int Plot2::wait() {
 
 /* Instructs the running plot to stop what it's doing ASAP.
  * Blocks until it has done so, which should be fairly quick. */
-int Plot2::stop() {
+void Plot2::stop() {
 	_abort = true;
-	signal();
-	int rv = wait();
-	return rv;
+	awaken(false);
 }
 
 /* Converts an (x,y) pair on the render (say, from a mouse click) to their complex co-ordinates */
@@ -226,11 +240,11 @@ cdbl Plot2::pixel_to_set(int x, int y)
 
 Plot2::~Plot2() {
 	stop();
+	wait();
 	delete[] _data;
 	// TODO: Anything else to free?
 	LOCK();
 	assert(!main_thread);
-	assert (pool==0);
 	g_static_mutex_free(&lock);
 	g_cond_free(flare);
 	g_mutex_free(flare_lock);

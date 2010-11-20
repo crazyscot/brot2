@@ -398,9 +398,7 @@ void _gtk_ctx::plot_complete(Plot2& plot) {
 
 static void safe_stop_plot(Plot2 * p) {
 	if (p) {
-		//gdk_threads_enter();
 		p->stop();
-		//gdk_threads_leave();
 	}
 }
 
@@ -447,7 +445,6 @@ static void do_redraw(GtkWidget *widget, _gtk_ctx *ctx)
 	ctx->mainctx->plot = new Plot2(ctx->mainctx->fractal, ctx->mainctx->centre, ctx->mainctx->size, ctx->mainctx->maxiter, ctx->mainctx->width, ctx->mainctx->height);
 	GError *err = ctx->mainctx->plot->start(ctx);
 	if (err) {
-		gdk_threads_enter();
 		GtkWidget * dialog = gtk_message_dialog_new (GTK_WINDOW(ctx->window),
 		                                 GTK_DIALOG_DESTROY_WITH_PARENT,
 		                                 GTK_MESSAGE_ERROR,
@@ -456,7 +453,6 @@ static void do_redraw(GtkWidget *widget, _gtk_ctx *ctx)
 		                                 err->code, err->message);
 		gtk_dialog_run (GTK_DIALOG (dialog));
 		gtk_widget_destroy (dialog);
-		gdk_threads_leave();
 		abort();
 	}
 }

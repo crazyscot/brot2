@@ -20,6 +20,7 @@
 #define PLOT2_H_
 
 #include <glib.h>
+#include <glibmm.h>
 #include "Fractal.h"
 
 
@@ -62,8 +63,9 @@ public:
 	int wait();
 
 	/* Instructs the running plot to stop what it's doing ASAP.
-	 * Blocks until it has done so, which should be fairly quick. */
-	int stop();
+	 * Does NOT block; the plot may carry on for a little while.
+	 * If this is a problem, call wait() as well. */
+	void stop();
 
 	/* Read-only access to the plot data. */
 	const fractal_point * get_data() { return _data; }
@@ -89,22 +91,25 @@ public:
 private:
 	GStaticMutex lock;
 	GThread * main_thread; // Access protected by lock.
-	GThreadPool * pool; // Worker threads
 	GCond * flare; // For individual worker threads to signal completion
 	GMutex * flare_lock;
 
+	Glib::ThreadPool * tpool; // Thread pool to use. Set up by constructor.
+
 	callback_t* callback;
 	fractal_point* _data;
-	bool _abort;
+	volatile bool _abort;
+	int outstanding; // How many jobs are there? Protected by flare_lock.
+	// XXX TODO: Can we merge lock and flare_lock?
 
-	void signal() {
+	// Calls to wake up the main thread. May optionally decrement the outstanding-jobs counter, which is protected by the same lock.
+	inline void awaken(bool job_complete=false) {
 		g_mutex_lock(flare_lock);
+		if (job_complete) --outstanding;
 		g_cond_broadcast(flare);
 		g_mutex_unlock(flare_lock);
 	};
 };
-
-// global plot thread pool?
 
 
 #endif /* PLOT2_H_ */
