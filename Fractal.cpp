@@ -17,6 +17,8 @@
 */
 
 #include "Fractal.h"
+#include <assert.h>
+
 using namespace std;
 
 const double _consts::log2 = log(2.0);
@@ -28,28 +30,39 @@ Fractal::~Fractal() {}
 Mandelbrot::Mandelbrot() : Fractal("Mandelbrot", -3.0, 3.0, -3.0, 3.0) {}
 Mandelbrot::~Mandelbrot() {}
 
-void Mandelbrot::plot_pixel(const cdbl origin, const unsigned maxiter, fractal_point& out) const
+void Mandelbrot::prepare_pixel(const cdbl coords, fractal_point& out) const
+{
+	long double o_re = real(coords), o_im = imag(coords);
+
+	// Cardioid check:
+	long double t = o_re - 0.25;
+	long double im2 = o_im * o_im;
+	long double q = t * t + im2;
+	if (q*(q + o_re - 0.25) < 0.25*im2)
+		goto SHORTCUT;
+	// Period-2 bulb check:
+	t = o_re + 1.0;
+	if (t * t + im2 < 0.0625)
+		goto SHORTCUT;
+
+	// The first iteration is easy, 0^2 + origin...
+	out.origin = out.point = cdbl(coords);
+	out.iter = 1;
+	return;
+
+	SHORTCUT:
+	out.mark_infinite();
+}
+
+void Mandelbrot::plot_pixel(const int maxiter, fractal_point& out) const
 {
 	// Speed notes:
 	// Don't use cdbl in the actual calculation - using straight doubles and
 	// doing the complex maths by hand is about 6x faster for me.
 	// Also, we know that 0^2 + origin = origin, so skip the first iter.
-	unsigned iter;
-	long double o_re = real(origin), o_im = imag(origin);
-	long double z_re = o_re, z_im = o_im, re2, im2;
-
-	{
-		// Cardioid check:
-		long double t = o_re - 0.25;
-		long double yy = o_im * o_im;
-		long double q = t * t + yy;
-		if (q*(q + o_re - 0.25) < 0.25*yy)
-			goto SHORTCUT;
-		// Period-2 bulb check:
-		t = o_re + 1.0;
-		if (t * t + yy < 0.0625)
-			goto SHORTCUT;
-	}
+	int iter;
+	long double o_re = real(out.origin), o_im = imag(out.origin);
+	long double z_re = real(out.point), z_im = imag(out.point), re2, im2;
 
 #define ITER() do { 							\
 		re2 = z_re * z_re;						\
@@ -58,7 +71,7 @@ void Mandelbrot::plot_pixel(const cdbl origin, const unsigned maxiter, fractal_p
 		z_re = re2 - im2 + o_re;				\
 } while (0)
 
-	for (iter=1; iter<maxiter; iter++) {
+	for (iter=out.iter; iter<maxiter; iter++) {
 		ITER();
 		if (re2 + im2 > 4.0) {
 			// Fractional escape count: See http://linas.org/art-gallery/escape/escape.html
@@ -70,7 +83,6 @@ void Mandelbrot::plot_pixel(const cdbl origin, const unsigned maxiter, fractal_p
 			return;
 		}
 	}
-	SHORTCUT:
-	out.iter = -1;
-	out.iterf = -1;
+	out.iter = iter;
+	out.point = cdbl(z_re,z_im);
 }

@@ -118,14 +118,38 @@ class Plot2::worker_job {
 	}
 };
 
-void Plot2::_per_plot_threadfunc()
+void Plot2::prepare()
 {
-	int i;
-	Glib::Mutex::Lock _auto (plot_lock);
+	// Called with plot_lock held!
 	if (_data) delete[] _data;
 	_data = new fractal_point[width * height];
 
-	// TODO: PREPARE the fractal (set all points to pass=1, Re, Im; precomp for cardoid etc.)
+	const cdbl _origin = origin(); // origin of the _whole plot_, not of firstrow
+	unsigned i,j, out_index = 0;
+	//std::cout << "render centre " << centre << "; size " << size << "; origin " << origin << std::endl;
+
+	cdbl colstep = cdbl(real(size) / width,0);
+	cdbl rowstep = cdbl(0, imag(size) / height);
+	//std::cout << "rowstep " << rowstep << "; colstep "<<colstep << std::endl;
+	cdbl render_point = _origin;
+
+	for (j=0; j<height; j++) {
+		for (i=0; i<width; i++) {
+			fract->prepare_pixel(render_point, _data[out_index]);
+			++out_index;
+			render_point += colstep;
+		}
+		render_point.real(real(_origin));
+		render_point += rowstep;
+	}
+}
+
+void Plot2::_per_plot_threadfunc()
+{
+	unsigned i;
+	Glib::Mutex::Lock _auto (plot_lock);
+
+	prepare(); // Could push this into the job threads, if it were necessary.
 
 	worker_job jobs[N_WORKER_JOBS];
 	const unsigned step = (height + N_WORKER_JOBS - 1) / N_WORKER_JOBS;
@@ -163,6 +187,15 @@ void Plot2::_per_plot_threadfunc()
 	};
 
 	// TODO, on multi-pass render: // if (callback) callback->plot_progress_major(*this);
+	// TODO on multi-pass: callback with an update for the progress bar?
+
+	if (!_abort) {
+		// All done, anything that survived is considered to be infinite.
+		for (i=0; i<height*width; i++) {
+			if (_data[i].iter >= maxiter)
+				_data[i].iter = _data[i].iterf = -1;
+		}
+	}
 
 	if (callback && !_abort) {
 		_auto.release();
@@ -175,35 +208,21 @@ void Plot2::_per_plot_threadfunc()
 
 void Plot2::_worker_threadfunc(worker_job * job) {
 	const unsigned firstrow = job->first_row;
-	unsigned n_rows = job->n_rows;
-
-	unsigned i,j;
-	const cdbl _origin = origin(); // origin of the _whole plot_, not of firstrow
-	//std::cout << "render centre " << centre << "; size " << size << "; origin " << origin << std::endl;
+	unsigned i, j, n_rows = job->n_rows;
 
 	// Sanity check: don't overrun the plot.
 	if (firstrow + n_rows > height)
 		n_rows = height - firstrow;
-	const unsigned endpoint = firstrow + n_rows;
-
-	cdbl colstep = cdbl(real(size) / width,0);
-	cdbl rowstep = cdbl(0, imag(size) / height);
-	//std::cout << "rowstep " << rowstep << "; colstep "<<colstep << std::endl;
-
-	cdbl render_point = _origin;
-	render_point.imag(render_point.imag() + firstrow*imag(rowstep));
+	const unsigned fencepost = firstrow + n_rows;
 
 	unsigned out_index = firstrow * width;
 	// keep running points.
-	for (j=firstrow; j<endpoint; j++) {
+	for (j=firstrow; j<fencepost; j++) {
 		for (i=0; i<width; i++) {
-			fract->plot_pixel(render_point, maxiter, _data[out_index]);
+			fract->plot_pixel(maxiter, _data[out_index]);
 			//std::cout << "Plot " << render_point << " i=" << out->iter << std::endl;
 			++out_index;
-			render_point += colstep;
 		}
-		render_point.real(real(_origin));
-		render_point += rowstep;
 	}
 
 	awaken(true);

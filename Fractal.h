@@ -30,9 +30,19 @@ typedef std::complex<long double> cdbl;
 
 class fractal_point {
 public:
-	int iter; // -1 may mean our current working value of "infinity", if that's a movable feast.
-	double iterf; // where available: smooth iterations count
-	double arg; // argument of final point, used in some plots
+	int iter; // Current number of iterations this point has seen, or -1 for "infinity"
+	cdbl origin; // Original value of this point
+	cdbl point; // Current value of the point. Not valid if iter<0.
+	bool nomore; // When true, this pixel plays no further part - may also mean "infinite".
+	float iterf; // smooth iterations count (only valid the pixel has nomore)
+	float arg; // argument of final point (only computed after pixel has nomore)
+
+	fractal_point() : iter(0), origin(cdbl(0,0)), point(cdbl(0,0)), nomore(false), iterf(0), arg(0) {};
+	inline void mark_infinite() {
+		iter = -1;
+		iterf = -1;
+		nomore = true;
+	};
 };
 
 class _consts {
@@ -50,20 +60,28 @@ public:
 	std::string name; // Human-readable
 	double xmin, xmax, ymin, ymax; // Maximum useful complex area
 
-	// type ?
-	// describe any other params.
+	/* Pixel initialisation. This is supposed to be quick and straightforward,
+	 * setting up for the first iteration and performing any shortcut checks.
+	 * The pixel we are interested in.
+	 */
+	virtual void prepare_pixel(const cdbl coords, fractal_point& out) const = 0;
 
-	virtual void plot_pixel(const cdbl origin, const unsigned maxiter, fractal_point& out) const = 0;
-
-	// Per-image setup? Orbit? Engine?
-	// What is expected of PixelPlot: iters? radius? angle?
+	/* Pixel plotting. This is the slow function; it should run only up to maxiter.
+	 * It's up to the fractal what happens if a pixel reaches maxiter; in the
+	 * general case the nomore flag ought _not_ to be set in case this is a
+	 * multi-pass adaptive run.
+	 * If a pixel escapes, perform any final computation on the result and set up
+	 * _out_ accordingly.
+	 */
+	virtual void plot_pixel(const int maxiter, fractal_point& out) const = 0;
 };
 
 class Mandelbrot : public Fractal {
 public:
 	Mandelbrot();
 	~Mandelbrot();
-	virtual void plot_pixel(const cdbl origin, const unsigned maxiter, fractal_point& iters_out) const;
+	virtual void prepare_pixel(const cdbl coords, fractal_point& out) const;
+	virtual void plot_pixel(const int maxiter, fractal_point& iters_out) const;
 };
 
 #endif /* FRACTAL_H_ */

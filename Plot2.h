@@ -50,7 +50,7 @@ public:
 	/* What is this plot about? */
 	const Fractal* fract;
 	const cdbl centre, size;
-	const unsigned maxiter;
+	const int maxiter;
 	const unsigned width, height; // plot size in pixels
 	const cdbl origin() const { return centre - size/(long double)2.0; }
 
@@ -89,6 +89,12 @@ public:
 	cdbl pixel_to_set_tlo(int xx, int yy) {
 		return pixel_to_set(xx, height-yy-1);
 	};
+
+protected:
+	/* Prepares a plot: creates the _data array and asks the fractal to
+	 * initialise it.
+	 * THIS FUNCTION WILL BE CALLED WITH plot_lock HELD. */
+	void prepare();
 
 private:
 	Glib::Mutex plot_lock;
