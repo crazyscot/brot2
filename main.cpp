@@ -36,7 +36,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.";
 #include <sys/stat.h>
 #include <unistd.h>
 
-#include "Plot.h"
 #include "Plot2.h"
 #include "Fractal.h"
 #include "palette.h"
