@@ -16,15 +16,12 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <glib.h>
 #include <glibmm.h>
 #include <assert.h>
 #include "Plot2.h"
 
 #define MAX_WORKER_THREADS 2
 #define N_WORKER_JOBS 10
-
-static gpointer plot2_main_threadfunc(gpointer arg);
 
 class MasterThreadPool {
 	Glib::StaticMutex mux;
@@ -50,8 +47,8 @@ static MasterThreadPool master_pool_master;
 
 using namespace std;
 
-#define LOCK() do { g_mutex_lock(flare_lock); } while(0)
-#define UNLOCK() do { g_mutex_unlock(flare_lock); } while(0)
+#define LOCK() do { flare_lock.lock(); } while(0)
+#define UNLOCK() do { flare_lock.unlock(); } while(0)
 
 Plot2::Plot2(Fractal* f, cdbl centre, cdbl size,
 		unsigned maxiter, unsigned width, unsigned height) :
@@ -60,8 +57,6 @@ Plot2::Plot2(Fractal* f, cdbl centre, cdbl size,
 		main_thread(0), callback(0), _data(0), _abort(false), outstanding(0)
 {
 	tpool = master_pool_master.get();
-	flare = g_cond_new();
-	flare_lock = g_mutex_new();
 }
 
 string Plot2::info(bool verbose) {
@@ -90,24 +85,14 @@ string Plot2::info(bool verbose) {
 }
 
 /* Starts a plot. A thread is spawned to do the actual work. */
-GError* Plot2::start(callback_t* c) {
+void Plot2::start(callback_t* c) {
 	LOCK();
 	assert(!main_thread);
 	_abort = false; // Must do this here, rather than in main_threadfunc, to kill a race (if user double-clicks i.e. we get two do_redraws in quick succession).
 	callback = c;
-	GError * err = 0;
-	main_thread = g_thread_create(plot2_main_threadfunc, this, true, &err);
-	if (!main_thread) {
-		fprintf(stderr, "Could not start main render thread: %d: %s\n", err->code, err->message);
-		return err;
-	}
+	main_thread = Glib::Thread::create(sigc::mem_fun(this, &Plot2::_main_threadfunc), true);
+	assert(main_thread);
 	UNLOCK();
-	return 0;
-}
-
-static gpointer plot2_main_threadfunc(gpointer arg) {
-	Plot2 * plot = (Plot2*) arg;
-	return plot->_main_threadfunc();
 }
 
 class Plot2::worker_job {
@@ -125,7 +110,7 @@ class Plot2::worker_job {
 	}
 };
 
-gpointer Plot2::_main_threadfunc()
+void Plot2::_main_threadfunc()
 {
 	int i;
 	LOCK();
@@ -152,19 +137,17 @@ gpointer Plot2::_main_threadfunc()
 			tpool->push(sigc::mem_fun(jobs[out_ptr++], &worker_job::run));
 			//printf("spawning, outstanding:=%d, out_ptr:=%d\n",outstanding,out_ptr);
 		}
-		g_cond_wait(flare, flare_lock); // Signals that a job has completed, or we're asked to abort.
+		flare.wait(flare_lock); // Signals that a job has completed, or we're asked to abort.
 	};
 	// Now wait for them to finish.
 	while(outstanding) {
 		//printf("waiting, o=%d\n",outstanding);
-		g_cond_wait(flare, flare_lock);
+		flare.wait(flare_lock);
 	};
 	UNLOCK();
 
 	if (callback && !_abort)
 		callback->plot_complete(*this);
-
-	return 0;
 }
 
 void Plot2::_worker_threadfunc(worker_job * job) {
@@ -208,7 +191,7 @@ int Plot2::wait() {
 	if (!main_thread)
 		return -1;
 
-	g_thread_join(main_thread);
+	main_thread->join();
 	LOCK();
 	main_thread = 0;
 	UNLOCK();
@@ -242,6 +225,4 @@ Plot2::~Plot2() {
 	LOCK();
 	assert(!main_thread);
 	UNLOCK();
-	g_cond_free(flare);
-	g_mutex_free(flare_lock);
 }

@@ -443,18 +443,7 @@ static void do_redraw(GtkWidget *widget, _gtk_ctx *ctx)
 	ctx->mainctx->plot = 0;
 
 	ctx->mainctx->plot = new Plot2(ctx->mainctx->fractal, ctx->mainctx->centre, ctx->mainctx->size, ctx->mainctx->maxiter, ctx->mainctx->width, ctx->mainctx->height);
-	GError *err = ctx->mainctx->plot->start(ctx);
-	if (err) {
-		GtkWidget * dialog = gtk_message_dialog_new (GTK_WINDOW(ctx->window),
-		                                 GTK_DIALOG_DESTROY_WITH_PARENT,
-		                                 GTK_MESSAGE_ERROR,
-		                                 GTK_BUTTONS_CLOSE,
-		                                 "SEVERE: Could not start main render thread: code %d: %s",
-		                                 err->code, err->message);
-		gtk_dialog_run (GTK_DIALOG (dialog));
-		gtk_widget_destroy (dialog);
-		abort();
-	}
+	ctx->mainctx->plot->start(ctx); // TODO try/catch ?
 }
 
 static void do_resize(GtkWidget *widget, _gtk_ctx *ctx, unsigned width, unsigned height)

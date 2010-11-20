@@ -19,7 +19,6 @@
 #ifndef PLOT2_H_
 #define PLOT2_H_
 
-#include <glib.h>
 #include <glibmm.h>
 #include "Fractal.h"
 
@@ -56,8 +55,8 @@ public:
 	virtual ~Plot2();
 
 	/* Starts a plot. A thread is spawned to do the actual work.
-	 * Returns NULL on success, otherwise a GError describing the problem. */
-	GError* start(callback_t* c);
+	 * Throws an exception (from Glib::Thread) if something went wrong. */
+	void start(callback_t* c);
 
 	/* Blocks, waiting for all work to finish. It may be some time! */
 	int wait();
@@ -83,15 +82,10 @@ public:
 		return pixel_to_set(xx, height-yy-1);
 	};
 
-	// Internal use only.
-	gpointer _main_threadfunc();
-	class worker_job; // Opaque.
-	void _worker_threadfunc(worker_job * job);
-
 private:
-	GThread * main_thread; // Access protected by flare_lock.
-	GCond * flare; // For individual worker threads to signal completion
-	GMutex * flare_lock;
+	Glib::Thread * main_thread; // Access protected by flare_lock.
+	Glib::Cond flare; // For individual worker threads to signal completion
+	Glib::Mutex flare_lock;
 
 	Glib::ThreadPool * tpool; // Thread pool to use. Set up by constructor.
 
@@ -100,12 +94,16 @@ private:
 	volatile bool _abort;
 	int outstanding; // How many jobs are there? Protected by flare_lock.
 
+	class worker_job; // Opaque to Plot2.cpp.
+	void _main_threadfunc();
+	void _worker_threadfunc(worker_job * job);
+
 	// Calls to wake up the main thread. May optionally decrement the outstanding-jobs counter, which is protected by the same lock.
 	inline void awaken(bool job_complete=false) {
-		g_mutex_lock(flare_lock);
+		flare_lock.lock();
 		if (job_complete) --outstanding;
-		g_cond_broadcast(flare);
-		g_mutex_unlock(flare_lock);
+		flare.broadcast();
+		flare_lock.unlock();
 	};
 };
 
