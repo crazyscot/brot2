@@ -103,7 +103,7 @@ private:
 	int outstanding; // How many jobs are there? Protected by flare_lock.
 
 	class worker_job; // Opaque to Plot2.cpp.
-	void _main_threadfunc();
+	void _per_plot_threadfunc();
 	void _worker_threadfunc(worker_job * job);
 
 	// Calls to wake up the main thread. May optionally decrement the outstanding-jobs counter, which is protected by the same lock.

@@ -87,7 +87,7 @@ void Plot2::start(callback_t* c) {
 	assert(!main_thread);
 	_abort = false; // Must do this here, rather than in main_threadfunc, to kill a race (if user double-clicks i.e. we get two do_redraws in quick succession).
 	callback = c;
-	main_thread = Glib::Thread::create(sigc::mem_fun(this, &Plot2::_main_threadfunc), true);
+	main_thread = Glib::Thread::create(sigc::mem_fun(this, &Plot2::_per_plot_threadfunc), true);
 	assert(main_thread);
 }
 
@@ -106,7 +106,7 @@ class Plot2::worker_job {
 	}
 };
 
-void Plot2::_main_threadfunc()
+void Plot2::_per_plot_threadfunc()
 {
 	int i;
 	Glib::Mutex::Lock _auto (flare_lock);
