@@ -80,14 +80,10 @@ typedef struct _gtk_ctx : Plot2::callback_t {
 	GtkWidget * colour_menu;
 	GSList * colours_radio_group;
 
-	pthread_mutex_t render_lock; // lock before starting a render, unlock when complete
-
 	struct timeval tv_start; // When did the current render start?
 	bool aspectfix, clip; // Details about the current render
 
-	_gtk_ctx() : mainctx(0), window(0), render(0), colour_menu(0), colours_radio_group(0) {
-		pthread_mutex_init(&render_lock, 0);
-	};
+	_gtk_ctx() : mainctx(0), window(0), render(0), colour_menu(0), colours_radio_group(0) {};
 
 	virtual void plot_progress_minor(Plot2& plot);
 	virtual void plot_progress_major(Plot2& plot);
@@ -364,11 +360,6 @@ void _gtk_ctx::plot_progress_major(Plot2& plot) {
 void _gtk_ctx::plot_progress_complete(Plot2& plot) {
 	struct timeval tv_after, tv_diff;
 
-	// And now turn it into an RGB.
-	if (0 != pthread_mutex_trylock(&render_lock)) {
-		return; // Ah well, we tried.
-	}
-
 	gdk_threads_enter();
 	progressbar->pulse();
 	recolour(window,this);
@@ -393,8 +384,6 @@ void _gtk_ctx::plot_progress_complete(Plot2& plot) {
 	gtk_widget_queue_draw(window);
 	gdk_flush();
 	gdk_threads_leave();
-
-	pthread_mutex_unlock(&render_lock);
 }
 
 static void safe_stop_plot(Plot2 * p) {
