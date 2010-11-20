@@ -47,9 +47,6 @@ static MasterThreadPool master_pool_master;
 
 using namespace std;
 
-#define LOCK() do { flare_lock.lock(); } while(0)
-#define UNLOCK() do { flare_lock.unlock(); } while(0)
-
 Plot2::Plot2(Fractal* f, cdbl centre, cdbl size,
 		unsigned maxiter, unsigned width, unsigned height) :
 		fract(f), centre(centre), size(size), maxiter(maxiter),
@@ -86,13 +83,12 @@ string Plot2::info(bool verbose) {
 
 /* Starts a plot. A thread is spawned to do the actual work. */
 void Plot2::start(callback_t* c) {
-	LOCK();
+	Glib::Mutex::Lock _lock(flare_lock);
 	assert(!main_thread);
 	_abort = false; // Must do this here, rather than in main_threadfunc, to kill a race (if user double-clicks i.e. we get two do_redraws in quick succession).
 	callback = c;
 	main_thread = Glib::Thread::create(sigc::mem_fun(this, &Plot2::_main_threadfunc), true);
 	assert(main_thread);
-	UNLOCK();
 }
 
 class Plot2::worker_job {
@@ -113,10 +109,9 @@ class Plot2::worker_job {
 void Plot2::_main_threadfunc()
 {
 	int i;
-	LOCK();
+	Glib::Mutex::Lock _auto (flare_lock);
 	if (_data) delete[] _data;
 	_data = new fractal_point[width * height];
-	UNLOCK();
 
 	// TODO: PREPARE the fractal (set all points to pass=1, Re, Im; precomp for cardoid etc.)
 
@@ -131,7 +126,6 @@ void Plot2::_main_threadfunc()
 
 	int out_ptr = 0;
 
-	LOCK();
 	while (out_ptr < N_WORKER_JOBS && !_abort) {
 		while (outstanding < MAX_WORKER_THREADS && out_ptr < N_WORKER_JOBS) {
 			++outstanding; // flare_lock is held.
@@ -147,7 +141,6 @@ void Plot2::_main_threadfunc()
 		flare.wait(flare_lock);
 		if (callback) callback->plot_progress_minor(*this);
 	};
-	UNLOCK();
 
 	// TODO, on multi-pass render: // if (callback) callback->plot_progress_major(*this);
 
@@ -197,9 +190,10 @@ int Plot2::wait() {
 		return -1;
 
 	main_thread->join();
-	LOCK();
-	main_thread = 0;
-	UNLOCK();
+	{
+		Glib::Mutex::Lock _auto(flare_lock);
+		main_thread = 0;
+	}
 	return 0;
 }
 
@@ -227,7 +221,8 @@ Plot2::~Plot2() {
 	wait();
 	delete[] _data;
 	// TODO: Anything else to free?
-	LOCK();
-	assert(!main_thread);
-	UNLOCK();
+	{
+		Glib::Mutex::Lock _auto(flare_lock);
+		assert(!main_thread);
+	}
 }

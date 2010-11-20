@@ -108,10 +108,9 @@ private:
 
 	// Calls to wake up the main thread. May optionally decrement the outstanding-jobs counter, which is protected by the same lock.
 	inline void awaken(bool job_complete=false) {
-		flare_lock.lock();
+		Glib::Mutex::Lock _auto(flare_lock);
 		if (job_complete) --outstanding;
 		flare.broadcast();
-		flare_lock.unlock();
 	};
 };
 
