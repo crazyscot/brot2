@@ -23,27 +23,36 @@
 #define MAX_WORKER_THREADS 2
 #define N_WORKER_JOBS 20
 
-class MasterThreadPool {
+class SingletonThreadPool {
+	const int n_threads;
+	const bool is_excl;
+	const int max_unused;
 	Glib::StaticMutex mux;
 	Glib::ThreadPool * pool;
 public:
+	SingletonThreadPool(int n, bool excl, int max_idle=-1) : n_threads(n), is_excl(excl), max_unused(max_idle) {};
 	Glib::ThreadPool * get() {
+		/* I would love to instantiate the pool in the constructor, but
+		 * it explodes if the glib thread subsystem isn't up yet...
+		 */
 		mux.lock();
-		if (!pool)
-			pool = new Glib::ThreadPool(MAX_WORKER_THREADS, true);
+		if (!pool) {
+			pool = new Glib::ThreadPool(n_threads, is_excl);
+			pool->set_max_unused_threads(max_unused);
+		}
 		mux.unlock();
 		return pool;
-	}
-	virtual ~MasterThreadPool() {
+	};
+	virtual ~SingletonThreadPool() {
 		mux.lock();
 		if (pool) {
 			delete pool;
 			pool=0;
 		}
-	}
+	};
 };
 
-static MasterThreadPool master_pool_master;
+static SingletonThreadPool worker_thread_pool(MAX_WORKER_THREADS, true);
 
 using namespace std;
 
@@ -53,7 +62,7 @@ Plot2::Plot2(Fractal* f, cdbl centre, cdbl size,
 		width(width), height(height),
 		main_thread(0), callback(0), _data(0), _abort(false), outstanding(0)
 {
-	tpool = master_pool_master.get();
+	worker_pool = worker_thread_pool.get();
 }
 
 string Plot2::info(bool verbose) {
@@ -129,7 +138,7 @@ void Plot2::_per_plot_threadfunc()
 	while (out_ptr < N_WORKER_JOBS && !_abort) {
 		while (outstanding < MAX_WORKER_THREADS && out_ptr < N_WORKER_JOBS) {
 			++outstanding; // flare_lock is held.
-			tpool->push(sigc::mem_fun(jobs[out_ptr++], &worker_job::run));
+			worker_pool->push(sigc::mem_fun(jobs[out_ptr++], &worker_job::run));
 			//printf("spawning, outstanding:=%d, out_ptr:=%d\n",outstanding,out_ptr);
 		}
 		flare.wait(flare_lock); // Signals that a job has completed, or we're asked to abort.

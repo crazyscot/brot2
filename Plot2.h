@@ -95,7 +95,7 @@ private:
 	Glib::Cond flare; // For individual worker threads to signal completion
 	Glib::Mutex flare_lock;
 
-	Glib::ThreadPool * tpool; // Thread pool to use. Set up by constructor.
+	Glib::ThreadPool * worker_pool; // Thread pool to use. Set up by constructor.
 
 	callback_t* callback;
 	fractal_point* _data;
