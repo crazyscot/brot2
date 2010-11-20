@@ -26,6 +26,8 @@
 								<option id="gnu.cpp.compiler.option.include.paths.1774844555" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
 									<listOptionValue builtIn="false" value="/usr/include/gtk-2.0"/>
 									<listOptionValue builtIn="false" value="/usr/include/glib-2.0"/>
+									<listOptionValue builtIn="false" value="/usr/include/gtkmm-2.4"/>
+									<listOptionValue builtIn="false" value="/usr/include/glibmm-2.4"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.1279653179" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 							</tool>
