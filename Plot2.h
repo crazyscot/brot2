@@ -89,8 +89,7 @@ public:
 	void _worker_threadfunc(worker_job * job);
 
 private:
-	GStaticMutex lock;
-	GThread * main_thread; // Access protected by lock.
+	GThread * main_thread; // Access protected by flare_lock.
 	GCond * flare; // For individual worker threads to signal completion
 	GMutex * flare_lock;
 
@@ -100,7 +99,6 @@ private:
 	fractal_point* _data;
 	volatile bool _abort;
 	int outstanding; // How many jobs are there? Protected by flare_lock.
-	// XXX TODO: Can we merge lock and flare_lock?
 
 	// Calls to wake up the main thread. May optionally decrement the outstanding-jobs counter, which is protected by the same lock.
 	inline void awaken(bool job_complete=false) {

@@ -50,11 +50,8 @@ static MasterThreadPool master_pool_master;
 
 using namespace std;
 
-#define LOCKP(p2) do { g_static_mutex_lock(&p2->lock); } while(0)
-#define LOCK() LOCKP(this)
-
-#define UNLOCKP(p2) do { g_static_mutex_unlock(&p2->lock); } while(0)
-#define UNLOCK() UNLOCKP(this)
+#define LOCK() do { g_mutex_lock(flare_lock); } while(0)
+#define UNLOCK() do { g_mutex_unlock(flare_lock); } while(0)
 
 Plot2::Plot2(Fractal* f, cdbl centre, cdbl size,
 		unsigned maxiter, unsigned width, unsigned height) :
@@ -63,7 +60,6 @@ Plot2::Plot2(Fractal* f, cdbl centre, cdbl size,
 		main_thread(0), callback(0), _data(0), _abort(false), outstanding(0)
 {
 	tpool = master_pool_master.get();
-	g_static_mutex_init(&lock);
 	flare = g_cond_new();
 	flare_lock = g_mutex_new();
 }
@@ -149,7 +145,7 @@ gpointer Plot2::_main_threadfunc()
 
 	int out_ptr = 0;
 
-	g_mutex_lock(flare_lock);
+	LOCK();
 	while (out_ptr < N_WORKER_JOBS && !_abort) {
 		while (outstanding < MAX_WORKER_THREADS && out_ptr < N_WORKER_JOBS) {
 			++outstanding; // flare_lock is held.
@@ -163,7 +159,7 @@ gpointer Plot2::_main_threadfunc()
 		//printf("waiting, o=%d\n",outstanding);
 		g_cond_wait(flare, flare_lock);
 	};
-	g_mutex_unlock(flare_lock);
+	UNLOCK();
 
 	if (callback && !_abort)
 		callback->plot_complete(*this);
@@ -245,7 +241,7 @@ Plot2::~Plot2() {
 	// TODO: Anything else to free?
 	LOCK();
 	assert(!main_thread);
-	g_static_mutex_free(&lock);
+	UNLOCK();
 	g_cond_free(flare);
 	g_mutex_free(flare_lock);
 }
