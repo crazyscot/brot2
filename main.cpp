@@ -21,7 +21,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.";
 #include <gtk/gtk.h>
 #include <gdk/gdkkeysyms.h>
 #include <png.h>
-#include <gtkmm.h>
 
 #include <sys/time.h>
 #include <setjmp.h>
@@ -76,7 +75,7 @@ typedef struct _gtk_ctx : Plot2::callback_t {
 	_render_ctx * mainctx;
 	GtkWidget *window;
 	GdkPixmap *render;
-	Gtk::ProgressBar* progressbar;
+	GtkProgressBar* progressbar;
 	GtkWidget * colour_menu;
 	GSList * colours_radio_group;
 
@@ -171,7 +170,7 @@ static void plot_to_png(_gtk_ctx *ctx, char *filename)
 	png_destroy_write_struct(&png, &png_info);
 
 	if (0==fclose(f))
-		ctx->progressbar->set_text("Successfully saved");
+		gtk_progress_bar_set_text(ctx->progressbar, "Successfully saved");
 	else
 		ALERT_DIALOG(ctx->window, "Error closing the save: %d: %s", errno, strerror(errno));
 }
@@ -350,7 +349,7 @@ static void recolour(GtkWidget * widget, _gtk_ctx *ctx)
 
 void _gtk_ctx::plot_progress_minor(Plot2& plot) {
 	gdk_threads_enter();
-	progressbar->pulse();
+	gtk_progress_bar_pulse(progressbar);
 	gdk_threads_leave();
 }
 
@@ -362,7 +361,7 @@ void _gtk_ctx::plot_progress_complete(Plot2& plot) {
 	struct timeval tv_after, tv_diff;
 
 	gdk_threads_enter();
-	progressbar->pulse();
+	gtk_progress_bar_pulse(progressbar);
 	recolour(window,this);
 	gettimeofday(&tv_after,0);
 
@@ -379,8 +378,8 @@ void _gtk_ctx::plot_progress_complete(Plot2& plot) {
 		info << " Resolution limit reached, cannot zoom further!";
 	clip = aspectfix = false;
 
-	progressbar->set_fraction(1.0);
-	progressbar->set_text(info.str());
+	gtk_progress_bar_set_fraction(progressbar, 1.0);
+	gtk_progress_bar_set_text(progressbar, info.str().c_str());
 
 	gtk_widget_queue_draw(window);
 	gdk_flush();
@@ -407,7 +406,7 @@ static void do_plot(GtkWidget *widget, _gtk_ctx *ctx, bool is_same_plot = false)
 		gdk_draw_rectangle(ctx->render, widget->style->mid_gc[0], true, 0, 0, ctx->mainctx->width, ctx->mainctx->height);
 	}
 
-	ctx->progressbar->set_text("Plotting...");
+	gtk_progress_bar_set_text(ctx->progressbar, "Plotting...");
 
 	double aspect;
 
@@ -565,7 +564,7 @@ static void do_undo(gpointer _ctx, guint callback_action, GtkWidget *widget)
 	_gtk_ctx * ctx = (_gtk_ctx*) _ctx;
 	if (ctx->render == NULL) return;
 	if (!ctx->mainctx->plot_prev) {
-		ctx->progressbar->set_text("Nothing to undo");
+		gtk_progress_bar_set_text(ctx->progressbar, "Nothing to undo");
 		return;
 	}
 
@@ -870,7 +869,7 @@ void do_stop_plot(gpointer _ctx, guint callback_action)
 	_gtk_ctx * ctx = (_gtk_ctx*)_ctx;
 	assert (ctx);
 	safe_stop_plot(ctx->mainctx->plot);
-	ctx->progressbar->set_text("Stopped at user request");
+	gtk_progress_bar_set_text(ctx->progressbar, "Stopped at user request");
 }
 
 void do_refresh_plot(gpointer _ctx, guint callback_action)
@@ -972,18 +971,15 @@ int main (int argc, char**argv)
 			| GDK_POINTER_MOTION_MASK
 			| GDK_POINTER_MOTION_HINT_MASK);
 
-	gtk_ctx.progressbar = new Gtk::ProgressBar();
-	/* The above line causes a spurious
-	 * GLib-GObject-CRITICAL **: g_object_set_qdata_full: assertion `quark > 0' failed
-	 * :-( but it doesn't seem to affect anything ... */
+	gtk_ctx.progressbar = GTK_PROGRESS_BAR(gtk_progress_bar_new());
 
-	gtk_ctx.progressbar->set_text("Initialising");
-	gtk_ctx.progressbar->set_ellipsize(Pango::EllipsizeMode::ELLIPSIZE_END);
-	gtk_ctx.progressbar->set_pulse_step(0.1);
+	gtk_progress_bar_set_text(gtk_ctx.progressbar, "Initialising");
+	gtk_progress_bar_set_ellipsize(gtk_ctx.progressbar, PANGO_ELLIPSIZE_END);
+	gtk_progress_bar_set_pulse_step(gtk_ctx.progressbar, 0.1);
 
 	gtk_box_pack_start(GTK_BOX(main_vbox), menubar, FALSE, FALSE, 0);
 	gtk_box_pack_start(GTK_BOX(main_vbox), canvas, TRUE, TRUE, 0);
-	gtk_box_pack_end(GTK_BOX(main_vbox), GTK_WIDGET(gtk_ctx.progressbar->gobj()), FALSE, FALSE, 0);
+	gtk_box_pack_end(GTK_BOX(main_vbox), GTK_WIDGET(gtk_ctx.progressbar), FALSE, FALSE, 0);
 
 	render_ctx.initializing = false;
 	gtk_widget_show_all(window);
