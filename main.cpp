@@ -854,6 +854,21 @@ void toggle_hud(gpointer _ctx, guint callback_action, GtkWidget *widget)
 	}
 }
 
+void do_stop_plot(gpointer _ctx, guint callback_action)
+{
+	_gtk_ctx * ctx = (_gtk_ctx*)_ctx;
+	assert (ctx);
+	safe_stop_plot(ctx->mainctx->plot);
+	ctx->progressbar->set_text("Stopped at user request");
+}
+
+void do_refresh_plot(gpointer _ctx, guint callback_action)
+{
+	_gtk_ctx * ctx = (_gtk_ctx*)_ctx;
+	assert (ctx);
+	do_redraw(ctx->window, ctx);
+}
+
 /////////////////////////////////////////////////////////////////
 
 void do_about(gpointer _ctx, guint callback_action)
@@ -877,6 +892,8 @@ int main (int argc, char**argv)
 	GtkItemFactoryEntry main_menu_items[] = {
 			{ _"/_Main", 0, 0, 0, _"<Branch>" },
 			{ _"/Main/_About", 0, (GtkItemFactoryCallback)do_about, 0, _"<StockItem>", GTK_STOCK_ABOUT },
+			{ _"/Main/Stop Plot", _"<control>period", (GtkItemFactoryCallback)do_stop_plot, 0, _"<StockItem>", GTK_STOCK_CANCEL },
+			{ _"/Main/Redraw", _"<control>R", (GtkItemFactoryCallback)do_refresh_plot, 0, _"<StockItem>", GTK_STOCK_REFRESH },
 			{ _"/Main/_Save image...", 0, (GtkItemFactoryCallback)do_save, 0, _"<StockItem>", GTK_STOCK_SAVE },
 			{ _"/Main/_Quit", _"<control>Q", gtk_main_quit, 0, _"<StockItem>", GTK_STOCK_QUIT },
 			{ _"/_Options", 0, 0, 0, _"<Branch>" },
