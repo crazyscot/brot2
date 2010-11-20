@@ -121,7 +121,8 @@ void Plot2::_main_threadfunc()
 	// TODO: PREPARE the fractal (set all points to pass=1, Re, Im; precomp for cardoid etc.)
 
 	worker_job jobs[N_WORKER_JOBS];
-	const unsigned step = height / N_WORKER_JOBS;
+	const unsigned step = (height + N_WORKER_JOBS - 1) / N_WORKER_JOBS;
+	// Must round up to avoid a gap.
 
 	for (i=0; i<N_WORKER_JOBS; i++) {
 		const unsigned z = step*i;
