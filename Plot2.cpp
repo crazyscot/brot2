@@ -133,13 +133,21 @@ void Plot2::_main_threadfunc()
 			//printf("spawning, outstanding:=%d, out_ptr:=%d\n",outstanding,out_ptr);
 		}
 		flare.wait(flare_lock); // Signals that a job has completed, or we're asked to abort.
-		if (callback) callback->plot_progress_minor(*this);
+		if (callback) {
+			_auto.release();
+			callback->plot_progress_minor(*this);
+			_auto.acquire();
+		}
 	};
 	// Now wait for them to finish.
 	while(outstanding) {
 		//printf("waiting, o=%d\n",outstanding);
 		flare.wait(flare_lock);
-		if (callback) callback->plot_progress_minor(*this);
+		if (callback) {
+			_auto.release();
+			callback->plot_progress_minor(*this);
+			_auto.acquire();
+		}
 	};
 
 	// TODO, on multi-pass render: // if (callback) callback->plot_progress_major(*this);

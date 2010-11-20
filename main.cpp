@@ -427,7 +427,12 @@ static void do_redraw(GtkWidget *widget, _gtk_ctx *ctx)
 	// N.B. This (gtk/gdk lib calls from non-main thread) will not work at all on win32; will need to refactor if I ever port.
 	gettimeofday(&ctx->tv_start,0);
 
-	if (ctx->mainctx->plot_prev) delete ctx->mainctx->plot_prev;
+	if (ctx->mainctx->plot_prev) {
+		// Must release the mutex as we may block briefly to join the plot's thread...
+		gdk_threads_leave();
+		delete ctx->mainctx->plot_prev;
+		gdk_threads_enter();
+	}
 	ctx->mainctx->plot_prev = ctx->mainctx->plot;
 	ctx->mainctx->plot = 0;
 
