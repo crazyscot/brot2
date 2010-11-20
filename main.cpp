@@ -945,6 +945,10 @@ int main (int argc, char**argv)
 			| GDK_POINTER_MOTION_HINT_MASK);
 
 	gtk_ctx.progressbar = new Gtk::ProgressBar();
+	/* The above line causes a spurious
+	 * GLib-GObject-CRITICAL **: g_object_set_qdata_full: assertion `quark > 0' failed
+	 * :-( but it doesn't seem to affect anything ... */
+
 	gtk_ctx.progressbar->set_text("Initialising");
 	gtk_ctx.progressbar->set_ellipsize(Pango::EllipsizeMode::ELLIPSIZE_END);
 	gtk_ctx.progressbar->set_pulse_step(0.1);
