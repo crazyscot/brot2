@@ -28,15 +28,23 @@ public:
 	/* Callback type. */
 	class callback_t {
 	public:
-		/* The plotting interface calls back when it has finished a plotting pass
-		 * and might want to do some more. The caller may for example wish to
-		 * update the display; the plot array is guaranteed not to update under
-		 * your feet until you return from the callback.
-		 */
-		virtual void plot_pass_complete(Plot2& plot) = 0;
+		/* Report that we did something. Minor progress, in other words.
+		 * BEWARE that the worker threads are all still beavering away
+		 * during this call, so take great care if you want to look at
+		 * the render data! */
+		virtual void plot_progress_minor(Plot2& plot) = 0;
 
-		/* Notification when the plotting is really finished or on stop(). */
-		virtual void plot_complete(Plot2& plot) = 0;
+		/* Report major progress, typically that we've finished one pass
+		 * but might want to make more.
+		 * The caller may wish to update the display; the data array is
+		 * guaranteed not to update under your feet until you return from
+		 * the callback.
+		 */
+		virtual void plot_progress_major(Plot2& plot) = 0;
+
+		/* Notification that plotting is really finished.
+		 * Note that this does NOT get called if the plot run has been aborted! */
+		virtual void plot_progress_complete(Plot2& plot) = 0;
 	};
 
 	/* What is this plot about? */

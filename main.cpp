@@ -89,8 +89,9 @@ typedef struct _gtk_ctx : Plot2::callback_t {
 		pthread_mutex_init(&render_lock, 0);
 	};
 
-	virtual void plot_complete(Plot2& plot);
-	virtual void plot_pass_complete(Plot2& plot);
+	virtual void plot_progress_minor(Plot2& plot);
+	virtual void plot_progress_major(Plot2& plot);
+	virtual void plot_progress_complete(Plot2& plot);
 } _gtk_ctx;
 
 #define ALERT_DIALOG(parent, msg, args...) do { \
@@ -350,19 +351,26 @@ static void recolour(GtkWidget * widget, _gtk_ctx *ctx)
 	gtk_widget_queue_draw(widget);
 }
 
-void _gtk_ctx::plot_pass_complete(Plot2& plot) {
-	// TODO: Recolour now in a multi-pass plot.
-	// XXX XYZY
+void _gtk_ctx::plot_progress_minor(Plot2& plot) {
+	gdk_threads_enter();
+	progressbar->pulse();
+	gdk_threads_leave();
 }
 
-void _gtk_ctx::plot_complete(Plot2& plot) {
+void _gtk_ctx::plot_progress_major(Plot2& plot) {
+	// TODO: Recolour now in a multi-pass plot.
+}
+
+void _gtk_ctx::plot_progress_complete(Plot2& plot) {
 	struct timeval tv_after, tv_diff;
 
 	// And now turn it into an RGB.
-	if (0 != pthread_mutex_trylock(&render_lock))
+	if (0 != pthread_mutex_trylock(&render_lock)) {
 		return; // Ah well, we tried.
+	}
 
 	gdk_threads_enter();
+	progressbar->pulse();
 	recolour(window,this);
 	gettimeofday(&tv_after,0);
 
@@ -379,6 +387,7 @@ void _gtk_ctx::plot_complete(Plot2& plot) {
 		info << " Resolution limit reached, cannot zoom further!";
 	clip = aspectfix = false;
 
+	progressbar->set_fraction(1.0);
 	progressbar->set_text(info.str());
 
 	gtk_widget_queue_draw(window);
@@ -944,6 +953,7 @@ int main (int argc, char**argv)
 	gtk_ctx.progressbar = new Gtk::ProgressBar();
 	gtk_ctx.progressbar->set_text("Initialising");
 	gtk_ctx.progressbar->set_ellipsize(Pango::EllipsizeMode::ELLIPSIZE_END);
+	gtk_ctx.progressbar->set_pulse_step(0.1);
 
 	gtk_box_pack_start(GTK_BOX(main_vbox), menubar, FALSE, FALSE, 0);
 	gtk_box_pack_start(GTK_BOX(main_vbox), canvas, TRUE, TRUE, 0);

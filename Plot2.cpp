@@ -21,7 +21,7 @@
 #include "Plot2.h"
 
 #define MAX_WORKER_THREADS 2
-#define N_WORKER_JOBS 10
+#define N_WORKER_JOBS 20
 
 class MasterThreadPool {
 	Glib::StaticMutex mux;
@@ -138,16 +138,20 @@ void Plot2::_main_threadfunc()
 			//printf("spawning, outstanding:=%d, out_ptr:=%d\n",outstanding,out_ptr);
 		}
 		flare.wait(flare_lock); // Signals that a job has completed, or we're asked to abort.
+		if (callback) callback->plot_progress_minor(*this);
 	};
 	// Now wait for them to finish.
 	while(outstanding) {
 		//printf("waiting, o=%d\n",outstanding);
 		flare.wait(flare_lock);
+		if (callback) callback->plot_progress_minor(*this);
 	};
 	UNLOCK();
 
+	// TODO, on multi-pass render: // if (callback) callback->plot_progress_major(*this);
+
 	if (callback && !_abort)
-		callback->plot_complete(*this);
+		callback->plot_progress_complete(*this);
 }
 
 void Plot2::_worker_threadfunc(worker_job * job) {
