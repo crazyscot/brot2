@@ -42,40 +42,38 @@ std::ostream& operator<<(std::ostream &stream, rgbf o) {
 
 map<string,DiscretePalette*> DiscretePalette::registry;
 
-
-// HSV->RGB conversion algorithm found under a rock on the 'net.
-hsv::operator rgb() {
+// HSV->RGB conversion algorithm coded up from the formula on Wikipedia.
+hsvf::operator rgb() {
 	if (isnan(h)) return rgb(v,v,v); // "undefined" case
-	float hh = 6.0*h/255.0, ss = s/255.0, vv = v/255.0, m, n, f;
-	int i;
+	float chroma = v * s;
+	if (h>=1.0) h -= floor(h);
+	// h': which part of the hexcone does h fall into?
+	float hp = h*6.0;
+	float hm = hp;
+	while (hm>2.0) hm -= 2.0; // so hm = hp mod 2
+	float x;
+	if (hm<1.0)	x=hm;
+	else		x=2.0-hm;
+	x *= chroma;
 
-	if (hh == 0) hh=0.01;
-
-    i = floor(hh);
-	f = hh - i;
-	if(!(i & 1)) f = 1 - f; // if i is even
-	m = vv * (1 - ss);
-	n = vv * (1 - ss * f);
-	switch (i)
-	{
-	case 6:
-	case 0: return rgbf(vv, n,  m);
-	case 1: return rgbf(n,  vv, m);
-	case 2: return rgbf(m,  vv, n);
-	case 3: return rgbf(m,  n,  vv);
-	case 4: return rgbf(n,  m,  vv);
-	case 5: return rgbf(vv, m,  n);
+	rgbf rv;
+	switch((int)(floor(hp))) {
+	case 0: case 6:
+		rv = rgbf(chroma,x,0); break;
+	case 1:
+		rv = rgbf(x,chroma,0); break;
+	case 2:
+		rv = rgbf(0,chroma,x); break;
+	case 3:
+		rv = rgbf(0,x,chroma); break;
+	case 4:
+		rv = rgbf(x,0,chroma); break;
+	case 5:
+		rv = rgbf(chroma,0,x); break;
 	}
-	return rgb(0, 0, 0);
-}
-
-std::ostream& operator<<(std::ostream &stream, hsv o) {
-	  stream << "hsv(" << (int)o.h << "," << (int)o.s << "," << (int)o.v << ")";
-	  return stream;
-}
-
-hsvf::operator hsv() {
-	return hsv(h*255.0, s*255.0, v*255.0);
+	float m = v - chroma;
+	rv.r += m; rv.g += m; rv.b += m;
+	return rv;
 }
 
 std::ostream& operator<<(std::ostream &stream, hsvf o) {
@@ -90,7 +88,7 @@ public:
 	Kaleidoscopic(string name, int n) : DiscretePalette(name,n) {};
 	virtual rgb get(const fractal_point &pt) const {
 		// This one jumps at random around the hue space.
-			hsv h(255*cos(pt.iter), 224, 224);
+			hsvf h(0.5+cos(pt.iter)/2.0, 0.87, 0.87);
 			rgb r(h);
 		#if DEBUG_DUMP_HSV
 			cout << h << " --> " << r << endl;
@@ -106,7 +104,9 @@ public:
 	Rainbow(string name, int n) : DiscretePalette(name, n) {};
 	virtual rgb get(const fractal_point &pt) const {
 		// This is a continuous "gradient" around the Hue wheel.
-		hsv h(255*pt.iter/size, 255, 255);
+		double n = (double)pt.iter / size;
+		n -= floor(n);
+		hsvf h(n, 1, 1);
 		rgb r(h);
 	#if DEBUG_DUMP_HSV
 		cout << h << " --> " << r << endl;
@@ -171,7 +171,7 @@ public:
 		hsvf rv (pointa.h*tau + pointb.h*taup,
 				 pointa.s*tau + pointb.s*taup,
 				 pointa.v*tau + pointb.v*taup);
-		return hsv(rv);
+		return rv;
 	};
 };
 
@@ -204,7 +204,7 @@ public:
 		return rv;
 	}
 	rgb get(const fractal_point &pt) const {
-		return hsv(get_hsvf(pt));
+		return get_hsvf(pt);
 	};
 };
 
@@ -216,7 +216,7 @@ public:
 	rgb get(const fractal_point &pt) const {
 		hsvf rv = get_hsvf(pt);
 		rv.s = cos(pt.arg);
-		return hsv(rv);
+		return rv;
 	};
 };
 
@@ -230,7 +230,7 @@ public:
 		rv.h = 0.5 + cos(log(pt.iterf)/3*M_PI)/2;
 		rv.s = 1.0;
 		rv.v = 1.0;
-		return hsv(rv);
+		return rv;
 	};
 };
 
@@ -244,7 +244,7 @@ public:
 		rv.h = 0.5+sin(log(pt.iterf)*M_PI)/2;
 		rv.s = 1.0;
 		rv.v = 1.0;
-		return hsv(rv);
+		return rv;
 	};
 };
 
