@@ -358,6 +358,7 @@ void _gtk_ctx::plot_progress_minor(Plot2& plot, float workdone) {
 void _gtk_ctx::plot_progress_major(Plot2& plot, string& commentary) {
 	render_gdk(window, this, true);
 	gdk_threads_enter();
+	gtk_progress_bar_set_fraction(progressbar, 0.98);
 	gtk_progress_bar_set_text(progressbar, commentary.c_str());
 	gtk_widget_queue_draw(window);
 	gdk_threads_leave();

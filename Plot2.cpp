@@ -109,8 +109,11 @@ class Plot2::worker_job {
 	Plot2* plot;
 	unsigned maxiter, first_row, n_rows;
 	worker_job() {};
-	void set(Plot2* p, const unsigned& max, const unsigned& first, const unsigned& n) {
-		plot = p; maxiter=max; first_row=first; n_rows=n;
+	worker_job(Plot2* p, const unsigned first, const unsigned n) {
+		plot = p; first_row=first; n_rows=n;
+	};
+	void set(const unsigned& max) {
+		maxiter = max;
 	}
 	void run() {
 		assert(this);
@@ -145,12 +148,12 @@ void Plot2::prepare()
 	}
 }
 
-#define INITIAL_PASS_MAXITER 1000
+#define INITIAL_PASS_MAXITER 500
 
 void Plot2::_per_plot_threadfunc()
 {
 	unsigned i, passcount=1;
-	const unsigned NJOBS = height / (5000 / width + 1);
+	const unsigned NJOBS = height / (10000 / width + 1);
 	Glib::Mutex::Lock _auto (plot_lock);
 
 	prepare(); // Could push this into the job threads, if it were necessary.
@@ -159,13 +162,14 @@ void Plot2::_per_plot_threadfunc()
 	const unsigned step = (height + NJOBS - 1) / NJOBS;
 	// Must round up to avoid a gap.
 
+	for (i=0; i<NJOBS; i++)
+		jobs[i] = worker_job(this, step*i, step);
+
 	int this_pass_maxiter = INITIAL_PASS_MAXITER;
 	do {
-		for (i=0; i<NJOBS; i++) {
-			const unsigned z = step*i;
-			jobs[i].set(this, maxiter, z, step);
-		}
 		unsigned out_ptr = 0, jobsdone = 0;
+		for (i=0; i<NJOBS; i++)
+			jobs[i].set(this_pass_maxiter);
 
 		while (out_ptr < NJOBS && !_abort) {
 			while (_outstanding < MAX_WORKER_THREADS && out_ptr < NJOBS) {
@@ -201,7 +205,7 @@ void Plot2::_per_plot_threadfunc()
 		}
 
 		++passcount;
-		this_pass_maxiter *= 1.5; // XXX TODO Determine best setting here
+		this_pass_maxiter *= 2; // XXX TODO Determine best setting here
 	} while (this_pass_maxiter < maxiter && !_abort);
 	// XXX other termination conds? pixel colourfulness etc?
 	// XXX: put actual last iter into info.
