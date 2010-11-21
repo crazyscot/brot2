@@ -147,9 +147,10 @@ static void plot_to_png(_gtk_ctx *ctx, char *filename)
 	png_byte row[width * BYTES_PER_PIXEL];
 	png_bytep rowp = row;
 
-	const fractal_point * pdata = ctx->mainctx->plot->get_data();
+	const fractal_point * const origin = ctx->mainctx->plot->get_data();
 
-	for (unsigned k=0; k<height; k++) {
+	for (int k=height-1; k>-1; k--) {
+		const fractal_point * pdata = origin + width * k;
 		png_bytep out = row;
 		for (unsigned l=0; l<width; l++) {
 			if (pdata->iter < 0) {
