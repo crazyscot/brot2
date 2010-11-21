@@ -186,7 +186,7 @@ void Plot2::_per_plot_threadfunc()
 
 	unsigned livecount=0, prev_livecount;
 	for (i=0; i<NJOBS; i++) livecount += jobs[i].live_pixels;
-	printf("Initial livecount %u\n", livecount);//XXX
+	//printf("Initial livecount %u\n", livecount);
 
 	int this_pass_maxiter = INITIAL_PASS_MAXITER, last_pass_maxiter = 0, maxiter_scale;
 	do {
@@ -232,12 +232,12 @@ void Plot2::_per_plot_threadfunc()
 		prev_livecount = livecount;
 		livecount=0;
 		for (i=0; i<NJOBS; i++) livecount += jobs[i].live_pixels;
-		printf("pass %d, max=%d, %u live pixels remain\n", passcount, this_pass_maxiter, livecount);//XXX
+		//printf("pass %d, max=%d, %u live pixels remain\n", passcount, this_pass_maxiter, livecount);
 		if (livecount < width * height * (100-MIN_ESCAPEE_PCT) / 100) {
 			unsigned delta = prev_livecount - livecount;
 			if (delta < delta_threshold) {
 				live = false;
-				printf("Threshold hit (only %d changed) - halting\n",prev_livecount - livecount);//XXX
+				//printf("Threshold hit (only %d changed) - halting\n",prev_livecount - livecount);
 			} else if (delta < 2*delta_threshold) {
 				// This idea lifted from fanf's code.
 				// Close enough unless it suddenly speeds up again next run?
@@ -341,10 +341,10 @@ cfpt Plot2::pixel_to_set(int x, int y)
 Plot2::~Plot2() {
 	stop();
 	wait();
-	// TODO: Anything else to free?
 	{
 		Glib::Mutex::Lock _auto(plot_lock);
 		delete[] _data;
 		assert(_done);
+		_data = 0; // Just in case concurrency runs awry.
 	}
 }

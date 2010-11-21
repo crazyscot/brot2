@@ -113,7 +113,7 @@ private:
 	Glib::Cond _plot_complete; // For the per-plot "main" thread to signal completion, also protected by plot_lock
 
 	callback_t* callback;  // Written few times, read many.
-	fractal_point* _data;  // Concurrently written by worker threads. Beware!
+	fractal_point* _data;  // Concurrently written by worker threads. Beware! (N.B. We own this pointer.)
 	volatile bool _abort, _done; // Protected by plot_lock
 	unsigned _outstanding; // How many jobs remain? Protected by plot_lock.
 
