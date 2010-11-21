@@ -170,7 +170,7 @@ void Plot2::prepare()
 
 void Plot2::_per_plot_threadfunc()
 {
-	unsigned i, passcount=0;
+	unsigned i, passcount=0, delta_threshold = width * height * LIVE_THRESHOLD_FRACT;
 	const unsigned NJOBS = height / (10000 / width + 1);
 	Glib::Mutex::Lock _auto (plot_lock);
 	bool live = true;
@@ -234,9 +234,14 @@ void Plot2::_per_plot_threadfunc()
 		for (i=0; i<NJOBS; i++) livecount += jobs[i].live_pixels;
 		printf("pass %d, max=%d, %u live pixels remain\n", passcount, this_pass_maxiter, livecount);//XXX
 		if (livecount < width * height * (100-MIN_ESCAPEE_PCT) / 100) {
-			if ((prev_livecount - livecount) < (width * height * LIVE_THRESHOLD_FRACT)) {
+			unsigned delta = prev_livecount - livecount;
+			if (delta < delta_threshold) {
 				live = false;
 				printf("Threshold hit (only %d changed) - halting\n",prev_livecount - livecount);//XXX
+			} else if (delta < 2*delta_threshold) {
+				// This idea lifted from fanf's code.
+				// Close enough unless it suddenly speeds up again next run?
+				delta_threshold *= 2;
 			}
 		}
 
@@ -252,7 +257,6 @@ void Plot2::_per_plot_threadfunc()
 		if (passcount & 1) maxiter_scale = this_pass_maxiter / 2;
 		this_pass_maxiter += maxiter_scale;
 	} while (live && !_abort);
-	// XXX other termination conds? pixel colourfulness etc?
 
 	plotted_maxiter = last_pass_maxiter;
 	plotted_passes = passcount;
