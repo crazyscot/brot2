@@ -30,7 +30,7 @@ typedef struct rgb colour;
 class hsvf {
 public:
 	float h,s,v; // 0..1 (hue may be >1, in which case we take its non-integer part)
-	hsvf() {};
+	hsvf() : h(0),s(0),v(0) {};
 	hsvf(float hh, float ss, float vv) : h(hh), s(ss), v(vv) {};
 	operator rgb();
 };
@@ -40,7 +40,7 @@ std::ostream& operator<<(std::ostream &stream, hsvf o);
 class rgb {
 public:
 	guchar r,g,b;
-	rgb () {};
+	rgb () : r(0),g(0),b(0) {};
 	rgb (guchar rr, guchar gg, guchar bb) : r(rr), g(gg), b(bb) {};
 };
 
@@ -65,7 +65,7 @@ public:
 		b = i.b/255.0;
 		clip();
 	};
-	rgbf() {};
+	rgbf() : r(0),g(0),b(0) {};
 	rgbf (float rr, float gg, float bb) : r(rr), g(gg), b(bb) {};
 	operator rgb() {
 		rgb rv;

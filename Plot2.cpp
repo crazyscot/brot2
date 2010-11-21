@@ -190,7 +190,7 @@ void Plot2::_per_plot_threadfunc()
 	for (i=0; i<NJOBS; i++) livecount += jobs[i].live_pixels;
 	//printf("Initial livecount %u\n", livecount);
 
-	int this_pass_maxiter = INITIAL_PASS_MAXITER, last_pass_maxiter = 0, maxiter_scale;
+	int this_pass_maxiter = INITIAL_PASS_MAXITER, last_pass_maxiter = 0, maxiter_scale = 0;
 	do {
 		++passcount;
 		unsigned out_ptr = 0, jobsdone = 0;
