@@ -38,6 +38,9 @@ libglibmm-2.4-dev and libpng12-dev.
 
 One day I may build it into a Debian package.
 
+N.B. that the Makefile currently specifies -O0; this is for my convenience
+in debugging! If you only want to play with it, change that to -O3.
+
 
 What's in a name? 
 -----------------
