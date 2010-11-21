@@ -667,7 +667,7 @@ static gboolean key_press_event( GtkWidget *widget, GdkEventKey *event, gpointer
 static gboolean button_release_event( GtkWidget *widget, GdkEventButton *event, gpointer *dat )
 {
 	_gtk_ctx * ctx = (_gtk_ctx*) dat;
-	int silly = 0;
+	bool silly = false;
 	if (event->button != 8)
 		return FALSE;
 
@@ -679,19 +679,20 @@ static gboolean button_release_event( GtkWidget *widget, GdkEventButton *event, 
 		int t = MAX(event->y, dragrect_origin_y);
 		int b = MIN(event->y, dragrect_origin_y);
 
-		if (abs(l-r)<2 || abs(t-b)<2) silly=1;
-
-		// centres
-		cdbl TR = ctx->mainctx->plot->pixel_to_set_tlo(r,t);
-		cdbl BL = ctx->mainctx->plot->pixel_to_set_tlo(l,b);
-
-		ctx->mainctx->centre = (TR+BL)/(long double)2.0;
-		ctx->mainctx->size = TR - BL;
+		if (abs(l-r)<4 || abs(t-b)<4) silly=true;
 
 		dragrect_active = 0;
 
-		if (!silly)
+		if (silly) {
+			recolour(ctx->window, ctx); // Repaint over the dragrect
+		} else {
+			cdbl TR = ctx->mainctx->plot->pixel_to_set_tlo(r,t);
+			cdbl BL = ctx->mainctx->plot->pixel_to_set_tlo(l,b);
+			ctx->mainctx->centre = (TR+BL)/(long double)2.0;
+			ctx->mainctx->size = TR - BL;
+
 			do_plot(ctx->window, ctx);
+		}
 	}
 	return TRUE;
 }
@@ -719,10 +720,9 @@ static gboolean motion_notify_event( GtkWidget *widget, GdkEventMotion *event, g
 
 	if (!dragrect_active) return FALSE;
 
-	if (event->is_hint)
+	if (event->is_hint) {
 		gdk_window_get_pointer (event->window, &x, &y, &state);
-	else
-	{
+	} else {
 		x = event->x;
 		y = event->y;
 		state = GdkModifierType(event->state);
@@ -743,6 +743,9 @@ static gboolean motion_notify_event( GtkWidget *widget, GdkEventMotion *event, g
 			x - dragrect_origin_x, y - dragrect_origin_y);
 	dragrect_current_x = x;
 	dragrect_current_y = y;
+
+	// Restore normal behaviour, or the progress bar dies
+	gdk_gc_set_function(ctx->window->style->black_gc, GDK_COPY);
 
 	gtk_widget_queue_draw (widget);
 
