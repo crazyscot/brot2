@@ -94,11 +94,19 @@ public:
 		return pixel_to_set(xx, height-yy-1);
 	};
 
+	/* What iteration count did we bail out at? */
+	const int get_maxiter() { return plotted_maxiter; };
+	/* How many passes before we bailed out? */
+	const int get_passes() { return plotted_passes; };
+
 protected:
 	/* Prepares a plot: creates the _data array and asks the fractal to
 	 * initialise it.
 	 * THIS FUNCTION WILL BE CALLED WITH plot_lock HELD. */
 	void prepare();
+
+	int plotted_maxiter; // How far did we get before bailing?
+	int plotted_passes; // How many passes before bailing?
 
 private:
 	Glib::Mutex plot_lock;

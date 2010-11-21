@@ -82,7 +82,7 @@ string Plot2::info(bool verbose) {
 	rv << fract->name
 	   << "@(" << real(centre) << ", " << imag(centre) << ")";
 	rv << ( verbose ? ", maxiter=" : " max=");
-	rv << maxiter;
+	rv << plotted_maxiter;
 
 	// Now that we autofix the aspect ratio, our pixels are square.
 	double zoom = 1.0/real(size); // not an fvalue, so we can print it
@@ -244,6 +244,8 @@ void Plot2::_per_plot_threadfunc()
 	// XXX: put actual last iter into info.
 	// XXX: kill this.maxiter throughout?
 
+	plotted_maxiter = last_pass_maxiter;
+	plotted_passes = passcount;
 	if (!_abort) {
 		// All done, anything that survived is considered to be infinite.
 		for (i=0; i<height*width; i++) {

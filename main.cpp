@@ -378,7 +378,9 @@ void _gtk_ctx::plot_progress_complete(Plot2& plot) {
 	gtk_window_set_title(GTK_WINDOW(window), plot.info(false).c_str());
 
 	std::ostringstream info;
-	info << "rendered in " << timetaken << "s.";
+	info.precision(4);
+	info << timetaken << "s; ";
+	info << plot.get_passes() <<" passes; maxiter=" << plot.get_maxiter() << ".";
 	if (aspectfix)
 		info << " Aspect ratio autofixed.";
 	if (clip)
