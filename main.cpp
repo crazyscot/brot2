@@ -84,7 +84,7 @@ typedef struct _gtk_ctx : Plot2::callback_t {
 	_gtk_ctx() : mainctx(0), window(0), render(0), colour_menu(0), colours_radio_group(0) {};
 
 	virtual void plot_progress_minor(Plot2& plot, float workdone);
-	virtual void plot_progress_major(Plot2& plot, string& commentary);
+	virtual void plot_progress_major(Plot2& plot, unsigned current_max, string& commentary);
 	virtual void plot_progress_complete(Plot2& plot);
 } _gtk_ctx;
 
@@ -355,7 +355,7 @@ void _gtk_ctx::plot_progress_minor(Plot2& plot, float workdone) {
 	gdk_threads_leave();
 }
 
-void _gtk_ctx::plot_progress_major(Plot2& plot, string& commentary) {
+void _gtk_ctx::plot_progress_major(Plot2& plot, unsigned current_max, string& commentary) {
 	render_gdk(window, this, true);
 	gdk_threads_enter();
 	gtk_progress_bar_set_fraction(progressbar, 0.98);

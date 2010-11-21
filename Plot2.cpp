@@ -216,7 +216,7 @@ void Plot2::_per_plot_threadfunc()
 			ostringstream info;
 			info << "Pass " << passcount << ": maxiter=" << this_pass_maxiter;
 			string infos = info.str();
-			callback->plot_progress_major(*this, infos);
+			callback->plot_progress_major(*this, this_pass_maxiter, infos);
 		}
 
 		++passcount;

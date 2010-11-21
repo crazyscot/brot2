@@ -39,11 +39,12 @@ public:
 
 		/* Report major progress, typically that we've finished one pass
 		 * but might want to make more.
+		 * The current limit of iteration is given as current_maxiter.
 		 * The caller may wish to update the display; the data array is
 		 * guaranteed not to update under your feet until you return from
 		 * the callback.
 		 */
-		virtual void plot_progress_major(Plot2& plot, std::string& commentary) = 0;
+		virtual void plot_progress_major(Plot2& plot, unsigned current_maxiter, std::string& commentary) = 0;
 
 		/* Notification that plotting is really finished.
 		 * Note that this does NOT get called if the plot run has been aborted! */
