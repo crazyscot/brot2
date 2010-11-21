@@ -219,8 +219,8 @@ void Plot2::_worker_threadfunc(worker_job * job) {
 	// keep running points.
 	for (j=firstrow; j<fencepost; j++) {
 		for (i=0; i<width; i++) {
-			fract->plot_pixel(maxiter, _data[out_index]);
-			//std::cout << "Plot " << render_point << " i=" << out->iter << std::endl;
+			if (!_data[out_index].nomore)
+				fract->plot_pixel(maxiter, _data[out_index]);
 			++out_index;
 		}
 	}
