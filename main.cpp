@@ -234,7 +234,7 @@ static void draw_hud_gdk(GtkWidget * widget, _gtk_ctx *gctx)
 	g_object_unref (lyt);
 }
 
-static void render_gdk(GtkWidget * widget, _gtk_ctx *gctx, bool lock_gdk = false) {
+static void render_gdk(GtkWidget * widget, _gtk_ctx *gctx, int local_inf=-1, bool lock_gdk = false) {
 	GdkPixmap *dest = gctx->render;
 	GdkGC *gc = widget->style->white_gc;
 	_render_ctx * rctx = gctx->mainctx;
@@ -254,7 +254,7 @@ static void render_gdk(GtkWidget * widget, _gtk_ctx *gctx, bool lock_gdk = false
 	for (j=rctx->height-1; j>=0; j--) {
 		guchar *row = &buf[j*rowstride];
 		for (i=0; i<rctx->width; i++) {
-			if (data->iter == (int)rctx->maxiter || data->iter<0) {
+			if (data->iter == local_inf || data->iter<0) {
 				row[0] = row[1] = row[2] = 0;
 			} else {
 				rgb col = rctx->pal->get(*data);
@@ -356,7 +356,7 @@ void _gtk_ctx::plot_progress_minor(Plot2& plot, float workdone) {
 }
 
 void _gtk_ctx::plot_progress_major(Plot2& plot, unsigned current_max, string& commentary) {
-	render_gdk(window, this, true);
+	render_gdk(window, this, current_max, true);
 	gdk_threads_enter();
 	gtk_progress_bar_set_fraction(progressbar, 0.98);
 	gtk_progress_bar_set_text(progressbar, commentary.c_str());
