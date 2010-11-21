@@ -59,10 +59,9 @@ void Mandelbrot::plot_pixel(const int maxiter, fractal_point& out) const
 	// Speed notes:
 	// Don't use cfpt in the actual calculation - using straight doubles and
 	// doing the complex maths by hand is about 6x faster for me.
-	// Also, we know that 0^2 + origin = origin, so skip the first iter.
 	int iter;
-	fvalue o_re = real(out.origin), o_im = imag(out.origin);
-	fvalue z_re = real(out.point), z_im = imag(out.point), re2, im2;
+	fvalue o_re = real(out.origin), o_im = imag(out.origin),
+		   z_re = real(out.point), z_im = imag(out.point), re2, im2;
 
 #define ITER() do { 							\
 		re2 = z_re * z_re;						\
@@ -80,6 +79,7 @@ void Mandelbrot::plot_pixel(const int maxiter, fractal_point& out) const
 			out.iter = iter;
 			out.iterf = iter - log(log(re2 + im2)) / consts.log2;
 			out.arg = atan2(z_im, z_re);
+			out.nomore = true;
 			return;
 		}
 	}

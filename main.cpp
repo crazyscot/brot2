@@ -61,7 +61,7 @@ typedef struct _render_ctx {
 	// Yes, the following are mostly the same as in the Plot - but the plot is torn down and recreated frequently.
 	Fractal *fractal;
 	cfpt centre, size;
-	unsigned width, height, maxiter;
+	unsigned width, height;
 	bool draw_hud;
 	bool initializing; // Disables certain event actions when set.
 
@@ -83,8 +83,8 @@ typedef struct _gtk_ctx : Plot2::callback_t {
 
 	_gtk_ctx() : mainctx(0), window(0), render(0), colour_menu(0), colours_radio_group(0) {};
 
-	virtual void plot_progress_minor(Plot2& plot);
-	virtual void plot_progress_major(Plot2& plot);
+	virtual void plot_progress_minor(Plot2& plot, float workdone);
+	virtual void plot_progress_major(Plot2& plot, unsigned current_max, string& commentary);
 	virtual void plot_progress_complete(Plot2& plot);
 } _gtk_ctx;
 
@@ -152,7 +152,7 @@ static void plot_to_png(_gtk_ctx *ctx, char *filename)
 	for (unsigned k=0; k<height; k++) {
 		png_bytep out = row;
 		for (unsigned l=0; l<width; l++) {
-			if (pdata->iter >= (int)ctx->mainctx->maxiter || pdata->iter < 0) {
+			if (pdata->iter < 0) {
 				out[0] = out[1] = out[2] = 0;
 			} else {
 				rgb col = ctx->mainctx->pal->get(*pdata);
@@ -211,7 +211,7 @@ static void draw_hud_gdk(GtkWidget * widget, _gtk_ctx *gctx)
 {
 	GdkPixmap *dest = gctx->render;
 	_render_ctx * rctx = gctx->mainctx;
-	assert(gctx->mainctx->plot); // race condition trap
+	if (!gctx->mainctx->plot) return; // race condition trap
 	string info = gctx->mainctx->plot->info(true);
 	PangoLayout * lyt = gtk_widget_create_pango_layout(widget, info.c_str());
 	PangoFontDescription * fontdesc = pango_font_description_from_string ("Luxi Sans 9");
@@ -234,7 +234,7 @@ static void draw_hud_gdk(GtkWidget * widget, _gtk_ctx *gctx)
 	g_object_unref (lyt);
 }
 
-static void render_gdk(GtkWidget * widget, _gtk_ctx *gctx) {
+static void render_gdk(GtkWidget * widget, _gtk_ctx *gctx, int local_inf=-1, bool lock_gdk = false) {
 	GdkPixmap *dest = gctx->render;
 	GdkGC *gc = widget->style->white_gc;
 	_render_ctx * rctx = gctx->mainctx;
@@ -244,7 +244,7 @@ static void render_gdk(GtkWidget * widget, _gtk_ctx *gctx) {
 	guchar *buf = new guchar[rowstride * rctx->height]; // packed 24-bit data
 
 	const fractal_point * data = rctx->plot->get_data();
-	assert(data);
+	if (!rctx->plot || !data) return; // Oops, disappeared under our feet
 
 	// Slight twist: We've plotted the fractal from a bottom-left origin,
 	// but gdk assumes a top-left origin.
@@ -254,7 +254,7 @@ static void render_gdk(GtkWidget * widget, _gtk_ctx *gctx) {
 	for (j=rctx->height-1; j>=0; j--) {
 		guchar *row = &buf[j*rowstride];
 		for (i=0; i<rctx->width; i++) {
-			if (data->iter == (int)rctx->maxiter || data->iter<0) {
+			if (data->iter == local_inf || data->iter<0) {
 				row[0] = row[1] = row[2] = 0;
 			} else {
 				rgb col = rctx->pal->get(*data);
@@ -267,11 +267,14 @@ static void render_gdk(GtkWidget * widget, _gtk_ctx *gctx) {
 		}
 	}
 
+	if (lock_gdk)
+		gdk_threads_enter();
 	gdk_draw_rgb_image(dest, gc,
 			0, 0, rctx->width, rctx->height, GDK_RGB_DITHER_NONE, buf, rowstride);
-
 	if (rctx->draw_hud)
 		draw_hud_gdk(widget, gctx);
+	if (lock_gdk)
+		gdk_threads_leave();
 
 	delete[] buf;
 }
@@ -346,14 +349,19 @@ static void recolour(GtkWidget * widget, _gtk_ctx *ctx)
 	gtk_widget_queue_draw(widget);
 }
 
-void _gtk_ctx::plot_progress_minor(Plot2& plot) {
+void _gtk_ctx::plot_progress_minor(Plot2& plot, float workdone) {
 	gdk_threads_enter();
-	gtk_progress_bar_pulse(progressbar);
+	gtk_progress_bar_set_fraction(progressbar, workdone);
 	gdk_threads_leave();
 }
 
-void _gtk_ctx::plot_progress_major(Plot2& plot) {
-	// TODO: Recolour now in a multi-pass plot.
+void _gtk_ctx::plot_progress_major(Plot2& plot, unsigned current_max, string& commentary) {
+	render_gdk(window, this, current_max, true);
+	gdk_threads_enter();
+	gtk_progress_bar_set_fraction(progressbar, 0.98);
+	gtk_progress_bar_set_text(progressbar, commentary.c_str());
+	gtk_widget_queue_draw(window);
+	gdk_threads_leave();
 }
 
 void _gtk_ctx::plot_progress_complete(Plot2& plot) {
@@ -370,7 +378,9 @@ void _gtk_ctx::plot_progress_complete(Plot2& plot) {
 	gtk_window_set_title(GTK_WINDOW(window), plot.info(false).c_str());
 
 	std::ostringstream info;
-	info << "rendered in " << timetaken << "s.";
+	info.precision(4);
+	info << timetaken << "s; ";
+	info << plot.get_passes() <<" passes; maxiter=" << plot.get_maxiter() << ".";
 	if (aspectfix)
 		info << " Aspect ratio autofixed.";
 	if (clip)
@@ -386,8 +396,14 @@ void _gtk_ctx::plot_progress_complete(Plot2& plot) {
 }
 
 static void safe_stop_plot(Plot2 * p) {
+	// As it stands this function must only ever be called from the main thread.
+	// If this assumption later fails to hold, need to vary it to not
+	// twiddle the gdk_threads lock.
 	if (p) {
+		gdk_threads_leave();
 		p->stop();
+		p->wait();
+		gdk_threads_enter();
 	}
 }
 
@@ -405,7 +421,7 @@ static void do_plot(GtkWidget *widget, _gtk_ctx *ctx, bool is_same_plot = false)
 		gdk_draw_rectangle(ctx->render, widget->style->mid_gc[0], true, 0, 0, ctx->mainctx->width, ctx->mainctx->height);
 	}
 
-	gtk_progress_bar_set_text(ctx->progressbar, "Plotting...");
+	gtk_progress_bar_set_text(ctx->progressbar, "Plotting pass 1...");
 
 	double aspect;
 
@@ -445,7 +461,7 @@ static void do_plot(GtkWidget *widget, _gtk_ctx *ctx, bool is_same_plot = false)
 	}
 
 	assert(!ctx->mainctx->plot);
-	ctx->mainctx->plot = new Plot2(ctx->mainctx->fractal, ctx->mainctx->centre, ctx->mainctx->size, ctx->mainctx->maxiter, ctx->mainctx->width, ctx->mainctx->height);
+	ctx->mainctx->plot = new Plot2(ctx->mainctx->fractal, ctx->mainctx->centre, ctx->mainctx->size, ctx->mainctx->width, ctx->mainctx->height);
 	ctx->mainctx->plot->start(ctx); // TODO try/catch ?
 }
 
@@ -576,7 +592,6 @@ static void do_undo(gpointer _ctx, guint callback_action, GtkWidget *widget)
 	main->size = main->plot->size;
 	main->width = main->plot->width;
 	main->height = main->plot->height;
-	main->maxiter = main->plot->maxiter;
 	recolour(ctx->window, ctx);
 }
 
@@ -871,8 +886,10 @@ void do_stop_plot(gpointer _ctx, guint callback_action)
 {
 	_gtk_ctx * ctx = (_gtk_ctx*)_ctx;
 	assert (ctx);
+	gtk_progress_bar_set_text(ctx->progressbar, "Stopping...");
 	safe_stop_plot(ctx->mainctx->plot);
 	gtk_progress_bar_set_text(ctx->progressbar, "Stopped at user request");
+	gtk_progress_bar_set_fraction(ctx->progressbar,0);
 }
 
 void do_refresh_plot(gpointer _ctx, guint callback_action)
@@ -926,7 +943,6 @@ int main (int argc, char**argv)
 	render_ctx.fractal = new Mandelbrot();
 	render_ctx.centre = { -0.7, 0.0 };
 	render_ctx.size = { 3.0, 3.0 };
-	render_ctx.maxiter = 1000;
 
 	render_ctx.draw_hud = true;
 	// _main_ctx.pal initial setting by setup_colour_menu().

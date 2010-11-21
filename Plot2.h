@@ -31,16 +31,20 @@ public:
 		/* Report that we did something. Minor progress, in other words.
 		 * BEWARE that the worker threads are all still beavering away
 		 * during this call, so take great care if you want to look at
-		 * the render data! */
-		virtual void plot_progress_minor(Plot2& plot) = 0;
+		 * the render data!
+		 * 'workdone' identifies the work done in the current
+		 * pass, from 0 = nothing to 1 = complete.
+		 */
+		virtual void plot_progress_minor(Plot2& plot, float workdone) = 0;
 
 		/* Report major progress, typically that we've finished one pass
 		 * but might want to make more.
+		 * The current limit of iteration is given as current_maxiter.
 		 * The caller may wish to update the display; the data array is
 		 * guaranteed not to update under your feet until you return from
 		 * the callback.
 		 */
-		virtual void plot_progress_major(Plot2& plot) = 0;
+		virtual void plot_progress_major(Plot2& plot, unsigned current_maxiter, std::string& commentary) = 0;
 
 		/* Notification that plotting is really finished.
 		 * Note that this does NOT get called if the plot run has been aborted! */
@@ -50,7 +54,6 @@ public:
 	/* What is this plot about? */
 	const Fractal* fract;
 	const cfpt centre, size;
-	const int maxiter;
 	const unsigned width, height; // plot size in pixels
 	const cfpt origin() const { return centre - size/(fvalue)2.0; }
 
@@ -59,7 +62,7 @@ public:
 
 	/* The constructor may request the fractal to do any precomputation
 	 * necessary (known-blank regions, for example). */
-	Plot2(Fractal* f, cfpt centre, cfpt size, unsigned maxiter, unsigned width, unsigned height);
+	Plot2(Fractal* f, cfpt centre, cfpt size, unsigned width, unsigned height);
 	virtual ~Plot2();
 
 	/* Starts a plot. A thread is spawned to do the actual work.
@@ -75,7 +78,7 @@ public:
 	void stop();
 
 	/* Read-only access to the plot data. */
-	const fractal_point * get_data() { assert(this); return _data; }
+	const fractal_point * get_data() { if (!this) return 0; return _data; }
 
 	/* Converts an (x,y) pair on the render (say, from a mouse click) to their complex co-ordinates.
 	 * Returns 1 for success, 0 if the point was outside of the render.
@@ -90,11 +93,19 @@ public:
 		return pixel_to_set(xx, height-yy-1);
 	};
 
+	/* What iteration count did we bail out at? */
+	const int get_maxiter() { return plotted_maxiter; };
+	/* How many passes before we bailed out? */
+	const int get_passes() { return plotted_passes; };
+
 protected:
 	/* Prepares a plot: creates the _data array and asks the fractal to
 	 * initialise it.
 	 * THIS FUNCTION WILL BE CALLED WITH plot_lock HELD. */
 	void prepare();
+
+	int plotted_maxiter; // How far did we get before bailing?
+	int plotted_passes; // How many passes before bailing?
 
 private:
 	Glib::Mutex plot_lock;
@@ -102,7 +113,7 @@ private:
 	Glib::Cond _plot_complete; // For the per-plot "main" thread to signal completion, also protected by plot_lock
 
 	callback_t* callback;  // Written few times, read many.
-	fractal_point* _data;  // Concurrently written by worker threads. Beware!
+	fractal_point* _data;  // Concurrently written by worker threads. Beware! (N.B. We own this pointer.)
 	volatile bool _abort, _done; // Protected by plot_lock
 	unsigned _outstanding; // How many jobs remain? Protected by plot_lock.
 
