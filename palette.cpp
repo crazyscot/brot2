@@ -227,7 +227,7 @@ public:
 	SlowLog(std::string name) : SmoothPalette(name) {};
 	rgb get(const fractal_point &pt) const {
 		hsvf rv;
-		rv.h = 0.6+cos(log(pt.iterf)/11*M_PI);
+		rv.h = 0.5 + cos(log(pt.iterf)/3*M_PI)/2;
 		rv.s = 1.0;
 		rv.v = 1.0;
 		return hsv(rv);
@@ -235,3 +235,17 @@ public:
 };
 
 SlowLog slow_log("Slow logarithmic rainbow");
+
+class FastLog : public SmoothPalette {
+public:
+	FastLog(std::string name) : SmoothPalette(name) {};
+	rgb get(const fractal_point &pt) const {
+		hsvf rv;
+		rv.h = 0.5+sin(log(pt.iterf)*M_PI)/2;
+		rv.s = 1.0;
+		rv.v = 1.0;
+		return hsv(rv);
+	};
+};
+
+FastLog fast_log("Quick logarithmic rainbow");
