@@ -31,7 +31,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.";
 #include <iostream>
 #include <sstream>
 #include <complex>
-#include <pthread.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
