@@ -251,6 +251,7 @@ void Plot2::_per_plot_threadfunc()
 			// How many pixels are live?
 			ostringstream info;
 			info << "Pass " << passcount << ": maxiter=" << this_pass_maxiter;
+			info << ": " << livecount << " pixels live";
 			string infos = info.str();
 			callback->plot_progress_major(*this, this_pass_maxiter, infos);
 		}
