@@ -266,14 +266,18 @@ void Plot2::_per_plot_threadfunc()
 void Plot2::_worker_threadfunc(worker_job * job) {
 	const unsigned firstrow = job->first_row;
 	unsigned i, j, n_rows = job->n_rows;
+	unsigned& live = job->live_pixels;
 
 	// Sanity check: don't overrun the plot.
-	if (firstrow + n_rows > height)
+	if (firstrow + n_rows > height) {
 		n_rows = height - firstrow;
+		// Fix the initial livecount error.
+		if (live > n_rows * width)
+			live = n_rows * width;
+	}
 	const unsigned fencepost = firstrow + n_rows;
 
 	unsigned out_index = firstrow * width;
-	unsigned& live = job->live_pixels;
 	// keep running points.
 	for (j=firstrow; j<fencepost; j++) {
 		for (i=0; i<width; i++) {
