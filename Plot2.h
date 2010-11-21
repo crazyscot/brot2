@@ -54,7 +54,6 @@ public:
 	/* What is this plot about? */
 	const Fractal* fract;
 	const cfpt centre, size;
-	const int maxiter;
 	const unsigned width, height; // plot size in pixels
 	const cfpt origin() const { return centre - size/(fvalue)2.0; }
 
@@ -63,7 +62,7 @@ public:
 
 	/* The constructor may request the fractal to do any precomputation
 	 * necessary (known-blank regions, for example). */
-	Plot2(Fractal* f, cfpt centre, cfpt size, unsigned maxiter, unsigned width, unsigned height);
+	Plot2(Fractal* f, cfpt centre, cfpt size, unsigned width, unsigned height);
 	virtual ~Plot2();
 
 	/* Starts a plot. A thread is spawned to do the actual work.

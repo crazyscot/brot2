@@ -61,7 +61,7 @@ typedef struct _render_ctx {
 	// Yes, the following are mostly the same as in the Plot - but the plot is torn down and recreated frequently.
 	Fractal *fractal;
 	cfpt centre, size;
-	unsigned width, height, maxiter;
+	unsigned width, height;
 	bool draw_hud;
 	bool initializing; // Disables certain event actions when set.
 
@@ -152,7 +152,7 @@ static void plot_to_png(_gtk_ctx *ctx, char *filename)
 	for (unsigned k=0; k<height; k++) {
 		png_bytep out = row;
 		for (unsigned l=0; l<width; l++) {
-			if (pdata->iter >= (int)ctx->mainctx->maxiter || pdata->iter < 0) {
+			if (pdata->iter < 0) {
 				out[0] = out[1] = out[2] = 0;
 			} else {
 				rgb col = ctx->mainctx->pal->get(*pdata);
@@ -461,7 +461,7 @@ static void do_plot(GtkWidget *widget, _gtk_ctx *ctx, bool is_same_plot = false)
 	}
 
 	assert(!ctx->mainctx->plot);
-	ctx->mainctx->plot = new Plot2(ctx->mainctx->fractal, ctx->mainctx->centre, ctx->mainctx->size, ctx->mainctx->maxiter, ctx->mainctx->width, ctx->mainctx->height);
+	ctx->mainctx->plot = new Plot2(ctx->mainctx->fractal, ctx->mainctx->centre, ctx->mainctx->size, ctx->mainctx->width, ctx->mainctx->height);
 	ctx->mainctx->plot->start(ctx); // TODO try/catch ?
 }
 
@@ -592,7 +592,6 @@ static void do_undo(gpointer _ctx, guint callback_action, GtkWidget *widget)
 	main->size = main->plot->size;
 	main->width = main->plot->width;
 	main->height = main->plot->height;
-	main->maxiter = main->plot->maxiter;
 	recolour(ctx->window, ctx);
 }
 
@@ -944,7 +943,6 @@ int main (int argc, char**argv)
 	render_ctx.fractal = new Mandelbrot();
 	render_ctx.centre = { -0.7, 0.0 };
 	render_ctx.size = { 3.0, 3.0 };
-	render_ctx.maxiter = 10000;
 
 	render_ctx.draw_hud = true;
 	// _main_ctx.pal initial setting by setup_colour_menu().

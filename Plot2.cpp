@@ -79,8 +79,8 @@ static SingletonThreadPool worker_thread_pool(MAX_WORKER_THREADS, true);
 using namespace std;
 
 Plot2::Plot2(Fractal* f, cfpt centre, cfpt size,
-		unsigned maxiter, unsigned width, unsigned height) :
-		fract(f), centre(centre), size(size), maxiter(maxiter),
+		unsigned width, unsigned height) :
+		fract(f), centre(centre), size(size),
 		width(width), height(height),
 		callback(0), _data(0), _abort(false), _done(false), _outstanding(0)
 {
@@ -251,10 +251,8 @@ void Plot2::_per_plot_threadfunc()
 		last_pass_maxiter = this_pass_maxiter;
 		if (passcount & 1) maxiter_scale = this_pass_maxiter / 2;
 		this_pass_maxiter += maxiter_scale;
-	} while (live && this_pass_maxiter < maxiter && !_abort);
+	} while (live && !_abort);
 	// XXX other termination conds? pixel colourfulness etc?
-	// XXX: put actual last iter into info.
-	// XXX: kill this.maxiter throughout?
 
 	plotted_maxiter = last_pass_maxiter;
 	plotted_passes = passcount;
