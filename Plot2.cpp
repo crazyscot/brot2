@@ -24,12 +24,14 @@ using namespace std;
 
 #define MAX_WORKER_THREADS 2
 
-#define INITIAL_PASS_MAXITER 256
+#define INITIAL_PASS_MAXITER 512
 /* Judging the number of iterations and how to scale it on successive passes
  * is really tricky. Too many and it takes too long to get that first pass home;
  * too few (too slow growth) and you're wasting cycles keeping track of the
  * live count and your initial pass might be all-black anyway - not to mention
  * the chance of hitting the quality threshold sooner than you might have liked).
+ * There are also edge-case effects where some pixels escape quickly and some
+ * slowly - if the scaling is too slow then these plots will conk out too soon.
  */
 
 /* We consider the plot to be complete when at least the minimum threshold
@@ -38,7 +40,7 @@ using namespace std;
  * Beware that this can still lead to infinite loops if you look at regions
  * with excessive numbers of points within the set... */
 #define LIVE_THRESHOLD_FRACT 0.001
-#define MIN_ESCAPEE_PCT 2
+#define MIN_ESCAPEE_PCT 20
 
 class SingletonThreadPool {
 	const int n_threads;
