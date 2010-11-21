@@ -61,7 +61,7 @@ typedef struct _render_ctx {
 	BasePalette * pal;
 	// Yes, the following are mostly the same as in the Plot - but the plot is torn down and recreated frequently.
 	Fractal *fractal;
-	cdbl centre, size;
+	cfpt centre, size;
 	unsigned width, height, maxiter;
 	bool draw_hud;
 	bool initializing; // Disables certain event actions when set.
@@ -599,7 +599,7 @@ static void do_zoom(gpointer _ctx, guint callback_action, GtkWidget *widget)
 			case ZOOM_OUT:
 				ctx->mainctx->size *= ZOOM_FACTOR;
 				{
-					double d = real(ctx->mainctx->size), lim = ctx->mainctx->fractal->xmax - ctx->mainctx->fractal->xmin;
+					fvalue d = real(ctx->mainctx->size), lim = ctx->mainctx->fractal->xmax - ctx->mainctx->fractal->xmin;
 					if (d > lim)
 						ctx->mainctx->size.real(lim);
 					d = imag(ctx->mainctx->size), lim = ctx->mainctx->fractal->ymax - ctx->mainctx->fractal->ymin;
@@ -618,7 +618,7 @@ static gboolean button_press_event( GtkWidget *widget, GdkEventButton *event, gp
 {
 	_gtk_ctx * ctx = (_gtk_ctx*) dat;
 	if (ctx->render != NULL) {
-		cdbl new_ctr = ctx->mainctx->plot->pixel_to_set_tlo(event->x, event->y);
+		cfpt new_ctr = ctx->mainctx->plot->pixel_to_set_tlo(event->x, event->y);
 
 		if (event->button >= 1 && event->button <= 3) {
 			ctx->mainctx->centre = new_ctr;
@@ -686,9 +686,9 @@ static gboolean button_release_event( GtkWidget *widget, GdkEventButton *event, 
 		if (silly) {
 			recolour(ctx->window, ctx); // Repaint over the dragrect
 		} else {
-			cdbl TR = ctx->mainctx->plot->pixel_to_set_tlo(r,t);
-			cdbl BL = ctx->mainctx->plot->pixel_to_set_tlo(l,b);
-			ctx->mainctx->centre = (TR+BL)/(long double)2.0;
+			cfpt TR = ctx->mainctx->plot->pixel_to_set_tlo(r,t);
+			cfpt BL = ctx->mainctx->plot->pixel_to_set_tlo(l,b);
+			ctx->mainctx->centre = (TR+BL)/(fvalue)2.0;
 			ctx->mainctx->size = TR - BL;
 
 			do_plot(ctx->window, ctx);
@@ -756,7 +756,7 @@ static gboolean motion_notify_event( GtkWidget *widget, GdkEventMotion *event, g
 
 /////////////////////////////////////////////////////////////////
 
-static void update_entry_float(GtkWidget *entry, long double val)
+static void update_entry_float(GtkWidget *entry, fvalue val)
 {
 	ostringstream tmp;
 	tmp.precision(MAXIMAL_DECIMAL_PRECISION);
@@ -764,12 +764,12 @@ static void update_entry_float(GtkWidget *entry, long double val)
 	gtk_entry_set_text(GTK_ENTRY(entry), tmp.str().c_str());
 }
 
-static bool read_entry_float(GtkWidget *entry, long double *val_out)
+static bool read_entry_float(GtkWidget *entry, fvalue *val_out)
 {
 	const gchar * raw = gtk_entry_get_text(GTK_ENTRY(entry));
 	istringstream tmp(raw, istringstream::in);
 	tmp.precision(MAXIMAL_DECIMAL_PRECISION);
-	long double rv=0;
+	fvalue rv=0;
 
 	tmp >> rv;
 	if (tmp.fail())
@@ -829,7 +829,7 @@ void do_params_dialog(gpointer _ctx, guint callback_action, GtkWidget *widget)
 		error = false;
 		result = gtk_dialog_run(GTK_DIALOG(dlg));
 		if (result == GTK_RESPONSE_ACCEPT) {
-			long double res=0;
+			fvalue res=0;
 			if (read_entry_float(c_re, &res))
 				ctx->mainctx->centre.real(res);
 			else error = true;

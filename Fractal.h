@@ -22,8 +22,9 @@
 #include <string>
 #include <complex>
 
-typedef std::complex<long double> cdbl;
-#define MINIMUM_PIXEL_SIZE ((long double)0.000000000000000444089209850062616169452667236328125)
+typedef long double fvalue; // short for "fractal value"
+typedef std::complex<fvalue> cfpt; // "complex fractal point"
+#define MINIMUM_PIXEL_SIZE ((fvalue)0.000000000000000444089209850062616169452667236328125)
 // This is 2^-51 : specific to long double; adjust for any future change.
 #define MAXIMAL_DECIMAL_PRECISION 15
 // How many decimal digits do you need to show this and ideally not hit artefacts?
@@ -31,13 +32,13 @@ typedef std::complex<long double> cdbl;
 class fractal_point {
 public:
 	int iter; // Current number of iterations this point has seen, or -1 for "infinity"
-	cdbl origin; // Original value of this point
-	cdbl point; // Current value of the point. Not valid if iter<0.
+	cfpt origin; // Original value of this point
+	cfpt point; // Current value of the point. Not valid if iter<0.
 	bool nomore; // When true, this pixel plays no further part - may also mean "infinite".
 	float iterf; // smooth iterations count (only valid the pixel has nomore)
 	float arg; // argument of final point (only computed after pixel has nomore)
 
-	fractal_point() : iter(0), origin(cdbl(0,0)), point(cdbl(0,0)), nomore(false), iterf(0), arg(0) {};
+	fractal_point() : iter(0), origin(cfpt(0,0)), point(cfpt(0,0)), nomore(false), iterf(0), arg(0) {};
 	inline void mark_infinite() {
 		iter = -1;
 		iterf = -1;
@@ -47,24 +48,24 @@ public:
 
 class _consts {
 public:
-	static const double log2;
+	static const fvalue log2;
 };
 
 // Base fractal definition. An instance knows all about a fractal _type_
 // but nothing about an individual _plot_ of it (meta-instance?)
 class Fractal {
 public:
-	Fractal(std::string name, double xmin, double xmax, double ymin, double ymax);
+	Fractal(std::string name, fvalue xmin, fvalue xmax, fvalue ymin, fvalue ymax);
 	virtual ~Fractal();
 
 	std::string name; // Human-readable
-	double xmin, xmax, ymin, ymax; // Maximum useful complex area
+	fvalue xmin, xmax, ymin, ymax; // Maximum useful complex area
 
 	/* Pixel initialisation. This is supposed to be quick and straightforward,
 	 * setting up for the first iteration and performing any shortcut checks.
 	 * The pixel we are interested in.
 	 */
-	virtual void prepare_pixel(const cdbl coords, fractal_point& out) const = 0;
+	virtual void prepare_pixel(const cfpt coords, fractal_point& out) const = 0;
 
 	/* Pixel plotting. This is the slow function; it should run only up to maxiter.
 	 * It's up to the fractal what happens if a pixel reaches maxiter; in the
@@ -80,7 +81,7 @@ class Mandelbrot : public Fractal {
 public:
 	Mandelbrot();
 	~Mandelbrot();
-	virtual void prepare_pixel(const cdbl coords, fractal_point& out) const;
+	virtual void prepare_pixel(const cfpt coords, fractal_point& out) const;
 	virtual void plot_pixel(const int maxiter, fractal_point& iters_out) const;
 };
 

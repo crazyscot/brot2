@@ -49,17 +49,17 @@ public:
 
 	/* What is this plot about? */
 	const Fractal* fract;
-	const cdbl centre, size;
+	const cfpt centre, size;
 	const int maxiter;
 	const unsigned width, height; // plot size in pixels
-	const cdbl origin() const { return centre - size/(long double)2.0; }
+	const cfpt origin() const { return centre - size/(fvalue)2.0; }
 
 	// Returns a human-readable summary of this plot for the status bar.
 	virtual std::string info(bool verbose = false);
 
 	/* The constructor may request the fractal to do any precomputation
 	 * necessary (known-blank regions, for example). */
-	Plot2(Fractal* f, cdbl centre, cdbl size, unsigned maxiter, unsigned width, unsigned height);
+	Plot2(Fractal* f, cfpt centre, cfpt size, unsigned maxiter, unsigned width, unsigned height);
 	virtual ~Plot2();
 
 	/* Starts a plot. A thread is spawned to do the actual work.
@@ -80,13 +80,13 @@ public:
 	/* Converts an (x,y) pair on the render (say, from a mouse click) to their complex co-ordinates.
 	 * Returns 1 for success, 0 if the point was outside of the render.
 	 * N.B. that we assume that pixel co-ordinates have a bottom-left origin! */
-	cdbl pixel_to_set(int x, int y);
+	cfpt pixel_to_set(int x, int y);
 
 	/* Converts an (x,y) pair on the render (say, from a mouse click) to their complex co-ordinates.
 	 * Returns 1 for success, 0 if the point was outside of the render.
 	 * This is a variant form for pixels with a top-left origin, such as
 	 * those of gtk/gdk. */
-	cdbl pixel_to_set_tlo(int xx, int yy) {
+	cfpt pixel_to_set_tlo(int xx, int yy) {
 		return pixel_to_set(xx, height-yy-1);
 	};
 

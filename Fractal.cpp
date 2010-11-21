@@ -21,23 +21,23 @@
 
 using namespace std;
 
-const double _consts::log2 = log(2.0);
+const fvalue _consts::log2 = log(2.0);
 _consts consts;
 
-Fractal::Fractal(string name, double xmin, double xmax, double ymin, double ymax) : name(name), xmin(xmin), xmax(xmax), ymin(ymin), ymax(ymax) {}
+Fractal::Fractal(string name, fvalue xmin, fvalue xmax, fvalue ymin, fvalue ymax) : name(name), xmin(xmin), xmax(xmax), ymin(ymin), ymax(ymax) {}
 Fractal::~Fractal() {}
 
 Mandelbrot::Mandelbrot() : Fractal("Mandelbrot", -3.0, 3.0, -3.0, 3.0) {}
 Mandelbrot::~Mandelbrot() {}
 
-void Mandelbrot::prepare_pixel(const cdbl coords, fractal_point& out) const
+void Mandelbrot::prepare_pixel(const cfpt coords, fractal_point& out) const
 {
-	long double o_re = real(coords), o_im = imag(coords);
+	fvalue o_re = real(coords), o_im = imag(coords);
 
 	// Cardioid check:
-	long double t = o_re - 0.25;
-	long double im2 = o_im * o_im;
-	long double q = t * t + im2;
+	fvalue t = o_re - 0.25;
+	fvalue im2 = o_im * o_im;
+	fvalue q = t * t + im2;
 	if (q*(q + o_re - 0.25) < 0.25*im2)
 		goto SHORTCUT;
 	// Period-2 bulb check:
@@ -46,7 +46,7 @@ void Mandelbrot::prepare_pixel(const cdbl coords, fractal_point& out) const
 		goto SHORTCUT;
 
 	// The first iteration is easy, 0^2 + origin...
-	out.origin = out.point = cdbl(coords);
+	out.origin = out.point = cfpt(coords);
 	out.iter = 1;
 	return;
 
@@ -57,12 +57,12 @@ void Mandelbrot::prepare_pixel(const cdbl coords, fractal_point& out) const
 void Mandelbrot::plot_pixel(const int maxiter, fractal_point& out) const
 {
 	// Speed notes:
-	// Don't use cdbl in the actual calculation - using straight doubles and
+	// Don't use cfpt in the actual calculation - using straight doubles and
 	// doing the complex maths by hand is about 6x faster for me.
 	// Also, we know that 0^2 + origin = origin, so skip the first iter.
 	int iter;
-	long double o_re = real(out.origin), o_im = imag(out.origin);
-	long double z_re = real(out.point), z_im = imag(out.point), re2, im2;
+	fvalue o_re = real(out.origin), o_im = imag(out.origin);
+	fvalue z_re = real(out.point), z_im = imag(out.point), re2, im2;
 
 #define ITER() do { 							\
 		re2 = z_re * z_re;						\
@@ -84,5 +84,5 @@ void Mandelbrot::plot_pixel(const int maxiter, fractal_point& out) const
 		}
 	}
 	out.iter = iter;
-	out.point = cdbl(z_re,z_im);
+	out.point = cfpt(z_re,z_im);
 }

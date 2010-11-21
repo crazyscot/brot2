@@ -61,7 +61,7 @@ static SingletonThreadPool worker_thread_pool(MAX_WORKER_THREADS, true);
 
 using namespace std;
 
-Plot2::Plot2(Fractal* f, cdbl centre, cdbl size,
+Plot2::Plot2(Fractal* f, cfpt centre, cfpt size,
 		unsigned maxiter, unsigned width, unsigned height) :
 		fract(f), centre(centre), size(size), maxiter(maxiter),
 		width(width), height(height),
@@ -78,7 +78,7 @@ string Plot2::info(bool verbose) {
 	rv << maxiter;
 
 	// Now that we autofix the aspect ratio, our pixels are square.
-	double zoom = 1.0/real(size);
+	double zoom = 1.0/real(size); // not an fvalue, so we can print it
 
 	rv.precision(4); // Don't need more than this for the axis length or pixsize.
 	if (verbose) {
@@ -124,14 +124,14 @@ void Plot2::prepare()
 	if (_data) delete[] _data;
 	_data = new fractal_point[width * height];
 
-	const cdbl _origin = origin(); // origin of the _whole plot_, not of firstrow
+	const cfpt _origin = origin(); // origin of the _whole plot_, not of firstrow
 	unsigned i,j, out_index = 0;
 	//std::cout << "render centre " << centre << "; size " << size << "; origin " << origin << std::endl;
 
-	cdbl colstep = cdbl(real(size) / width,0);
-	cdbl rowstep = cdbl(0, imag(size) / height);
+	cfpt colstep = cfpt(real(size) / width,0);
+	cfpt rowstep = cfpt(0, imag(size) / height);
 	//std::cout << "rowstep " << rowstep << "; colstep "<<colstep << std::endl;
-	cdbl render_point = _origin;
+	cfpt render_point = _origin;
 
 	for (j=0; j<height; j++) {
 		for (i=0; i<width; i++) {
@@ -247,14 +247,14 @@ void Plot2::stop() {
 }
 
 /* Converts an (x,y) pair on the render (say, from a mouse click) to their complex co-ordinates */
-cdbl Plot2::pixel_to_set(int x, int y)
+cfpt Plot2::pixel_to_set(int x, int y)
 {
 	if (x<0) x=0; else if ((unsigned)x>width) x=width;
 	if (y<0) y=0; else if ((unsigned)y>height) y=height;
 
-	const double pixwide = real(size) / width,
+	const fvalue pixwide = real(size) / width,
 		  		 pixhigh  = imag(size) / height;
-	cdbl delta (x*pixwide, y*pixhigh);
+	cfpt delta (x*pixwide, y*pixhigh);
 	return origin() + delta;
 }
 
