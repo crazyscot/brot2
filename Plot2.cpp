@@ -24,6 +24,12 @@ using namespace std;
 
 #define MAX_WORKER_THREADS 2
 
+// We consider the plot to be complete when at least the minimum threshold
+// of the image has escaped, and the number of pixels escaping
+// in the last pass drops below some threshold of the whole picture size.
+#define LIVE_THRESHOLD_PCT 1
+#define MIN_ESCAPEE_PCT 50
+
 class SingletonThreadPool {
 	const int n_threads;
 	const bool is_excl;
@@ -159,6 +165,7 @@ void Plot2::_per_plot_threadfunc()
 	unsigned i, passcount=1;
 	const unsigned NJOBS = height / (10000 / width + 1);
 	Glib::Mutex::Lock _auto (plot_lock);
+	bool live = true;
 
 	prepare(); // Could push this into the job threads, if it were necessary.
 
@@ -168,11 +175,10 @@ void Plot2::_per_plot_threadfunc()
 
 	for (i=0; i<NJOBS; i++)
 		jobs[i] = worker_job(this, step*i, step);
-	{
-		unsigned livecount=0;
-		for (i=0; i<NJOBS; i++) livecount += jobs[i].live_pixels;
-		printf("Initial livecount %u\n", livecount);//XXX
-	}
+
+	unsigned livecount=0, prev_livecount;
+	for (i=0; i<NJOBS; i++) livecount += jobs[i].live_pixels;
+	printf("Initial livecount %u\n", livecount);//XXX
 
 	int this_pass_maxiter = INITIAL_PASS_MAXITER, last_pass_maxiter = 0;
 	do {
@@ -207,9 +213,20 @@ void Plot2::_per_plot_threadfunc()
 			}
 		};
 
-		unsigned livecount=0;
+		// How many pixels are still live?
+		// We consider the plot to be complete when at least the minimum threshold
+		// of the image has escaped, and the number of pixels escaping
+		// in the last pass drops below some threshold of the whole picture size.
+		prev_livecount = livecount;
+		livecount=0;
 		for (i=0; i<NJOBS; i++) livecount += jobs[i].live_pixels;
 		printf("pass %d, %u live pixels remain\n", passcount, livecount);//XXX
+		if (livecount < width * height * MIN_ESCAPEE_PCT / 100) {
+			if ((prev_livecount - livecount) < (width * height * LIVE_THRESHOLD_PCT / 100)) {
+				live = false;
+				printf("Threshold hit (only %d changed) - halting\n",prev_livecount - livecount);//XXX
+			}
+		}
 
 		if (callback && !_abort) {
 			// How many pixels are live?
@@ -222,9 +239,10 @@ void Plot2::_per_plot_threadfunc()
 		++passcount;
 		last_pass_maxiter = this_pass_maxiter;
 		this_pass_maxiter *= 2; // XXX TODO Determine best setting here
-	} while (this_pass_maxiter < maxiter && !_abort);
+	} while (live && this_pass_maxiter < maxiter && !_abort);
 	// XXX other termination conds? pixel colourfulness etc?
 	// XXX: put actual last iter into info.
+	// XXX: kill this.maxiter throughout?
 
 	if (!_abort) {
 		// All done, anything that survived is considered to be infinite.
