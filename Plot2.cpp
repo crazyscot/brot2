@@ -24,11 +24,21 @@ using namespace std;
 
 #define MAX_WORKER_THREADS 2
 
-// We consider the plot to be complete when at least the minimum threshold
-// of the image has escaped, and the number of pixels escaping
-// in the last pass drops below some threshold of the whole picture size.
-#define LIVE_THRESHOLD_PCT 1
-#define MIN_ESCAPEE_PCT 50
+#define INITIAL_PASS_MAXITER 256
+/* Judging the number of iterations and how to scale it on successive passes
+ * is really tricky. Too many and it takes too long to get that first pass home;
+ * too few (too slow growth) and you're wasting cycles keeping track of the
+ * live count and your initial pass might be all-black anyway - not to mention
+ * the chance of hitting the quality threshold sooner than you might have liked).
+ */
+
+/* We consider the plot to be complete when at least the minimum threshold
+ * of the image has escaped, and the number of pixels escaping
+ * in the last pass drops below some threshold of the whole picture size.
+ * Beware that this can still lead to infinite loops if you look at regions
+ * with excessive numbers of points within the set... */
+#define LIVE_THRESHOLD_FRACT 0.001
+#define MIN_ESCAPEE_PCT 2
 
 class SingletonThreadPool {
 	const int n_threads;
@@ -158,11 +168,9 @@ void Plot2::prepare()
 	}
 }
 
-#define INITIAL_PASS_MAXITER 500
-
 void Plot2::_per_plot_threadfunc()
 {
-	unsigned i, passcount=1;
+	unsigned i, passcount=0;
 	const unsigned NJOBS = height / (10000 / width + 1);
 	Glib::Mutex::Lock _auto (plot_lock);
 	bool live = true;
@@ -180,8 +188,9 @@ void Plot2::_per_plot_threadfunc()
 	for (i=0; i<NJOBS; i++) livecount += jobs[i].live_pixels;
 	printf("Initial livecount %u\n", livecount);//XXX
 
-	int this_pass_maxiter = INITIAL_PASS_MAXITER, last_pass_maxiter = 0;
+	int this_pass_maxiter = INITIAL_PASS_MAXITER, last_pass_maxiter = 0, maxiter_scale;
 	do {
+		++passcount;
 		unsigned out_ptr = 0, jobsdone = 0;
 		for (i=0; i<NJOBS; i++)
 			jobs[i].set(this_pass_maxiter);
@@ -213,16 +222,19 @@ void Plot2::_per_plot_threadfunc()
 			}
 		};
 
-		// How many pixels are still live?
+		// How many pixels are still live? Is it worth continuing?
 		// We consider the plot to be complete when at least the minimum threshold
 		// of the image has escaped, and the number of pixels escaping
 		// in the last pass drops below some threshold of the whole picture size.
+		// (This can still lead to infinite loops, if (for example) the plot
+		// contains (almost) entirely a sub-set of the main set that's not
+		// covered by the initial check. DDTT?)
 		prev_livecount = livecount;
 		livecount=0;
 		for (i=0; i<NJOBS; i++) livecount += jobs[i].live_pixels;
-		printf("pass %d, %u live pixels remain\n", passcount, livecount);//XXX
-		if (livecount < width * height * MIN_ESCAPEE_PCT / 100) {
-			if ((prev_livecount - livecount) < (width * height * LIVE_THRESHOLD_PCT / 100)) {
+		printf("pass %d, max=%d, %u live pixels remain\n", passcount, this_pass_maxiter, livecount);//XXX
+		if (livecount < width * height * (100-MIN_ESCAPEE_PCT) / 100) {
+			if ((prev_livecount - livecount) < (width * height * LIVE_THRESHOLD_FRACT)) {
 				live = false;
 				printf("Threshold hit (only %d changed) - halting\n",prev_livecount - livecount);//XXX
 			}
@@ -236,9 +248,9 @@ void Plot2::_per_plot_threadfunc()
 			callback->plot_progress_major(*this, this_pass_maxiter, infos);
 		}
 
-		++passcount;
 		last_pass_maxiter = this_pass_maxiter;
-		this_pass_maxiter *= 2; // XXX TODO Determine best setting here
+		if (passcount & 1) maxiter_scale = this_pass_maxiter / 2;
+		this_pass_maxiter += maxiter_scale;
 	} while (live && this_pass_maxiter < maxiter && !_abort);
 	// XXX other termination conds? pixel colourfulness etc?
 	// XXX: put actual last iter into info.
