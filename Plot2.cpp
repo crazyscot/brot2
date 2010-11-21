@@ -21,7 +21,6 @@
 #include "Plot2.h"
 
 #define MAX_WORKER_THREADS 2
-#define N_WORKER_JOBS 20
 
 class SingletonThreadPool {
 	const int n_threads;
@@ -147,23 +146,24 @@ void Plot2::prepare()
 void Plot2::_per_plot_threadfunc()
 {
 	unsigned i;
+	const unsigned NJOBS = height / (5000 / width + 1);
 	Glib::Mutex::Lock _auto (plot_lock);
 
 	prepare(); // Could push this into the job threads, if it were necessary.
 
-	worker_job jobs[N_WORKER_JOBS];
-	const unsigned step = (height + N_WORKER_JOBS - 1) / N_WORKER_JOBS;
+	worker_job jobs[NJOBS];
+	const unsigned step = (height + NJOBS - 1) / NJOBS;
 	// Must round up to avoid a gap.
 
-	for (i=0; i<N_WORKER_JOBS; i++) {
+	for (i=0; i<NJOBS; i++) {
 		const unsigned z = step*i;
 		jobs[i].set(this, maxiter, z, step);
 	}
 
-	int out_ptr = 0;
+	unsigned out_ptr = 0;
 
-	while (out_ptr < N_WORKER_JOBS && !_abort) {
-		while (_outstanding < MAX_WORKER_THREADS && out_ptr < N_WORKER_JOBS) {
+	while (out_ptr < NJOBS && !_abort) {
+		while (_outstanding < MAX_WORKER_THREADS && out_ptr < NJOBS) {
 			++_outstanding; // plot_lock is held.
 			worker_thread_pool.get()->push(sigc::mem_fun(jobs[out_ptr++], &worker_job::run));
 			//printf("spawning, outstanding:=%d, out_ptr:=%d\n",outstanding,out_ptr);

@@ -104,7 +104,7 @@ private:
 	callback_t* callback;  // Written few times, read many.
 	fractal_point* _data;  // Concurrently written by worker threads. Beware!
 	volatile bool _abort, _done; // Protected by plot_lock
-	int _outstanding; // How many jobs are there? Protected by plot_lock.
+	unsigned _outstanding; // How many jobs remain? Protected by plot_lock.
 
 	class worker_job; // Opaque to Plot2.cpp.
 	void _per_plot_threadfunc();
