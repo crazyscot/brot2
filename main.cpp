@@ -211,7 +211,7 @@ static void draw_hud_gdk(GtkWidget * widget, _gtk_ctx *gctx)
 {
 	GdkPixmap *dest = gctx->render;
 	_render_ctx * rctx = gctx->mainctx;
-	assert(gctx->mainctx->plot); // race condition trap
+	if (!gctx->mainctx->plot) return; // race condition trap
 	string info = gctx->mainctx->plot->info(true);
 	PangoLayout * lyt = gtk_widget_create_pango_layout(widget, info.c_str());
 	PangoFontDescription * fontdesc = pango_font_description_from_string ("Luxi Sans 9");
@@ -244,7 +244,7 @@ static void render_gdk(GtkWidget * widget, _gtk_ctx *gctx, bool lock_gdk = false
 	guchar *buf = new guchar[rowstride * rctx->height]; // packed 24-bit data
 
 	const fractal_point * data = rctx->plot->get_data();
-	if (!data) return; // Oops, disappeared under our feet
+	if (!rctx->plot || !data) return; // Oops, disappeared under our feet
 
 	// Slight twist: We've plotted the fractal from a bottom-left origin,
 	// but gdk assumes a top-left origin.
@@ -396,8 +396,13 @@ void _gtk_ctx::plot_progress_complete(Plot2& plot) {
 }
 
 static void safe_stop_plot(Plot2 * p) {
+	// As it stands this function must only ever be called from the main thread.
+	// If this assumption later fails to hold, need to vary it to not
+	// twiddle the gdk_threads lock.
 	if (p) {
+		gdk_threads_leave();
 		p->stop();
+		gdk_threads_enter();
 	}
 }
 
