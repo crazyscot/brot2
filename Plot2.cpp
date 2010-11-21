@@ -20,6 +20,8 @@
 #include <assert.h>
 #include "Plot2.h"
 
+using namespace std;
+
 #define MAX_WORKER_THREADS 2
 
 class SingletonThreadPool {
@@ -143,9 +145,11 @@ void Plot2::prepare()
 	}
 }
 
+#define INITIAL_PASS_MAXITER 1000
+
 void Plot2::_per_plot_threadfunc()
 {
-	unsigned i;
+	unsigned i, passcount=0;
 	const unsigned NJOBS = height / (5000 / width + 1);
 	Glib::Mutex::Lock _auto (plot_lock);
 
@@ -155,39 +159,48 @@ void Plot2::_per_plot_threadfunc()
 	const unsigned step = (height + NJOBS - 1) / NJOBS;
 	// Must round up to avoid a gap.
 
-	for (i=0; i<NJOBS; i++) {
-		const unsigned z = step*i;
-		jobs[i].set(this, maxiter, z, step);
-	}
-
-	unsigned out_ptr = 0;
-
-	while (out_ptr < NJOBS && !_abort) {
-		while (_outstanding < MAX_WORKER_THREADS && out_ptr < NJOBS) {
-			++_outstanding; // plot_lock is held.
-			worker_thread_pool.get()->push(sigc::mem_fun(jobs[out_ptr++], &worker_job::run));
-			//printf("spawning, outstanding:=%d, out_ptr:=%d\n",outstanding,out_ptr);
+	int this_pass_maxiter = INITIAL_PASS_MAXITER;
+	do {
+		for (i=0; i<NJOBS; i++) {
+			const unsigned z = step*i;
+			jobs[i].set(this, maxiter, z, step);
 		}
-		_worker_signal.wait(plot_lock); // Signals that a job has completed, or we're asked to abort.
+		unsigned out_ptr = 0;
+
+		while (out_ptr < NJOBS && !_abort) {
+			while (_outstanding < MAX_WORKER_THREADS && out_ptr < NJOBS) {
+				++_outstanding; // plot_lock is held.
+				worker_thread_pool.get()->push(sigc::mem_fun(jobs[out_ptr++], &worker_job::run));
+			}
+			_worker_signal.wait(plot_lock); // Signals that a job has completed, or we're asked to abort.
+			if (callback) {
+				_auto.release();
+				callback->plot_progress_minor(*this);
+				_auto.acquire();
+			}
+		};
+		// Now wait for them to finish.
+		while(_outstanding) {
+			_worker_signal.wait(plot_lock);
+			if (callback) {
+				_auto.release();
+				callback->plot_progress_minor(*this);
+				_auto.acquire();
+			}
+		};
+
 		if (callback) {
-			_auto.release();
-			callback->plot_progress_minor(*this);
-			_auto.acquire();
+			ostringstream info;
+			info << "Pass " << passcount << ": maxiter=" << this_pass_maxiter;
+			string infos = info.str();
+			callback->plot_progress_major(*this, infos);
 		}
-	};
-	// Now wait for them to finish.
-	while(_outstanding) {
-		//printf("waiting, o=%d\n",outstanding);
-		_worker_signal.wait(plot_lock);
-		if (callback) {
-			_auto.release();
-			callback->plot_progress_minor(*this);
-			_auto.acquire();
-		}
-	};
 
-	// TODO, on multi-pass render: // if (callback) callback->plot_progress_major(*this);
-	// TODO on multi-pass: callback with an update for the progress bar?
+		++passcount;
+		this_pass_maxiter *= 1.5; // XXX TODO Determine best setting here
+	} while (this_pass_maxiter < maxiter);
+	// XXX other termination conds? pixel colourfulness etc?
+	// XXX: put actual last iter into info.
 
 	if (!_abort) {
 		// All done, anything that survived is considered to be infinite.

@@ -84,7 +84,7 @@ typedef struct _gtk_ctx : Plot2::callback_t {
 	_gtk_ctx() : mainctx(0), window(0), render(0), colour_menu(0), colours_radio_group(0) {};
 
 	virtual void plot_progress_minor(Plot2& plot);
-	virtual void plot_progress_major(Plot2& plot);
+	virtual void plot_progress_major(Plot2& plot, string& commentary);
 	virtual void plot_progress_complete(Plot2& plot);
 } _gtk_ctx;
 
@@ -234,7 +234,7 @@ static void draw_hud_gdk(GtkWidget * widget, _gtk_ctx *gctx)
 	g_object_unref (lyt);
 }
 
-static void render_gdk(GtkWidget * widget, _gtk_ctx *gctx) {
+static void render_gdk(GtkWidget * widget, _gtk_ctx *gctx, bool lock_gdk = false) {
 	GdkPixmap *dest = gctx->render;
 	GdkGC *gc = widget->style->white_gc;
 	_render_ctx * rctx = gctx->mainctx;
@@ -244,7 +244,7 @@ static void render_gdk(GtkWidget * widget, _gtk_ctx *gctx) {
 	guchar *buf = new guchar[rowstride * rctx->height]; // packed 24-bit data
 
 	const fractal_point * data = rctx->plot->get_data();
-	assert(data);
+	if (!data) return; // Oops, disappeared under our feet
 
 	// Slight twist: We've plotted the fractal from a bottom-left origin,
 	// but gdk assumes a top-left origin.
@@ -267,11 +267,14 @@ static void render_gdk(GtkWidget * widget, _gtk_ctx *gctx) {
 		}
 	}
 
+	if (lock_gdk)
+		gdk_threads_enter();
 	gdk_draw_rgb_image(dest, gc,
 			0, 0, rctx->width, rctx->height, GDK_RGB_DITHER_NONE, buf, rowstride);
-
 	if (rctx->draw_hud)
 		draw_hud_gdk(widget, gctx);
+	if (lock_gdk)
+		gdk_threads_leave();
 
 	delete[] buf;
 }
@@ -352,8 +355,15 @@ void _gtk_ctx::plot_progress_minor(Plot2& plot) {
 	gdk_threads_leave();
 }
 
-void _gtk_ctx::plot_progress_major(Plot2& plot) {
-	// TODO: Recolour now in a multi-pass plot.
+void _gtk_ctx::plot_progress_major(Plot2& plot, string& commentary) {
+	gdk_threads_enter();
+	gtk_progress_bar_set_text(progressbar, "Colouring...");
+	gdk_threads_leave();
+	render_gdk(window, this, true);
+	gdk_threads_enter();
+	gtk_progress_bar_set_text(progressbar, commentary.c_str());
+	gtk_widget_queue_draw(window);
+	gdk_threads_leave();
 }
 
 void _gtk_ctx::plot_progress_complete(Plot2& plot) {
@@ -926,7 +936,7 @@ int main (int argc, char**argv)
 	render_ctx.fractal = new Mandelbrot();
 	render_ctx.centre = { -0.7, 0.0 };
 	render_ctx.size = { 3.0, 3.0 };
-	render_ctx.maxiter = 1000;
+	render_ctx.maxiter = 10000;
 
 	render_ctx.draw_hud = true;
 	// _main_ctx.pal initial setting by setup_colour_menu().

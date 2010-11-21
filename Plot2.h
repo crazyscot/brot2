@@ -40,7 +40,7 @@ public:
 		 * guaranteed not to update under your feet until you return from
 		 * the callback.
 		 */
-		virtual void plot_progress_major(Plot2& plot) = 0;
+		virtual void plot_progress_major(Plot2& plot, std::string& commentary) = 0;
 
 		/* Notification that plotting is really finished.
 		 * Note that this does NOT get called if the plot run has been aborted! */
@@ -75,7 +75,7 @@ public:
 	void stop();
 
 	/* Read-only access to the plot data. */
-	const fractal_point * get_data() { assert(this); return _data; }
+	const fractal_point * get_data() { if (!this) return 0; return _data; }
 
 	/* Converts an (x,y) pair on the render (say, from a mouse click) to their complex co-ordinates.
 	 * Returns 1 for success, 0 if the point was outside of the render.
