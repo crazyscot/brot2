@@ -258,6 +258,7 @@ void Plot2::_per_plot_threadfunc()
 		last_pass_maxiter = this_pass_maxiter;
 		if (passcount & 1) maxiter_scale = this_pass_maxiter / 2;
 		this_pass_maxiter += maxiter_scale;
+		if (this_pass_maxiter >= (INT_MAX/2)) live=false; // lest we overflow
 	} while (live && !_abort);
 
 	plotted_maxiter = last_pass_maxiter;
