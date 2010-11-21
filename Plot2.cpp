@@ -149,7 +149,7 @@ void Plot2::prepare()
 
 void Plot2::_per_plot_threadfunc()
 {
-	unsigned i, passcount=0;
+	unsigned i, passcount=1;
 	const unsigned NJOBS = height / (5000 / width + 1);
 	Glib::Mutex::Lock _auto (plot_lock);
 
@@ -165,7 +165,7 @@ void Plot2::_per_plot_threadfunc()
 			const unsigned z = step*i;
 			jobs[i].set(this, maxiter, z, step);
 		}
-		unsigned out_ptr = 0;
+		unsigned out_ptr = 0, jobsdone = 0;
 
 		while (out_ptr < NJOBS && !_abort) {
 			while (_outstanding < MAX_WORKER_THREADS && out_ptr < NJOBS) {
@@ -173,23 +173,27 @@ void Plot2::_per_plot_threadfunc()
 				worker_thread_pool.get()->push(sigc::mem_fun(jobs[out_ptr++], &worker_job::run));
 			}
 			_worker_signal.wait(plot_lock); // Signals that a job has completed, or we're asked to abort.
-			if (callback) {
-				_auto.release();
-				callback->plot_progress_minor(*this);
-				_auto.acquire();
+			if (!_abort) {
+				++jobsdone;
+				if (callback) {
+					_auto.release();
+					callback->plot_progress_minor(*this, (float)jobsdone / NJOBS);
+					_auto.acquire();
+				}
 			}
 		};
 		// Now wait for them to finish.
 		while(_outstanding) {
 			_worker_signal.wait(plot_lock);
+			++jobsdone;
 			if (callback) {
 				_auto.release();
-				callback->plot_progress_minor(*this);
+				callback->plot_progress_minor(*this, (float)jobsdone / NJOBS);
 				_auto.acquire();
 			}
 		};
 
-		if (callback) {
+		if (callback && !_abort) {
 			ostringstream info;
 			info << "Pass " << passcount << ": maxiter=" << this_pass_maxiter;
 			string infos = info.str();
@@ -198,7 +202,7 @@ void Plot2::_per_plot_threadfunc()
 
 		++passcount;
 		this_pass_maxiter *= 1.5; // XXX TODO Determine best setting here
-	} while (this_pass_maxiter < maxiter);
+	} while (this_pass_maxiter < maxiter && !_abort);
 	// XXX other termination conds? pixel colourfulness etc?
 	// XXX: put actual last iter into info.
 

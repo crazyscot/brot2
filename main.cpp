@@ -83,7 +83,7 @@ typedef struct _gtk_ctx : Plot2::callback_t {
 
 	_gtk_ctx() : mainctx(0), window(0), render(0), colour_menu(0), colours_radio_group(0) {};
 
-	virtual void plot_progress_minor(Plot2& plot);
+	virtual void plot_progress_minor(Plot2& plot, float workdone);
 	virtual void plot_progress_major(Plot2& plot, string& commentary);
 	virtual void plot_progress_complete(Plot2& plot);
 } _gtk_ctx;
@@ -349,16 +349,13 @@ static void recolour(GtkWidget * widget, _gtk_ctx *ctx)
 	gtk_widget_queue_draw(widget);
 }
 
-void _gtk_ctx::plot_progress_minor(Plot2& plot) {
+void _gtk_ctx::plot_progress_minor(Plot2& plot, float workdone) {
 	gdk_threads_enter();
-	gtk_progress_bar_pulse(progressbar);
+	gtk_progress_bar_set_fraction(progressbar, workdone);
 	gdk_threads_leave();
 }
 
 void _gtk_ctx::plot_progress_major(Plot2& plot, string& commentary) {
-	gdk_threads_enter();
-	gtk_progress_bar_set_text(progressbar, "Colouring...");
-	gdk_threads_leave();
 	render_gdk(window, this, true);
 	gdk_threads_enter();
 	gtk_progress_bar_set_text(progressbar, commentary.c_str());
@@ -420,7 +417,7 @@ static void do_plot(GtkWidget *widget, _gtk_ctx *ctx, bool is_same_plot = false)
 		gdk_draw_rectangle(ctx->render, widget->style->mid_gc[0], true, 0, 0, ctx->mainctx->width, ctx->mainctx->height);
 	}
 
-	gtk_progress_bar_set_text(ctx->progressbar, "Plotting...");
+	gtk_progress_bar_set_text(ctx->progressbar, "Plotting pass 1...");
 
 	double aspect;
 

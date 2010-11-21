@@ -31,8 +31,11 @@ public:
 		/* Report that we did something. Minor progress, in other words.
 		 * BEWARE that the worker threads are all still beavering away
 		 * during this call, so take great care if you want to look at
-		 * the render data! */
-		virtual void plot_progress_minor(Plot2& plot) = 0;
+		 * the render data!
+		 * 'workdone' identifies the work done in the current
+		 * pass, from 0 = nothing to 1 = complete.
+		 */
+		virtual void plot_progress_minor(Plot2& plot, float workdone) = 0;
 
 		/* Report major progress, typically that we've finished one pass
 		 * but might want to make more.
