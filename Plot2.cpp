@@ -107,10 +107,14 @@ void Plot2::start(callback_t* c) {
 class Plot2::worker_job {
 	friend class Plot2;
 	Plot2* plot;
-	unsigned maxiter, first_row, n_rows;
+	unsigned maxiter, first_row, n_rows, live_pixels;
 	worker_job() {};
 	worker_job(Plot2* p, const unsigned first, const unsigned n) {
 		plot = p; first_row=first; n_rows=n;
+		live_pixels = plot->width * n_rows;
+		/* This leads to an overestimate when the job exceeds beyond the
+		 * plot boundary. We don't care, as it's only the _delta_ of this
+		 * number that's interesting. */
 	};
 	void set(const unsigned& max) {
 		maxiter = max;
@@ -164,8 +168,13 @@ void Plot2::_per_plot_threadfunc()
 
 	for (i=0; i<NJOBS; i++)
 		jobs[i] = worker_job(this, step*i, step);
+	{
+		unsigned livecount=0;
+		for (i=0; i<NJOBS; i++) livecount += jobs[i].live_pixels;
+		printf("Initial livecount %u\n", livecount);//XXX
+	}
 
-	int this_pass_maxiter = INITIAL_PASS_MAXITER;
+	int this_pass_maxiter = INITIAL_PASS_MAXITER, last_pass_maxiter = 0;
 	do {
 		unsigned out_ptr = 0, jobsdone = 0;
 		for (i=0; i<NJOBS; i++)
@@ -174,6 +183,7 @@ void Plot2::_per_plot_threadfunc()
 		while (out_ptr < NJOBS && !_abort) {
 			while (_outstanding < MAX_WORKER_THREADS && out_ptr < NJOBS) {
 				++_outstanding; // plot_lock is held.
+				// TODO don't push a job if it has no live pixels?
 				worker_thread_pool.get()->push(sigc::mem_fun(jobs[out_ptr++], &worker_job::run));
 			}
 			_worker_signal.wait(plot_lock); // Signals that a job has completed, or we're asked to abort.
@@ -197,7 +207,12 @@ void Plot2::_per_plot_threadfunc()
 			}
 		};
 
+		unsigned livecount=0;
+		for (i=0; i<NJOBS; i++) livecount += jobs[i].live_pixels;
+		printf("pass %d, %u live pixels remain\n", passcount, livecount);//XXX
+
 		if (callback && !_abort) {
+			// How many pixels are live?
 			ostringstream info;
 			info << "Pass " << passcount << ": maxiter=" << this_pass_maxiter;
 			string infos = info.str();
@@ -205,6 +220,7 @@ void Plot2::_per_plot_threadfunc()
 		}
 
 		++passcount;
+		last_pass_maxiter = this_pass_maxiter;
 		this_pass_maxiter *= 2; // XXX TODO Determine best setting here
 	} while (this_pass_maxiter < maxiter && !_abort);
 	// XXX other termination conds? pixel colourfulness etc?
@@ -213,7 +229,7 @@ void Plot2::_per_plot_threadfunc()
 	if (!_abort) {
 		// All done, anything that survived is considered to be infinite.
 		for (i=0; i<height*width; i++) {
-			if (_data[i].iter >= maxiter)
+			if (_data[i].iter >= last_pass_maxiter)
 				_data[i].iter = _data[i].iterf = -1;
 		}
 	}
@@ -237,11 +253,16 @@ void Plot2::_worker_threadfunc(worker_job * job) {
 	const unsigned fencepost = firstrow + n_rows;
 
 	unsigned out_index = firstrow * width;
+	unsigned& live = job->live_pixels;
 	// keep running points.
 	for (j=firstrow; j<fencepost; j++) {
 		for (i=0; i<width; i++) {
-			if (!_data[out_index].nomore)
-				fract->plot_pixel(maxiter, _data[out_index]);
+			fractal_point& pt = _data[out_index];
+			if (!pt.nomore) {
+				fract->plot_pixel(job->maxiter, pt);
+				if (pt.nomore)
+					--live;
+			}
 			++out_index;
 		}
 	}
