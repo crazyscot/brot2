@@ -402,6 +402,7 @@ static void safe_stop_plot(Plot2 * p) {
 	if (p) {
 		gdk_threads_leave();
 		p->stop();
+		p->wait();
 		gdk_threads_enter();
 	}
 }
@@ -886,8 +887,10 @@ void do_stop_plot(gpointer _ctx, guint callback_action)
 {
 	_gtk_ctx * ctx = (_gtk_ctx*)_ctx;
 	assert (ctx);
+	gtk_progress_bar_set_text(ctx->progressbar, "Stopping...");
 	safe_stop_plot(ctx->mainctx->plot);
 	gtk_progress_bar_set_text(ctx->progressbar, "Stopped at user request");
+	gtk_progress_bar_set_fraction(ctx->progressbar,0);
 }
 
 void do_refresh_plot(gpointer _ctx, guint callback_action)
