@@ -199,6 +199,8 @@ public:
 		hsvf rv;
 		double t = log(pt.iterf);
 		rv.h = t/2.0 + 0.5;
+		// Arbitrary scaling, chosen by accident but turns out to
+		// provide slightly less eye-bleeding colours on the initial plot.
 		rv.s = 1.0;
 		rv.v = 1.0;
 		return rv;
@@ -215,37 +217,120 @@ public:
 	LogSmoothedRays(std::string name) : LogSmoothed(name) {};
 	rgb get(const fractal_point &pt) const {
 		hsvf rv = get_hsvf(pt);
-		rv.s = cos(pt.arg);
+		rv.s = 0.5 + cos(pt.arg) / 2.0;
 		return rv;
 	};
 };
 
-LogSmoothedRays log_smoothed_with_rays("Logarithmic rainbow with rays");
+LogSmoothedRays log_smoothed_with_rays("Logarithmic rainbow  with rays");
+// nasty hack: two spaces to sort this one next to the plain log rainbow.
 
-class SlowLog : public SmoothPalette {
+class FastLogSmoothed : public SmoothPalette {
 public:
-	SlowLog(std::string name) : SmoothPalette(name) {};
+	FastLogSmoothed(std::string name) : SmoothPalette(name) {};
+	hsvf get_hsvf(const fractal_point &pt) const {
+		hsvf rv;
+		rv.h = log(pt.iterf) + 0.5;
+		rv.s = 1.0;
+		rv.v = 1.0;
+		return rv;
+	}
+	rgb get(const fractal_point &pt) const {
+		return get_hsvf(pt);
+	};
+};
+
+/* What to call it? I originally called it _fast_, but it could mislead as
+ * it doesn't make the plot any faster; the gradient is _steeper_ perhaps? */
+FastLogSmoothed fast_log_smoothed("Logarithmic rainbow (steep)");
+
+class SinLogSmoothed : public SmoothPalette {
+public:
+	SinLogSmoothed(std::string name) : SmoothPalette(name) {};
+	hsvf get_hsvf(const fractal_point &pt) const {
+		hsvf rv;
+		rv.h = sin(log(pt.iterf))/2.0 + 0.5;
+		rv.s = 1.0;
+		rv.v = 1.0;
+		return rv;
+	}
+	rgb get(const fractal_point &pt) const {
+		return get_hsvf(pt);
+	};
+};
+
+SinLogSmoothed sin_log("sin(log)");
+
+class SlowSineLog : public SmoothPalette {
+public:
+	SlowSineLog(std::string name) : SmoothPalette(name) {};
 	rgb get(const fractal_point &pt) const {
 		hsvf rv;
-		rv.h = 0.5 + cos(log(pt.iterf)/3*M_PI)/2;
+		rv.h = 0.5 + sin(log(pt.iterf)/3*M_PI)/2.0;
 		rv.s = 1.0;
 		rv.v = 1.0;
 		return rv;
 	};
 };
 
-SlowLog slow_log("Slow logarithmic rainbow");
+SlowSineLog slow_sine_log("sin(log) shallow");
 
-class FastLog : public SmoothPalette {
+class FastSineLog : public SmoothPalette {
 public:
-	FastLog(std::string name) : SmoothPalette(name) {};
+	FastSineLog(std::string name) : SmoothPalette(name) {};
 	rgb get(const fractal_point &pt) const {
 		hsvf rv;
-		rv.h = 0.5+sin(log(pt.iterf)*M_PI)/2;
+		rv.h = 0.5+sin(log(pt.iterf)*M_PI)/2.0;
 		rv.s = 1.0;
 		rv.v = 1.0;
 		return rv;
 	};
 };
 
-FastLog fast_log("Quick logarithmic rainbow");
+FastSineLog fast_sine_log("sin(log) steep");
+
+class CosLogSmoothed : public SmoothPalette {
+public:
+	CosLogSmoothed(std::string name) : SmoothPalette(name) {};
+	hsvf get_hsvf(const fractal_point &pt) const {
+		hsvf rv;
+		rv.h = cos(log(pt.iterf))/2.0 + 0.5;
+		rv.s = 1.0;
+		rv.v = 1.0;
+		return rv;
+	}
+	rgb get(const fractal_point &pt) const {
+		return get_hsvf(pt);
+	};
+};
+
+CosLogSmoothed cos_log("cos(log)");
+
+class SlowCosLog : public SmoothPalette {
+public:
+	SlowCosLog(std::string name) : SmoothPalette(name) {};
+	rgb get(const fractal_point &pt) const {
+		hsvf rv;
+		rv.h = 0.5 + cos(log(pt.iterf)/3*M_PI)/2.0;
+		rv.s = 1.0;
+		rv.v = 1.0;
+		return rv;
+	};
+};
+
+SlowCosLog slow_cos_log("cos(log) shallow");
+
+class FastCosLog : public SmoothPalette {
+public:
+	FastCosLog(std::string name) : SmoothPalette(name) {};
+	rgb get(const fractal_point &pt) const {
+		hsvf rv;
+		rv.h = 0.5+cos(log(pt.iterf)*M_PI)/2.0;
+		rv.s = 1.0;
+		rv.v = 1.0;
+		return rv;
+	};
+};
+
+FastCosLog fast_cos_log("cos(log) steep");
+
