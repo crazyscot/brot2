@@ -463,7 +463,24 @@ static void do_plot(GtkWidget *widget, _gtk_ctx *ctx, bool is_same_plot = false)
 
 	assert(!ctx->mainctx->plot);
 	ctx->mainctx->plot = new Plot2(ctx->mainctx->fractal, ctx->mainctx->centre, ctx->mainctx->size, ctx->mainctx->width, ctx->mainctx->height);
-	ctx->mainctx->plot->start(ctx); // TODO try/catch ?
+	ctx->mainctx->plot->start(ctx);
+	// TODO try/catch (and in do_resume) - report failure. Is gtkmm exception-safe?
+}
+
+static void do_resume(GtkWidget *widget, _gtk_ctx *ctx)
+{
+	assert(ctx->render);
+	assert(ctx->mainctx->plot);
+	// If either of these assertions fail, we're in a tight corner case
+	// and it might be better to just ignore the resume request?
+
+	if (!ctx->mainctx->plot->is_done()) {
+		gtk_progress_bar_set_text(ctx->progressbar, "Plot already running");
+		return;
+	}
+
+	gettimeofday(&ctx->tv_start,0);
+	ctx->mainctx->plot->start(ctx, true);
 }
 
 static void do_resize(GtkWidget *widget, _gtk_ctx *ctx, unsigned width, unsigned height)
@@ -900,6 +917,13 @@ void do_refresh_plot(gpointer _ctx, guint callback_action)
 	do_plot(ctx->window, ctx, true);
 }
 
+void do_plot_more(gpointer _ctx, guint callback_action)
+{
+	_gtk_ctx * ctx = (_gtk_ctx*)_ctx;
+	assert (ctx);
+	do_resume(ctx->window, ctx);
+}
+
 /////////////////////////////////////////////////////////////////
 
 void do_about(gpointer _ctx, guint callback_action)
@@ -925,6 +949,7 @@ int main (int argc, char**argv)
 			{ _"/Main/_About", 0, (GtkItemFactoryCallback)do_about, 0, _"<StockItem>", GTK_STOCK_ABOUT },
 			{ _"/Main/Stop Plot", _"<control>period", (GtkItemFactoryCallback)do_stop_plot, 0, _"<StockItem>", GTK_STOCK_CANCEL },
 			{ _"/Main/Redraw", _"<control>R", (GtkItemFactoryCallback)do_refresh_plot, 0, _"<StockItem>", GTK_STOCK_REFRESH },
+			{ _"/Main/Plot more iterations", _"<control>M", (GtkItemFactoryCallback)do_plot_more, 0, _"<StockItem>", GTK_STOCK_EXECUTE },
 			{ _"/Main/_Save image...", 0, (GtkItemFactoryCallback)do_save, 0, _"<StockItem>", GTK_STOCK_SAVE },
 			{ _"/Main/_Quit", _"<control>Q", gtk_main_quit, 0, _"<StockItem>", GTK_STOCK_QUIT },
 			{ _"/_Options", 0, 0, 0, _"<Branch>" },
