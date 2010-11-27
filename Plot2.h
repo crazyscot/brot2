@@ -67,7 +67,7 @@ public:
 
 	/* Starts a plot. A thread is spawned to do the actual work.
 	 * Throws an exception (from Glib::Thread) if something went wrong. */
-	void start(callback_t* c);
+	void start(callback_t* c, bool is_resume = false);
 
 	/* Blocks, waiting for all work to finish. It may be some time! */
 	int wait();
@@ -97,6 +97,12 @@ public:
 	const int get_maxiter() { return plotted_maxiter; };
 	/* How many passes before we bailed out? */
 	const int get_passes() { return plotted_passes; };
+
+	/* Are we there yet? */
+	inline bool is_done() {
+		Glib::Mutex::Lock _auto(plot_lock);
+		return _done;
+	}
 
 protected:
 	/* Prepares a plot: creates the _data array and asks the fractal to
@@ -128,6 +134,9 @@ private:
 		if (job_complete) --_outstanding;
 		_worker_signal.broadcast();
 	};
+
+	class worker_job;
+	worker_job *jobs;
 };
 
 

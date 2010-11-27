@@ -108,7 +108,9 @@ Plot2::Plot2(Fractal* f, cfpt centre, cfpt size,
 		unsigned width, unsigned height) :
 		fract(f), centre(centre), size(size),
 		width(width), height(height),
-		callback(0), _data(0), _abort(false), _done(false), _outstanding(0)
+		plotted_maxiter(0), plotted_passes(0),
+		callback(0), _data(0), _abort(false), _done(false), _outstanding(0),
+		jobs(0)
 {
 }
 
@@ -138,9 +140,9 @@ string Plot2::info(bool verbose) {
 }
 
 /* Starts a plot. A thread is spawned to do the actual work. */
-void Plot2::start(callback_t* c) {
+void Plot2::start(callback_t* c, bool is_resume) {
 	Glib::Mutex::Lock _lock(plot_lock);
-	assert(!_done);
+	assert(is_resume || !_done);
 	_done = _abort = false; // Must do this here, rather than in main_threadfunc, to kill a race (if user double-clicks i.e. we get two do_redraws in quick succession).
 	callback = c;
 	per_plot_thread_pool.get()->push(sigc::mem_fun(this, &Plot2::_per_plot_threadfunc));
@@ -158,7 +160,7 @@ class Plot2::worker_job {
 		 * plot boundary. We don't care, as it's only the _delta_ of this
 		 * number that's interesting. */
 	};
-	void set(const unsigned& max) {
+	void set(const unsigned max) {
 		maxiter = max;
 	}
 	void run() {
@@ -196,31 +198,48 @@ void Plot2::prepare()
 
 void Plot2::_per_plot_threadfunc()
 {
-	unsigned i, passcount=0, delta_threshold = width * height * LIVE_THRESHOLD_FRACT;
-	const unsigned NJOBS = height / (10000 / width + 1);
 	Glib::Mutex::Lock _auto (plot_lock);
+	unsigned i, passcount=plotted_passes, delta_threshold = width * height * LIVE_THRESHOLD_FRACT;
+	const unsigned NJOBS = height / (10000 / width + 1);
 	bool live = true;
 
-	prepare(); // Could push this into the job threads, if it were necessary.
-
-	worker_job jobs[NJOBS];
 	const unsigned step = (height + NJOBS - 1) / NJOBS;
 	// Must round up to avoid a gap.
 
-	for (i=0; i<NJOBS; i++)
-		jobs[i] = worker_job(this, step*i, step);
+	if (!jobs) {
+		prepare(); // Could push this into the job threads, if it were necessary.
+
+		jobs = new worker_job[NJOBS];
+		for (i=0; i<NJOBS; i++)
+			jobs[i] = worker_job(this, step*i, step);
+	}
 
 	unsigned livecount=0, prev_livecount;
 	for (i=0; i<NJOBS; i++) livecount += jobs[i].live_pixels;
-	//printf("Initial livecount %u\n", livecount);
+#ifdef DEBUG_LIVECOUNT
+	printf("Initial livecount %u\n", livecount);
+#endif
 
-	int this_pass_maxiter = INITIAL_PASS_MAXITER, last_pass_maxiter = 0, maxiter_scale = 0;
+	int this_pass_maxiter = INITIAL_PASS_MAXITER, last_pass_maxiter = plotted_maxiter, maxiter_scale = 0;
 
 	int _t_maxo = worker_thread_pool.n_workers();
 	if (_t_maxo==-1) _t_maxo = MAXINT;
 	const unsigned max_outstanding = _t_maxo;
 
-	do {
+	if (last_pass_maxiter) {
+		if (passcount & 1)
+			maxiter_scale = last_pass_maxiter / 2;
+		else
+			maxiter_scale = last_pass_maxiter / 3;
+
+		this_pass_maxiter = last_pass_maxiter + maxiter_scale;
+
+		if (this_pass_maxiter >= (INT_MAX/2)) {
+			live=false;
+			// TODO Explain to the user why we're not doing any more.
+		}
+	}
+	while (live && !_abort) {
 		++passcount;
 		unsigned out_ptr = 0, jobsdone = 0;
 		for (i=0; i<NJOBS; i++)
@@ -262,13 +281,25 @@ void Plot2::_per_plot_threadfunc()
 		// covered by the initial check. DDTT?)
 		prev_livecount = livecount;
 		livecount=0;
-		for (i=0; i<NJOBS; i++) livecount += jobs[i].live_pixels;
-		//printf("pass %d, max=%d, %u live pixels remain\n", passcount, this_pass_maxiter, livecount);
+#ifdef DEBUG_LIVECOUNT
+		printf("pass %d, max=%d:\n", passcount, this_pass_maxiter);
+#endif
+		for (i=0; i<NJOBS; i++) {
+#ifdef DEBUG_LIVECOUNT
+			printf("  - job %2d live=%u\n",i,jobs[i].live_pixels);
+#endif
+			livecount += jobs[i].live_pixels;
+		}
+#ifdef DEBUG_LIVECOUNT
+		printf("total %u live pixels remain\n", livecount);
+#endif
 		if (livecount < width * height * (100-MIN_ESCAPEE_PCT) / 100) {
 			unsigned delta = prev_livecount - livecount;
 			if (delta < delta_threshold) {
 				live = false;
-				//printf("Threshold hit (only %d changed) - halting\n",prev_livecount - livecount);
+#ifdef DEBUG_LIVECOUNT
+				printf("Threshold hit (only %d changed) - halting\n",prev_livecount - livecount);
+#endif
 			} else if (delta < 2*delta_threshold) {
 				// This idea lifted from fanf's code.
 				// Close enough unless it suddenly speeds up again next run?
@@ -289,7 +320,7 @@ void Plot2::_per_plot_threadfunc()
 		if (passcount & 1) maxiter_scale = this_pass_maxiter / 2;
 		this_pass_maxiter += maxiter_scale;
 		if (this_pass_maxiter >= (INT_MAX/2)) live=false; // lest we overflow
-	} while (live && !_abort);
+	}
 
 	plotted_maxiter = last_pass_maxiter;
 	plotted_passes = passcount;
@@ -377,6 +408,7 @@ Plot2::~Plot2() {
 	{
 		Glib::Mutex::Lock _auto(plot_lock);
 		delete[] _data;
+		if (jobs) delete[] jobs;
 		assert(_done);
 		_data = 0; // Just in case concurrency runs awry.
 	}
