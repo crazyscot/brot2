@@ -18,11 +18,11 @@
 
 #include <glibmm.h>
 #include <assert.h>
+#include <unistd.h>
+#include <values.h>
 #include "Plot2.h"
 
 using namespace std;
-
-#define MAX_WORKER_THREADS 2
 
 #define INITIAL_PASS_MAXITER 512
 /* Judging the number of iterations and how to scale it on successive passes
@@ -43,14 +43,36 @@ using namespace std;
 #define MIN_ESCAPEE_PCT 20
 
 class SingletonThreadPool {
-	const int n_threads;
+	int n_threads, max_unused;
 	const bool is_excl;
-	const int max_unused;
 	Glib::StaticMutex mux;
 	Glib::ThreadPool * pool;
 public:
-	SingletonThreadPool(int n, bool excl, int max_idle=-1) : n_threads(n), is_excl(excl), max_unused(max_idle) {};
-	Glib::ThreadPool * get() {
+	// excl and max_idle are passed straight to Glib threadpool.
+	// maxthreads may be an explicit count >0, -1 for unlimited, or
+	// 0 to attempt to autodetect the number of CPUs on the system.
+	SingletonThreadPool(bool excl, int maxthreads=0, int max_idle=1) : is_excl(excl) {
+		reset_threadcounts(maxthreads, max_idle);
+	};
+	inline void reset_threadcounts(int max, int max_idle) {
+		mux.lock();
+		if (max==0)
+			max = sysconf(_SC_NPROCESSORS_ONLN);
+		if (max==0) 
+			max=1; // Last-ditch default
+		n_threads = max;
+
+		max_unused = max_idle;
+		if (pool) {
+			pool->set_max_threads(n_threads);
+			pool->set_max_unused_threads(max_unused);
+		}
+		mux.unlock();
+	}
+	inline const int n_workers() const {
+		return n_threads;
+	}
+	inline Glib::ThreadPool * get() {
 		/* I would love to instantiate the pool in the constructor, but
 		 * it explodes if the glib thread subsystem isn't up yet...
 		 */
@@ -71,12 +93,14 @@ public:
 	};
 };
 
-// Pool for the main per-plot threads
-static SingletonThreadPool per_plot_thread_pool(-1, false, 2);
+// Pool for the main per-plot threads - these aren't so busy and
+// there shouldn't be more than one around, so we aren't really
+// restrictive with the settings.
+static SingletonThreadPool per_plot_thread_pool(false, -1);
 
 // Pool for the worker threads.
 // Hard limit of outstanding jobs so we don't cane the CPU unnecessarily.
-static SingletonThreadPool worker_thread_pool(MAX_WORKER_THREADS, true);
+static SingletonThreadPool worker_thread_pool(true);
 
 using namespace std;
 
@@ -191,6 +215,11 @@ void Plot2::_per_plot_threadfunc()
 	//printf("Initial livecount %u\n", livecount);
 
 	int this_pass_maxiter = INITIAL_PASS_MAXITER, last_pass_maxiter = 0, maxiter_scale = 0;
+
+	int _t_maxo = worker_thread_pool.n_workers();
+	if (_t_maxo==-1) _t_maxo = MAXINT;
+	const unsigned max_outstanding = _t_maxo;
+
 	do {
 		++passcount;
 		unsigned out_ptr = 0, jobsdone = 0;
@@ -198,7 +227,7 @@ void Plot2::_per_plot_threadfunc()
 			jobs[i].set(this_pass_maxiter);
 
 		while (out_ptr < NJOBS && !_abort) {
-			while (_outstanding < MAX_WORKER_THREADS && out_ptr < NJOBS) {
+			while (_outstanding < max_outstanding && out_ptr < NJOBS) {
 				++_outstanding; // plot_lock is held.
 				// TODO don't push a job if it has no live pixels?
 				worker_thread_pool.get()->push(sigc::mem_fun(jobs[out_ptr++], &worker_job::run));
