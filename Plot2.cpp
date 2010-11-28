@@ -255,9 +255,10 @@ void Plot2::_per_plot_threadfunc()
 			if (!_abort) {
 				++jobsdone;
 				if (callback) {
-					_auto.release();
+					// Don't release here, or we may miss notifies from workers?
+					//_auto.release();
 					callback->plot_progress_minor(*this, (float)jobsdone / NJOBS);
-					_auto.acquire();
+					//_auto.acquire();
 				}
 			}
 		};
@@ -266,9 +267,10 @@ void Plot2::_per_plot_threadfunc()
 			_worker_signal.wait(plot_lock);
 			++jobsdone;
 			if (callback) {
-				_auto.release();
+				// Don't release here, or we may miss notifies from workers?
+				//_auto.release();
 				callback->plot_progress_minor(*this, (float)jobsdone / NJOBS);
-				_auto.acquire();
+				//_auto.acquire();
 			}
 		};
 
@@ -333,9 +335,10 @@ void Plot2::_per_plot_threadfunc()
 	}
 
 	if (callback && !_abort) {
-		_auto.release();
+		// Don't release the lock unnecessarily.
+		//_auto.release();
 		callback->plot_progress_complete(*this);
-		_auto.acquire();
+		//_auto.acquire();
 	}
 	_done = true;
 	_plot_complete.broadcast();
