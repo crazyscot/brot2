@@ -62,7 +62,7 @@ typedef struct _render_ctx {
 	Fractal *fractal;
 	cfpt centre, size;
 	unsigned width, height;
-	bool draw_hud;
+	bool draw_hud, antialias;
 	bool initializing; // Disables certain event actions when set.
 
 	_render_ctx(): initializing(true) {};
@@ -307,6 +307,9 @@ static void destroy_event(GtkWidget *widget, gpointer data)
 
 #define OPTIONS_DRAW_HUD "/_Options/Draw _HUD"
 #define OPTIONS_DRAW_HUD_NO_MNEMONIC "/Options/Draw HUD"
+#define OPTIONS_ANTIALIAS "/_Options/_Antialias"
+#define OPTIONS_ANTIALIAS_NO_MNEMONIC "/Options/Antialias"
+
 
 /* Factory-generates our main menubar widget.
  * To be converted to GtkUIManager... */
@@ -338,6 +341,11 @@ static GtkWidget *make_menubar( GtkWidget  *window, GtkItemFactoryEntry* menu_it
 	gtk_check_menu_item_set_active(
 		GTK_CHECK_MENU_ITEM (drawhud),
 		ctx->mainctx->draw_hud);
+	GtkWidget *aa = gtk_item_factory_get_item(item_factory, OPTIONS_ANTIALIAS_NO_MNEMONIC);
+	assert(aa!=0);
+	gtk_check_menu_item_set_active(
+		GTK_CHECK_MENU_ITEM (aa),
+		ctx->mainctx->antialias);
 
 	/* Finally, return the actual menu bar created by the item factory. */
 	return gtk_item_factory_get_widget (item_factory, "<main>");
@@ -888,15 +896,31 @@ void do_params_dialog(gpointer _ctx, guint callback_action, GtkWidget *widget)
 	gtk_widget_destroy(dlg);
 }
 
-void toggle_hud(gpointer _ctx, guint callback_action, GtkWidget *widget)
+enum toggleable_options {
+	TOGGLE_HUD=100,
+	TOGGLE_ANTIALIAS,
+};
+
+
+void toggle_option(gpointer _ctx, guint callback_action, GtkWidget *widget)
 {
 	_gtk_ctx * ctx = (_gtk_ctx*)_ctx;
 	assert (ctx);
 
 	if (!ctx->mainctx->initializing) {
 		// There must surely be a more idiomatic way to achieve the correct initial state??
-		ctx->mainctx->draw_hud = !ctx->mainctx->draw_hud;
-		recolour(ctx->window, ctx);
+		switch (callback_action) {
+		case TOGGLE_HUD:
+			ctx->mainctx->draw_hud = !ctx->mainctx->draw_hud;
+			recolour(ctx->window, ctx);
+			break;
+		case TOGGLE_ANTIALIAS:
+			//XXX
+			break;
+		default:
+			assert(!"unhandled toggle option");
+			abort();
+		}
 	}
 }
 
@@ -953,7 +977,8 @@ int main (int argc, char**argv)
 			{ _"/Main/_Save image...", 0, (GtkItemFactoryCallback)do_save, 0, _"<StockItem>", GTK_STOCK_SAVE },
 			{ _"/Main/_Quit", _"<control>Q", gtk_main_quit, 0, _"<StockItem>", GTK_STOCK_QUIT },
 
-			{ _ OPTIONS_DRAW_HUD, _"<control>H", (GtkItemFactoryCallback)toggle_hud, 0, _"<CheckItem>" },
+			{ _ OPTIONS_DRAW_HUD, _"<control>H", (GtkItemFactoryCallback)toggle_option, TOGGLE_HUD, _"<CheckItem>" },
+			{ _ OPTIONS_ANTIALIAS, _"<control>A", (GtkItemFactoryCallback)toggle_option, TOGGLE_ANTIALIAS, _"<CheckItem>" },
 
 			{ _"/Plot/_Undo", _"<control>Z", (GtkItemFactoryCallback)do_undo, 0, _"<StockItem>", GTK_STOCK_UNDO },
 			{ _"/Plot/_Parameters", _"<control>P", (GtkItemFactoryCallback)do_params_dialog, 0, _"<StockItem>", GTK_STOCK_PROPERTIES },
@@ -975,6 +1000,7 @@ int main (int argc, char**argv)
 	render_ctx.size = { 3.0, 3.0 };
 
 	render_ctx.draw_hud = true;
+	render_ctx.antialias = false;
 	// _main_ctx.pal initial setting by setup_colour_menu().
 
 	gtk_ctx.mainctx = &render_ctx;
