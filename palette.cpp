@@ -27,8 +27,8 @@ using namespace std;
 #define DEBUG_DUMP_ALL 0
 #define DEBUG_DUMP_HSV 0
 
-rgb white(255,255,255);
-rgb black(0,0,0);
+const rgb white(255,255,255);
+const rgb black(0,0,0);
 
 std::ostream& operator<<(std::ostream &stream, rgb o) {
 	  stream << "rgb(" << (int)o.r << "," << (int)o.g << "," << (int)o.b << ")";

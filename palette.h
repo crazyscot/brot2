@@ -25,7 +25,10 @@
 #include <iostream>
 #include "Fractal.h"
 
-typedef struct rgb colour;
+class rgb;
+
+extern const rgb white;
+extern const rgb black;
 
 class hsvf {
 public:
