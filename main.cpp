@@ -61,7 +61,7 @@ typedef struct _render_ctx {
 	// Yes, the following are mostly the same as in the Plot - but the plot is torn down and recreated frequently.
 	Fractal *fractal;
 	cfpt centre, size;
-	unsigned width, height;
+	unsigned rwidth, rheight; // Rendering dimensions; plot dims will be larger if antialiased
 	bool draw_hud, antialias;
 	bool initializing; // Disables certain event actions when set.
 
@@ -124,8 +124,8 @@ static void plot_to_png(_gtk_ctx *ctx, char *filename)
 		return;
 	}
 
-	const unsigned width = ctx->mainctx->width,
-			height = ctx->mainctx->height;
+	const unsigned width = ctx->mainctx->rwidth,
+			height = ctx->mainctx->rheight;
 
 	png_init_io(png, f);
 
@@ -217,14 +217,14 @@ static void draw_hud_gdk(GtkWidget * widget, _gtk_ctx *gctx)
 	PangoLayout * lyt = gtk_widget_create_pango_layout(widget, info.c_str());
 	PangoFontDescription * fontdesc = pango_font_description_from_string ("Luxi Sans 9");
 	pango_layout_set_font_description (lyt, fontdesc);
-	pango_layout_set_width(lyt, PANGO_SCALE * rctx->width);
+	pango_layout_set_width(lyt, PANGO_SCALE * rctx->rwidth);
 	pango_layout_set_wrap(lyt, PANGO_WRAP_WORD_CHAR);
 
 	PangoRectangle rect;
 	pango_layout_get_extents(lyt, &rect, 0);
 
 	// N.B. If we want to use a gdkgc to actually render, need to use gdk_draw_text().
-	int ploty = rctx->height - PANGO_PIXELS(rect.height) - PANGO_PIXELS(rect.y) - 1;
+	int ploty = rctx->rheight - PANGO_PIXELS(rect.height) - PANGO_PIXELS(rect.y) - 1;
 
 	GdkColor white = {0,65535,65535,65535}, black = {0,0,0,0};
 	gdk_draw_layout_with_colors(dest, widget->style->white_gc,
@@ -235,14 +235,25 @@ static void draw_hud_gdk(GtkWidget * widget, _gtk_ctx *gctx)
 	g_object_unref (lyt);
 }
 
+#define ANTIALIAS_FACTOR 2
+
+
+static inline rgb render_pixel(const fractal_point *data, int local_inf, BasePalette * pal) {
+	if (data->iter == local_inf || data->iter<0) {
+		return black;
+	} else {
+		return pal->get(*data);
+	}
+}
+
 static void render_gdk(GtkWidget * widget, _gtk_ctx *gctx, int local_inf=-1, bool lock_gdk = false) {
 	GdkPixmap *dest = gctx->render;
 	GdkGC *gc = widget->style->white_gc;
 	_render_ctx * rctx = gctx->mainctx;
 
-	const gint rowbytes = rctx->width * 3;
+	const gint rowbytes = rctx->rwidth * 3;
 	const gint rowstride = rowbytes + 8-(rowbytes%8);
-	guchar *buf = new guchar[rowstride * rctx->height]; // packed 24-bit data
+	guchar *buf = new guchar[rowstride * rctx->rheight]; // packed 24-bit data
 
 	const fractal_point * data = rctx->plot->get_data();
 	if (!rctx->plot || !data) return; // Oops, disappeared under our feet
@@ -250,28 +261,60 @@ static void render_gdk(GtkWidget * widget, _gtk_ctx *gctx, int local_inf=-1, boo
 	// Slight twist: We've plotted the fractal from a bottom-left origin,
 	// but gdk assumes a top-left origin.
 
-	unsigned i;
-	int j;
-	for (j=rctx->height-1; j>=0; j--) {
-		guchar *row = &buf[j*rowstride];
-		for (i=0; i<rctx->width; i++) {
-			if (data->iter == local_inf || data->iter<0) {
-				row[0] = row[1] = row[2] = 0;
-			} else {
-				rgb col = rctx->pal->get(*data);
-				row[0] = col.r;
-				row[1] = col.g;
-				row[2] = col.b;
+	if (rctx->antialias) {
+		const fractal_point ** srcs = new const fractal_point* [ ANTIALIAS_FACTOR ];
+		unsigned i,j;
+		for (j=0; j<rctx->rheight; j++) {
+			guchar *dst = &buf[j*rowstride];
+			const unsigned src_idx = (rctx->rheight - j - 1) * ANTIALIAS_FACTOR;
+			for (int k=0; k < ANTIALIAS_FACTOR; k++) {
+				srcs[k] = &data[rctx->plot->width * (src_idx+k)];
 			}
-			row += 3;
-			++data;
+
+			for (i=0; i<rctx->rwidth; i++) {
+				unsigned rr=0, gg=0, bb=0; // Accumulate the result
+
+				for (int k=0; k < ANTIALIAS_FACTOR; k ++) {
+					for (int l=0; l < ANTIALIAS_FACTOR; l++) {
+						rgb pix1 = render_pixel(&srcs[k][l], local_inf, rctx->pal);
+						rr += pix1.r; gg += pix1.g; bb += pix1.b;
+					}
+				}
+				dst[0] = rr/(ANTIALIAS_FACTOR * ANTIALIAS_FACTOR);
+				dst[1] = gg/(ANTIALIAS_FACTOR * ANTIALIAS_FACTOR);
+				dst[2] = bb/(ANTIALIAS_FACTOR * ANTIALIAS_FACTOR);
+				dst += 3;
+				for (int k=0; k < ANTIALIAS_FACTOR; k++) {
+					srcs[k] += ANTIALIAS_FACTOR;
+				}
+			}
+		}
+
+	} else {
+		// TODO merge me in above??
+		unsigned i;
+		int j;
+		for (j=rctx->rheight-1; j>=0; j--) {
+			guchar *row = &buf[j*rowstride];
+			for (i=0; i<rctx->rwidth; i++) {
+				if (data->iter == local_inf || data->iter<0) {
+					row[0] = row[1] = row[2] = 0;
+				} else {
+					rgb col = rctx->pal->get(*data);
+					row[0] = col.r;
+					row[1] = col.g;
+					row[2] = col.b;
+				}
+				row += 3;
+				++data;
+			}
 		}
 	}
 
 	if (lock_gdk)
 		gdk_threads_enter();
 	gdk_draw_rgb_image(dest, gc,
-			0, 0, rctx->width, rctx->height, GDK_RGB_DITHER_NONE, buf, rowstride);
+			0, 0, rctx->rwidth, rctx->rheight, GDK_RGB_DITHER_NONE, buf, rowstride);
 	if (rctx->draw_hud)
 		draw_hud_gdk(widget, gctx);
 	if (lock_gdk)
@@ -423,28 +466,28 @@ static void do_plot(GtkWidget *widget, _gtk_ctx *ctx, bool is_same_plot = false)
 
 	if (!ctx->render) {
 		ctx->render = gdk_pixmap_new(widget->window,
-				ctx->mainctx->width,
-				ctx->mainctx->height,
+				ctx->mainctx->rwidth,
+				ctx->mainctx->rheight,
 				-1);
 		// mid_gc[0] gives us grey.
-		gdk_draw_rectangle(ctx->render, widget->style->mid_gc[0], true, 0, 0, ctx->mainctx->width, ctx->mainctx->height);
+		gdk_draw_rectangle(ctx->render, widget->style->mid_gc[0], true, 0, 0, ctx->mainctx->rwidth, ctx->mainctx->rheight);
 	}
 
 	gtk_progress_bar_set_text(ctx->progressbar, "Plotting pass 1...");
 
 	double aspect;
 
-	aspect = (double)ctx->mainctx->width / ctx->mainctx->height;
+	aspect = (double)ctx->mainctx->rwidth / ctx->mainctx->rheight;
 	if (imag(ctx->mainctx->size) * aspect != real(ctx->mainctx->size)) {
 		ctx->mainctx->size.imag(real(ctx->mainctx->size)/aspect);
 		ctx->aspectfix=1;
 	}
-	if (fabs(real(ctx->mainctx->size)/ctx->mainctx->width) < MINIMUM_PIXEL_SIZE) {
-		ctx->mainctx->size.real(MINIMUM_PIXEL_SIZE*ctx->mainctx->width);
+	if (fabs(real(ctx->mainctx->size)/ctx->mainctx->rwidth) < MINIMUM_PIXEL_SIZE) {
+		ctx->mainctx->size.real(MINIMUM_PIXEL_SIZE*ctx->mainctx->rwidth);
 		ctx->clip = 1;
 	}
-	if (fabs(imag(ctx->mainctx->size)/ctx->mainctx->height) < MINIMUM_PIXEL_SIZE) {
-		ctx->mainctx->size.imag(MINIMUM_PIXEL_SIZE*ctx->mainctx->height);
+	if (fabs(imag(ctx->mainctx->size)/ctx->mainctx->rheight) < MINIMUM_PIXEL_SIZE) {
+		ctx->mainctx->size.imag(MINIMUM_PIXEL_SIZE*ctx->mainctx->rheight);
 		ctx->clip = 1;
 	}
 
@@ -470,7 +513,13 @@ static void do_plot(GtkWidget *widget, _gtk_ctx *ctx, bool is_same_plot = false)
 	}
 
 	assert(!ctx->mainctx->plot);
-	ctx->mainctx->plot = new Plot2(ctx->mainctx->fractal, ctx->mainctx->centre, ctx->mainctx->size, ctx->mainctx->width, ctx->mainctx->height);
+	unsigned pwidth = ctx->mainctx->rwidth,
+			pheight = ctx->mainctx->rheight;
+	if (ctx->mainctx->antialias) {
+		pwidth *= ANTIALIAS_FACTOR;
+		pheight *= ANTIALIAS_FACTOR;
+	}
+	ctx->mainctx->plot = new Plot2(ctx->mainctx->fractal, ctx->mainctx->centre, ctx->mainctx->size, pwidth, pheight);
 	ctx->mainctx->plot->start(ctx);
 	// TODO try/catch (and in do_resume) - report failure. Is gtkmm exception-safe?
 }
@@ -495,11 +544,11 @@ static void do_resize(GtkWidget *widget, _gtk_ctx *ctx, unsigned width, unsigned
 {
 	safe_stop_plot(ctx->mainctx->plot);
 
-	if ((ctx->mainctx->width != width) ||
-			(ctx->mainctx->height != height)) {
+	if ((ctx->mainctx->rwidth != width) ||
+			(ctx->mainctx->rheight != height)) {
 		// Size has changed!
-		ctx->mainctx->width = width;
-		ctx->mainctx->height = height;
+		ctx->mainctx->rwidth = width;
+		ctx->mainctx->rheight = height;
 		if (ctx->render) {
 			g_object_unref(ctx->render);
 			ctx->render = 0;
@@ -616,8 +665,8 @@ static void do_undo(gpointer _ctx, guint callback_action, GtkWidget *widget)
 
 	main->centre = main->plot->centre;
 	main->size = main->plot->size;
-	main->width = main->plot->width;
-	main->height = main->plot->height;
+	main->rwidth = main->plot->width;
+	main->rheight = main->plot->height;
 	recolour(ctx->window, ctx);
 }
 
@@ -915,7 +964,9 @@ void toggle_option(gpointer _ctx, guint callback_action, GtkWidget *widget)
 			recolour(ctx->window, ctx);
 			break;
 		case TOGGLE_ANTIALIAS:
-			//XXX
+			ctx->mainctx->antialias = !ctx->mainctx->antialias;
+			safe_stop_plot(ctx->mainctx->plot);
+			do_plot(ctx->window, ctx, false);
 			break;
 		default:
 			assert(!"unhandled toggle option");
