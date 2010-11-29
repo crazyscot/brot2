@@ -703,11 +703,21 @@ static void do_zoom(gpointer _ctx, guint callback_action, GtkWidget *widget)
 	}
 }
 
+cfpt pixel_to_set_tlo(_render_ctx *ctx, int x, int y)
+{
+	if (ctx->antialias) {
+		// scale up our click to the plot point within
+		x *= ANTIALIAS_FACTOR;
+		y *= ANTIALIAS_FACTOR;
+	}
+	return ctx->plot->pixel_to_set_tlo(x,y);
+}
+
 static gboolean button_press_event( GtkWidget *widget, GdkEventButton *event, gpointer *dat )
 {
 	_gtk_ctx * ctx = (_gtk_ctx*) dat;
 	if (ctx->render != NULL) {
-		cfpt new_ctr = ctx->mainctx->plot->pixel_to_set_tlo(event->x, event->y);
+		cfpt new_ctr = pixel_to_set_tlo(ctx->mainctx, event->x, event->y);
 
 		if (event->button >= 1 && event->button <= 3) {
 			ctx->mainctx->centre = new_ctr;
@@ -775,8 +785,8 @@ static gboolean button_release_event( GtkWidget *widget, GdkEventButton *event, 
 		if (silly) {
 			recolour(ctx->window, ctx); // Repaint over the dragrect
 		} else {
-			cfpt TR = ctx->mainctx->plot->pixel_to_set_tlo(r,t);
-			cfpt BL = ctx->mainctx->plot->pixel_to_set_tlo(l,b);
+			cfpt TR = pixel_to_set_tlo(ctx->mainctx, r, t);
+			cfpt BL = pixel_to_set_tlo(ctx->mainctx, l, b);
 			ctx->mainctx->centre = (TR+BL)/(fvalue)2.0;
 			ctx->mainctx->size = TR - BL;
 
