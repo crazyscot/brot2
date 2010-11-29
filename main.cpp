@@ -237,13 +237,70 @@ static void draw_hud_gdk(GtkWidget * widget, _gtk_ctx *gctx)
 
 #define ANTIALIAS_FACTOR 2
 
-
-static inline rgb render_pixel(const fractal_point *data, int local_inf, BasePalette * pal) {
+/*
+ * Renders a single pixel, given the current idea of infinity and the palette to use.
+ */
+static inline rgb render_pixel(const fractal_point *data, const int local_inf, const BasePalette * pal) {
 	if (data->iter == local_inf || data->iter<0) {
 		return black;
 	} else {
 		return pal->get(*data);
 	}
+}
+
+/*
+ * The actual work of turning an array of fractal_points - maybe an antialiased
+ * set - into a packed array of RGB triplets (i.e. 24 bits per pixel).
+ *
+ * rowstride: the size of an output row, in bytes. In other words the byte offset
+ * from one row to the next - which may be different from 3 * rctx->rwidth if any
+ * padding is required.
+ * local_inf: the local plot's current idea of infinity.
+ * (N.B. -1 is always treated as infinity.)
+ *
+ * Returns: The rendered bytes. This has been ALLOCATED with new[] !
+ */
+static guchar* render_plot_generic(guchar *buf, const _render_ctx *rctx, const gint rowstride, const int local_inf=-1)
+{
+	assert((unsigned)rowstride >= 3 * rctx->rwidth);
+
+	const fractal_point * data = rctx->plot->get_data();
+	if (!rctx->plot || !data) return 0; // Oops, disappeared under our feet
+
+	// Slight twist: We've plotted the fractal from a bottom-left origin,
+	// but gdk assumes a top-left origin.
+
+	const unsigned factor = rctx->antialias ? ANTIALIAS_FACTOR : 1;
+
+	const fractal_point ** srcs = new const fractal_point* [ factor ];
+	unsigned i,j;
+	for (j=0; j<rctx->rheight; j++) {
+		guchar *dst = &buf[j*rowstride];
+		const unsigned src_idx = (rctx->rheight - j - 1) * factor;
+		for (unsigned k=0; k < factor; k++) {
+			srcs[k] = &data[rctx->plot->width * (src_idx+k)];
+		}
+
+		for (i=0; i<rctx->rwidth; i++) {
+			unsigned rr=0, gg=0, bb=0; // Accumulate the result
+
+			for (unsigned k=0; k < factor; k ++) {
+				for (unsigned l=0; l < factor; l++) {
+					rgb pix1 = render_pixel(&srcs[k][l], local_inf, rctx->pal);
+					rr += pix1.r; gg += pix1.g; bb += pix1.b;
+				}
+			}
+			dst[0] = rr/(factor * factor);
+			dst[1] = gg/(factor * factor);
+			dst[2] = bb/(factor * factor);
+			dst += 3;
+			for (unsigned k=0; k < factor; k++) {
+				srcs[k] += factor;
+			}
+		}
+	}
+
+	return buf;
 }
 
 static void render_gdk(GtkWidget * widget, _gtk_ctx *gctx, int local_inf=-1, bool lock_gdk = false) {
@@ -253,62 +310,12 @@ static void render_gdk(GtkWidget * widget, _gtk_ctx *gctx, int local_inf=-1, boo
 
 	const gint rowbytes = rctx->rwidth * 3;
 	const gint rowstride = rowbytes + 8-(rowbytes%8);
+
 	guchar *buf = new guchar[rowstride * rctx->rheight]; // packed 24-bit data
 
-	const fractal_point * data = rctx->plot->get_data();
-	if (!rctx->plot || !data) return; // Oops, disappeared under our feet
-
-	// Slight twist: We've plotted the fractal from a bottom-left origin,
-	// but gdk assumes a top-left origin.
-
-	if (rctx->antialias) {
-		const fractal_point ** srcs = new const fractal_point* [ ANTIALIAS_FACTOR ];
-		unsigned i,j;
-		for (j=0; j<rctx->rheight; j++) {
-			guchar *dst = &buf[j*rowstride];
-			const unsigned src_idx = (rctx->rheight - j - 1) * ANTIALIAS_FACTOR;
-			for (int k=0; k < ANTIALIAS_FACTOR; k++) {
-				srcs[k] = &data[rctx->plot->width * (src_idx+k)];
-			}
-
-			for (i=0; i<rctx->rwidth; i++) {
-				unsigned rr=0, gg=0, bb=0; // Accumulate the result
-
-				for (int k=0; k < ANTIALIAS_FACTOR; k ++) {
-					for (int l=0; l < ANTIALIAS_FACTOR; l++) {
-						rgb pix1 = render_pixel(&srcs[k][l], local_inf, rctx->pal);
-						rr += pix1.r; gg += pix1.g; bb += pix1.b;
-					}
-				}
-				dst[0] = rr/(ANTIALIAS_FACTOR * ANTIALIAS_FACTOR);
-				dst[1] = gg/(ANTIALIAS_FACTOR * ANTIALIAS_FACTOR);
-				dst[2] = bb/(ANTIALIAS_FACTOR * ANTIALIAS_FACTOR);
-				dst += 3;
-				for (int k=0; k < ANTIALIAS_FACTOR; k++) {
-					srcs[k] += ANTIALIAS_FACTOR;
-				}
-			}
-		}
-
-	} else {
-		// TODO merge me in above??
-		unsigned i;
-		int j;
-		for (j=rctx->rheight-1; j>=0; j--) {
-			guchar *row = &buf[j*rowstride];
-			for (i=0; i<rctx->rwidth; i++) {
-				if (data->iter == local_inf || data->iter<0) {
-					row[0] = row[1] = row[2] = 0;
-				} else {
-					rgb col = rctx->pal->get(*data);
-					row[0] = col.r;
-					row[1] = col.g;
-					row[2] = col.b;
-				}
-				row += 3;
-				++data;
-			}
-		}
+	if (!render_plot_generic(buf, rctx, rowstride, local_inf)) { // Oops, it vanished
+		delete[] buf;
+		return;
 	}
 
 	if (lock_gdk)
