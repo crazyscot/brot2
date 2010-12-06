@@ -200,10 +200,12 @@ void Plot2::_per_plot_threadfunc()
 {
 	Glib::Mutex::Lock _auto (plot_lock);
 	unsigned i, passcount=plotted_passes, delta_threshold = width * height * LIVE_THRESHOLD_FRACT;
-	const unsigned NJOBS = height / (10000 / width + 1);
+	unsigned joblines = (10000 / width + 1); // 10k points is a good number to do as a batch; round up to nearest line
+	const unsigned NJOBS = (height < joblines) ? 1 : height / joblines;
 	bool live = true;
 
 	const unsigned step = (height + NJOBS - 1) / NJOBS;
+	assert(step > 0);
 	// Must round up to avoid a gap.
 
 	if (!jobs) {
