@@ -981,8 +981,8 @@ void toggle_option(gpointer _ctx, guint callback_action, GtkWidget *widget)
 			recolour(ctx->window, ctx);
 			break;
 		case TOGGLE_ANTIALIAS:
-			ctx->mainctx->antialias = !ctx->mainctx->antialias;
 			safe_stop_plot(ctx->mainctx->plot);
+			ctx->mainctx->antialias = !ctx->mainctx->antialias;
 			do_plot(ctx->window, ctx, false);
 			break;
 		default:
