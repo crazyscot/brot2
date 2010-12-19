@@ -98,7 +98,7 @@ typedef struct _gtk_ctx : Plot2::callback_t {
 	gtk_widget_destroy (dialog);											\
 } while(0)
 
-#define BYTES_PER_PIXEL 3
+#define RGB_BYTES_PER_PIXEL 3
 
 static void draw_hud_gdk(GtkWidget * widget, _gtk_ctx *gctx)
 {
@@ -157,7 +157,7 @@ static inline rgb render_pixel(const fractal_point *data, const int local_inf, c
  */
 static bool render_plot_generic(guchar *buf, const _render_ctx *rctx, const gint rowstride, const int local_inf=-1)
 {
-	assert((unsigned)rowstride >= 3 * rctx->rwidth);
+	assert((unsigned)rowstride >= RGB_BYTES_PER_PIXEL * rctx->rwidth);
 
 	const fractal_point * data = rctx->plot->get_data();
 	if (!rctx->plot || !data) return false; // Oops, disappeared under our feet
@@ -188,7 +188,7 @@ static bool render_plot_generic(guchar *buf, const _render_ctx *rctx, const gint
 			dst[0] = rr/(factor * factor);
 			dst[1] = gg/(factor * factor);
 			dst[2] = bb/(factor * factor);
-			dst += 3;
+			dst += RGB_BYTES_PER_PIXEL;
 			for (unsigned k=0; k < factor; k++) {
 				srcs[k] += factor;
 			}
@@ -244,7 +244,7 @@ static void plot_to_png(_gtk_ctx *ctx, char *filename)
 
 	png_write_info(png, png_info);
 
-	const int rowstride = BYTES_PER_PIXEL * width;
+	const int rowstride = RGB_BYTES_PER_PIXEL * width;
 
 	guchar * pngbuf = new guchar[rowstride * height];
 	render_plot_generic(pngbuf, ctx->mainctx, rowstride);
@@ -302,7 +302,7 @@ static void render_gdk(GtkWidget * widget, _gtk_ctx *gctx, int local_inf=-1, boo
 	GdkGC *gc = widget->style->white_gc;
 	_render_ctx * rctx = gctx->mainctx;
 
-	const gint rowbytes = rctx->rwidth * 3;
+	const gint rowbytes = rctx->rwidth * RGB_BYTES_PER_PIXEL;
 	const gint rowstride = rowbytes + 8-(rowbytes%8);
 
 	guchar *buf = new guchar[rowstride * rctx->rheight]; // packed 24-bit data
