@@ -1123,6 +1123,12 @@ int main (int argc, char**argv)
 	gtk_widget_show_all(window);
 	gtk_main();
 	gdk_threads_leave();
+	// Do not delete the fractal before the plot has been stopped, otherwise
+	// a crash is inevitable if the user quits mid-plot.
+	if (render_ctx.plot) {
+		render_ctx.plot->stop();
+		render_ctx.plot->wait();
+	}
 	delete render_ctx.fractal;
 	return 0;
 }

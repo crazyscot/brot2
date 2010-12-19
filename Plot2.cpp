@@ -372,6 +372,7 @@ void Plot2::_worker_threadfunc(worker_job * job) {
 			}
 			++out_index;
 		}
+		if (_abort) break;
 	}
 
 	awaken(true);
