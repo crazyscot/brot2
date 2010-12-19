@@ -252,20 +252,23 @@ static inline rgb render_pixel(const fractal_point *data, const int local_inf, c
  * The actual work of turning an array of fractal_points - maybe an antialiased
  * set - into a packed array of RGB triplets (i.e. 24 bits per pixel).
  *
+ * buf: Where to put the data. This should be at least (rowstride * rctx->height)
+ * bytes long.
  * rowstride: the size of an output row, in bytes. In other words the byte offset
  * from one row to the next - which may be different from 3 * rctx->rwidth if any
  * padding is required.
  * local_inf: the local plot's current idea of infinity.
  * (N.B. -1 is always treated as infinity.)
  *
- * Returns: The rendered bytes. This has been ALLOCATED with new[] !
+ * Returns: True if the render completed, false if the plot disappeared under
+ * our feet (typically by the user doing something to cause us to render afresh).
  */
-static guchar* render_plot_generic(guchar *buf, const _render_ctx *rctx, const gint rowstride, const int local_inf=-1)
+static bool render_plot_generic(guchar *buf, const _render_ctx *rctx, const gint rowstride, const int local_inf=-1)
 {
 	assert((unsigned)rowstride >= 3 * rctx->rwidth);
 
 	const fractal_point * data = rctx->plot->get_data();
-	if (!rctx->plot || !data) return 0; // Oops, disappeared under our feet
+	if (!rctx->plot || !data) return false; // Oops, disappeared under our feet
 
 	// Slight twist: We've plotted the fractal from a bottom-left origin,
 	// but gdk assumes a top-left origin.
@@ -300,7 +303,7 @@ static guchar* render_plot_generic(guchar *buf, const _render_ctx *rctx, const g
 		}
 	}
 
-	return buf;
+	return true;
 }
 
 static void render_gdk(GtkWidget * widget, _gtk_ctx *gctx, int local_inf=-1, bool lock_gdk = false) {
