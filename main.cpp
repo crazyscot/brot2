@@ -54,6 +54,8 @@ static gint dragrect_origin_x, dragrect_origin_y,
  * use GtkUIManager instead of GtkItemFactory
  */
 
+#define DEFAULT_ANTIALIAS_FACTOR 2
+
 typedef struct _render_ctx {
 	Plot2 * plot;
 	Plot2 * plot_prev;
@@ -63,9 +65,10 @@ typedef struct _render_ctx {
 	cfpt centre, size;
 	unsigned rwidth, rheight; // Rendering dimensions; plot dims will be larger if antialiased
 	bool draw_hud, antialias;
+	unsigned antialias_factor;
 	bool initializing; // Disables certain event actions when set.
 
-	_render_ctx(): initializing(true) {};
+	_render_ctx(): antialias_factor(DEFAULT_ANTIALIAS_FACTOR), initializing(true) {};
 	~_render_ctx() { if (plot) delete plot; if (plot_prev) delete plot_prev; }
 
 } _render_ctx;
@@ -127,8 +130,6 @@ static void draw_hud_gdk(GtkWidget * widget, _gtk_ctx *gctx)
 	g_object_unref (lyt);
 }
 
-#define ANTIALIAS_FACTOR 2
-
 /*
  * Renders a single pixel, given the current idea of infinity and the palette to use.
  */
@@ -165,7 +166,7 @@ static bool render_plot_generic(guchar *buf, const _render_ctx *rctx, const gint
 	// Slight twist: We've plotted the fractal from a bottom-left origin,
 	// but gdk assumes a top-left origin.
 
-	const unsigned factor = rctx->antialias ? ANTIALIAS_FACTOR : 1;
+	const unsigned factor = rctx->antialias ? rctx->antialias_factor : 1;
 
 	const fractal_point ** srcs = new const fractal_point* [ factor ];
 	unsigned i,j;
@@ -528,8 +529,8 @@ static void do_plot(GtkWidget *widget, _gtk_ctx *ctx, bool is_same_plot = false)
 	unsigned pwidth = ctx->mainctx->rwidth,
 			pheight = ctx->mainctx->rheight;
 	if (ctx->mainctx->antialias) {
-		pwidth *= ANTIALIAS_FACTOR;
-		pheight *= ANTIALIAS_FACTOR;
+		pwidth *= ctx->mainctx->antialias_factor;
+		pheight *= ctx->mainctx->antialias_factor;
 	}
 	ctx->mainctx->plot = new Plot2(ctx->mainctx->fractal, ctx->mainctx->centre, ctx->mainctx->size, pwidth, pheight);
 	ctx->mainctx->plot->start(ctx);
@@ -719,8 +720,8 @@ cfpt pixel_to_set_tlo(_render_ctx *ctx, int x, int y)
 {
 	if (ctx->antialias) {
 		// scale up our click to the plot point within
-		x *= ANTIALIAS_FACTOR;
-		y *= ANTIALIAS_FACTOR;
+		x *= ctx->antialias_factor;
+		y *= ctx->antialias_factor;
 	}
 	return ctx->plot->pixel_to_set_tlo(x,y);
 }
