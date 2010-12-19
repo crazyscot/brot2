@@ -264,6 +264,8 @@ static void plot_to_png(_gtk_ctx *ctx, char *filename)
 		ALERT_DIALOG(ctx->window, "Error closing the save: %d: %s", errno, strerror(errno));
 }
 
+static string last_saved_dirname;
+
 static void do_save(gpointer _ctx, guint callback_action, GtkWidget *widget)
 {
 	_gtk_ctx *ctx = (_gtk_ctx*) _ctx;
@@ -276,10 +278,12 @@ static void do_save(gpointer _ctx, guint callback_action, GtkWidget *widget)
 					      NULL);
 	gtk_file_chooser_set_do_overwrite_confirmation (GTK_FILE_CHOOSER (dialog), TRUE);
 
-	{
+	if (!last_saved_dirname.length()) {
 		ostringstream str;
 		str << "/home/" << getenv("USERNAME") << "/Documents/";
 		gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (dialog), str.str().c_str());
+	} else {
+		gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (dialog), last_saved_dirname.c_str());
 	}
 
 	{
@@ -291,7 +295,14 @@ static void do_save(gpointer _ctx, guint callback_action, GtkWidget *widget)
     if (gtk_dialog_run (GTK_DIALOG (dialog)) == GTK_RESPONSE_ACCEPT) {
     	char *filename;
     	filename = gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (dialog));
+    	last_saved_dirname.clear();
     	plot_to_png(ctx, filename);
+
+    	last_saved_dirname.append(filename);
+    	int spos = last_saved_dirname.rfind('/');
+    	if (spos >= 0)
+    		last_saved_dirname.erase(spos+1);
+
     	g_free (filename);
     }
     gtk_widget_destroy (dialog);
