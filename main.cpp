@@ -98,115 +98,7 @@ typedef struct _gtk_ctx : Plot2::callback_t {
 	gtk_widget_destroy (dialog);											\
 } while(0)
 
-static void plot_to_png(_gtk_ctx *ctx, char *filename)
-{
-	FILE *f;
-
-	f = fopen(filename, "wb");
-	if (f==NULL) {
-		ALERT_DIALOG(ctx->window, "Could not open file for writing: %d (%s)", errno, strerror(errno));
-		return;
-	}
-
-	png_structp png = png_create_write_struct(PNG_LIBPNG_VER_STRING, 0, 0, 0);
-	png_infop png_info=0;
-	if (png)
-		png_info = png_create_info_struct(png);
-	if (!png_info) {
-		ALERT_DIALOG(ctx->window, "Could not create PNG structs (out of memory?)");
-		if (png)
-			png_destroy_write_struct(&png, 0);
-		return;
-	}
-	jmp_buf jbuf;
-	if (setjmp(jbuf)) {
-		fclose(f);
-		return;
-	}
-
-	const unsigned width = ctx->mainctx->rwidth,
-			height = ctx->mainctx->rheight;
-
-	png_init_io(png, f);
-
-	png_set_compression_level(png, Z_BEST_SPEED);
-	png_set_IHDR(png, png_info,
-			width, height, 8 /* 24bpp */,
-			PNG_COLOR_TYPE_RGB, PNG_INTERLACE_NONE,
-			PNG_COMPRESSION_TYPE_DEFAULT, PNG_FILTER_TYPE_DEFAULT);
-
-	string comment = ctx->mainctx->plot->info(true);
-	png_text texts[2] = {
-			{PNG_TEXT_COMPRESSION_NONE, (char*)"Software", (char*)"brot2"},
-			{PNG_TEXT_COMPRESSION_NONE, (char*)"Comment", (char*)comment.c_str()},
-	};
-	png_set_text(png, png_info, texts, 2);
-
-	png_write_info(png, png_info);
 #define BYTES_PER_PIXEL 3
-	png_byte row[width * BYTES_PER_PIXEL];
-	png_bytep rowp = row;
-
-	const fractal_point * const origin = ctx->mainctx->plot->get_data();
-
-	for (int k=height-1; k>-1; k--) {
-		const fractal_point * pdata = origin + width * k;
-		png_bytep out = row;
-		for (unsigned l=0; l<width; l++) {
-			if (pdata->iter < 0) {
-				out[0] = out[1] = out[2] = 0;
-			} else {
-				rgb col = ctx->mainctx->pal->get(*pdata);
-				out[0] = col.r;
-				out[1] = col.g;
-				out[2] = col.b;
-			}
-			out += BYTES_PER_PIXEL;
-			pdata++;
-		}
-		png_write_rows(png, &rowp, 1);
-	}
-	png_write_end(png,png_info);
-	png_destroy_write_struct(&png, &png_info);
-
-	if (0==fclose(f))
-		gtk_progress_bar_set_text(ctx->progressbar, "Successfully saved");
-	else
-		ALERT_DIALOG(ctx->window, "Error closing the save: %d: %s", errno, strerror(errno));
-}
-
-static void do_save(gpointer _ctx, guint callback_action, GtkWidget *widget)
-{
-	_gtk_ctx *ctx = (_gtk_ctx*) _ctx;
-	GtkWidget *dialog;
-	dialog = gtk_file_chooser_dialog_new ("Save File",
-					      GTK_WINDOW(ctx->window),
-					      GTK_FILE_CHOOSER_ACTION_SAVE,
-					      GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
-					      GTK_STOCK_SAVE, GTK_RESPONSE_ACCEPT,
-					      NULL);
-	gtk_file_chooser_set_do_overwrite_confirmation (GTK_FILE_CHOOSER (dialog), TRUE);
-
-	{
-		ostringstream str;
-		str << "/home/" << getenv("USERNAME") << "/Documents/";
-		gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (dialog), str.str().c_str());
-	}
-
-	{
-		ostringstream str;
-		str << ctx->mainctx->plot->info().c_str() << ".png";
-		gtk_file_chooser_set_current_name (GTK_FILE_CHOOSER (dialog), str.str().c_str());
-	}
-
-    if (gtk_dialog_run (GTK_DIALOG (dialog)) == GTK_RESPONSE_ACCEPT) {
-    	char *filename;
-    	filename = gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (dialog));
-    	plot_to_png(ctx, filename);
-    	g_free (filename);
-    }
-    gtk_widget_destroy (dialog);
-}
 
 static void draw_hud_gdk(GtkWidget * widget, _gtk_ctx *gctx)
 {
@@ -304,6 +196,105 @@ static bool render_plot_generic(guchar *buf, const _render_ctx *rctx, const gint
 	}
 
 	return true;
+}
+
+static void plot_to_png(_gtk_ctx *ctx, char *filename)
+{
+	FILE *f;
+
+	f = fopen(filename, "wb");
+	if (f==NULL) {
+		ALERT_DIALOG(ctx->window, "Could not open file for writing: %d (%s)", errno, strerror(errno));
+		return;
+	}
+
+	png_structp png = png_create_write_struct(PNG_LIBPNG_VER_STRING, 0, 0, 0);
+	png_infop png_info=0;
+	if (png)
+		png_info = png_create_info_struct(png);
+	if (!png_info) {
+		ALERT_DIALOG(ctx->window, "Could not create PNG structs (out of memory?)");
+		if (png)
+			png_destroy_write_struct(&png, 0);
+		return;
+	}
+	jmp_buf jbuf;
+	if (setjmp(jbuf)) {
+		fclose(f);
+		return;
+	}
+
+	const unsigned width = ctx->mainctx->rwidth,
+			height = ctx->mainctx->rheight;
+
+	png_init_io(png, f);
+
+	png_set_compression_level(png, Z_BEST_SPEED);
+	png_set_IHDR(png, png_info,
+			width, height, 8 /* 24bpp */,
+			PNG_COLOR_TYPE_RGB, PNG_INTERLACE_NONE,
+			PNG_COMPRESSION_TYPE_DEFAULT, PNG_FILTER_TYPE_DEFAULT);
+
+	string comment = ctx->mainctx->plot->info(true);
+	png_text texts[2] = {
+			{PNG_TEXT_COMPRESSION_NONE, (char*)"Software", (char*)"brot2"},
+			{PNG_TEXT_COMPRESSION_NONE, (char*)"Comment", (char*)comment.c_str()},
+	};
+	png_set_text(png, png_info, texts, 2);
+
+	png_write_info(png, png_info);
+
+	const int rowstride = BYTES_PER_PIXEL * width;
+
+	guchar * pngbuf = new guchar[rowstride * height];
+	render_plot_generic(pngbuf, ctx->mainctx, rowstride);
+	guchar ** pngrows = new guchar*[height];
+	for (unsigned i=0; i<height; i++) {
+		pngrows[i] = pngbuf + rowstride*i;
+	}
+	png_write_image(png, pngrows);
+	delete[] pngrows;
+	delete[] pngbuf;
+	png_write_end(png,png_info);
+	png_destroy_write_struct(&png, &png_info);
+
+	if (0==fclose(f))
+		gtk_progress_bar_set_text(ctx->progressbar, "Successfully saved");
+	else
+		ALERT_DIALOG(ctx->window, "Error closing the save: %d: %s", errno, strerror(errno));
+}
+
+static void do_save(gpointer _ctx, guint callback_action, GtkWidget *widget)
+{
+	_gtk_ctx *ctx = (_gtk_ctx*) _ctx;
+	GtkWidget *dialog;
+	dialog = gtk_file_chooser_dialog_new ("Save File",
+					      GTK_WINDOW(ctx->window),
+					      GTK_FILE_CHOOSER_ACTION_SAVE,
+					      GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
+					      GTK_STOCK_SAVE, GTK_RESPONSE_ACCEPT,
+					      NULL);
+	gtk_file_chooser_set_do_overwrite_confirmation (GTK_FILE_CHOOSER (dialog), TRUE);
+
+	{
+		ostringstream str;
+		str << "/home/" << getenv("USERNAME") << "/Documents/";
+		gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (dialog), str.str().c_str());
+	}
+
+	{
+		ostringstream str;
+		str << ctx->mainctx->plot->info().c_str() << ".png";
+		gtk_file_chooser_set_current_name (GTK_FILE_CHOOSER (dialog), str.str().c_str());
+	}
+
+    if (gtk_dialog_run (GTK_DIALOG (dialog)) == GTK_RESPONSE_ACCEPT) {
+    	char *filename;
+    	filename = gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (dialog));
+    	plot_to_png(ctx, filename);
+    	g_free (filename);
+    }
+    gtk_widget_destroy (dialog);
 }
 
 static void render_gdk(GtkWidget * widget, _gtk_ctx *gctx, int local_inf=-1, bool lock_gdk = false) {
