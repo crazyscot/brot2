@@ -50,6 +50,7 @@ public:
 class _consts {
 public:
 	static const fvalue log2;
+	static const fvalue log3;
 };
 
 // Base fractal definition. An instance knows all about a fractal _type_
