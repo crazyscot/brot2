@@ -26,8 +26,14 @@ std::map<std::string,Fractal*> Fractal::registry;
 const fvalue _consts::log2 = log(2.0);
 _consts consts;
 
-Mandelbrot::Mandelbrot() : Fractal("Mandelbrot", -3.0, 3.0, -3.0, 3.0) {}
-Mandelbrot::~Mandelbrot() {}
+class Mandelbrot : public Fractal {
+public:
+	Mandelbrot(std::string name_, fvalue xmin_=-3.0, fvalue xmax_=3.0, fvalue ymin_=-3.0, fvalue ymax_=3.0) : Fractal(name_, xmin_, xmax_, ymin_, ymax_) {};
+	~Mandelbrot() {};
+
+	virtual void prepare_pixel(const cfpt coords, fractal_point& out) const;
+	virtual void plot_pixel(const int maxiter, fractal_point& iters_out) const;
+};
 
 void Mandelbrot::prepare_pixel(const cfpt coords, fractal_point& out) const
 {
@@ -86,4 +92,5 @@ void Mandelbrot::plot_pixel(const int maxiter, fractal_point& out) const
 	out.point = cfpt(z_re,z_im);
 }
 
-Mandelbrot mandelbrot;
+Mandelbrot mandelbrot("Mandelbrot");
+

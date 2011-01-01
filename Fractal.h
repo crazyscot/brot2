@@ -96,12 +96,4 @@ private:
 	}
 };
 
-class Mandelbrot : public Fractal {
-public:
-	Mandelbrot();
-	~Mandelbrot();
-	virtual void prepare_pixel(const cfpt coords, fractal_point& out) const;
-	virtual void plot_pixel(const int maxiter, fractal_point& iters_out) const;
-};
-
 #endif /* FRACTAL_H_ */
