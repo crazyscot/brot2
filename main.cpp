@@ -78,13 +78,13 @@ typedef struct _gtk_ctx : Plot2::callback_t {
 	GtkWidget *window;
 	GdkPixmap *render;
 	GtkProgressBar* progressbar;
-	GtkWidget * colour_menu;
-	GSList * colours_radio_group;
+	GtkWidget *colour_menu, *fractal_menu;
+	GSList *colours_radio_group, *fractal_radio_group;
 
 	struct timeval tv_start; // When did the current render start?
 	bool aspectfix, clip; // Details about the current render
 
-	_gtk_ctx() : mainctx(0), window(0), render(0), colour_menu(0), colours_radio_group(0) {};
+	_gtk_ctx() : mainctx(0), window(0), render(0), colour_menu(0), colours_radio_group(0), fractal_radio_group(0) {};
 
 	virtual void plot_progress_minor(Plot2& plot, float workdone);
 	virtual void plot_progress_major(Plot2& plot, unsigned current_max, string& commentary);
@@ -591,7 +591,6 @@ static void colour_menu_selection1(gpointer *dat, GtkMenuItem *mi)
 	colour_menu_selection(ctx, lbl);
 }
 
-
 static void setup_colour_menu(_gtk_ctx *ctx, GtkWidget *menubar, string initial)
 {
 	ctx->colour_menu = gtk_menu_new();
@@ -641,6 +640,51 @@ static void setup_colour_menu(_gtk_ctx *ctx, GtkWidget *menubar, string initial)
     gtk_menu_item_set_submenu (GTK_MENU_ITEM (colour_item), ctx->colour_menu);
     gtk_menu_bar_append(GTK_MENU_BAR(menubar), colour_item);
 }
+
+
+static void fractal_menu_selection(_gtk_ctx *ctx, string lbl)
+{
+	Fractal *sel = Fractal::registry[lbl];
+	if (sel) {
+		ctx->mainctx->fractal = sel;
+		if (ctx->mainctx->plot)
+			do_plot(ctx->window, ctx);
+	}
+}
+
+static void fractal_menu_selection1(gpointer *dat, GtkMenuItem *mi)
+{
+	const char * lbl = gtk_menu_item_get_label(mi);
+	_gtk_ctx * ctx = (_gtk_ctx*) dat;
+	fractal_menu_selection(ctx, lbl);
+}
+
+static void setup_fractal_menu(_gtk_ctx *ctx, GtkWidget *menubar, string initial)
+{
+	ctx->fractal_menu = gtk_menu_new();
+
+	std::map<std::string,Fractal*>::iterator it;
+	for (it = Fractal::registry.begin(); it != Fractal::registry.end(); it++) {
+		GtkWidget * item = gtk_radio_menu_item_new_with_label(ctx->fractal_radio_group, it->first.c_str());
+		ctx->fractal_radio_group = gtk_radio_menu_item_get_group(GTK_RADIO_MENU_ITEM(item));
+
+		gtk_menu_append(GTK_MENU(ctx->fractal_menu), item);
+		if (0==strcmp(initial.c_str(),it->second->name.c_str())) {
+			gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(item), TRUE);
+		}
+		gtk_signal_connect_object(GTK_OBJECT(item), "activate", GTK_SIGNAL_FUNC(fractal_menu_selection1), ctx);
+		gtk_widget_show(item);
+	}
+
+	fractal_menu_selection(ctx, initial);
+
+    GtkWidget* fractal_item = gtk_menu_item_new_with_mnemonic ("_Fractal");
+    gtk_widget_show (fractal_item);
+
+    gtk_menu_item_set_submenu (GTK_MENU_ITEM (fractal_item), ctx->fractal_menu);
+    gtk_menu_bar_append(GTK_MENU_BAR(menubar), fractal_item);
+}
+
 
 static gboolean configure_event(GtkWidget *widget, GdkEventConfigure *event, gpointer *dat)
 {
@@ -1069,13 +1113,13 @@ int main (int argc, char**argv)
 	gint n_main_menu_items = sizeof (main_menu_items) / sizeof (main_menu_items[0]);
 
 	// Initial settings (set up BEFORE make_menubar):
-	render_ctx.fractal = new Mandelbrot();
 	render_ctx.centre = { -0.7, 0.0 };
 	render_ctx.size = { 3.0, 3.0 };
 
 	render_ctx.draw_hud = true;
 	render_ctx.antialias = false;
 	// _main_ctx.pal initial setting by setup_colour_menu().
+	// render_ctx.fractal set by setup_fractal_menu().
 
 	gtk_ctx.mainctx = &render_ctx;
 
@@ -1097,6 +1141,7 @@ int main (int argc, char**argv)
 	gtk_container_add (GTK_CONTAINER (window), main_vbox);
 
 	menubar = make_menubar(gtk_ctx.window, main_menu_items, n_main_menu_items, &gtk_ctx);
+	setup_fractal_menu(&gtk_ctx, menubar, "Mandelbrot");
 	setup_colour_menu(&gtk_ctx, menubar, "Linear rainbow");
 
 	canvas = gtk_drawing_area_new();
@@ -1141,6 +1186,5 @@ int main (int argc, char**argv)
 		render_ctx.plot->stop();
 		render_ctx.plot->wait();
 	}
-	delete render_ctx.fractal;
 	return 0;
 }
