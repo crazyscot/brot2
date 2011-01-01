@@ -21,6 +21,7 @@
 
 #include <string>
 #include <complex>
+#include <map>
 
 typedef long double fvalue; // short for "fractal value"
 typedef std::complex<fvalue> cfpt; // "complex fractal point"
@@ -55,8 +56,14 @@ public:
 // but nothing about an individual _plot_ of it (meta-instance?)
 class Fractal {
 public:
-	Fractal(std::string name, fvalue xmin, fvalue xmax, fvalue ymin, fvalue ymax);
-	virtual ~Fractal();
+	Fractal(std::string name_, fvalue xmin_, fvalue xmax_, fvalue ymin_, fvalue ymax_) : name(name_), xmin(xmin_), xmax(xmax_), ymin(ymin_), ymax(ymax_), isRegistered(false)
+	{
+		reg();
+	};
+	virtual ~Fractal() {
+		dereg();
+	};
+
 
 	std::string name; // Human-readable
 	fvalue xmin, xmax, ymin, ymax; // Maximum useful complex area
@@ -75,6 +82,18 @@ public:
 	 * _out_ accordingly.
 	 */
 	virtual void plot_pixel(const int maxiter, fractal_point& out) const = 0;
+
+	static std::map<std::string,Fractal*> registry;
+
+private:
+	bool isRegistered;
+	void reg() { registry[name] = this; isRegistered = 1; }
+	void dereg()
+	{
+		if (isRegistered)
+			registry.erase(name);
+		isRegistered = false;
+	}
 };
 
 class Mandelbrot : public Fractal {

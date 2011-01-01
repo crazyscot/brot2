@@ -21,11 +21,10 @@
 
 using namespace std;
 
+std::map<std::string,Fractal*> Fractal::registry;
+
 const fvalue _consts::log2 = log(2.0);
 _consts consts;
-
-Fractal::Fractal(string name, fvalue xmin, fvalue xmax, fvalue ymin, fvalue ymax) : name(name), xmin(xmin), xmax(xmax), ymin(ymin), ymax(ymax) {}
-Fractal::~Fractal() {}
 
 Mandelbrot::Mandelbrot() : Fractal("Mandelbrot", -3.0, 3.0, -3.0, 3.0) {}
 Mandelbrot::~Mandelbrot() {}
@@ -86,3 +85,5 @@ void Mandelbrot::plot_pixel(const int maxiter, fractal_point& out) const
 	out.iter = iter;
 	out.point = cfpt(z_re,z_im);
 }
+
+Mandelbrot mandelbrot;
