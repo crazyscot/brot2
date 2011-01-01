@@ -25,6 +25,7 @@ std::map<std::string,Fractal*> Fractal::registry;
 
 const fvalue _consts::log2 = log(2.0);
 const fvalue _consts::log3 = log(3.0);
+const fvalue _consts::log5 = log(5.0);
 _consts consts;
 
 class Mandelbrot : public Fractal {
@@ -122,9 +123,6 @@ void Mandel3::prepare_pixel(const cfpt coords, fractal_point& out) const
 
 void Mandel3::plot_pixel(const int maxiter, fractal_point& out) const
 {
-	// Speed notes:
-	// Don't use cfpt in the actual calculation - using straight doubles and
-	// doing the complex maths by hand is about 6x faster for me.
 	int iter;
 	fvalue o_re = real(out.origin), o_im = imag(out.origin),
 		   z_re = real(out.point), z_im = imag(out.point), re2, im2;
@@ -182,9 +180,6 @@ void Mandel4::prepare_pixel(const cfpt coords, fractal_point& out) const
 
 void Mandel4::plot_pixel(const int maxiter, fractal_point& out) const
 {
-	// Speed notes:
-	// Don't use cfpt in the actual calculation - using straight doubles and
-	// doing the complex maths by hand is about 6x faster for me.
 	int iter;
 	fvalue o_re = real(out.origin), o_im = imag(out.origin),
 		   z_re = real(out.point), z_im = imag(out.point), re2, im2;
@@ -216,3 +211,61 @@ void Mandel4::plot_pixel(const int maxiter, fractal_point& out) const
 Mandel4 mandel4("Mandelbrot^4");
 #undef ITER4
 
+// --------------------------------------------------------------------
+
+class Mandel5 : public Mandelbrot {
+public:
+	Mandel5(std::string name_, fvalue xmin_=-3.0, fvalue xmax_=3.0, fvalue ymin_=-3.0, fvalue ymax_=3.0) : Mandelbrot(name_, xmin_, xmax_, ymin_, ymax_) {};
+	~Mandel5() {};
+
+	virtual void prepare_pixel(const cfpt coords, fractal_point& out) const;
+	virtual void plot_pixel(const int maxiter, fractal_point& iters_out) const;
+};
+
+
+void Mandel5::prepare_pixel(const cfpt coords, fractal_point& out) const
+{
+	//fvalue o_re = real(coords), o_im = imag(coords);
+
+	// TODO: Shortcuts?
+
+	// The first iteration is easy, 0^4 + origin = origin
+	out.origin = out.point = cfpt(coords);
+	out.iter = 1;
+	return;
+}
+
+void Mandel5::plot_pixel(const int maxiter, fractal_point& out) const
+{
+	int iter;
+	fvalue o_re = real(out.origin), o_im = imag(out.origin),
+		   z_re = real(out.point), z_im = imag(out.point), re2, im2, re4, im4;
+
+#define ITER5() do { 								\
+		re2 = z_re * z_re;							\
+		im2 = z_im * z_im;							\
+		re4 = re2 * re2;							\
+		im4 = im2 * im2;							\
+		z_re = re4*z_re - 10*z_re*re2*im2 + 5*z_re*im4 + o_re;	\
+		z_im = 5*re4*z_im - 10*re2*im2*z_im + im4*z_im + o_im;	\
+} while (0)
+
+	for (iter=out.iter; iter<maxiter; iter++) {
+		ITER5();
+		if (re2 + im2 > 4.0) {
+			// Fractional escape count: See http://linas.org/art-gallery/escape/escape.html
+			ITER5(); ++iter;
+			ITER5(); ++iter;
+			out.iter = iter;
+			out.iterf = iter - log(log(re2 + im2)) / consts.log5;
+			out.arg = atan2(z_im, z_re);
+			out.nomore = true;
+			return;
+		}
+	}
+	out.iter = iter;
+	out.point = cfpt(z_re,z_im);
+}
+
+Mandel5 Mandel5("Mandelbrot^5");
+#undef ITER5
