@@ -1113,8 +1113,8 @@ int main (int argc, char**argv)
 	gint n_main_menu_items = sizeof (main_menu_items) / sizeof (main_menu_items[0]);
 
 	// Initial settings (set up BEFORE make_menubar):
-	render_ctx.centre = { -0.7, 0.0 };
-	render_ctx.size = { 3.0, 3.0 };
+	render_ctx.centre = { 0.0, 0.0 };
+	render_ctx.size = { 4.5, 4.5 };
 
 	render_ctx.draw_hud = true;
 	render_ctx.antialias = false;
