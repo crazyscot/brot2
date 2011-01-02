@@ -30,7 +30,7 @@ _consts consts;
 
 class Mandelbrot : public Fractal {
 public:
-	Mandelbrot(std::string name_, fvalue xmin_=-3.0, fvalue xmax_=3.0, fvalue ymin_=-3.0, fvalue ymax_=3.0) : Fractal(name_, xmin_, xmax_, ymin_, ymax_) {};
+	Mandelbrot(std::string name_, std::string desc_, fvalue xmin_=-3.0, fvalue xmax_=3.0, fvalue ymin_=-3.0, fvalue ymax_=3.0) : Fractal(name_, desc_, xmin_, xmax_, ymin_, ymax_) {};
 	~Mandelbrot() {};
 
 	virtual void prepare_pixel(const cfpt coords, fractal_point& out) const;
@@ -94,14 +94,14 @@ void Mandelbrot::plot_pixel(const int maxiter, fractal_point& out) const
 	out.point = cfpt(z_re,z_im);
 }
 
-Mandelbrot mandelbrot("Mandelbrot");
+Mandelbrot mandelbrot("Mandelbrot", "The original Mandelbrot set, z:=z^2+c");
 #undef ITER
 
 // --------------------------------------------------------------------
 
 class Mandel3 : public Mandelbrot {
 public:
-	Mandel3(std::string name_, fvalue xmin_=-3.0, fvalue xmax_=3.0, fvalue ymin_=-3.0, fvalue ymax_=3.0) : Mandelbrot(name_, xmin_, xmax_, ymin_, ymax_) {};
+	Mandel3(string name_, string desc_) : Mandelbrot(name_, desc_) {};
 	~Mandel3() {};
 
 	virtual void prepare_pixel(const cfpt coords, fractal_point& out) const;
@@ -151,14 +151,14 @@ void Mandel3::plot_pixel(const int maxiter, fractal_point& out) const
 	out.point = cfpt(z_re,z_im);
 }
 
-Mandel3 mandel3("Mandelbrot^3");
+Mandel3 mandel3("Mandelbrot^3", "z:=z^3+c");
 #undef ITER3
 
 // --------------------------------------------------------------------
 
 class Mandel4 : public Mandelbrot {
 public:
-	Mandel4(std::string name_, fvalue xmin_=-3.0, fvalue xmax_=3.0, fvalue ymin_=-3.0, fvalue ymax_=3.0) : Mandelbrot(name_, xmin_, xmax_, ymin_, ymax_) {};
+	Mandel4(string name_, string desc_) : Mandelbrot(name_, desc_) {};
 	~Mandel4() {};
 
 	virtual void prepare_pixel(const cfpt coords, fractal_point& out) const;
@@ -208,14 +208,14 @@ void Mandel4::plot_pixel(const int maxiter, fractal_point& out) const
 	out.point = cfpt(z_re,z_im);
 }
 
-Mandel4 mandel4("Mandelbrot^4");
+Mandel4 mandel4("Mandelbrot^4", "z:=z^4+c");
 #undef ITER4
 
 // --------------------------------------------------------------------
 
 class Mandel5 : public Mandelbrot {
 public:
-	Mandel5(std::string name_, fvalue xmin_=-3.0, fvalue xmax_=3.0, fvalue ymin_=-3.0, fvalue ymax_=3.0) : Mandelbrot(name_, xmin_, xmax_, ymin_, ymax_) {};
+	Mandel5(string name_, string desc_) : Mandelbrot(name_, desc_) {};
 	~Mandel5() {};
 
 	virtual void prepare_pixel(const cfpt coords, fractal_point& out) const;
@@ -267,5 +267,5 @@ void Mandel5::plot_pixel(const int maxiter, fractal_point& out) const
 	out.point = cfpt(z_re,z_im);
 }
 
-Mandel5 Mandel5("Mandelbrot^5");
+Mandel5 Mandel5("Mandelbrot^5", "z:=z^5+c");
 #undef ITER5
