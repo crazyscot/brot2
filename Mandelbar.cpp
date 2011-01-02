@@ -153,3 +153,45 @@ public:
 };
 
 Mandelbar4 mandelbar4("Mandelbar^4", "z:=(zbar)^4+c");
+
+
+// --------------------------------------------------
+
+class Mandelbar5: public Mandelbar_Generic {
+public:
+	Mandelbar5(std::string name_, std::string desc_) : Mandelbar_Generic(name_, desc_, -3.0, 3.0, -3.0, 3.0) {};
+	~Mandelbar5() {};
+
+	virtual void plot_pixel(const int maxiter, fractal_point& out) const {
+		int iter;
+		fvalue o_re = real(out.origin), o_im = imag(out.origin),
+			   z_re = real(out.point), z_im = imag(out.point), re2, im2, re4, im4;
+
+#define ITER5() do { 								\
+		re2 = z_re * z_re;							\
+		im2 = z_im * z_im;							\
+		re4 = re2 * re2;							\
+		im4 = im2 * im2;							\
+		z_re = re4*z_re - 10*z_re*re2*im2 + 5*z_re*im4 + o_re;	\
+		z_im = -5*re4*z_im + 10*re2*im2*z_im - im4*z_im + o_im;	\
+} while (0)
+
+		for (iter=out.iter; iter<maxiter; iter++) {
+			ITER5();
+			if (re2 + im2 > 4.0) {
+				ITER5(); ++iter;
+				ITER5(); ++iter;
+				out.iter = iter;
+				out.iterf = iter - log(log(re2 + im2)) / _consts::log4;
+				out.arg = atan2(z_im, z_re);
+				out.nomore = true;
+				return;
+			}
+		}
+		out.iter = iter;
+		out.point = cfpt(z_re,z_im);
+
+	};
+};
+
+Mandelbar5 mandelbar5("Mandelbar^5", "z:=(zbar)^5+c");
