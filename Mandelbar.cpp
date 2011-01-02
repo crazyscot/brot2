@@ -78,3 +78,40 @@ Mandelbar2 mandelbar("Mandelbar (Tricorn)", "z:=(zbar)^2+c");
 
 // --------------------------------------------------
 
+class Mandelbar3: public Mandelbar_Generic {
+public:
+	Mandelbar3(std::string name_, std::string desc_) : Mandelbar_Generic(name_, desc_, -3.0, 3.0, -3.0, 3.0) {};
+	~Mandelbar3() {};
+
+	virtual void plot_pixel(const int maxiter, fractal_point& out) const {
+		int iter;
+		fvalue o_re = real(out.origin), o_im = imag(out.origin),
+			   z_re = real(out.point), z_im = imag(out.point), re2, im2;
+
+#define ITER3() do { 								\
+		re2 = z_re * z_re;							\
+		im2 = z_im * z_im;							\
+		z_re = z_re * re2 - 3*z_re*im2 + o_re; 		\
+		z_im = -3 * z_im * re2 + z_im * im2 + o_im; \
+} while (0)
+
+		for (iter=out.iter; iter<maxiter; iter++) {
+			ITER3();
+			if (re2 + im2 > 4.0) {
+				ITER3(); ++iter;
+				ITER3(); ++iter;
+				out.iter = iter;
+				out.iterf = iter - log(log(re2 + im2)) / _consts::log3;
+				out.arg = atan2(z_im, z_re);
+				out.nomore = true;
+				return;
+			}
+		}
+		out.iter = iter;
+		out.point = cfpt(z_re,z_im);
+
+	};
+};
+
+Mandelbar3 mandelbar3("Mandelbar^3", "z:=(zbar)^3+c");
+
