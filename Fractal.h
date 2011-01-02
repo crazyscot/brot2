@@ -56,6 +56,16 @@ public:
 	static const fvalue log5;
 };
 
+class Fractal;
+
+class FractalRegistry {
+public:
+	static std::map<std::string,Fractal*>& registry();
+private:
+	static FractalRegistry* _instance;
+	std::map<std::string,Fractal*> _registry;
+};
+
 // Base fractal definition. An instance knows all about a fractal _type_
 // but nothing about an individual _plot_ of it (meta-instance?)
 class Fractal {
@@ -88,15 +98,17 @@ public:
 	 */
 	virtual void plot_pixel(const int maxiter, fractal_point& out) const = 0;
 
-	static std::map<std::string,Fractal*> registry;
+	static inline std::map<std::string,Fractal*>& registry() {
+		return FractalRegistry::registry();
+	};
 
 private:
 	bool isRegistered;
-	void reg() { registry[name] = this; isRegistered = 1; }
+	void reg() { registry()[name] = this; isRegistered = 1; }
 	void dereg()
 	{
 		if (isRegistered)
-			registry.erase(name);
+			registry().erase(name);
 		isRegistered = false;
 	}
 };

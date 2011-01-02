@@ -644,7 +644,7 @@ static void setup_colour_menu(_gtk_ctx *ctx, GtkWidget *menubar, string initial)
 
 static void fractal_menu_selection(_gtk_ctx *ctx, string lbl)
 {
-	Fractal *sel = Fractal::registry[lbl];
+	Fractal *sel = Fractal::registry()[lbl];
 	if (sel) {
 		ctx->mainctx->fractal = sel;
 		if (ctx->mainctx->plot)
@@ -664,7 +664,7 @@ static void setup_fractal_menu(_gtk_ctx *ctx, GtkWidget *menubar, string initial
 	ctx->fractal_menu = gtk_menu_new();
 
 	std::map<std::string,Fractal*>::iterator it;
-	for (it = Fractal::registry.begin(); it != Fractal::registry.end(); it++) {
+	for (it = Fractal::registry().begin(); it != Fractal::registry().end(); it++) {
 		GtkWidget * item = gtk_radio_menu_item_new_with_label(ctx->fractal_radio_group, it->first.c_str());
 		ctx->fractal_radio_group = gtk_radio_menu_item_get_group(GTK_RADIO_MENU_ITEM(item));
 
