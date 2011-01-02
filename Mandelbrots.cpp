@@ -24,7 +24,7 @@ using namespace std;
 
 class Mandelbrot : public Fractal {
 public:
-	Mandelbrot(std::string name_, std::string desc_, fvalue xmin_=-3.0, fvalue xmax_=3.0, fvalue ymin_=-3.0, fvalue ymax_=3.0) : Fractal(name_, desc_, xmin_, xmax_, ymin_, ymax_) {};
+	Mandelbrot(std::string name_, std::string desc_, fvalue xmin_=-3.0, fvalue xmax_=3.0, fvalue ymin_=-3.0, fvalue ymax_=3.0) : Fractal(name_, desc_, xmin_, xmax_, ymin_, ymax_, 10) {};
 	~Mandelbrot() {};
 
 	virtual void prepare_pixel(const cfpt coords, fractal_point& out) const;

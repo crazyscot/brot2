@@ -70,7 +70,7 @@ private:
 // but nothing about an individual _plot_ of it (meta-instance?)
 class Fractal {
 public:
-	Fractal(std::string name_, std::string desc_, fvalue xmin_, fvalue xmax_, fvalue ymin_, fvalue ymax_) : name(name_), description(desc_), xmin(xmin_), xmax(xmax_), ymin(ymin_), ymax(ymax_), isRegistered(false)
+	Fractal(std::string name_, std::string desc_, fvalue xmin_, fvalue xmax_, fvalue ymin_, fvalue ymax_, int sortorder_=100) : name(name_), description(desc_), xmin(xmin_), xmax(xmax_), ymin(ymin_), ymax(ymax_), sortorder(sortorder_), isRegistered(false)
 	{
 		reg();
 	};
@@ -101,6 +101,12 @@ public:
 	static inline std::map<std::string,Fractal*>& registry() {
 		return FractalRegistry::registry();
 	};
+
+	/* Fractal menu sort order group.
+	 * Items with the same group are sorted together,
+	 * then alphabetically within the group.
+	 */
+	const unsigned sortorder;
 
 private:
 	bool isRegistered;

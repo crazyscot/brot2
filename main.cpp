@@ -664,17 +664,29 @@ static void setup_fractal_menu(_gtk_ctx *ctx, GtkWidget *menubar, string initial
 	ctx->fractal_menu = gtk_menu_new();
 
 	std::map<std::string,Fractal*>::iterator it;
+	unsigned maxsortorder = 0;
 	for (it = Fractal::registry().begin(); it != Fractal::registry().end(); it++) {
-		GtkWidget * item = gtk_radio_menu_item_new_with_label(ctx->fractal_radio_group, it->first.c_str());
-		ctx->fractal_radio_group = gtk_radio_menu_item_get_group(GTK_RADIO_MENU_ITEM(item));
+		if (it->second->sortorder > maxsortorder)
+			maxsortorder = it->second->sortorder;
+	}
 
-		gtk_menu_append(GTK_MENU(ctx->fractal_menu), item);
-		if (0==strcmp(initial.c_str(),it->second->name.c_str())) {
-			gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(item), TRUE);
+	unsigned sortpass=0;
+	for (sortpass=0; sortpass <= maxsortorder; sortpass++) {
+		for (it = Fractal::registry().begin(); it != Fractal::registry().end(); it++) {
+			if (it->second->sortorder != sortpass)
+				continue;
+
+			GtkWidget * item = gtk_radio_menu_item_new_with_label(ctx->fractal_radio_group, it->first.c_str());
+			ctx->fractal_radio_group = gtk_radio_menu_item_get_group(GTK_RADIO_MENU_ITEM(item));
+
+			gtk_menu_append(GTK_MENU(ctx->fractal_menu), item);
+			if (0==strcmp(initial.c_str(),it->second->name.c_str())) {
+				gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(item), TRUE);
+			}
+			gtk_signal_connect_object(GTK_OBJECT(item), "activate", GTK_SIGNAL_FUNC(fractal_menu_selection1), ctx);
+			gtk_widget_set_tooltip_text(item, it->second->description.c_str());
+			gtk_widget_show(item);
 		}
-		gtk_signal_connect_object(GTK_OBJECT(item), "activate", GTK_SIGNAL_FUNC(fractal_menu_selection1), ctx);
-		gtk_widget_set_tooltip_text(item, it->second->description.c_str());
-		gtk_widget_show(item);
 	}
 
 	fractal_menu_selection(ctx, initial);
