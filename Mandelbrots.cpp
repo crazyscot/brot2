@@ -1,5 +1,6 @@
 /*
-    Fractal.cpp: Fractal computation interface and instances
+    Mandelbrots.cpp: Fractal computation interface and instances
+                     for the Mandelbrot set and its immediate derivatives
     Copyright (C) 2010 Ross Younger
 
     This program is free software: you can redistribute it and/or modify

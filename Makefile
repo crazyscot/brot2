@@ -1,6 +1,6 @@
 
 CSRC   := 
-CXXSRC := main.cpp palette.cpp Fractal.cpp Plot2.cpp
+CXXSRC := main.cpp palette.cpp Mandelbrots.cpp Plot2.cpp
 COBJ   := $(CSRC:.c=.o)
 CXXOBJ := $(CXXSRC:.cpp=.o)
 OBJS   := $(COBJ) $(CXXOBJ)
