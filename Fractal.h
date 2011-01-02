@@ -52,6 +52,7 @@ class _consts {
 public:
 	static const fvalue log2;
 	static const fvalue log3;
+	static const fvalue log4;
 	static const fvalue log5;
 };
 

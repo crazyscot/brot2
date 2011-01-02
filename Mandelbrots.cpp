@@ -26,8 +26,8 @@ std::map<std::string,Fractal*> Fractal::registry;
 
 const fvalue _consts::log2 = log(2.0);
 const fvalue _consts::log3 = log(3.0);
+const fvalue _consts::log4 = log(4.0);
 const fvalue _consts::log5 = log(5.0);
-_consts consts;
 
 class Mandelbrot : public Fractal {
 public:
@@ -85,7 +85,7 @@ void Mandelbrot::plot_pixel(const int maxiter, fractal_point& out) const
 			ITER(); ++iter;
 			ITER(); ++iter;
 			out.iter = iter;
-			out.iterf = iter - log(log(re2 + im2)) / consts.log2;
+			out.iterf = iter - log(log(re2 + im2)) / _consts::log2;
 			out.arg = atan2(z_im, z_re);
 			out.nomore = true;
 			return;
@@ -142,7 +142,7 @@ void Mandel3::plot_pixel(const int maxiter, fractal_point& out) const
 			ITER3(); ++iter;
 			ITER3(); ++iter;
 			out.iter = iter;
-			out.iterf = iter - log(log(re2 + im2)) / consts.log3;
+			out.iterf = iter - log(log(re2 + im2)) / _consts::log3;
 			out.arg = atan2(z_im, z_re);
 			out.nomore = true;
 			return;
@@ -199,7 +199,7 @@ void Mandel4::plot_pixel(const int maxiter, fractal_point& out) const
 			ITER4(); ++iter;
 			ITER4(); ++iter;
 			out.iter = iter;
-			out.iterf = iter - log(log(re2 + im2)) / (2*consts.log2);
+			out.iterf = iter - log(log(re2 + im2)) / _consts::log4;
 			out.arg = atan2(z_im, z_re);
 			out.nomore = true;
 			return;
@@ -258,7 +258,7 @@ void Mandel5::plot_pixel(const int maxiter, fractal_point& out) const
 			ITER5(); ++iter;
 			ITER5(); ++iter;
 			out.iter = iter;
-			out.iterf = iter - log(log(re2 + im2)) / consts.log5;
+			out.iterf = iter - log(log(re2 + im2)) / _consts::log5;
 			out.arg = atan2(z_im, z_re);
 			out.nomore = true;
 			return;
