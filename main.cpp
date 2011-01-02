@@ -673,6 +673,7 @@ static void setup_fractal_menu(_gtk_ctx *ctx, GtkWidget *menubar, string initial
 			gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(item), TRUE);
 		}
 		gtk_signal_connect_object(GTK_OBJECT(item), "activate", GTK_SIGNAL_FUNC(fractal_menu_selection1), ctx);
+		gtk_widget_set_tooltip_text(item, it->second->description.c_str());
 		gtk_widget_show(item);
 	}
 
