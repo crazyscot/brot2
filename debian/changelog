@@ -1,0 +1,6 @@
+brot2 (0.1) natty; urgency=low
+
+  * Initial packaging. (Closes: LP#783031)
+  * Interim fix for assert on startup (LP#783106)
+
+ -- Ross Younger <0ryoungerk.launchpad@coriolis.greenend.org.uk>  Sun, 15 May 2011 18:56:32 +0100

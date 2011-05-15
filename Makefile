@@ -20,10 +20,24 @@ LDADD  := `pkg-config $(PKGCONFIG_PKGS) --libs` \
 CC     := gcc
 CXX    := g++
 
-all: brot2
+BINDIR	 := $(DESTDIR)/usr/bin
+TARGETS  := brot2
+ICONSDIR := $(DESTDIR)/usr/share/pixmaps
+ICONS    := brot2.xpm
+INSTALL	 := install
+
+all: $(TARGETS)
 
 brot2 : $(OBJS)
 	  $(CXX) -o $@ $(OBJS) $(LDADD)
+
+install: all
+	$(INSTALL) -d $(BINDIR) $(ICONSDIR)
+	$(INSTALL) brot2 $(BINDIR)
+	$(INSTALL) -m644 $(ICONS) $(ICONSDIR)
+
+clean:
+	rm -f $(OBJS) $(DEPS) $(TARGETS)
 
 %.d: %.c
 	 @set -e; rm -f $@; \
@@ -42,8 +56,5 @@ brot2 : $(OBJS)
 
 .cpp.o:
 	  $(CXX) $(CXXFLAGS) -c $<
-
-clean:
-	rm -f $(OBJS) $(DEPS)
 
 include $(DEPS)

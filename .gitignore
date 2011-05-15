@@ -2,3 +2,8 @@
 *.d
 *~
 brot2
+debian/brot2.debhelper.log
+debian/brot2.postinst.debhelper
+debian/brot2.postrm.debhelper
+debian/brot2.substvars
+debian/files

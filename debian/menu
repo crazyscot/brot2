@@ -1,0 +1,4 @@
+?package(brot2):needs="X11 section="Applications/Science"\
+  title="brot2" command="/usr/bin/brot2" \
+  longtitle="Mandelbrot fractal plotter" \
+  icon="/usr/share/pixmaps/brot2.xpm"
