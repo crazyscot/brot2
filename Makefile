@@ -7,7 +7,7 @@ CXXOBJ := $(CXXSRC:.cpp=.o)
 OBJS   := $(COBJ) $(CXXOBJ)
 DEPS   := $(CSRC:.c=.d) $(CXXSRC:.cpp=.d)
 
-PKGCONFIG_PKGS := gtk+-2.0 gtkmm-2.4 glib-2.0 glibmm-2.4
+PKGCONFIG_PKGS := glibmm-2.4 gtk+-2.0
 
 COMMON_CFLAGS := `pkg-config $(PKGCONFIG_PKGS) --cflags` \
 			`libpng12-config --cflags` \
