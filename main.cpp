@@ -1,7 +1,7 @@
 /* main.cpp: main GTK program for brot2, license text follows */
 static const char* license_text = "\
 brot2: Yet Another Mandelbrot Plotter\n\
-Copyright (C) 2010 Ross Younger\n\
+Copyright (c) 2010-2011 Ross Younger\n\
 \n\
 This program is free software: you can redistribute it and/or modify \
 it under the terms of the GNU General Public License as published by \
@@ -15,6 +15,8 @@ GNU General Public License for more details.\n\
 \n\
 You should have received a copy of the GNU General Public License \
 along with this program.  If not, see <http://www.gnu.org/licenses/>.";
+
+static const char *copyright_string = "(c) 2010-2011 Ross Younger";
 
 
 #define _GNU_SOURCE 1
@@ -1090,7 +1092,7 @@ void do_about(gpointer _ctx, guint callback_action)
 	_gtk_ctx * ctx = (_gtk_ctx*)_ctx;
 	gtk_show_about_dialog(GTK_WINDOW(ctx->window),
 			"comments", "Dedicated to the memory of Benoît B. Mandelbrot.",
-			"copyright", "(c) 2010-2011 Ross Younger",
+			"copyright", copyright_string,
 			"license", license_text,
 			"wrap-license", TRUE, 
 			"version", BROT2_VERSION_STRING,
@@ -1115,7 +1117,7 @@ int main (int argc, char**argv)
 			case 'v':
 			case '?':
 				cout << "brot2 v" << BROT2_VERSION_STRING << endl;
-				cout << "Copyright (c) 2010-2011 W Ross Younger" << endl;
+				cout << "Copyright " << copyright_string << endl;
 				return 0;
 		}
 	}
