@@ -42,6 +42,7 @@ static const char *copyright_string = "(c) 2010-2011 Ross Younger";
 #include "Fractal.h"
 #include "palette.h"
 #include "version.h"
+#include "logo.h"
 
 #include <X11/Xlib.h>
 
@@ -1090,13 +1091,16 @@ void do_plot_more(gpointer _ctx, guint callback_action)
 void do_about(gpointer _ctx, guint callback_action)
 {
 	_gtk_ctx * ctx = (_gtk_ctx*)_ctx;
+	GdkPixbuf *logo = gdk_pixbuf_new_from_inline(-1, brot2_logo, FALSE, 0);
 	gtk_show_about_dialog(GTK_WINDOW(ctx->window),
 			"comments", "Dedicated to the memory of Benoît B. Mandelbrot.",
 			"copyright", copyright_string,
 			"license", license_text,
 			"wrap-license", TRUE, 
 			"version", BROT2_VERSION_STRING,
+			"logo", logo,
 			NULL);
+	g_object_unref(logo); // gdk_pixmap_unref
 }
 
 static _gtk_ctx gtk_ctx;

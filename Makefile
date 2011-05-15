@@ -1,5 +1,5 @@
 
-CSRC   := 
+CSRC   := logo_auto.c
 CXXSRC := main.cpp palette.cpp Fractal.cpp Mandelbrots.cpp Plot2.cpp \
 		Mandelbar.cpp
 COBJ   := $(CSRC:.c=.o)
@@ -11,9 +11,9 @@ PKGCONFIG_PKGS := gtk+-2.0 gtkmm-2.4 glib-2.0 glibmm-2.4
 
 COMMON_CFLAGS := `pkg-config $(PKGCONFIG_PKGS) --cflags` \
 			`libpng12-config --cflags` \
-			-g -O3 -Wall -Werror -std=c++0x
+			-g -O3 -Wall -Werror
 CFLAGS := $(COMMON_CFLAGS)
-CXXFLAGS := $(COMMON_CFLAGS)
+CXXFLAGS := $(COMMON_CFLAGS) -std=c++0x
 LDADD  := `pkg-config $(PKGCONFIG_PKGS) --libs` \
 			`libpng12-config --ldflags`	\
 			-lm
@@ -34,6 +34,15 @@ all: $(TARGETS)
 brot2 : $(OBJS)
 	  $(CXX) -o $@ $(OBJS) $(LDADD)
 
+LOGO_SRC:=misc/brot2.png
+
+logo_auto.c: $(LOGO_SRC)
+	echo '#include "logo.h"' > $@.new
+	gdk-pixbuf-csource --raw --extern --name=brot2_logo $(LOGO_SRC) >> $@.new
+	mv -f $@.new $@
+
+AUTOSRC:= logo_auto.c
+
 install: all
 	$(INSTALL) -d $(BINDIR) $(ICONSDIR) $(DESKDIR)
 	$(INSTALL) brot2 $(BINDIR)
@@ -41,7 +50,7 @@ install: all
 	$(INSTALL) -m644 $(DESKTOP) $(DESKDIR)
 
 clean:
-	rm -f $(OBJS) $(DEPS) $(TARGETS)
+	rm -f $(OBJS) $(DEPS) $(TARGETS) $(AUTOSRC)
 
 %.d: %.c
 	 @set -e; rm -f $@; \

@@ -7,3 +7,4 @@ debian/brot2.postinst.debhelper
 debian/brot2.postrm.debhelper
 debian/brot2.substvars
 debian/files
+logo_auto.c
