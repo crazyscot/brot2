@@ -34,10 +34,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.";
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <getopt.h>
 
 #include "Plot2.h"
 #include "Fractal.h"
 #include "palette.h"
+#include "version.h"
 
 #include <X11/Xlib.h>
 
@@ -1087,20 +1089,40 @@ void do_about(gpointer _ctx, guint callback_action)
 {
 	_gtk_ctx * ctx = (_gtk_ctx*)_ctx;
 	gtk_show_about_dialog(GTK_WINDOW(ctx->window),
-			"comments", "In memory of Benoît B. Mandelbrot.",
-			"copyright", "(c) 2010 Ross Younger",
+			"comments", "Dedicated to the memory of Benoît B. Mandelbrot.",
+			"copyright", "(c) 2010-2011 Ross Younger",
 			"license", license_text,
 			"wrap-license", TRUE, 
-			"version", "0.01",
+			"version", BROT2_VERSION_STRING,
 			NULL);
 }
 
 static _gtk_ctx gtk_ctx;
 static _render_ctx render_ctx;
 
+static struct option longopts[] = {
+	{"version", 0, 0, 'v'},
+	{ 0,0,0,0 }
+};
+
 int main (int argc, char**argv)
 {
 	XInitThreads();
+
+	int opt, optind = 0;
+	while ((opt = getopt_long(argc, argv, "v", longopts, &optind)) != -1) {
+		switch(opt) {
+			case 'v':
+			case '?':
+				cout << "brot2 v" << BROT2_VERSION_STRING << endl;
+				cout << "Copyright (c) 2010-2011 W Ross Younger" << endl;
+				return 0;
+		}
+	}
+	if (argc > optind+1) {
+		cerr << "This program does not take any arguments." << endl;
+		return 1;
+	}
 
 #define _ (char*)
 	GtkItemFactoryEntry main_menu_items[] = {
