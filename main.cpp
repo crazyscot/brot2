@@ -39,6 +39,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.";
 #include "Fractal.h"
 #include "palette.h"
 
+#include <X11/Xlib.h>
+
 using namespace std;
 
 #define MAX(a,b)	(((a) > (b)) ? (a) : (b))
@@ -1098,6 +1100,8 @@ static _render_ctx render_ctx;
 
 int main (int argc, char**argv)
 {
+	XInitThreads();
+
 #define _ (char*)
 	GtkItemFactoryEntry main_menu_items[] = {
 			{ _"/_Main", 0, 0, 0, _"<Branch>" },
