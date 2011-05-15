@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Name=brot2 fractal plotter
+Comment=Mandelbrot fractal plotter
+Exec=brot2
+Terminal=false
+X-MultipleArgs=false
+Type=Application
+Icon=brot2
+Categories=Graphics;Science;Math

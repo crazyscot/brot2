@@ -25,7 +25,9 @@ INSTALL	 := install
 BINDIR	 := $(DESTDIR)/usr/bin
 TARGETS  := brot2
 ICONSDIR := $(DESTDIR)/usr/share/pixmaps
-ICONS    := misc/brot2.xpm
+ICONS    := misc/brot2.xpm misc/brot2.png
+DESKDIR  := $(DESTDIR)/usr/share/applications
+DESKTOP  := misc/brot2.desktop
 
 all: $(TARGETS)
 
