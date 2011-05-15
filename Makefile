@@ -11,7 +11,7 @@ PKGCONFIG_PKGS := gtk+-2.0 gtkmm-2.4 glib-2.0 glibmm-2.4
 
 COMMON_CFLAGS := `pkg-config $(PKGCONFIG_PKGS) --cflags` \
 			`libpng12-config --cflags` \
-			-g -O0 -Wall -Werror -std=c++0x
+			-g -O3 -Wall -Werror -std=c++0x
 CFLAGS := $(COMMON_CFLAGS)
 CXXFLAGS := $(COMMON_CFLAGS)
 LDADD  := `pkg-config $(PKGCONFIG_PKGS) --libs` \
