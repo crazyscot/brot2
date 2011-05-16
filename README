@@ -1,6 +1,6 @@
 /*
     brot2: Yet Another Mandelbrot Plotter
-    Copyright (C) 2010 Ross Younger
+    Copyright (C) 2010-2011 Ross Younger
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,26 +16,70 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-A GTK-based interactive Mandelbrot set explorer.
+A GTK-based interactive fractal explorer.
 
-Mouse click operations (currently hard-wired):
-	Button 1 (left): Zoom in (around the clicked point)
-	Button 2 (middle): Recentre
-	Button 3 (right): Zoom out (around the clicked point)
-	Button 8 (4th button on my Kensington Expert Mouse): Drag out a rectangle
-	         to zoom into. What you get won't quite match, as the aspect
-			 ratio autofix kicks in to ensure you get square pixels.
+You can interact with the plot as follows:
 
-`Undo' is only single-step, designed to let you recover from the "oh dear
-I accidentally dragged out a silly rectangle, where was I?" scenario.
+* left-click to zoom in around the spot clicked on. Press '+' to zoom
+  in around the centre of the plot.
+* right-click to zoom out around the spot clicked on. Press '-' to zoom
+  out around the centre.
+* middle-click to recentre around wherever it was you clicked.
+* Button 8 (the 4th button on my Kensington Expert Mouse) allows you to
+  drag out a rectangle requesting a zoom to a particular area. (It will
+  be adjusted to fit the aspect ratio of the window's current size.)
+
+These bindings are fixed at the moment but I have plans to make them
+user-definable.
+
+There is a simple single-step undo mechanism. This is designed to let you
+recover from the "oh dear I accidentally clicked somewhere silly,
+where was I?" scenario.
+
+The plot and window sizes are always the same; if you resize the window,
+the plot is redrawn to fit.
+
+For better image quality, activate the antialiasing mode (Ctrl-A). This
+takes longer to draw as it has to plot four times as many points and
+average across them. (This is a pretty naive linear antialiasing; better
+ways remain to be found and implemented.)
+
+brot2 has a (currently hard-wired) notion of what makes a plot "good
+enough": i.e. what fraction of the pixels should have escaped (or be
+provably within the set) in order for it to stop drawing. This is a
+tricky compromise between drawing enough detail and not taking forever,
+and it doesn't always get it right; you can stop a plot with Ctrl-. or
+ask for another pass ("More iterations") with Ctrl-M.
+
+The result of the maths is cached, so changing colour scheme is a quick
+and cheap operation.
 
 
-Building
---------
+Getting and Building
+--------------------
 
-You will need libgtk2.0-dev, libglib2.0-dev, libgtkmm-2.4-dev,
-libglibmm-2.4-dev and libpng12-dev. This should be taken care of for you
-by the Debian package.
+The project is mostly hosted on LaunchPad:
+	https://launchpad.net/brot2
+There is a release archive PPA:
+	https://launchpad.net/~crazyscot/+archive/brot2
+and a daily build PPA:
+	https://launchpad.net/~crazyscot/+archive/brot2-daily
+
+The live source code can be obtained from the main git site:
+	git://git.chiark.greenend.org.uk/~ryounger/brot2.git
+or the backup git site:
+	git://github.com/crazyscot/brot2.git
+
+In order to build, you will need libgtk2.0-dev, libglib2.0-dev,
+libgtkmm-2.4-dev, libglibmm-2.4-dev, libpng12-dev and libgdk-pixbuf2.0-dev.
+This should be taken care of for you if you use the Debian package.
+
+
+Reporting bugs
+--------------
+
+Undoubtedly there are some. Please report them, along with suggestions,
+via LaunchPad: https://bugs.launchpad.net/brot2
 
 
 What's in a name? 
