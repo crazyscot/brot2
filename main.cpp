@@ -56,7 +56,6 @@ static gint dragrect_origin_x, dragrect_origin_y,
 
 /*
  * TODO: Replace use of deprecated gtk UI calls:
- * replace gtk_signal_connect() with g_signal_connect()
  * convert to use cairo
  * use GtkUIManager instead of GtkItemFactory
  */
@@ -615,7 +614,7 @@ static void setup_colour_menu(_gtk_ctx *ctx, GtkWidget *menubar, string initial)
 		if (0==strcmp(initial.c_str(),it->second->name.c_str())) {
 			gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(item), TRUE);
 		}
-		gtk_signal_connect_object(GTK_OBJECT(item), "activate", GTK_SIGNAL_FUNC(colour_menu_selection1), ctx);
+		g_signal_connect_swapped(GTK_OBJECT(item), "activate", GTK_SIGNAL_FUNC(colour_menu_selection1), ctx);
 		gtk_widget_show(item);
 	}
 
@@ -635,7 +634,7 @@ static void setup_colour_menu(_gtk_ctx *ctx, GtkWidget *menubar, string initial)
 		if (0==strcmp(initial.c_str(),it2->second->name.c_str())) {
 			gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(item), TRUE);
 		}
-		gtk_signal_connect_object(GTK_OBJECT(item), "activate", GTK_SIGNAL_FUNC(colour_menu_selection1), ctx);
+		g_signal_connect_swapped(GTK_OBJECT(item), "activate", GTK_SIGNAL_FUNC(colour_menu_selection1), ctx);
 		gtk_widget_show(item);
 	}
 
@@ -690,7 +689,7 @@ static void setup_fractal_menu(_gtk_ctx *ctx, GtkWidget *menubar, string initial
 			if (0==strcmp(initial.c_str(),it->second->name.c_str())) {
 				gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(item), TRUE);
 			}
-			gtk_signal_connect_object(GTK_OBJECT(item), "activate", GTK_SIGNAL_FUNC(fractal_menu_selection1), ctx);
+			g_signal_connect_swapped(GTK_OBJECT(item), "activate", GTK_SIGNAL_FUNC(fractal_menu_selection1), ctx);
 			gtk_widget_set_tooltip_text(item, it->second->description.c_str());
 			gtk_widget_show(item);
 		}
@@ -1191,17 +1190,17 @@ int main (int argc, char**argv)
 
 	canvas = gtk_drawing_area_new();
 	gtk_widget_set_size_request (GTK_WIDGET(canvas), 300, 300);
-	gtk_signal_connect (GTK_OBJECT (canvas), "expose_event",
+	g_signal_connect (GTK_OBJECT (canvas), "expose_event",
 			(GtkSignalFunc) expose_event, &gtk_ctx);
-	gtk_signal_connect (GTK_OBJECT(canvas),"configure_event",
+	g_signal_connect (GTK_OBJECT(canvas),"configure_event",
 			(GtkSignalFunc) configure_event, &gtk_ctx);
-	gtk_signal_connect (GTK_OBJECT (canvas), "motion_notify_event",
+	g_signal_connect (GTK_OBJECT (canvas), "motion_notify_event",
 			(GtkSignalFunc) motion_notify_event, &gtk_ctx);
-	gtk_signal_connect (GTK_OBJECT (canvas), "button_press_event",
+	g_signal_connect (GTK_OBJECT (canvas), "button_press_event",
 			(GtkSignalFunc) button_press_event, &gtk_ctx);
-	gtk_signal_connect (GTK_OBJECT (canvas), "button_release_event",
+	g_signal_connect (GTK_OBJECT (canvas), "button_release_event",
 			(GtkSignalFunc) button_release_event, &gtk_ctx);
-	gtk_signal_connect (GTK_OBJECT (window), "key_press_event",
+	g_signal_connect (GTK_OBJECT (window), "key_press_event",
 			(GtkSignalFunc) key_press_event, &gtk_ctx);
 
 	gtk_widget_set_events (canvas, GDK_EXPOSURE_MASK

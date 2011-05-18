@@ -1,3 +1,9 @@
+brot2 (0.2) UNRELEASED; urgency=low
+
+  * LP#783038: Replace deprecated calls to gtk_signal_connect(_object)
+
+ -- Ross Younger <0ryoungerk.launchpad@coriolis.greenend.org.uk>  Wed, 18 May 2011 22:28:39 +0100
+
 brot2 (0.1) natty; urgency=low
 
   * Initial packaging. (Closes: LP#783031)
