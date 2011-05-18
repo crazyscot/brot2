@@ -1,5 +1,5 @@
 
-CSRC   := logo_auto.c
+CSRC   := logo_auto.c uixml_auto.c
 CXXSRC := main.cpp palette.cpp Fractal.cpp Mandelbrots.cpp Plot2.cpp \
 		Mandelbar.cpp
 COBJ   := $(CSRC:.c=.o)
@@ -46,7 +46,12 @@ logo_auto.c: $(LOGO_SRC)
 	gdk-pixbuf-csource --raw --extern --name=brot2_logo $(LOGO_SRC) >> $@.new
 	mv -f $@.new $@
 
-AUTOSRC:= logo_auto.c
+uixml_auto.c: ui.xml
+	perl encodestring.pl uixml < $< > $@.new
+	mv -f $@.new $@
+
+
+AUTOSRC:= logo_auto.c uixml_auto.c
 
 install: all
 	$(INSTALL) -d $(BINDIR) $(ICONSDIR) $(DESKDIR)

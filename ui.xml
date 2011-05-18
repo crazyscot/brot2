@@ -1,0 +1,10 @@
+<ui>
+	<menubar>
+		<menu name="MainMenu" action="MainMenuAction">
+			<menuitem name="About" action="AboutAction" />
+			<menuitem name="SaveImage" action="SaveImageAction" />
+			<separator/>
+			<menuitem name="Quit" action="QuitAction" />
+		</menu>
+	</menubar>
+</ui>
