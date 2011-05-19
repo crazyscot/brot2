@@ -43,6 +43,7 @@ static const char *copyright_string = "(c) 2010-2011 Ross Younger";
 #include "palette.h"
 #include "version.h"
 #include "logo.h"
+#include "uixml.h"
 
 #include <X11/Xlib.h>
 
@@ -57,7 +58,6 @@ static gint dragrect_origin_x, dragrect_origin_y,
 /*
  * TODO: Replace use of deprecated gtk UI calls:
  * convert to use cairo
- * use GtkUIManager instead of GtkItemFactory
  */
 
 #define DEFAULT_ANTIALIAS_FACTOR 2
@@ -273,9 +273,8 @@ static void plot_to_png(_gtk_ctx *ctx, char *filename)
 
 static string last_saved_dirname;
 
-static void do_save(gpointer _ctx, guint callback_action, GtkWidget *widget)
+static void do_save(GtkAction *action, _gtk_ctx* ctx)
 {
-	_gtk_ctx *ctx = (_gtk_ctx*) _ctx;
 	GtkWidget *dialog;
 	dialog = gtk_file_chooser_dialog_new ("Save File",
 					      GTK_WINDOW(ctx->window),
@@ -365,54 +364,6 @@ static void destroy_event(GtkWidget *widget, gpointer data)
 {
 	gtk_main_quit();
 }
-
-
-#define OPTIONS_DRAW_HUD "/_Options/Draw _HUD"
-#define OPTIONS_DRAW_HUD_NO_MNEMONIC "/Options/Draw HUD"
-#define OPTIONS_ANTIALIAS "/_Options/_Antialias"
-#define OPTIONS_ANTIALIAS_NO_MNEMONIC "/Options/Antialias"
-
-
-/* Factory-generates our main menubar widget.
- * To be converted to GtkUIManager... */
-static GtkWidget *make_menubar( GtkWidget  *window, GtkItemFactoryEntry* menu_items, gint nmenu_items, _gtk_ctx * ctx)
-{
-	GtkItemFactory *item_factory;
-	GtkAccelGroup *accel_group;
-
-	/* Make an accelerator group (shortcut keys) */
-	accel_group = gtk_accel_group_new ();
-
-	/* Make an ItemFactory (that makes a menubar) */
-	item_factory = gtk_item_factory_new (GTK_TYPE_MENU_BAR, "<main>",
-			accel_group);
-
-	/* This function generates the menu items. Pass the item factory,
-	   the number of items in the array, the array itself, and any
-	   callback data for the the menu items. */
-	gtk_item_factory_create_items (item_factory, nmenu_items, menu_items, ctx);
-
-	/* Attach the new accelerator group to the window. */
-	gtk_window_add_accel_group (GTK_WINDOW (window), accel_group);
-
-
-	/* Initial item state setup... grr, these have to be done without
-	 * their `_' (signalling keypress mnemonics) in place */
-	GtkWidget *drawhud = gtk_item_factory_get_item(item_factory, OPTIONS_DRAW_HUD_NO_MNEMONIC);
-	assert(drawhud!=0);
-	gtk_check_menu_item_set_active(
-		GTK_CHECK_MENU_ITEM (drawhud),
-		ctx->mainctx->draw_hud);
-	GtkWidget *aa = gtk_item_factory_get_item(item_factory, OPTIONS_ANTIALIAS_NO_MNEMONIC);
-	assert(aa!=0);
-	gtk_check_menu_item_set_active(
-		GTK_CHECK_MENU_ITEM (aa),
-		ctx->mainctx->antialias);
-
-	/* Finally, return the actual menu bar created by the item factory. */
-	return gtk_item_factory_get_widget (item_factory, "<main>");
-}
-
 
 static void recolour(GtkWidget * widget, _gtk_ctx *ctx)
 {
@@ -576,7 +527,6 @@ static void do_resize(GtkWidget *widget, _gtk_ctx *ctx, unsigned width, unsigned
 	do_plot(widget,ctx);
 }
 
-
 static void colour_menu_selection(_gtk_ctx *ctx, string lbl)
 {
 	DiscretePalette * selS = DiscretePalette::registry[lbl];
@@ -640,13 +590,11 @@ static void setup_colour_menu(_gtk_ctx *ctx, GtkWidget *menubar, string initial)
 
 	colour_menu_selection(ctx, initial);
 
-    GtkWidget* colour_item = gtk_menu_item_new_with_mnemonic ("_Colour");
+    GtkWidget* colour_item = gtk_menu_item_new_with_mnemonic("_Colour");
     gtk_widget_show (colour_item);
-
+    gtk_menu_shell_append(GTK_MENU_SHELL(menubar), colour_item);
     gtk_menu_item_set_submenu (GTK_MENU_ITEM (colour_item), ctx->colour_menu);
-    gtk_menu_bar_append(GTK_MENU_BAR(menubar), colour_item);
 }
-
 
 static void fractal_menu_selection(_gtk_ctx *ctx, string lbl)
 {
@@ -701,7 +649,7 @@ static void setup_fractal_menu(_gtk_ctx *ctx, GtkWidget *menubar, string initial
     gtk_widget_show (fractal_item);
 
     gtk_menu_item_set_submenu (GTK_MENU_ITEM (fractal_item), ctx->fractal_menu);
-    gtk_menu_bar_append(GTK_MENU_BAR(menubar), fractal_item);
+    gtk_menu_shell_append(GTK_MENU_SHELL(menubar), fractal_item);
 }
 
 
@@ -725,9 +673,8 @@ static gboolean expose_event( GtkWidget *widget, GdkEventExpose *event, gpointer
 	return FALSE;
 }
 
-static void do_undo(gpointer _ctx, guint callback_action, GtkWidget *widget)
+static void do_undo(GtkAction *action, _gtk_ctx *ctx)
 {
-	_gtk_ctx * ctx = (_gtk_ctx*) _ctx;
 	if (ctx->render == NULL) return;
 	if (!ctx->mainctx->plot_prev) {
 		gtk_progress_bar_set_text(ctx->progressbar, "Nothing to undo");
@@ -753,11 +700,10 @@ enum zooms {
 };
 
 #define ZOOM_FACTOR 2.0f
-static void do_zoom(gpointer _ctx, guint callback_action, GtkWidget *widget)
+static void do_zoom(_gtk_ctx *ctx, enum zooms type)
 {
-	_gtk_ctx * ctx = (_gtk_ctx*) _ctx;
 	if (ctx->render != NULL) {
-		switch (callback_action) {
+		switch (type) {
 			case ZOOM_IN:
 				ctx->mainctx->size /= ZOOM_FACTOR;
 				break;
@@ -777,6 +723,16 @@ static void do_zoom(gpointer _ctx, guint callback_action, GtkWidget *widget)
 		}
 		do_plot(ctx->window, ctx);
 	}
+}
+
+static void do_zoom_in(GtkAction *a, _gtk_ctx *ctx)
+{
+	do_zoom(ctx, ZOOM_IN);
+}
+
+static void do_zoom_out(GtkAction *a, _gtk_ctx *ctx)
+{
+	do_zoom(ctx, ZOOM_OUT);
 }
 
 cfpt pixel_to_set_tlo(_render_ctx *ctx, int x, int y)
@@ -800,15 +756,15 @@ static gboolean button_press_event( GtkWidget *widget, GdkEventButton *event, gp
 			switch(event->button) {
 			case 1:
 				// LEFT: zoom in a bit
-				do_zoom(ctx, ZOOM_IN, widget);
+				do_zoom(ctx, ZOOM_IN);
 				return TRUE;
 			case 3:
 				// RIGHT: zoom out
-				do_zoom(ctx, ZOOM_OUT, widget);
+				do_zoom(ctx, ZOOM_OUT);
 				return TRUE;
 			case 2:
 				// MIDDLE: simple pan
-				do_zoom(ctx, REDRAW_ONLY, widget);
+				do_zoom(ctx, REDRAW_ONLY);
 				return TRUE;
 			}
 		}
@@ -830,10 +786,10 @@ static gboolean key_press_event( GtkWidget *widget, GdkEventKey *event, gpointer
 	_gtk_ctx * ctx = (_gtk_ctx*) dat;
 	switch(event->keyval) {
 		case GDK_KP_Add:
-			do_zoom(ctx, ZOOM_IN, widget);
+			do_zoom(ctx, ZOOM_IN);
 			return TRUE;
 		case GDK_KP_Subtract:
-			do_zoom(ctx, ZOOM_OUT, widget);
+			do_zoom(ctx, ZOOM_OUT);
 			return TRUE;
 	}
 	return FALSE;
@@ -954,10 +910,10 @@ static bool read_entry_float(GtkWidget *entry, fvalue *val_out)
 	return true;
 }
 
-void do_params_dialog(gpointer _ctx, guint callback_action, GtkWidget *widget)
+void do_params_dialog(GtkAction *action, _gtk_ctx *ctx)
 {
-	_gtk_ctx * ctx = (_gtk_ctx*)_ctx;
 	assert (ctx);
+
 	GtkWidget *dlg = gtk_dialog_new_with_buttons("Plot parameters", GTK_WINDOW(ctx->window),
 			GtkDialogFlags(GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT),
 			GTK_STOCK_OK, GTK_RESPONSE_ACCEPT,
@@ -1037,14 +993,13 @@ enum toggleable_options {
 };
 
 
-void toggle_option(gpointer _ctx, guint callback_action, GtkWidget *widget)
+void toggle_option(_gtk_ctx *ctx, enum toggleable_options toggle_what)
 {
-	_gtk_ctx * ctx = (_gtk_ctx*)_ctx;
 	assert (ctx);
 
 	if (!ctx->mainctx->initializing) {
 		// There must surely be a more idiomatic way to achieve the correct initial state??
-		switch (callback_action) {
+		switch (toggle_what) {
 		case TOGGLE_HUD:
 			ctx->mainctx->draw_hud = !ctx->mainctx->draw_hud;
 			recolour(ctx->window, ctx);
@@ -1061,9 +1016,18 @@ void toggle_option(gpointer _ctx, guint callback_action, GtkWidget *widget)
 	}
 }
 
-void do_stop_plot(gpointer _ctx, guint callback_action)
+static void toggle_hud(GtkAction *Action, _gtk_ctx *ctx)
 {
-	_gtk_ctx * ctx = (_gtk_ctx*)_ctx;
+	toggle_option(ctx, TOGGLE_HUD);
+}
+
+static void toggle_antialias(GtkAction *Action, _gtk_ctx *ctx)
+{
+	toggle_option(ctx, TOGGLE_ANTIALIAS);
+}
+
+void do_stop_plot(GtkAction *Action, _gtk_ctx *ctx)
+{
 	assert (ctx);
 	gtk_progress_bar_set_text(ctx->progressbar, "Stopping...");
 	safe_stop_plot(ctx->mainctx->plot);
@@ -1071,25 +1035,22 @@ void do_stop_plot(gpointer _ctx, guint callback_action)
 	gtk_progress_bar_set_fraction(ctx->progressbar,0);
 }
 
-void do_refresh_plot(gpointer _ctx, guint callback_action)
+void do_refresh_plot(GtkAction *Action, _gtk_ctx *ctx)
 {
-	_gtk_ctx * ctx = (_gtk_ctx*)_ctx;
 	assert (ctx);
 	do_plot(ctx->window, ctx, true);
 }
 
-void do_plot_more(gpointer _ctx, guint callback_action)
+void do_plot_more(GtkAction *Action, _gtk_ctx *ctx)
 {
-	_gtk_ctx * ctx = (_gtk_ctx*)_ctx;
 	assert (ctx);
 	do_resume(ctx->window, ctx);
 }
 
 /////////////////////////////////////////////////////////////////
 
-void do_about(gpointer _ctx, guint callback_action)
+void do_about(GtkAction *action, _gtk_ctx *ctx)
 {
-	_gtk_ctx * ctx = (_gtk_ctx*)_ctx;
 	GdkPixbuf *logo = gdk_pixbuf_new_from_inline(-1, brot2_logo, FALSE, 0);
 	gtk_show_about_dialog(GTK_WINDOW(ctx->window),
 			"comments", "Dedicated to the memory of Benoît B. Mandelbrot.",
@@ -1129,34 +1090,12 @@ int main (int argc, char**argv)
 		return 1;
 	}
 
-#define _ (char*)
-	GtkItemFactoryEntry main_menu_items[] = {
-			{ _"/_Main", 0, 0, 0, _"<Branch>" },
-			{ _"/_Plot", 0, 0, 0, _"<Branch>" },
-			{ _"/_Options", 0, 0, 0, _"<Branch>" },
+	g_thread_init(0);
+	gdk_threads_init();
+	gdk_threads_enter();
+	gtk_init(&argc, &argv);
 
-			{ _"/Main/_About", 0, (GtkItemFactoryCallback)do_about, 0, _"<StockItem>", GTK_STOCK_ABOUT },
-			{ _"/Main/_Save image...", 0, (GtkItemFactoryCallback)do_save, 0, _"<StockItem>", GTK_STOCK_SAVE },
-			{ _"/Main/_Quit", _"<control>Q", gtk_main_quit, 0, _"<StockItem>", GTK_STOCK_QUIT },
-
-			{ _ OPTIONS_DRAW_HUD, _"<control>H", (GtkItemFactoryCallback)toggle_option, TOGGLE_HUD, _"<CheckItem>" },
-			{ _ OPTIONS_ANTIALIAS, _"<control>A", (GtkItemFactoryCallback)toggle_option, TOGGLE_ANTIALIAS, _"<CheckItem>" },
-
-			{ _"/Plot/_Undo", _"<control>Z", (GtkItemFactoryCallback)do_undo, 0, _"<StockItem>", GTK_STOCK_UNDO },
-			{ _"/Plot/_Parameters", _"<control>P", (GtkItemFactoryCallback)do_params_dialog, 0, _"<StockItem>", GTK_STOCK_PROPERTIES },
-			{ _"/Plot/sep0", 0, 0, 0, _"<Separator>" },
-			{ _"/Plot/Zoom _In", _"plus", (GtkItemFactoryCallback)do_zoom, ZOOM_IN, _"<StockItem>", GTK_STOCK_ZOOM_IN },
-			{ _"/Plot/Zoom _Out", _"minus", (GtkItemFactoryCallback)do_zoom, ZOOM_OUT, _"<StockItem>", GTK_STOCK_ZOOM_OUT },
-			{ _"/Plot/sep1", 0, 0, 0, _"<Separator>" },
-			{ _"/Plot/Stop", _"<control>period", (GtkItemFactoryCallback)do_stop_plot, 0, _"<StockItem>", GTK_STOCK_CANCEL },
-			{ _"/Plot/Redraw", _"<control>R", (GtkItemFactoryCallback)do_refresh_plot, 0, _"<StockItem>", GTK_STOCK_REFRESH },
-			{ _"/Plot/More iterations", _"<control>M", (GtkItemFactoryCallback)do_plot_more, 0, _"<StockItem>", GTK_STOCK_EXECUTE },
-	};
-#undef _
-
-	gint n_main_menu_items = sizeof (main_menu_items) / sizeof (main_menu_items[0]);
-
-	// Initial settings (set up BEFORE make_menubar):
+	// Initial settings (set up BEFORE the menubar):
 	render_ctx.centre = { 0.0, 0.0 };
 	render_ctx.size = { 4.5, 4.5 };
 
@@ -1165,15 +1104,39 @@ int main (int argc, char**argv)
 	// _main_ctx.pal initial setting by setup_colour_menu().
 	// render_ctx.fractal set by setup_fractal_menu().
 
+	static GtkActionEntry entries[] = {
+		{ "MainMenuAction", NULL, "_Main" },
+		{ "AboutAction", GTK_STOCK_ABOUT, "_About", 0, 0, G_CALLBACK(do_about) },
+		{ "SaveImageAction", GTK_STOCK_SAVE, "_Save image...", "<control>S", 0, G_CALLBACK(do_save) },
+		{ "QuitAction", GTK_STOCK_QUIT, "_Quit", "<control>Q", 0, gtk_main_quit} ,
+
+		{ "OptionsMenuAction", 0, "_Options" },
+
+		{ "PlotMenuAction", 0, "_Plot" },
+		{ "UndoAction", GTK_STOCK_UNDO, "_Undo", "<control>Z", 0, G_CALLBACK(do_undo) },
+		{ "ParametersAction", GTK_STOCK_PROPERTIES, "_Parameters", "<control>P", 0, G_CALLBACK(do_params_dialog) },
+		{ "ZoomInAction", GTK_STOCK_ZOOM_IN, "Zoom _In", "plus", 0, G_CALLBACK(do_zoom_in) },
+		{ "ZoomOutAction", GTK_STOCK_ZOOM_OUT, "Zoom _Out", "minus", 0, G_CALLBACK(do_zoom_out) },
+		{ "StopAction", GTK_STOCK_CANCEL, "Stop", "<control>period", 0, G_CALLBACK(do_stop_plot) },
+		{ "RedrawAction", GTK_STOCK_REFRESH, "Redraw", "<control>R", 0, G_CALLBACK(do_refresh_plot) },
+		{ "MoreIterationsAction", GTK_STOCK_EXECUTE, "More iterations", "<control>M", 0, G_CALLBACK(do_plot_more) },
+
+	};
+
+	static GtkToggleActionEntry toggles[] = {
+		{ "DrawHUDAction", 0, "Draw _HUD", "<control>H", 0, G_CALLBACK(toggle_hud), render_ctx.draw_hud },
+		{ "AntiAliasAction", 0, "_AntiAlias", "<control>A", 0, G_CALLBACK(toggle_antialias), render_ctx.antialias },
+	};
+
+	GtkActionGroup *action_group = gtk_action_group_new ("MainActions");
+	gtk_action_group_add_actions(action_group, entries, G_N_ELEMENTS(entries), (void*)&gtk_ctx);
+	gtk_action_group_add_toggle_actions(action_group, toggles, G_N_ELEMENTS(toggles), &gtk_ctx);
+
 	gtk_ctx.mainctx = &render_ctx;
 
 	GtkWidget *main_vbox, *menubar;
 	GtkWidget *canvas;
 
-	g_thread_init(0);
-	gdk_threads_init();
-	gdk_threads_enter();
-	gtk_init(&argc, &argv);
 	GtkWidget * window = gtk_ctx.window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 
 	g_signal_connect(window, "delete-event", G_CALLBACK(delete_event), 0);
@@ -1184,7 +1147,21 @@ int main (int argc, char**argv)
 	gtk_container_set_border_width (GTK_CONTAINER (main_vbox), 1);
 	gtk_container_add (GTK_CONTAINER (window), main_vbox);
 
-	menubar = make_menubar(gtk_ctx.window, main_menu_items, n_main_menu_items, &gtk_ctx);
+	GError *err = 0;
+	GtkUIManager *manager = gtk_ui_manager_new();
+	gtk_ui_manager_insert_action_group (manager, action_group, 0);
+	guint uid = gtk_ui_manager_add_ui_from_string(manager, uixml, strlen(uixml), &err);
+	if (!uid) {
+		cerr << "Creating UI failed: " << err->message << endl;
+		g_message("Creating UI failed: %s", err->message);
+		g_error_free(err);
+		return 1;
+	}
+
+	gtk_window_add_accel_group (GTK_WINDOW (gtk_ctx.window), gtk_ui_manager_get_accel_group(manager));
+
+	menubar = gtk_ui_manager_get_widget (manager, "/menubar");
+
 	setup_fractal_menu(&gtk_ctx, menubar, "Mandelbrot");
 	setup_colour_menu(&gtk_ctx, menubar, "Linear rainbow");
 

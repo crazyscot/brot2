@@ -6,5 +6,23 @@
 			<separator/>
 			<menuitem name="Quit" action="QuitAction" />
 		</menu>
+		<menu name="PlotMenu" action="PlotMenuAction">
+			<menuitem name="Undo" action="UndoAction" />
+			<menuitem name="Parameters" action="ParametersAction" />
+			<separator/>
+			<menuitem name="ZoomIn" action="ZoomInAction" />
+			<menuitem name="ZoomOut" action="ZoomOutAction" />
+			<separator/>
+			<menuitem name="Stop" action="StopAction" />
+			<menuitem name="Redraw" action="RedrawAction" />
+			<menuitem name="MoreIterations" action="MoreIterationsAction" />
+			<!--
+				 <menuitem name="x" action="xAction" />
+				 -->
+		</menu>
+		<menu name="OptionsMenu" action="OptionsMenuAction">
+			<menuitem name="DrawHUD" action="DrawHUDAction" />
+			<menuitem name="AntiAlias" action="AntiAliasAction" />
+		</menu>
 	</menubar>
 </ui>
