@@ -1,11 +1,10 @@
 brot2 (0.2) UNRELEASED; urgency=low
 
   * LP#783038: Replace deprecated calls to gtk_signal_connect(_object)
-  * Makefile: Set USE_CCACHE=yes to have the obvious effect.
   * LP#783038: Overhaul menu creation to use GtkUIManager instead of
   GtkItemFactory. 
 
- -- Ross Younger <0ryoungerk.launchpad@coriolis.greenend.org.uk>  Sun, 22 May 2011 14:16:35 +0100
+ -- Ross Younger <0ryoungerk.launchpad@coriolis.greenend.org.uk>  Wed, 18 May 2011 22:28:39 +0100
 
 brot2 (0.1) natty; urgency=low
 

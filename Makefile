@@ -17,13 +17,8 @@ CXXFLAGS := $(COMMON_CFLAGS) -std=c++0x
 LDADD  := `pkg-config $(PKGCONFIG_PKGS) --libs` \
 			`libpng12-config --ldflags`	\
 			-lm
-ifeq ($(USE_CCACHE),yes)
-CC     := ccache gcc
-CXX    := ccache g++
-else
 CC     := gcc
 CXX    := g++
-endif
 
 INSTALL	 := install
 
