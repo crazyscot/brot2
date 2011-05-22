@@ -7,7 +7,7 @@ CXXOBJ := $(CXXSRC:.cpp=.o)
 OBJS   := $(COBJ) $(CXXOBJ)
 DEPS   := $(CSRC:.c=.d) $(CXXSRC:.cpp=.d)
 
-PKGCONFIG_PKGS := glibmm-2.4 gtk+-2.0
+PKGCONFIG_PKGS := glibmm-2.4 gtk+-2.0 pango cairo pangocairo
 
 COMMON_CFLAGS := `pkg-config $(PKGCONFIG_PKGS) --cflags` \
 			`libpng12-config --cflags` \
@@ -17,6 +17,8 @@ CXXFLAGS := $(COMMON_CFLAGS) -std=c++0x
 LDADD  := `pkg-config $(PKGCONFIG_PKGS) --libs` \
 			`libpng12-config --ldflags`	\
 			-lm
+#LDFLAGS := --g-fatal-warnings
+
 CC     := gcc
 CXX    := g++
 
@@ -32,7 +34,7 @@ DESKTOP  := misc/brot2.desktop
 all: $(TARGETS)
 
 brot2 : $(OBJS)
-	  $(CXX) -o $@ $(OBJS) $(LDADD)
+	  $(CXX) -o $@ $(OBJS) $(LDADD) $(LDFLAGS)
 
 LOGO_SRC:=misc/brot2.png
 

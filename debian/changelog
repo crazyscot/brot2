@@ -3,8 +3,11 @@ brot2 (0.2) UNRELEASED; urgency=low
   * LP#783038: Replace deprecated calls to gtk_signal_connect(_object)
   * LP#783038: Overhaul menu creation to use GtkUIManager instead of
   GtkItemFactory. 
+  * LP#783038: Overhaul drawing to use Cairo. We draw via three Cairo
+  surfaces: the plot ("canvas"), the HUD and the dragrect; add explicit
+  depends on libcairo and libpango.
 
- -- Ross Younger <0ryoungerk.launchpad@coriolis.greenend.org.uk>  Wed, 18 May 2011 22:28:39 +0100
+ -- Ross Younger <0ryoungerk.launchpad@coriolis.greenend.org.uk>  Sun, 22 May 2011 14:14:13 +0100
 
 brot2 (0.1) natty; urgency=low
 

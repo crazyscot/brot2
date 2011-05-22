@@ -55,12 +55,16 @@ using namespace std;
 static gint dragrect_origin_x, dragrect_origin_y,
 			dragrect_active=0, dragrect_current_x, dragrect_current_y;
 
-/*
- * TODO: Replace use of deprecated gtk UI calls:
- * convert to use cairo
- */
-
 #define DEFAULT_ANTIALIAS_FACTOR 2
+
+class pixpack_format {
+	// A pixel format identifier that supersets Cairo's.
+	int f; // Pixel format - one of cairo_format_t or our internal constants
+	public:
+		static const int PACKED_RGB_24 = CAIRO_FORMAT_RGB16_565 + 1000000;
+		pixpack_format(int c): f(c) {};
+		inline operator int() const { return f; }
+};
 
 typedef struct _render_ctx {
 	Plot2 * plot;
@@ -82,15 +86,18 @@ typedef struct _render_ctx {
 typedef struct _gtk_ctx : Plot2::callback_t {
 	_render_ctx * mainctx;
 	GtkWidget *window;
-	GdkPixmap *render;
+	cairo_surface_t *canvas, *hud, *dragrect;
 	GtkProgressBar* progressbar;
 	GtkWidget *colour_menu, *fractal_menu;
 	GSList *colours_radio_group, *fractal_radio_group;
+	guchar *imgbuf;
 
 	struct timeval tv_start; // When did the current render start?
 	bool aspectfix, clip; // Details about the current render
 
-	_gtk_ctx() : mainctx(0), window(0), render(0), colour_menu(0), colours_radio_group(0), fractal_radio_group(0) {};
+	_gtk_ctx() : mainctx(0), window(0), canvas(0), hud(0), dragrect(0),
+		colour_menu(0), colours_radio_group(0), fractal_radio_group(0),
+	    imgbuf(0)	{};
 
 	virtual void plot_progress_minor(Plot2& plot, float workdone);
 	virtual void plot_progress_major(Plot2& plot, unsigned current_max, string& commentary);
@@ -109,31 +116,60 @@ typedef struct _gtk_ctx : Plot2::callback_t {
 
 #define RGB_BYTES_PER_PIXEL 3
 
-static void draw_hud_gdk(GtkWidget * widget, _gtk_ctx *gctx)
+static void clear_hud(cairo_t *cairo)
 {
-	GdkPixmap *dest = gctx->render;
+	cairo_save(cairo);
+	cairo_set_source_rgba(cairo, 0,0,0,0);
+	cairo_set_operator (cairo, CAIRO_OPERATOR_SOURCE);
+	cairo_paint(cairo);
+	cairo_restore(cairo);
+}
+
+static void draw_hud_cairo(_gtk_ctx *gctx)
+{
 	_render_ctx * rctx = gctx->mainctx;
 	if (!gctx->mainctx->plot) return; // race condition trap
 	string info = gctx->mainctx->plot->info(true);
-	PangoLayout * lyt = gtk_widget_create_pango_layout(widget, info.c_str());
+
+	if (!gctx->hud)
+		gctx->hud = gdk_window_create_similar_surface(gctx->window->window,
+				CAIRO_CONTENT_COLOR_ALPHA,
+				gctx->mainctx->rwidth, gctx->mainctx->rheight);
+	cairo_t *cairo = cairo_create(gctx->hud);
+	clear_hud(cairo);
+	PangoLayout * lyt = pango_cairo_create_layout(cairo);
+
 	PangoFontDescription * fontdesc = pango_font_description_from_string ("Luxi Sans 9");
 	pango_layout_set_font_description (lyt, fontdesc);
+	pango_layout_set_text(lyt, info.c_str(), -1);
 	pango_layout_set_width(lyt, PANGO_SCALE * rctx->rwidth);
 	pango_layout_set_wrap(lyt, PANGO_WRAP_WORD_CHAR);
 
 	PangoRectangle rect;
 	pango_layout_get_extents(lyt, &rect, 0);
 
-	// N.B. If we want to use a gdkgc to actually render, need to use gdk_draw_text().
-	int ploty = rctx->rheight - PANGO_PIXELS(rect.height) - PANGO_PIXELS(rect.y) - 1;
+	PangoLayoutIter *iter = pango_layout_get_iter(lyt);
+	do {
+		PangoRectangle log;
+		pango_layout_iter_get_line_extents(iter, 0, &log);
+		cairo_save(cairo);
+		cairo_set_source_rgb(cairo, 0,0,0);
+		// NB. there are PANGO_SCALE pango units to the device unit.
+		cairo_rectangle(cairo, log.x / PANGO_SCALE, log.y / PANGO_SCALE,
+				log.width / PANGO_SCALE, log.height / PANGO_SCALE);
+		cairo_clip(cairo);
+		cairo_paint(cairo);
+		cairo_restore(cairo);
+	} while (pango_layout_iter_next_line(iter));
 
-	GdkColor white = {0,65535,65535,65535}, black = {0,0,0,0};
-	gdk_draw_layout_with_colors(dest, widget->style->white_gc,
-			0, ploty,
-			lyt, &white, &black);
+	cairo_move_to(cairo, 0.0, 0.0);
+	cairo_set_source_rgb(cairo, 1.0,1.0,1.0);
+	pango_cairo_show_layout (cairo, lyt);
 
 	pango_font_description_free (fontdesc);
+	pango_layout_iter_free(iter);
 	g_object_unref (lyt);
+	cairo_destroy(cairo);
 }
 
 /*
@@ -150,6 +186,7 @@ static inline rgb render_pixel(const fractal_point *data, const int local_inf, c
 /*
  * The actual work of turning an array of fractal_points - maybe an antialiased
  * set - into a packed array of RGB triplets (i.e. 24 bits per pixel).
+ * (Optionally we skip the first byte, i.e. 0RGB, for things which need it.)
  *
  * buf: Where to put the data. This should be at least (rowstride * rctx->height)
  * bytes long.
@@ -159,11 +196,14 @@ static inline rgb render_pixel(const fractal_point *data, const int local_inf, c
  * local_inf: the local plot's current idea of infinity.
  * (N.B. -1 is always treated as infinity.)
  *
+ * is_0rgb: If true, we insert a zero byte before every triplet, i.e. render as 0RGB.
+ *
  * Returns: True if the render completed, false if the plot disappeared under
  * our feet (typically by the user doing something to cause us to render afresh).
  */
-static bool render_plot_generic(guchar *buf, const _render_ctx *rctx, const gint rowstride, const int local_inf=-1)
+static bool render_plot_generic(guchar *buf, const _render_ctx *rctx, const gint rowstride, const int local_inf, pixpack_format fmt)
 {
+	assert(buf);
 	assert((unsigned)rowstride >= RGB_BYTES_PER_PIXEL * rctx->rwidth);
 
 	const fractal_point * data = rctx->plot->get_data();
@@ -192,10 +232,27 @@ static bool render_plot_generic(guchar *buf, const _render_ctx *rctx, const gint
 					rr += pix1.r; gg += pix1.g; bb += pix1.b;
 				}
 			}
-			dst[0] = rr/(factor * factor);
-			dst[1] = gg/(factor * factor);
-			dst[2] = bb/(factor * factor);
-			dst += RGB_BYTES_PER_PIXEL;
+			switch(fmt) {
+				case CAIRO_FORMAT_ARGB32:
+				case CAIRO_FORMAT_RGB24:
+					// alpha=1.0 so these cases are the same.
+					dst[3] = 0xff;
+					dst[2] = rr/(factor * factor);
+					dst[1] = gg/(factor * factor);
+					dst[0] = bb/(factor * factor);
+					dst += 4;
+					break;
+
+				case pixpack_format::PACKED_RGB_24:
+					dst[0] = rr/(factor * factor);
+					dst[1] = gg/(factor * factor);
+					dst[2] = bb/(factor * factor);
+					dst += 3;
+					break;
+
+				default:
+					abort();
+			}
 			for (unsigned k=0; k < factor; k++) {
 				srcs[k] += factor;
 			}
@@ -254,7 +311,7 @@ static void plot_to_png(_gtk_ctx *ctx, char *filename)
 	const int rowstride = RGB_BYTES_PER_PIXEL * width;
 
 	guchar * pngbuf = new guchar[rowstride * height];
-	render_plot_generic(pngbuf, ctx->mainctx, rowstride);
+	render_plot_generic(pngbuf, ctx->mainctx, rowstride, -1, pixpack_format(pixpack_format::PACKED_RGB_24));
 	guchar ** pngrows = new guchar*[height];
 	for (unsigned i=0; i<height; i++) {
 		pngrows[i] = pngbuf + rowstride*i;
@@ -314,31 +371,63 @@ static void do_save(GtkAction *action, _gtk_ctx* ctx)
     gtk_widget_destroy (dialog);
 }
 
-static void render_gdk(GtkWidget * widget, _gtk_ctx *gctx, int local_inf=-1, bool lock_gdk = false) {
-	GdkPixmap *dest = gctx->render;
-	GdkGC *gc = widget->style->white_gc;
+static void render_cairo(GtkWidget * widget, _gtk_ctx *gctx, int local_inf=-1) {
 	_render_ctx * rctx = gctx->mainctx;
 
-	const gint rowbytes = rctx->rwidth * RGB_BYTES_PER_PIXEL;
-	const gint rowstride = rowbytes + 8-(rowbytes%8);
+	const cairo_format_t FORMAT = CAIRO_FORMAT_RGB24;
+	const gint rowstride = cairo_format_stride_for_width(FORMAT, gctx->mainctx->rwidth);
 
-	guchar *buf = new guchar[rowstride * rctx->rheight]; // packed 24-bit data
 
-	if (!render_plot_generic(buf, rctx, rowstride, local_inf)) { // Oops, it vanished
-		delete[] buf;
-		return;
+	if (!gctx->imgbuf)
+		gctx->imgbuf = new guchar[rowstride * rctx->rheight];
+
+	// TODO: autolock on gctx ? and everything that accessess gctx->(surfaces)?
+	cairo_surface_t *surface;
+	if (gctx->canvas) {
+		surface = gctx->canvas;
+		cairo_surface_reference(surface);
+	} else {
+		surface = cairo_image_surface_create_for_data(gctx->imgbuf, FORMAT,
+				gctx->mainctx->rwidth, gctx->mainctx->rheight, rowstride);
+		{
+			cairo_status_t st = cairo_surface_status(surface);
+			if (st != 0) {
+				cerr << "Surface error: " << cairo_status_to_string(st) << endl;
+			}
+		}
+
+		cairo_surface_reference(surface);
+		gctx->canvas = surface;
 	}
 
-	if (lock_gdk)
-		gdk_threads_enter();
-	gdk_draw_rgb_image(dest, gc,
-			0, 0, rctx->rwidth, rctx->rheight, GDK_RGB_DITHER_NONE, buf, rowstride);
-	if (rctx->draw_hud)
-		draw_hud_gdk(widget, gctx);
-	if (lock_gdk)
-		gdk_threads_leave();
+	guchar *t = cairo_image_surface_get_data(surface);
+	if (!t)
+		cerr << "Surface data is NULL!" <<endl;
+	{
+		cairo_status_t st = cairo_surface_status(surface);
+		if (st != 0) {
+			cerr << "Surface error: " << cairo_status_to_string(st) << endl;
+		}
+	}
 
-	delete[] buf;
+	if (!render_plot_generic(cairo_image_surface_get_data(surface),
+				rctx, rowstride, local_inf,
+				FORMAT)) { // Oops, it vanished
+		goto done;
+	}
+	cairo_surface_mark_dirty(surface);
+
+	if (rctx->draw_hud)
+		draw_hud_cairo(gctx);
+	else {
+		if (gctx->hud) {
+			cairo_surface_destroy(gctx->hud);
+			gctx->hud = 0;
+		}
+	}
+
+done:
+	cairo_surface_destroy(surface); // But we referenced it after creation.
 }
 
 struct timeval tv_subtract (struct timeval tv1, struct timeval tv2)
@@ -367,7 +456,7 @@ static void destroy_event(GtkWidget *widget, gpointer data)
 
 static void recolour(GtkWidget * widget, _gtk_ctx *ctx)
 {
-	render_gdk(widget, ctx);
+	render_cairo(widget, ctx);
 	gtk_widget_queue_draw(widget);
 }
 
@@ -378,7 +467,7 @@ void _gtk_ctx::plot_progress_minor(Plot2& plot, float workdone) {
 }
 
 void _gtk_ctx::plot_progress_major(Plot2& plot, unsigned current_max, string& commentary) {
-	render_gdk(window, this, current_max, true);
+	render_cairo(window, this, current_max);
 	gdk_threads_enter();
 	gtk_progress_bar_set_fraction(progressbar, 0.98);
 	gtk_progress_bar_set_text(progressbar, commentary.c_str());
@@ -434,13 +523,12 @@ static void do_plot(GtkWidget *widget, _gtk_ctx *ctx, bool is_same_plot = false)
 {
 	safe_stop_plot(ctx->mainctx->plot);
 
-	if (!ctx->render) {
-		ctx->render = gdk_pixmap_new(widget->window,
-				ctx->mainctx->rwidth,
-				ctx->mainctx->rheight,
-				-1);
-		// mid_gc[0] gives us grey.
-		gdk_draw_rectangle(ctx->render, widget->style->mid_gc[0], true, 0, 0, ctx->mainctx->rwidth, ctx->mainctx->rheight);
+	if (!ctx->canvas) {
+		// First time? Grey it all out.
+		cairo_t *cairo = gdk_cairo_create(widget->window);
+		cairo_set_source_rgb(cairo, 0.9, 0.1, 0.1);
+		cairo_paint(cairo);
+		cairo_destroy(cairo);
 	}
 
 	gtk_progress_bar_set_text(ctx->progressbar, "Plotting pass 1...");
@@ -496,7 +584,7 @@ static void do_plot(GtkWidget *widget, _gtk_ctx *ctx, bool is_same_plot = false)
 
 static void do_resume(GtkWidget *widget, _gtk_ctx *ctx)
 {
-	assert(ctx->render);
+	assert(ctx->canvas);
 	assert(ctx->mainctx->plot);
 	// If either of these assertions fail, we're in a tight corner case
 	// and it might be better to just ignore the resume request?
@@ -519,9 +607,21 @@ static void do_resize(GtkWidget *widget, _gtk_ctx *ctx, unsigned width, unsigned
 		// Size has changed!
 		ctx->mainctx->rwidth = width;
 		ctx->mainctx->rheight = height;
-		if (ctx->render) {
-			g_object_unref(ctx->render);
-			ctx->render = 0;
+		if (ctx->canvas) {
+			cairo_surface_destroy(ctx->canvas);
+			ctx->canvas = 0;
+		}
+		if (ctx->imgbuf) {
+			delete[] ctx->imgbuf;
+			ctx->imgbuf=0;
+		}
+		if (ctx->hud) {
+			cairo_surface_destroy(ctx->hud);
+			ctx->hud = 0;
+		}
+		if (ctx->dragrect) {
+			cairo_surface_destroy(ctx->dragrect);
+			ctx->dragrect = 0;
 		}
 	}
 	do_plot(widget,ctx);
@@ -662,20 +762,40 @@ static gboolean configure_event(GtkWidget *widget, GdkEventConfigure *event, gpo
 
 static gboolean expose_event( GtkWidget *widget, GdkEventExpose *event, gpointer *dat )
 {
+	cairo_t *dest = gdk_cairo_create(widget->window);
 	_gtk_ctx * ctx = (_gtk_ctx*) dat;
-	gdk_draw_drawable(widget->window,
-			widget->style->fg_gc[gtk_widget_get_state (widget)],
-			ctx->render,
-			event->area.x, event->area.y,
-			event->area.x, event->area.y,
-			event->area.width, event->area.height);
+	if (!ctx->canvas) return TRUE; // On startup? Nothing we can do
+	assert(ctx->canvas); // If this fails then we need to handle it better. Check to see if we're being called concurrently with a plot request; if so then lock or ignore.
 
+	/* We might wish to redraw only the exposed area, for efficiency.
+	 * However there's an efficiency trap in some circumstances, so let's
+	 * only do this if we really think we need to.
+	cairo_rectangle(dest, event->area.x, event->area.y,
+	                    event->area.width, event->area.height);
+	cairo_clip(dest);
+	*/
+
+	cairo_set_source_surface(dest, ctx->canvas, 0, 0);
+	cairo_paint(dest);
+
+	if (dragrect_active && ctx->dragrect) {
+		cairo_save(dest);
+		cairo_set_source_surface(dest, ctx->dragrect, 0, 0);
+		cairo_paint(dest);
+		cairo_restore(dest);
+	}
+	if (ctx->hud) {
+		cairo_set_source_surface(dest, ctx->hud, 0, 0);
+		cairo_paint(dest);
+	}
+
+	cairo_destroy(dest);
 	return FALSE;
 }
 
 static void do_undo(GtkAction *action, _gtk_ctx *ctx)
 {
-	if (ctx->render == NULL) return;
+	if (ctx->canvas == NULL) return;
 	if (!ctx->mainctx->plot_prev) {
 		gtk_progress_bar_set_text(ctx->progressbar, "Nothing to undo");
 		return;
@@ -702,7 +822,7 @@ enum zooms {
 #define ZOOM_FACTOR 2.0f
 static void do_zoom(_gtk_ctx *ctx, enum zooms type)
 {
-	if (ctx->render != NULL) {
+	if (ctx->canvas != NULL) {
 		switch (type) {
 			case ZOOM_IN:
 				ctx->mainctx->size /= ZOOM_FACTOR;
@@ -748,7 +868,7 @@ cfpt pixel_to_set_tlo(_render_ctx *ctx, int x, int y)
 static gboolean button_press_event( GtkWidget *widget, GdkEventButton *event, gpointer *dat )
 {
 	_gtk_ctx * ctx = (_gtk_ctx*) dat;
-	if (ctx->render != NULL) {
+	if (ctx->canvas != NULL) {
 		cfpt new_ctr = pixel_to_set_tlo(ctx->mainctx, event->x, event->y);
 
 		if (event->button >= 1 && event->button <= 3) {
@@ -804,7 +924,7 @@ static gboolean button_release_event( GtkWidget *widget, GdkEventButton *event, 
 
 	//printf("button %d UP @ %d,%d\n", event->button, (int)event->x, (int)event->y);
 
-	if (ctx->render != NULL) {
+	if (ctx->canvas != NULL) {
 		int l = MIN(event->x, dragrect_origin_x);
 		int r = MAX(event->x, dragrect_origin_x);
 		int t = MAX(event->y, dragrect_origin_y);
@@ -828,9 +948,18 @@ static gboolean button_release_event( GtkWidget *widget, GdkEventButton *event, 
 	return TRUE;
 }
 
-// Wrapper function to allow negative dimensions
-static void my_gdk_draw_rectangle (GdkDrawable *drawable, GdkGC *gc,
-		gboolean filled, gint x, gint y, gint width, gint height)
+static void clear_dragrect(cairo_t *cairo)
+{
+	cairo_save(cairo);
+	cairo_set_source_rgba(cairo, 0,0,0,0);
+	cairo_set_operator (cairo, CAIRO_OPERATOR_SOURCE);
+	cairo_paint(cairo);
+	cairo_restore(cairo);
+}
+
+// Draw my rectangle. Negative dimensions are handled properly.
+static void draw_dragrect(cairo_t *cairo,
+		gint x, gint y, gint width, gint height)
 {
 	if (width < 0) {
 		x += width;
@@ -840,7 +969,26 @@ static void my_gdk_draw_rectangle (GdkDrawable *drawable, GdkGC *gc,
 		y += height;
 		height = -height;
 	}
-	gdk_draw_rectangle(drawable, gc, filled, x, y, width, height);
+	cairo_save(cairo);
+	cairo_set_operator(cairo, CAIRO_OPERATOR_OVER);
+	cairo_rectangle(cairo, x, y, width, height);
+	cairo_set_line_width(cairo, 1.5);
+
+	const double dashes[] = { 5.0, 5.0 };
+
+	// First do it in black...
+	cairo_set_source_rgb(cairo, 0,0,0);
+	cairo_set_dash(cairo, dashes, sizeof(dashes), 0.0);
+	cairo_stroke(cairo);
+
+	// ... then overlay with white dashes. The call back to cairo_rectangle
+	// seems necessary for the overlay to not throw away what we just did.
+	cairo_rectangle(cairo, x, y, width, height);
+	cairo_set_source_rgb(cairo, 1,1,1);
+	cairo_set_dash(cairo, dashes, sizeof(dashes), 5.0);
+	cairo_stroke(cairo);
+
+	cairo_restore(cairo);
 }
 
 static gboolean motion_notify_event( GtkWidget *widget, GdkEventMotion *event, gpointer * _dat)
@@ -859,24 +1007,20 @@ static gboolean motion_notify_event( GtkWidget *widget, GdkEventMotion *event, g
 		state = GdkModifierType(event->state);
 	}
 
-	gdk_gc_set_function(ctx->window->style->black_gc, GDK_INVERT);
+	if (!ctx->dragrect)
+		ctx->dragrect = gdk_window_create_similar_surface(ctx->window->window,
+				CAIRO_CONTENT_COLOR_ALPHA,
+				ctx->mainctx->rwidth, ctx->mainctx->rheight);
 
-	// turn off previous hilight rect
-	my_gdk_draw_rectangle(ctx->render, widget->style->black_gc, false,
-			dragrect_origin_x, dragrect_origin_y,
-			dragrect_current_x - dragrect_origin_x, dragrect_current_y - dragrect_origin_y);
-
-	//draw_rect(widget, ctx, dragrect_origin_x, dragrect_current_x, dragrect_origin_y, dragrect_current_y);
-
-	// turn on our new one
-	my_gdk_draw_rectangle(ctx->render, widget->style->black_gc, false,
+	cairo_t *cairo = cairo_create(ctx->dragrect);
+	clear_dragrect(cairo);
+	draw_dragrect(cairo,
 			dragrect_origin_x, dragrect_origin_y,
 			x - dragrect_origin_x, y - dragrect_origin_y);
+	cairo_destroy(cairo);
+
 	dragrect_current_x = x;
 	dragrect_current_y = y;
-
-	// Restore normal behaviour, or the progress bar dies
-	gdk_gc_set_function(ctx->window->style->black_gc, GDK_COPY);
 
 	gtk_widget_queue_draw (widget);
 
