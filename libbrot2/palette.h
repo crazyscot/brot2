@@ -19,7 +19,6 @@
 #ifndef PALETTE_H_
 #define PALETTE_H_
 
-#include <gtk/gtk.h>
 #include <string>
 #include <map>
 #include <iostream>
@@ -42,9 +41,9 @@ std::ostream& operator<<(std::ostream &stream, hsvf o);
 
 class rgb {
 public:
-	guchar r,g,b;
+	unsigned char r,g,b;
 	rgb () : r(0),g(0),b(0) {};
-	rgb (guchar rr, guchar gg, guchar bb) : r(rr), g(gg), b(bb) {};
+	rgb (unsigned char rr, unsigned char gg, unsigned char bb) : r(rr), g(gg), b(bb) {};
 };
 
 std::ostream& operator<<(std::ostream &stream, rgb o);

@@ -20,6 +20,9 @@ if test "x$GCC" = xyes; then
 	CC="$CC -Wall -W -Werror -Wpointer-arith -Wwrite-strings"
 fi
 
-AC_CONFIG_FILES([Makefile])
+AC_SUBST([global_CFLAGS], ["-O3"])
+AC_SUBST([global_CXXFLAGS], ["-O3 -std=c++0x"])
+
+AC_CONFIG_FILES([Makefile libbrot2/Makefile])
 AC_OUTPUT
 

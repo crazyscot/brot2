@@ -1,6 +1,7 @@
 *.o
 *.d
 *~
+*.a
 brot2
 debian/brot2.debhelper.log
 debian/brot2.postinst.debhelper

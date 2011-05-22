@@ -38,8 +38,8 @@ static const char *copyright_string = "(c) 2010-2011 Ross Younger";
 #include <unistd.h>
 #include <getopt.h>
 
+#include "libbrot2.h"
 #include "Plot2.h"
-#include "Fractal.h"
 #include "palette.h"
 #include "version.h"
 #include "misc.h"
@@ -1288,6 +1288,8 @@ int main (int argc, char**argv)
 
 	menubar = gtk_ui_manager_get_widget (manager, "/menubar");
 
+	ensure_Mandelbrot();
+	ensure_Mandelbar();
 	setup_fractal_menu(&gtk_ctx, menubar, "Mandelbrot");
 	setup_colour_menu(&gtk_ctx, menubar, "Linear rainbow");
 
