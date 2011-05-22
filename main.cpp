@@ -1131,43 +1131,19 @@ void do_params_dialog(GtkAction *action, _gtk_ctx *ctx)
 	gtk_widget_destroy(dlg);
 }
 
-enum toggleable_options {
-	TOGGLE_HUD=100,
-	TOGGLE_ANTIALIAS,
-};
-
-
-void toggle_option(_gtk_ctx *ctx, enum toggleable_options toggle_what)
-{
-	assert (ctx);
-
-	if (!ctx->mainctx->initializing) {
-		// There must surely be a more idiomatic way to achieve the correct initial state??
-		switch (toggle_what) {
-		case TOGGLE_HUD:
-			ctx->mainctx->draw_hud = !ctx->mainctx->draw_hud;
-			recolour(ctx->window, ctx);
-			break;
-		case TOGGLE_ANTIALIAS:
-			safe_stop_plot(ctx->mainctx->plot);
-			ctx->mainctx->antialias = !ctx->mainctx->antialias;
-			do_plot(ctx->window, ctx, false);
-			break;
-		default:
-			assert(!"unhandled toggle option");
-			abort();
-		}
-	}
-}
-
 static void toggle_hud(GtkAction *Action, _gtk_ctx *ctx)
 {
-	toggle_option(ctx, TOGGLE_HUD);
+	if (ctx->mainctx->initializing) return;
+	ctx->mainctx->draw_hud = !ctx->mainctx->draw_hud;
+	recolour(ctx->window, ctx);
 }
 
 static void toggle_antialias(GtkAction *Action, _gtk_ctx *ctx)
 {
-	toggle_option(ctx, TOGGLE_ANTIALIAS);
+	if (ctx->mainctx->initializing) return;
+	safe_stop_plot(ctx->mainctx->plot);
+	ctx->mainctx->antialias = !ctx->mainctx->antialias;
+	do_plot(ctx->window, ctx, false);
 }
 
 void do_stop_plot(GtkAction *Action, _gtk_ctx *ctx)
