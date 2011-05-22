@@ -9,3 +9,4 @@ debian/brot2.substvars
 debian/files
 logo_auto.c
 uixml_auto.c
+.gdbinit
