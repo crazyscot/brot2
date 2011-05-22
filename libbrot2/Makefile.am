@@ -6,5 +6,5 @@ libbrot2_a_SOURCES= libbrot2.h \
 					Mandelbar.cpp Mandelbrots.cpp
 
 AM_CFLAGS=@global_CFLAGS@
-AM_CXXFLAGS=@global_CXXFLAGS@ `pkg-config glibmm-2.4 --cflags`
+AM_CXXFLAGS=@global_CXXFLAGS@ @glibmm_CFLAGS@
 

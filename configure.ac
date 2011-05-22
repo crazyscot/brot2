@@ -1,7 +1,7 @@
 AC_INIT([brot2], [0.1.XXX], [ross@impropriety.org.uk])
 AC_CONFIG_AUX_DIR([config.aux])
 AM_INIT_AUTOMAKE([brot2], [0.1.XXX])
-AC_CONFIG_SRCDIR([Plot2.cpp])
+AC_CONFIG_SRCDIR([libbrot2/Plot2.cpp])
 AM_CONFIG_HEADER([config.h])
 AC_CANONICAL_HOST
 AC_LANG([C++])
@@ -22,6 +22,12 @@ fi
 
 AC_SUBST([global_CFLAGS], ["-O3"])
 AC_SUBST([global_CXXFLAGS], ["-O3 -std=c++0x"])
+
+PKG_CHECK_MODULES([glibmm],[glibmm-2.4])
+PKG_CHECK_MODULES([gtk],[gtk+-2.0])
+PKG_CHECK_MODULES([gdk],[gdk-2.0])
+PKG_CHECK_MODULES([pangocairo],[pangocairo cairo pango])
+PKG_CHECK_MODULES([libpng],[libpng12])
 
 AC_CONFIG_FILES([Makefile libbrot2/Makefile])
 AC_OUTPUT

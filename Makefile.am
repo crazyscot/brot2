@@ -2,17 +2,16 @@ SUBDIRS=libbrot2
 
 bin_PROGRAMS=brot2
 
-PKGCONFIG_PKGS=glibmm-2.4 gtkmm-2.4 gdkmm-2.4 pango cairo pangocairo
 brot2_SOURCES=$(AUTOSRC) main.cpp
 
-brot2_LDFLAGS=`pkg-config $(PKGCONFIG_PKGS) --libs` \
-			`libpng12-config --ldflags` \
-			-lm
+brot2_LDFLAGS= @glibmm_LIBS@ @gtk_LIBS@ @gdk_LIBS@ @pangocairo_LIBS@ \
+			   @libpng_LIBS@ \
+			   -lm
 brot2_LDADD= libbrot2/libbrot2.a
 
 AM_CPPFLAGS= -Ilibbrot2 \
-			 `pkg-config $(PKGCONFIG_PKGS) --cflags` \
-			`libpng12-config --cflags`
+			@glibmm_CFLAGS@ @gtk_CFLAGS@ @gdk_CFLAGS@ @pangocairo_CFLAGS@ \
+			@libpng_CFLAGS@
 
 AM_CFLAGS=@global_CFLAGS@
 AM_CXXFLAGS=@global_CXXFLAGS@
