@@ -94,9 +94,9 @@ public:
 	};
 
 	/* What iteration count did we bail out at? */
-	const int get_maxiter() const { return plotted_maxiter; };
+	int get_maxiter() const { return plotted_maxiter; };
 	/* How many passes before we bailed out? */
-	const int get_passes() const { return plotted_passes; };
+	int get_passes() const { return plotted_passes; };
 
 	/* Are we there yet? */
 	inline bool is_done() {

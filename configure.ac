@@ -14,10 +14,10 @@ AC_PROG_RANLIB
 AC_SET_MAKE
 AC_DEFINE([_GNU_SOURCE], [1], [use GNU extensions])
 if test "x$GXX" = xyes; then
-	CXX="$CXX -Wall -Werror -Wpointer-arith -Wwrite-strings"
+	CXX="$CXX -Wall -W -Werror -Wpointer-arith -Wwrite-strings"
 fi
 if test "x$GCC" = xyes; then
-	CC="$CC -Wall -Werror -Wpointer-arith -Wwrite-strings"
+	CC="$CC -Wall -W -Werror -Wpointer-arith -Wwrite-strings"
 fi
 
 AC_CONFIG_FILES([Makefile])

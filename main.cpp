@@ -42,6 +42,7 @@ static const char *copyright_string = "(c) 2010-2011 Ross Younger";
 #include "Fractal.h"
 #include "palette.h"
 #include "version.h"
+#include "misc.h"
 #include "logo.h"
 #include "uixml.h"
 
@@ -303,9 +304,11 @@ static void plot_to_png(_gtk_ctx *ctx, char *filename)
 			PNG_COMPRESSION_TYPE_DEFAULT, PNG_FILTER_TYPE_DEFAULT);
 
 	string comment = ctx->mainctx->plot->info(true);
+	const char* SOFTWARE = "brot2",
+		      * INFO = comment.c_str();
 	png_text texts[2] = {
-			{PNG_TEXT_COMPRESSION_NONE, (char*)"Software", (char*)"brot2"},
-			{PNG_TEXT_COMPRESSION_NONE, (char*)"Comment", (char*)comment.c_str()},
+			{PNG_TEXT_COMPRESSION_NONE, (char*)"Software", (char*)SOFTWARE, strlen(SOFTWARE)},
+			{PNG_TEXT_COMPRESSION_NONE, (char*)"Comment", (char*)INFO, strlen(INFO) },
 	};
 	png_set_text(png, png_info, texts, 2);
 
@@ -333,7 +336,7 @@ static void plot_to_png(_gtk_ctx *ctx, char *filename)
 
 static string last_saved_dirname;
 
-static void do_save(GtkAction *action, _gtk_ctx* ctx)
+static void do_save(GtkAction *UNUSED(action), _gtk_ctx* ctx)
 {
 	GtkWidget *dialog;
 	dialog = gtk_file_chooser_dialog_new ("Save File",
@@ -374,7 +377,7 @@ static void do_save(GtkAction *action, _gtk_ctx* ctx)
     gtk_widget_destroy (dialog);
 }
 
-static void render_cairo(GtkWidget * widget, _gtk_ctx *gctx, int local_inf=-1) {
+static void render_cairo(GtkWidget * UNUSED(widget), _gtk_ctx *gctx, int local_inf=-1) {
 	_render_ctx * rctx = gctx->mainctx;
 
 	const cairo_format_t FORMAT = CAIRO_FORMAT_RGB24;
@@ -447,12 +450,12 @@ struct timeval tv_subtract (struct timeval tv1, struct timeval tv2)
 	return rv;
 }
 
-static gboolean delete_event(GtkWidget *widget, GdkEvent *event, gpointer data)
+static gboolean delete_event(GtkWidget *UNUSED(widget), GdkEvent *UNUSED(event), gpointer UNUSED(data))
 {
 	return FALSE;
 }
 
-static void destroy_event(GtkWidget *widget, gpointer data)
+static void destroy_event(GtkWidget *UNUSED(widget), gpointer UNUSED(data))
 {
 	gtk_main_quit();
 }
@@ -463,13 +466,13 @@ static void recolour(GtkWidget * widget, _gtk_ctx *ctx)
 	gtk_widget_queue_draw(widget);
 }
 
-void _gtk_ctx::plot_progress_minor(Plot2& plot, float workdone) {
+void _gtk_ctx::plot_progress_minor(Plot2& UNUSED(plot), float workdone) {
 	gdk_threads_enter();
 	gtk_progress_bar_set_fraction(progressbar, workdone);
 	gdk_threads_leave();
 }
 
-void _gtk_ctx::plot_progress_major(Plot2& plot, unsigned current_max, string& commentary) {
+void _gtk_ctx::plot_progress_major(Plot2& UNUSED(plot), unsigned current_max, string& commentary) {
 	render_cairo(window, this, current_max);
 	gdk_threads_enter();
 	gtk_progress_bar_set_fraction(progressbar, 0.98);
@@ -585,7 +588,7 @@ static void do_plot(GtkWidget *widget, _gtk_ctx *ctx, bool is_same_plot = false)
 	// TODO try/catch (and in do_resume) - report failure. Is gtkmm exception-safe?
 }
 
-static void do_resume(GtkWidget *widget, _gtk_ctx *ctx)
+static void do_resume(GtkWidget *UNUSED(widget), _gtk_ctx *ctx)
 {
 	assert(ctx->canvas);
 	assert(ctx->mainctx->plot);
@@ -763,7 +766,7 @@ static gboolean configure_event(GtkWidget *widget, GdkEventConfigure *event, gpo
 	return TRUE;
 }
 
-static gboolean expose_event( GtkWidget *widget, GdkEventExpose *event, gpointer *dat )
+static gboolean expose_event( GtkWidget *widget, GdkEventExpose *UNUSED(event), gpointer *dat )
 {
 	cairo_t *dest = gdk_cairo_create(widget->window);
 	_gtk_ctx * ctx = (_gtk_ctx*) dat;
@@ -796,7 +799,7 @@ static gboolean expose_event( GtkWidget *widget, GdkEventExpose *event, gpointer
 	return FALSE;
 }
 
-static void do_undo(GtkAction *action, _gtk_ctx *ctx)
+static void do_undo(GtkAction *UNUSED(action), _gtk_ctx *ctx)
 {
 	if (ctx->canvas == NULL) return;
 	if (!ctx->mainctx->plot_prev) {
@@ -848,12 +851,12 @@ static void do_zoom(_gtk_ctx *ctx, enum zooms type)
 	}
 }
 
-static void do_zoom_in(GtkAction *a, _gtk_ctx *ctx)
+static void do_zoom_in(GtkAction *UNUSED(a), _gtk_ctx *ctx)
 {
 	do_zoom(ctx, ZOOM_IN);
 }
 
-static void do_zoom_out(GtkAction *a, _gtk_ctx *ctx)
+static void do_zoom_out(GtkAction *UNUSED(a), _gtk_ctx *ctx)
 {
 	do_zoom(ctx, ZOOM_OUT);
 }
@@ -868,7 +871,7 @@ cfpt pixel_to_set_tlo(_render_ctx *ctx, int x, int y)
 	return ctx->plot->pixel_to_set_tlo(x,y);
 }
 
-static gboolean button_press_event( GtkWidget *widget, GdkEventButton *event, gpointer *dat )
+static gboolean button_press_event( GtkWidget *UNUSED(widget), GdkEventButton *event, gpointer *dat )
 {
 	_gtk_ctx * ctx = (_gtk_ctx*) dat;
 	if (ctx->canvas != NULL) {
@@ -904,7 +907,7 @@ static gboolean button_press_event( GtkWidget *widget, GdkEventButton *event, gp
 }
 
 // Map keypad + and - into their accelerator counterparts.
-static gboolean key_press_event( GtkWidget *widget, GdkEventKey *event, gpointer *dat )
+static gboolean key_press_event( GtkWidget *UNUSED(widget), GdkEventKey *event, gpointer *dat )
 {
 	_gtk_ctx * ctx = (_gtk_ctx*) dat;
 	switch(event->keyval) {
@@ -918,7 +921,7 @@ static gboolean key_press_event( GtkWidget *widget, GdkEventKey *event, gpointer
 	return FALSE;
 }
 
-static gboolean button_release_event( GtkWidget *widget, GdkEventButton *event, gpointer *dat )
+static gboolean button_release_event( GtkWidget *UNUSED(widget), GdkEventButton *event, gpointer *dat )
 {
 	_gtk_ctx * ctx = (_gtk_ctx*) dat;
 	bool silly = false;
@@ -1057,7 +1060,7 @@ static bool read_entry_float(GtkWidget *entry, fvalue *val_out)
 	return true;
 }
 
-void do_params_dialog(GtkAction *action, _gtk_ctx *ctx)
+void do_params_dialog(GtkAction *UNUSED(action), _gtk_ctx *ctx)
 {
 	assert (ctx);
 
@@ -1134,14 +1137,14 @@ void do_params_dialog(GtkAction *action, _gtk_ctx *ctx)
 	gtk_widget_destroy(dlg);
 }
 
-static void toggle_hud(GtkAction *Action, _gtk_ctx *ctx)
+static void toggle_hud(GtkAction *UNUSED(Action), _gtk_ctx *ctx)
 {
 	if (ctx->mainctx->initializing) return;
 	ctx->mainctx->draw_hud = !ctx->mainctx->draw_hud;
 	recolour(ctx->window, ctx);
 }
 
-static void toggle_antialias(GtkAction *Action, _gtk_ctx *ctx)
+static void toggle_antialias(GtkAction *UNUSED(Action), _gtk_ctx *ctx)
 {
 	if (ctx->mainctx->initializing) return;
 	safe_stop_plot(ctx->mainctx->plot);
@@ -1149,7 +1152,7 @@ static void toggle_antialias(GtkAction *Action, _gtk_ctx *ctx)
 	do_plot(ctx->window, ctx, false);
 }
 
-void do_stop_plot(GtkAction *Action, _gtk_ctx *ctx)
+void do_stop_plot(GtkAction *UNUSED(Action), _gtk_ctx *ctx)
 {
 	assert (ctx);
 	gtk_progress_bar_set_text(ctx->progressbar, "Stopping...");
@@ -1158,13 +1161,13 @@ void do_stop_plot(GtkAction *Action, _gtk_ctx *ctx)
 	gtk_progress_bar_set_fraction(ctx->progressbar,0);
 }
 
-void do_refresh_plot(GtkAction *Action, _gtk_ctx *ctx)
+void do_refresh_plot(GtkAction *UNUSED(Action), _gtk_ctx *ctx)
 {
 	assert (ctx);
 	do_plot(ctx->window, ctx, true);
 }
 
-void do_plot_more(GtkAction *Action, _gtk_ctx *ctx)
+void do_plot_more(GtkAction *UNUSED(Action), _gtk_ctx *ctx)
 {
 	assert (ctx);
 	do_resume(ctx->window, ctx);
@@ -1172,7 +1175,7 @@ void do_plot_more(GtkAction *Action, _gtk_ctx *ctx)
 
 /////////////////////////////////////////////////////////////////
 
-void do_about(GtkAction *action, _gtk_ctx *ctx)
+void do_about(GtkAction *UNUSED(action), _gtk_ctx *ctx)
 {
 	GdkPixbuf *logo = gdk_pixbuf_new_from_inline(-1, brot2_logo, FALSE, 0);
 	gtk_show_about_dialog(GTK_WINDOW(ctx->window),
@@ -1228,14 +1231,14 @@ int main (int argc, char**argv)
 	// render_ctx.fractal set by setup_fractal_menu().
 
 	static GtkActionEntry entries[] = {
-		{ "MainMenuAction", NULL, "_Main" },
+		{ "MainMenuAction", NULL, "_Main", 0,0,0 },
 		{ "AboutAction", GTK_STOCK_ABOUT, "_About", 0, 0, G_CALLBACK(do_about) },
 		{ "SaveImageAction", GTK_STOCK_SAVE, "_Save image...", "<control>S", 0, G_CALLBACK(do_save) },
 		{ "QuitAction", GTK_STOCK_QUIT, "_Quit", "<control>Q", 0, gtk_main_quit} ,
 
-		{ "OptionsMenuAction", 0, "_Options" },
+		{ "OptionsMenuAction", 0, "_Options", 0,0,0 },
 
-		{ "PlotMenuAction", 0, "_Plot" },
+		{ "PlotMenuAction", 0, "_Plot", 0,0,0 },
 		{ "UndoAction", GTK_STOCK_UNDO, "_Undo", "<control>Z", 0, G_CALLBACK(do_undo) },
 		{ "ParametersAction", GTK_STOCK_PROPERTIES, "_Parameters", "<control>P", 0, G_CALLBACK(do_params_dialog) },
 		{ "ZoomInAction", GTK_STOCK_ZOOM_IN, "Zoom _In", "plus", 0, G_CALLBACK(do_zoom_in) },

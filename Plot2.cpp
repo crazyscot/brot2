@@ -69,7 +69,7 @@ public:
 		}
 		mux.unlock();
 	}
-	inline const int n_workers() const {
+	inline int n_workers() const {
 		return n_threads;
 	}
 	inline Glib::ThreadPool * get() {
