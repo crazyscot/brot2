@@ -10,3 +10,15 @@ debian/files
 logo_auto.c
 uixml_auto.c
 .gdbinit
+INSTALL
+Makefile.in
+Makefile
+aclocal.m4
+autom4te.cache
+config.aux
+configure
+config.h
+config.log
+config.status
+stamp-h1
+.deps
