@@ -70,7 +70,7 @@ public:
 	};
 	rgbf() : r(0),g(0),b(0) {};
 	rgbf (float rr, float gg, float bb) : r(rr), g(gg), b(bb) {};
-	operator rgb() {
+	operator rgb() const {
 		rgb rv;
 		rv.r = 255*r;
 		rv.g = 255*g;

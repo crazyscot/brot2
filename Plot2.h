@@ -83,20 +83,20 @@ public:
 	/* Converts an (x,y) pair on the render (say, from a mouse click) to their complex co-ordinates.
 	 * Returns 1 for success, 0 if the point was outside of the render.
 	 * N.B. that we assume that pixel co-ordinates have a bottom-left origin! */
-	cfpt pixel_to_set(int x, int y);
+	cfpt pixel_to_set(int x, int y) const;
 
 	/* Converts an (x,y) pair on the render (say, from a mouse click) to their complex co-ordinates.
 	 * Returns 1 for success, 0 if the point was outside of the render.
 	 * This is a variant form for pixels with a top-left origin, such as
 	 * those of gtk/gdk. */
-	cfpt pixel_to_set_tlo(int xx, int yy) {
+	cfpt pixel_to_set_tlo(int xx, int yy) const {
 		return pixel_to_set(xx, height-yy-1);
 	};
 
 	/* What iteration count did we bail out at? */
-	const int get_maxiter() { return plotted_maxiter; };
+	const int get_maxiter() const { return plotted_maxiter; };
 	/* How many passes before we bailed out? */
-	const int get_passes() { return plotted_passes; };
+	const int get_passes() const { return plotted_passes; };
 
 	/* Are we there yet? */
 	inline bool is_done() {
