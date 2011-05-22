@@ -185,21 +185,24 @@ static inline rgb render_pixel(const fractal_point *data, const int local_inf, c
 
 /*
  * The actual work of turning an array of fractal_points - maybe an antialiased
- * set - into a packed array of RGB triplets (i.e. 24 bits per pixel).
- * (Optionally we skip the first byte, i.e. 0RGB, for things which need it.)
+ * set - into a packed array of pixels to a given format.
  *
- * buf: Where to put the data. This should be at least (rowstride * rctx->height)
- * bytes long.
- * rowstride: the size of an output row, in bytes. In other words the byte offset
- * from one row to the next - which may be different from 3 * rctx->rwidth if any
- * padding is required.
+ * buf: Where to put the data. This should be at least
+ * (rowstride * rctx->height) bytes long.
+ *
+ * rowstride: the size of an output row, in bytes. In other words the byte
+ * offset from one row to the next - which may be different from
+ * (bytes per pixel * rctx->rwidth) if any padding is required.
+ *
  * local_inf: the local plot's current idea of infinity.
  * (N.B. -1 is always treated as infinity.)
  *
- * is_0rgb: If true, we insert a zero byte before every triplet, i.e. render as 0RGB.
+ * fmt: The byte format to use. This may be a CAIRO_FORMAT_* or our
+ * internal PACKED_RGB_24 (used for png output).
  *
  * Returns: True if the render completed, false if the plot disappeared under
- * our feet (typically by the user doing something to cause us to render afresh).
+ * our feet (typically by the user doing something to cause us to render
+ * afresh).
  */
 static bool render_plot_generic(guchar *buf, const _render_ctx *rctx, const gint rowstride, const int local_inf, pixpack_format fmt)
 {
