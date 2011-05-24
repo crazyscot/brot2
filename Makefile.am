@@ -4,19 +4,13 @@ bin_PROGRAMS=brot2
 
 brot2_SOURCES=$(AUTOSRC) main.cpp
 
-brot2_LDFLAGS= @glibmm_LIBS@ @gtk_LIBS@ @gdk_LIBS@ @pangocairo_LIBS@ \
-			   @libpng_LIBS@ \
-			   -lm
-brot2_LDADD= libbrot2/libbrot2.a
+brot2_LDADD= libbrot2/libbrot2.a @brot2_LIBS@ -lm
 
-AM_CPPFLAGS= -Ilibbrot2 \
-			@glibmm_CFLAGS@ @gtk_CFLAGS@ @gdk_CFLAGS@ @pangocairo_CFLAGS@ \
-			@libpng_CFLAGS@
+AM_CPPFLAGS= -Ilibbrot2 @brot2_CFLAGS@
 
 AM_CFLAGS=@global_CFLAGS@
 AM_CXXFLAGS=@global_CXXFLAGS@
 EXTRA_DIST=
-AM_LDFLAGS= --g-fatal-warnings
 
 AUTOSRC=logo_auto.c uixml_auto.c
 
