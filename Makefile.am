@@ -10,7 +10,7 @@ AM_CPPFLAGS= -Ilibbrot2 @brot2_CFLAGS@
 
 AM_CFLAGS=@global_CFLAGS@
 AM_CXXFLAGS=@global_CXXFLAGS@
-EXTRA_DIST=
+EXTRA_DIST=debian
 
 AUTOSRC=logo_auto.c uixml_auto.c
 
