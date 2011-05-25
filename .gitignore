@@ -19,6 +19,7 @@ autom4te.cache
 config.aux
 configure
 config.h
+config.h.in
 config.log
 config.status
 stamp-h1

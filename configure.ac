@@ -1,6 +1,6 @@
-AC_INIT([brot2], [0.1.XXX], [ross@impropriety.org.uk])
+AC_INIT([brot2], [0.1.wip])
 AC_CONFIG_AUX_DIR([config.aux])
-AM_INIT_AUTOMAKE([brot2], [0.1.XXX])
+AM_INIT_AUTOMAKE([no-define])
 AC_CONFIG_SRCDIR([libbrot2/Plot2.cpp])
 AM_CONFIG_HEADER([config.h])
 AC_CANONICAL_HOST
@@ -8,6 +8,7 @@ AC_LANG([C++])
 : ${CFLAGS="-g"}
 : ${CXXFLAGS="-g"}
 AC_PROG_CC
+AM_PROG_CC_C_O
 AC_PROG_CXX
 AM_PROG_AS
 AC_PROG_RANLIB
