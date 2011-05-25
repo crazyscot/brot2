@@ -41,7 +41,7 @@ static const char *copyright_string = "(c) 2010-2011 Ross Younger";
 #include "libbrot2.h"
 #include "Plot2.h"
 #include "palette.h"
-#include "version.h"
+#include "config.h"
 #include "misc.h"
 #include "logo.h"
 #include "uixml.h"
@@ -1183,7 +1183,7 @@ void do_about(GtkAction *UNUSED(action), _gtk_ctx *ctx)
 			"copyright", copyright_string,
 			"license", license_text,
 			"wrap-license", TRUE, 
-			"version", BROT2_VERSION_STRING,
+			"version", PACKAGE_VERSION,
 			"logo", logo,
 			NULL);
 	g_object_unref(logo); // gdk_pixmap_unref
@@ -1206,7 +1206,7 @@ int main (int argc, char**argv)
 		switch(opt) {
 			case 'v':
 			case '?':
-				cout << "brot2 v" << BROT2_VERSION_STRING << endl;
+				cout << "brot2 v" << PACKAGE_VERSION << endl;
 				cout << "Copyright " << copyright_string << endl;
 				return 0;
 		}
