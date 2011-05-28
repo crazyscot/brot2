@@ -5,6 +5,7 @@ bin_PROGRAMS=brot2
 brot2_SOURCES=$(AUTOGEN_SOURCES) main.cpp
 
 brot2_LDADD= libbrot2/libbrot2.a @brot2_LIBS@ -lm
+brot2_DEPENDENCIES= libbrot2/libbrot2.a
 
 AM_CPPFLAGS= -Ilibbrot2 @brot2_CFLAGS@
 

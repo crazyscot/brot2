@@ -33,7 +33,10 @@ FractalRegistry* FractalRegistry::_instance = 0;
  * before I set up any threads.
  */
 std::map<std::string,Fractal*>& FractalRegistry::registry() {
-	if (!_instance)
+	if (!_instance) {
+		load_Mandelbrot();
+		load_Mandelbar();
 		_instance = new FractalRegistry();
+	}
 	return _instance->_registry;
 }

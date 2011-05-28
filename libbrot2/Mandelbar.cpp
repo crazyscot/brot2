@@ -17,15 +17,12 @@
 */
 
 #include "Fractal.h"
-#include "libbrot2.h"
 #include <assert.h>
 #include <iostream>
 
 using namespace std;
 
-void ensure_Mandelbar(void) {
-	// Dummy function so we can forcibly pull in this compile unit
-}
+void load_Mandelbar() { }
 
 // Abstract base class for common unoptimized code
 class Mandelbar_Generic : public Fractal {

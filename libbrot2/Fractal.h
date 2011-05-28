@@ -24,6 +24,13 @@
 #include <map>
 #include <iostream>
 
+// Every source file that declares fractals must have a load_ function.
+// They are called in Fractal.cpp.
+void load_Mandelbrot();
+void load_Mandelbar();
+
+// Maths types etc
+
 typedef long double fvalue; // short for "fractal value"
 typedef std::complex<fvalue> cfpt; // "complex fractal point"
 #define MINIMUM_PIXEL_SIZE ((fvalue)0.000000000000000444089209850062616169452667236328125)
