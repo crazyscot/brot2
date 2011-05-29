@@ -65,6 +65,12 @@ public:
 		SHORTCUT:
 		out.mark_infinite();
 	}
+	static inline void ITER2(Value& o_re, Value& o_im, Value& re2, Value& im2, Value& z_re, Value& z_im) {
+		re2 = z_re * z_re;
+		im2 = z_im * z_im;
+		z_im = 2 * z_re * z_im + o_im;
+		z_re = re2 - im2 + o_re;
+	}
 	virtual void plot_pixel(const int maxiter, PointData& out) const {
 		// Speed notes:
 		// Don't use Point in the actual calculation - using straight doubles and
@@ -73,19 +79,13 @@ public:
 		Value o_re = real(out.origin), o_im = imag(out.origin),
 			   z_re = real(out.point), z_im = imag(out.point), re2, im2;
 
-	#define ITER2() do { 							\
-			re2 = z_re * z_re;						\
-			im2 = z_im * z_im;						\
-			z_im = 2 * z_re * z_im + o_im;			\
-			z_re = re2 - im2 + o_re;				\
-	} while (0)
-
 		for (iter=out.iter; iter<maxiter; iter++) {
-			ITER2();
+			ITER2(o_re, o_im, re2, im2, z_re, z_im);
 			if (re2 + im2 > 4.0) {
 				// Fractional escape count: See http://linas.org/art-gallery/escape/escape.html
-				ITER2(); ++iter;
-				ITER2(); ++iter;
+				ITER2(o_re, o_im, re2, im2, z_re, z_im);
+				ITER2(o_re, o_im, re2, im2, z_re, z_im);
+				iter+=2;
 				out.iter = iter;
 				out.iterf = iter - log(log(re2 + im2)) / Consts::log2;
 				out.arg = atan2(z_im, z_re);
@@ -107,24 +107,23 @@ public:
 	Mandel3(string name_, string desc_) : Mandelbrot_Generic(name_, desc_) {};
 	~Mandel3() {};
 
+	static inline void ITER3(Value& o_re, Value& o_im, Value& re2, Value& im2, Value& z_re, Value& z_im) {
+		re2 = z_re * z_re;
+		im2 = z_im * z_im;
+		z_re = z_re * re2 - 3*z_re*im2 + o_re;
+		z_im = 3 * z_im * re2 - z_im * im2 + o_im;
+	}
 	virtual void plot_pixel(const int maxiter, PointData& out) const {
 		int iter;
 		Value o_re = real(out.origin), o_im = imag(out.origin),
 				z_re = real(out.point), z_im = imag(out.point), re2, im2;
-
-#define ITER3() do { 								\
-		re2 = z_re * z_re;							\
-		im2 = z_im * z_im;							\
-		z_re = z_re * re2 - 3*z_re*im2 + o_re; 		\
-		z_im = 3 * z_im * re2 - z_im * im2 + o_im; 	\
-} while (0)
-
 		for (iter=out.iter; iter<maxiter; iter++) {
-			ITER3();
+			ITER3(o_re, o_im, re2, im2, z_re, z_im);
 			if (re2 + im2 > 4.0) {
 				// Fractional escape count: See http://linas.org/art-gallery/escape/escape.html
-				ITER3(); ++iter;
-				ITER3(); ++iter;
+				ITER3(o_re, o_im, re2, im2, z_re, z_im);
+				ITER3(o_re, o_im, re2, im2, z_re, z_im);
+				iter+=2;
 				out.iter = iter;
 				out.iterf = iter - log(log(re2 + im2)) / Consts::log3;
 				out.arg = atan2(z_im, z_re);
@@ -146,24 +145,24 @@ public:
 	Mandel4(string name_, string desc_) : Mandelbrot_Generic(name_, desc_) {};
 	~Mandel4() {};
 
+	static inline void ITER4(Value& o_re, Value& o_im, Value& re2, Value& im2, Value& z_re, Value& z_im) {
+		re2 = z_re * z_re;
+		im2 = z_im * z_im;
+		z_im = 4 * (re2*z_re*z_im - z_re*im2*z_im) + o_im;
+		z_re = re2*re2 - 6*re2*im2 + im2*im2 + o_re;
+	}
 	virtual void plot_pixel(const int maxiter, PointData& out) const {
 		int iter;
 		Value o_re = real(out.origin), o_im = imag(out.origin),
 				z_re = real(out.point), z_im = imag(out.point), re2, im2;
 
-#define ITER4() do { 								\
-		re2 = z_re * z_re;							\
-		im2 = z_im * z_im;							\
-		z_im = 4 * (re2*z_re*z_im - z_re*im2*z_im) + o_im;	\
-		z_re = re2*re2 - 6*re2*im2 + im2*im2 + o_re;		\
-} while (0)
-
 		for (iter=out.iter; iter<maxiter; iter++) {
-			ITER4();
+			ITER4(o_re, o_im, re2, im2, z_re, z_im);
 			if (re2 + im2 > 4.0) {
 				// Fractional escape count: See http://linas.org/art-gallery/escape/escape.html
-				ITER4(); ++iter;
-				ITER4(); ++iter;
+				ITER4(o_re, o_im, re2, im2, z_re, z_im);
+				ITER4(o_re, o_im, re2, im2, z_re, z_im);
+				iter+=2;
 				out.iter = iter;
 				out.iterf = iter - log(log(re2 + im2)) / Consts::log4;
 				out.arg = atan2(z_im, z_re);
@@ -185,26 +184,27 @@ public:
 	Mandel5(string name_, string desc_) : Mandelbrot_Generic(name_, desc_) {};
 	~Mandel5() {};
 
+	static inline void ITER5(Value& o_re, Value& o_im, Value& re2, Value& im2, Value& z_re, Value& z_im, Value& re4, Value& im4) {
+		re2 = z_re * z_re;
+		im2 = z_im * z_im;
+		re4 = re2 * re2;
+		im4 = im2 * im2;
+		z_re = re4*z_re - 10*z_re*re2*im2 + 5*z_re*im4 + o_re;
+		z_im = 5*re4*z_im - 10*re2*im2*z_im + im4*z_im + o_im;
+	}
+
 	virtual void plot_pixel(const int maxiter, PointData& out) const {
 		int iter;
 		Value o_re = real(out.origin), o_im = imag(out.origin),
 				z_re = real(out.point), z_im = imag(out.point), re2, im2, re4, im4;
 
-#define ITER5() do { 								\
-		re2 = z_re * z_re;							\
-		im2 = z_im * z_im;							\
-		re4 = re2 * re2;							\
-		im4 = im2 * im2;							\
-		z_re = re4*z_re - 10*z_re*re2*im2 + 5*z_re*im4 + o_re;	\
-		z_im = 5*re4*z_im - 10*re2*im2*z_im + im4*z_im + o_im;	\
-} while (0)
-
 		for (iter=out.iter; iter<maxiter; iter++) {
-			ITER5();
+			ITER5(o_re, o_im, re2, im2, z_re, z_im, re4, im4);
 			if (re2 + im2 > 4.0) {
 				// Fractional escape count: See http://linas.org/art-gallery/escape/escape.html
-				ITER5(); ++iter;
-				ITER5(); ++iter;
+				ITER5(o_re, o_im, re2, im2, z_re, z_im, re4, im4);
+				ITER5(o_re, o_im, re2, im2, z_re, z_im, re4, im4);
+				iter+=2;
 				out.iter = iter;
 				out.iterf = iter - log(log(re2 + im2)) / Consts::log5;
 				out.arg = atan2(z_im, z_re);
