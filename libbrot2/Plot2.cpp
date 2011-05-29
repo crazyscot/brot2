@@ -23,6 +23,7 @@
 #include "Plot2.h"
 
 using namespace std;
+using namespace Fractal;
 
 #define INITIAL_PASS_MAXITER 512
 /* Judging the number of iterations and how to scale it on successive passes
@@ -104,7 +105,7 @@ static SingletonThreadPool worker_thread_pool(true);
 
 using namespace std;
 
-Plot2::Plot2(Fractal* f, cfpt centre, cfpt size,
+Plot2::Plot2(FractalImpl* f, Point centre, Point size,
 		unsigned width, unsigned height) :
 		fract(f), centre(centre), size(size),
 		width(width), height(height),
@@ -123,7 +124,7 @@ string Plot2::info(bool verbose) {
 	rv << plotted_maxiter;
 
 	// Now that we autofix the aspect ratio, our pixels are square.
-	double zoom = 1.0/real(size); // not an fvalue, so we can print it
+	double zoom = 1.0/real(size); // not a Value, so we can print it
 
 	rv.precision(4); // Don't need more than this for the axis length or pixsize.
 	if (verbose) {
@@ -174,16 +175,16 @@ void Plot2::prepare()
 {
 	// Called with plot_lock held!
 	if (_data) delete[] _data;
-	_data = new fractal_point[width * height];
+	_data = new PointData[width * height];
 
-	const cfpt _origin = origin(); // origin of the _whole plot_, not of firstrow
+	const Point _origin = origin(); // origin of the _whole plot_, not of firstrow
 	unsigned i,j, out_index = 0;
 	//std::cout << "render centre " << centre << "; size " << size << "; origin " << origin << std::endl;
 
-	cfpt colstep = cfpt(real(size) / width,0);
-	cfpt rowstep = cfpt(0, imag(size) / height);
+	Point colstep = Point(real(size) / width,0);
+	Point rowstep = Point(0, imag(size) / height);
 	//std::cout << "rowstep " << rowstep << "; colstep "<<colstep << std::endl;
-	cfpt render_point = _origin;
+	Point render_point = _origin;
 
 	for (j=0; j<height; j++) {
 		for (i=0; i<width; i++) {
@@ -364,7 +365,7 @@ void Plot2::_worker_threadfunc(worker_job * job) {
 	// keep running points.
 	for (j=firstrow; j<fencepost; j++) {
 		for (i=0; i<width; i++) {
-			fractal_point& pt = _data[out_index];
+			PointData& pt = _data[out_index];
 			if (!pt.nomore) {
 				fract->plot_pixel(job->maxiter, pt);
 				if (pt.nomore)
@@ -397,14 +398,14 @@ void Plot2::stop() {
 }
 
 /* Converts an (x,y) pair on the render (say, from a mouse click) to their complex co-ordinates */
-cfpt Plot2::pixel_to_set(int x, int y) const
+Point Plot2::pixel_to_set(int x, int y) const
 {
 	if (x<0) x=0; else if ((unsigned)x>width) x=width;
 	if (y<0) y=0; else if ((unsigned)y>height) y=height;
 
-	const fvalue pixwide = real(size) / width,
+	const Value pixwide = real(size) / width,
 		  		 pixhigh  = imag(size) / height;
-	cfpt delta (x*pixwide, y*pixhigh);
+	Point delta (x*pixwide, y*pixhigh);
 	return origin() + delta;
 }
 

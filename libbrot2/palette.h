@@ -100,7 +100,7 @@ class BasePalette {
 public:
 	BasePalette(std::string nam): name(nam) {}
 	const std::string name;
-	virtual rgb get(const fractal_point &pt) const = 0;
+	virtual rgb get(const Fractal::PointData &pt) const = 0;
 };
 
 
@@ -119,7 +119,7 @@ public:
 	const int size; // number of colours in the palette
 
 	// Instances must implement:
-	// virtual rgb get(const fractal_point &pt) const = 0;
+	// virtual rgb get(const PointData &pt) const = 0;
 
 	static std::map<std::string,DiscretePalette*> registry;
 
@@ -157,7 +157,7 @@ public:
 		isRegistered = 0;
 	}
 
-	virtual rgb get(const fractal_point &pt) const = 0;
+	virtual rgb get(const Fractal::PointData &pt) const = 0;
 
 protected:
 	int isRegistered;

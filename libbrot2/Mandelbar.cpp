@@ -21,18 +21,19 @@
 #include <iostream>
 
 using namespace std;
+using namespace Fractal;
 
-void load_Mandelbar() { }
+void Fractal::load_Mandelbar() { }
 
 // Abstract base class for common unoptimized code
-class Mandelbar_Generic : public Fractal {
+class Mandelbar_Generic : public FractalImpl {
 public:
-	Mandelbar_Generic(std::string name_, std::string desc_, fvalue xmin_=-3.0, fvalue xmax_=3.0, fvalue ymin_=-3.0, fvalue ymax_=3.0, unsigned sortorder=20) : Fractal(name_, desc_, xmin_, xmax_, ymin_, ymax_, sortorder) {};
+	Mandelbar_Generic(std::string name_, std::string desc_, Value xmin_=-3.0, Value xmax_=3.0, Value ymin_=-3.0, Value ymax_=3.0, unsigned sortorder=20) : FractalImpl(name_, desc_, xmin_, xmax_, ymin_, ymax_, sortorder) {};
 	~Mandelbar_Generic() {};
 
-	virtual void prepare_pixel(const cfpt coords, fractal_point& out) const {
+	virtual void prepare_pixel(const Point coords, PointData& out) const {
 		// The first iteration is easy, 0^k + origin = origin
-		out.origin = out.point = cfpt(coords);
+		out.origin = out.point = Point(coords);
 		out.iter = 1;
 		return;
 	};
@@ -45,9 +46,9 @@ public:
 	Mandelbar2(std::string name_, std::string desc_) : Mandelbar_Generic(name_, desc_, -3.0, 3.0, -3.0, 3.0) {};
 	~Mandelbar2() {};
 
-	virtual void plot_pixel(const int maxiter, fractal_point& out) const {
+	virtual void plot_pixel(const int maxiter, PointData& out) const {
 		int iter;
-		fvalue o_re = real(out.origin), o_im = imag(out.origin),
+		Value o_re = real(out.origin), o_im = imag(out.origin),
 			   z_re = real(out.point), z_im = imag(out.point), re2, im2;
 
 	#define ITER2() do { 							\
@@ -64,14 +65,14 @@ public:
 				ITER2(); ++iter;
 				ITER2(); ++iter;
 				out.iter = iter;
-				out.iterf = iter - log(log(re2 + im2)) / _consts::log2;
+				out.iterf = iter - log(log(re2 + im2)) / Consts::log2;
 				out.arg = atan2(z_im, z_re);
 				out.nomore = true;
 				return;
 			}
 		}
 		out.iter = iter;
-		out.point = cfpt(z_re,z_im);
+		out.point = Point(z_re,z_im);
 
 	};
 };
@@ -85,9 +86,9 @@ public:
 	Mandelbar3(std::string name_, std::string desc_) : Mandelbar_Generic(name_, desc_, -3.0, 3.0, -3.0, 3.0) {};
 	~Mandelbar3() {};
 
-	virtual void plot_pixel(const int maxiter, fractal_point& out) const {
+	virtual void plot_pixel(const int maxiter, PointData& out) const {
 		int iter;
-		fvalue o_re = real(out.origin), o_im = imag(out.origin),
+		Value o_re = real(out.origin), o_im = imag(out.origin),
 			   z_re = real(out.point), z_im = imag(out.point), re2, im2;
 
 #define ITER3() do { 								\
@@ -103,14 +104,14 @@ public:
 				ITER3(); ++iter;
 				ITER3(); ++iter;
 				out.iter = iter;
-				out.iterf = iter - log(log(re2 + im2)) / _consts::log3;
+				out.iterf = iter - log(log(re2 + im2)) / Consts::log3;
 				out.arg = atan2(z_im, z_re);
 				out.nomore = true;
 				return;
 			}
 		}
 		out.iter = iter;
-		out.point = cfpt(z_re,z_im);
+		out.point = Point(z_re,z_im);
 
 	};
 };
@@ -124,9 +125,9 @@ public:
 	Mandelbar4(std::string name_, std::string desc_) : Mandelbar_Generic(name_, desc_, -3.0, 3.0, -3.0, 3.0) {};
 	~Mandelbar4() {};
 
-	virtual void plot_pixel(const int maxiter, fractal_point& out) const {
+	virtual void plot_pixel(const int maxiter, PointData& out) const {
 		int iter;
-		fvalue o_re = real(out.origin), o_im = imag(out.origin),
+		Value o_re = real(out.origin), o_im = imag(out.origin),
 			   z_re = real(out.point), z_im = imag(out.point), re2, im2;
 
 #define ITER4() do { 								\
@@ -142,14 +143,14 @@ public:
 				ITER4(); ++iter;
 				ITER4(); ++iter;
 				out.iter = iter;
-				out.iterf = iter - log(log(re2 + im2)) / _consts::log4;
+				out.iterf = iter - log(log(re2 + im2)) / Consts::log4;
 				out.arg = atan2(z_im, z_re);
 				out.nomore = true;
 				return;
 			}
 		}
 		out.iter = iter;
-		out.point = cfpt(z_re,z_im);
+		out.point = Point(z_re,z_im);
 
 	};
 };
@@ -164,9 +165,9 @@ public:
 	Mandelbar5(std::string name_, std::string desc_) : Mandelbar_Generic(name_, desc_, -3.0, 3.0, -3.0, 3.0) {};
 	~Mandelbar5() {};
 
-	virtual void plot_pixel(const int maxiter, fractal_point& out) const {
+	virtual void plot_pixel(const int maxiter, PointData& out) const {
 		int iter;
-		fvalue o_re = real(out.origin), o_im = imag(out.origin),
+		Value o_re = real(out.origin), o_im = imag(out.origin),
 			   z_re = real(out.point), z_im = imag(out.point), re2, im2, re4, im4;
 
 #define ITER5() do { 								\
@@ -184,14 +185,14 @@ public:
 				ITER5(); ++iter;
 				ITER5(); ++iter;
 				out.iter = iter;
-				out.iterf = iter - log(log(re2 + im2)) / _consts::log4;
+				out.iterf = iter - log(log(re2 + im2)) / Consts::log4;
 				out.arg = atan2(z_im, z_re);
 				out.nomore = true;
 				return;
 			}
 		}
 		out.iter = iter;
-		out.point = cfpt(z_re,z_im);
+		out.point = Point(z_re,z_im);
 
 	};
 };

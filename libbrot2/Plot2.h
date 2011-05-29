@@ -52,17 +52,17 @@ public:
 	};
 
 	/* What is this plot about? */
-	const Fractal* fract;
-	const cfpt centre, size;
+	const Fractal::FractalImpl* fract;
+	const Fractal::Point centre, size;
 	const unsigned width, height; // plot size in pixels
-	const cfpt origin() const { return centre - size/(fvalue)2.0; }
+	const Fractal::Point origin() const { return centre - size/(Fractal::Value)2.0; }
 
 	// Returns a human-readable summary of this plot for the status bar.
 	virtual std::string info(bool verbose = false);
 
 	/* The constructor may request the fractal to do any precomputation
 	 * necessary (known-blank regions, for example). */
-	Plot2(Fractal* f, cfpt centre, cfpt size, unsigned width, unsigned height);
+	Plot2(Fractal::FractalImpl* f, Fractal::Point centre, Fractal::Point size, unsigned width, unsigned height);
 	virtual ~Plot2();
 
 	/* Starts a plot. A thread is spawned to do the actual work.
@@ -78,18 +78,18 @@ public:
 	void stop();
 
 	/* Read-only access to the plot data. */
-	const fractal_point * get_data() { if (!this) return 0; return _data; }
+	const Fractal::PointData * get_data() { if (!this) return 0; return _data; }
 
 	/* Converts an (x,y) pair on the render (say, from a mouse click) to their complex co-ordinates.
 	 * Returns 1 for success, 0 if the point was outside of the render.
 	 * N.B. that we assume that pixel co-ordinates have a bottom-left origin! */
-	cfpt pixel_to_set(int x, int y) const;
+	Fractal::Point pixel_to_set(int x, int y) const;
 
 	/* Converts an (x,y) pair on the render (say, from a mouse click) to their complex co-ordinates.
 	 * Returns 1 for success, 0 if the point was outside of the render.
 	 * This is a variant form for pixels with a top-left origin, such as
 	 * those of gtk/gdk. */
-	cfpt pixel_to_set_tlo(int xx, int yy) const {
+	Fractal::Point pixel_to_set_tlo(int xx, int yy) const {
 		return pixel_to_set(xx, height-yy-1);
 	};
 
@@ -119,7 +119,7 @@ private:
 	Glib::Cond _plot_complete; // For the per-plot "main" thread to signal completion, also protected by plot_lock
 
 	callback_t* callback;  // Written few times, read many.
-	fractal_point* _data;  // Concurrently written by worker threads. Beware! (N.B. We own this pointer.)
+	Fractal::PointData* _data;  // Concurrently written by worker threads. Beware! (N.B. We own this pointer.)
 	volatile bool _abort, _done; // Protected by plot_lock
 	unsigned _outstanding; // How many jobs remain? Protected by plot_lock.
 

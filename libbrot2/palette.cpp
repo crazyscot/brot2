@@ -23,6 +23,7 @@
 #include <iostream>
 
 using namespace std;
+using namespace Fractal;
 
 #define DEBUG_DUMP_ALL 0
 #define DEBUG_DUMP_HSV 0
@@ -86,7 +87,7 @@ std::ostream& operator<<(std::ostream &stream, hsvf o) {
 class Kaleidoscopic : DiscretePalette {
 public:
 	Kaleidoscopic(string name, int n) : DiscretePalette(name,n) {};
-	virtual rgb get(const fractal_point &pt) const {
+	virtual rgb get(const PointData &pt) const {
 		// This one jumps at random around the hue space.
 			hsvf h(0.5+cos(pt.iter)/2.0, 0.87, 0.87);
 			rgb r(h);
@@ -102,7 +103,7 @@ Kaleidoscopic kaleido32("Kaleidoscopic", 32);
 class Rainbow : DiscretePalette {
 public:
 	Rainbow(string name, int n) : DiscretePalette(name, n) {};
-	virtual rgb get(const fractal_point &pt) const {
+	virtual rgb get(const PointData &pt) const {
 		// This is a continuous "gradient" around the Hue wheel.
 		double n = (double)pt.iter / size;
 		n -= floor(n);
@@ -120,7 +121,7 @@ Rainbow grad32("Rainbow", 32);
 class PastelSalad : DiscretePalette {
 public:
 	PastelSalad(string name, int n) : DiscretePalette(name, n) {};
-	virtual rgb get(const fractal_point &pt) const {
+	virtual rgb get(const PointData &pt) const {
 		return rgb((size-pt.iter)*255/size,
 					144,
 					255*cos(pt.iter));
@@ -136,7 +137,7 @@ protected:
 public:
 	SawtoothGradient(string nam, int n, const rgbf p1, const rgbf p2) : DiscretePalette(nam,n), point1(p1), point2(p2) {};
 
-	virtual rgb get(const fractal_point &pt) const {
+	virtual rgb get(const PointData &pt) const {
 		// I tried a sinusoid function here as well, but it didn't work so well.
 		int iter = pt.iter % size;
 		float tau = 2.0 * iter / size;
@@ -164,7 +165,7 @@ public:
 	const double wrap;
 	const hsvf pointa, pointb; // Points to smooth between
 	HueCycle(std::string name, float wrap, hsvf pa, hsvf pb) : SmoothPalette(name), wrap(wrap), pointa(pa), pointb(pb) {};
-	rgb get(const fractal_point &pt) const {
+	rgb get(const PointData &pt) const {
 		float tau = pt.iterf / wrap;
 		tau -= floor(tau);
 		float taup = 1.0 - tau;
@@ -195,7 +196,7 @@ HUECYCLE(green_32, Linear rainbow, 32, hsvf(0.5,1,1), hsvf(1.5,1,1));
 class LogSmoothed : public SmoothPalette {
 public:
 	LogSmoothed(std::string name) : SmoothPalette(name) {};
-	hsvf get_hsvf(const fractal_point &pt) const {
+	hsvf get_hsvf(const PointData &pt) const {
 		hsvf rv;
 		double t = log(pt.iterf);
 		rv.h = t/2.0 + 0.5;
@@ -205,7 +206,7 @@ public:
 		rv.v = 1.0;
 		return rv;
 	}
-	rgb get(const fractal_point &pt) const {
+	rgb get(const PointData &pt) const {
 		return get_hsvf(pt);
 	};
 };
@@ -215,7 +216,7 @@ LogSmoothed log_smoothed("Logarithmic rainbow");
 class LogSmoothedRays : public LogSmoothed {
 public:
 	LogSmoothedRays(std::string name) : LogSmoothed(name) {};
-	rgb get(const fractal_point &pt) const {
+	rgb get(const PointData &pt) const {
 		hsvf rv = get_hsvf(pt);
 		rv.s = 0.5 + cos(pt.arg) / 2.0;
 		return rv;
@@ -228,14 +229,14 @@ LogSmoothedRays log_smoothed_with_rays("Logarithmic rainbow  with rays");
 class FastLogSmoothed : public SmoothPalette {
 public:
 	FastLogSmoothed(std::string name) : SmoothPalette(name) {};
-	hsvf get_hsvf(const fractal_point &pt) const {
+	hsvf get_hsvf(const PointData &pt) const {
 		hsvf rv;
 		rv.h = log(pt.iterf) + 0.5;
 		rv.s = 1.0;
 		rv.v = 1.0;
 		return rv;
 	}
-	rgb get(const fractal_point &pt) const {
+	rgb get(const PointData &pt) const {
 		return get_hsvf(pt);
 	};
 };
@@ -247,14 +248,14 @@ FastLogSmoothed fast_log_smoothed("Logarithmic rainbow (steep)");
 class SinLogSmoothed : public SmoothPalette {
 public:
 	SinLogSmoothed(std::string name) : SmoothPalette(name) {};
-	hsvf get_hsvf(const fractal_point &pt) const {
+	hsvf get_hsvf(const PointData &pt) const {
 		hsvf rv;
 		rv.h = sin(log(pt.iterf))/2.0 + 0.5;
 		rv.s = 1.0;
 		rv.v = 1.0;
 		return rv;
 	}
-	rgb get(const fractal_point &pt) const {
+	rgb get(const PointData &pt) const {
 		return get_hsvf(pt);
 	};
 };
@@ -264,7 +265,7 @@ SinLogSmoothed sin_log("sin(log)");
 class SlowSineLog : public SmoothPalette {
 public:
 	SlowSineLog(std::string name) : SmoothPalette(name) {};
-	rgb get(const fractal_point &pt) const {
+	rgb get(const PointData &pt) const {
 		hsvf rv;
 		rv.h = 0.5 + sin(log(pt.iterf)/3*M_PI)/2.0;
 		rv.s = 1.0;
@@ -278,7 +279,7 @@ SlowSineLog slow_sine_log("sin(log) shallow");
 class FastSineLog : public SmoothPalette {
 public:
 	FastSineLog(std::string name) : SmoothPalette(name) {};
-	rgb get(const fractal_point &pt) const {
+	rgb get(const PointData &pt) const {
 		hsvf rv;
 		rv.h = 0.5+sin(log(pt.iterf)*M_PI)/2.0;
 		rv.s = 1.0;
@@ -292,14 +293,14 @@ FastSineLog fast_sine_log("sin(log) steep");
 class CosLogSmoothed : public SmoothPalette {
 public:
 	CosLogSmoothed(std::string name) : SmoothPalette(name) {};
-	hsvf get_hsvf(const fractal_point &pt) const {
+	hsvf get_hsvf(const PointData &pt) const {
 		hsvf rv;
 		rv.h = cos(log(pt.iterf))/2.0 + 0.5;
 		rv.s = 1.0;
 		rv.v = 1.0;
 		return rv;
 	}
-	rgb get(const fractal_point &pt) const {
+	rgb get(const PointData &pt) const {
 		return get_hsvf(pt);
 	};
 };
@@ -309,7 +310,7 @@ CosLogSmoothed cos_log("cos(log)");
 class SlowCosLog : public SmoothPalette {
 public:
 	SlowCosLog(std::string name) : SmoothPalette(name) {};
-	rgb get(const fractal_point &pt) const {
+	rgb get(const PointData &pt) const {
 		hsvf rv;
 		rv.h = 0.5 + cos(log(pt.iterf)/3*M_PI)/2.0;
 		rv.s = 1.0;
@@ -323,7 +324,7 @@ SlowCosLog slow_cos_log("cos(log) shallow");
 class FastCosLog : public SmoothPalette {
 public:
 	FastCosLog(std::string name) : SmoothPalette(name) {};
-	rgb get(const fractal_point &pt) const {
+	rgb get(const PointData &pt) const {
 		hsvf rv;
 		rv.h = 0.5+cos(log(pt.iterf)*M_PI)/2.0;
 		rv.s = 1.0;

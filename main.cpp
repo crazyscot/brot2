@@ -48,6 +48,7 @@ static const char *copyright_string = "(c) 2010-2011 Ross Younger";
 #include <X11/Xlib.h>
 
 using namespace std;
+using namespace Fractal;
 
 #define MAX(a,b)	(((a) > (b)) ? (a) : (b))
 #define MIN(a,b)	(((a) < (b)) ? (a) : (b))
@@ -71,8 +72,8 @@ typedef struct _render_ctx {
 	Plot2 * plot_prev;
 	BasePalette * pal;
 	// Yes, the following are mostly the same as in the Plot - but the plot is torn down and recreated frequently.
-	Fractal *fractal;
-	cfpt centre, size;
+	FractalImpl *fractal;
+	Point centre, size;
 	unsigned rwidth, rheight; // Rendering dimensions; plot dims will be larger if antialiased
 	bool draw_hud, antialias;
 	unsigned antialias_factor;
@@ -175,7 +176,7 @@ static void draw_hud_cairo(_gtk_ctx *gctx)
 /*
  * Renders a single pixel, given the current idea of infinity and the palette to use.
  */
-static inline rgb render_pixel(const fractal_point *data, const int local_inf, const BasePalette * pal) {
+static inline rgb render_pixel(const PointData *data, const int local_inf, const BasePalette * pal) {
 	if (data->iter == local_inf || data->iter<0) {
 		return black;
 	} else {
@@ -209,7 +210,7 @@ static bool render_plot_generic(guchar *buf, const _render_ctx *rctx, const gint
 	assert(buf);
 	assert((unsigned)rowstride >= RGB_BYTES_PER_PIXEL * rctx->rwidth);
 
-	const fractal_point * data = rctx->plot->get_data();
+	const PointData * data = rctx->plot->get_data();
 	if (!rctx->plot || !data) return false; // Oops, disappeared under our feet
 
 	// Slight twist: We've plotted the fractal from a bottom-left origin,
@@ -217,7 +218,7 @@ static bool render_plot_generic(guchar *buf, const _render_ctx *rctx, const gint
 
 	const unsigned factor = rctx->antialias ? rctx->antialias_factor : 1;
 
-	const fractal_point ** srcs = new const fractal_point* [ factor ];
+	const PointData ** srcs = new const PointData* [ factor ];
 	unsigned i,j;
 	for (j=0; j<rctx->rheight; j++) {
 		guchar *dst = &buf[j*rowstride];
@@ -703,7 +704,7 @@ static void setup_colour_menu(_gtk_ctx *ctx, GtkWidget *menubar, string initial)
 
 static void fractal_menu_selection(_gtk_ctx *ctx, string lbl)
 {
-	Fractal *sel = Fractal::registry()[lbl];
+	FractalImpl *sel = FractalRegistry::registry()[lbl];
 	if (sel) {
 		ctx->mainctx->fractal = sel;
 		if (ctx->mainctx->plot)
@@ -722,16 +723,16 @@ static void setup_fractal_menu(_gtk_ctx *ctx, GtkWidget *menubar, string initial
 {
 	ctx->fractal_menu = gtk_menu_new();
 
-	std::map<std::string,Fractal*>::iterator it;
+	std::map<std::string,FractalImpl*>::iterator it;
 	unsigned maxsortorder = 0;
-	for (it = Fractal::registry().begin(); it != Fractal::registry().end(); it++) {
+	for (it = FractalRegistry::registry().begin(); it != FractalRegistry::registry().end(); it++) {
 		if (it->second->sortorder > maxsortorder)
 			maxsortorder = it->second->sortorder;
 	}
 
 	unsigned sortpass=0;
 	for (sortpass=0; sortpass <= maxsortorder; sortpass++) {
-		for (it = Fractal::registry().begin(); it != Fractal::registry().end(); it++) {
+		for (it = FractalRegistry::registry().begin(); it != FractalRegistry::registry().end(); it++) {
 			if (it->second->sortorder != sortpass)
 				continue;
 
@@ -835,7 +836,7 @@ static void do_zoom(_gtk_ctx *ctx, enum zooms type)
 			case ZOOM_OUT:
 				ctx->mainctx->size *= ZOOM_FACTOR;
 				{
-					fvalue d = real(ctx->mainctx->size), lim = ctx->mainctx->fractal->xmax - ctx->mainctx->fractal->xmin;
+					Value d = real(ctx->mainctx->size), lim = ctx->mainctx->fractal->xmax - ctx->mainctx->fractal->xmin;
 					if (d > lim)
 						ctx->mainctx->size.real(lim);
 					d = imag(ctx->mainctx->size), lim = ctx->mainctx->fractal->ymax - ctx->mainctx->fractal->ymin;
@@ -860,7 +861,7 @@ static void do_zoom_out(GtkAction *UNUSED(a), _gtk_ctx *ctx)
 	do_zoom(ctx, ZOOM_OUT);
 }
 
-cfpt pixel_to_set_tlo(_render_ctx *ctx, int x, int y)
+Point pixel_to_set_tlo(_render_ctx *ctx, int x, int y)
 {
 	if (ctx->antialias) {
 		// scale up our click to the plot point within
@@ -874,7 +875,7 @@ static gboolean button_press_event( GtkWidget *UNUSED(widget), GdkEventButton *e
 {
 	_gtk_ctx * ctx = (_gtk_ctx*) dat;
 	if (ctx->canvas != NULL) {
-		cfpt new_ctr = pixel_to_set_tlo(ctx->mainctx, event->x, event->y);
+		Point new_ctr = pixel_to_set_tlo(ctx->mainctx, event->x, event->y);
 
 		if (event->button >= 1 && event->button <= 3) {
 			ctx->mainctx->centre = new_ctr;
@@ -942,9 +943,9 @@ static gboolean button_release_event( GtkWidget *UNUSED(widget), GdkEventButton 
 		if (silly) {
 			recolour(ctx->window, ctx); // Repaint over the dragrect
 		} else {
-			cfpt TR = pixel_to_set_tlo(ctx->mainctx, r, t);
-			cfpt BL = pixel_to_set_tlo(ctx->mainctx, l, b);
-			ctx->mainctx->centre = (TR+BL)/(fvalue)2.0;
+			Point TR = pixel_to_set_tlo(ctx->mainctx, r, t);
+			Point BL = pixel_to_set_tlo(ctx->mainctx, l, b);
+			ctx->mainctx->centre = (TR+BL)/(Value)2.0;
 			ctx->mainctx->size = TR - BL;
 
 			do_plot(ctx->window, ctx);
@@ -1036,7 +1037,7 @@ static gboolean motion_notify_event( GtkWidget *widget, GdkEventMotion *event, g
 
 /////////////////////////////////////////////////////////////////
 
-static void update_entry_float(GtkWidget *entry, fvalue val)
+static void update_entry_float(GtkWidget *entry, Value val)
 {
 	ostringstream tmp;
 	tmp.precision(MAXIMAL_DECIMAL_PRECISION);
@@ -1044,12 +1045,12 @@ static void update_entry_float(GtkWidget *entry, fvalue val)
 	gtk_entry_set_text(GTK_ENTRY(entry), tmp.str().c_str());
 }
 
-static bool read_entry_float(GtkWidget *entry, fvalue *val_out)
+static bool read_entry_float(GtkWidget *entry, Value *val_out)
 {
 	const gchar * raw = gtk_entry_get_text(GTK_ENTRY(entry));
 	istringstream tmp(raw, istringstream::in);
 	tmp.precision(MAXIMAL_DECIMAL_PRECISION);
-	fvalue rv=0;
+	Value rv=0;
 
 	tmp >> rv;
 	if (tmp.fail())
@@ -1109,7 +1110,7 @@ void do_params_dialog(GtkAction *UNUSED(action), _gtk_ctx *ctx)
 		error = false;
 		result = gtk_dialog_run(GTK_DIALOG(dlg));
 		if (result == GTK_RESPONSE_ACCEPT) {
-			fvalue res=0;
+			Value res=0;
 			if (read_entry_float(c_re, &res))
 				ctx->mainctx->centre.real(res);
 			else error = true;

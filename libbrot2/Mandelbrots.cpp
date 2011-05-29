@@ -20,18 +20,19 @@
 #include <assert.h>
 
 using namespace std;
+using namespace Fractal;
 
-void load_Mandelbrot() { }
+void Fractal::load_Mandelbrot() { }
 
 // Abstract base class for common unoptimized code
-class Mandelbrot_Generic : public Fractal {
+class Mandelbrot_Generic : public FractalImpl {
 public:
-	Mandelbrot_Generic(std::string name_, std::string desc_, fvalue xmin_=-3.0, fvalue xmax_=3.0, fvalue ymin_=-3.0, fvalue ymax_=3.0) : Fractal(name_, desc_, xmin_, xmax_, ymin_, ymax_, 10) {};
+	Mandelbrot_Generic(std::string name_, std::string desc_, Value xmin_=-3.0, Value xmax_=3.0, Value ymin_=-3.0, Value ymax_=3.0) : FractalImpl(name_, desc_, xmin_, xmax_, ymin_, ymax_, 10) {};
 	~Mandelbrot_Generic() {};
 
-	virtual void prepare_pixel(const cfpt coords, fractal_point& out) const {
+	virtual void prepare_pixel(const Point coords, PointData& out) const {
 		// The first iteration is easy, 0^k + origin = origin
-		out.origin = out.point = cfpt(coords);
+		out.origin = out.point = Point(coords);
 		out.iter = 1;
 		return;
 	};
@@ -39,16 +40,16 @@ public:
 
 class Mandelbrot : public Mandelbrot_Generic {
 public:
-	Mandelbrot(std::string name_, std::string desc_, fvalue xmin_=-3.0, fvalue xmax_=3.0, fvalue ymin_=-3.0, fvalue ymax_=3.0) : Mandelbrot_Generic(name_, desc_, xmin_, xmax_, ymin_, ymax_) {};
+	Mandelbrot(std::string name_, std::string desc_, Value xmin_=-3.0, Value xmax_=3.0, Value ymin_=-3.0, Value ymax_=3.0) : Mandelbrot_Generic(name_, desc_, xmin_, xmax_, ymin_, ymax_) {};
 	~Mandelbrot() {};
 
-	virtual void prepare_pixel(const cfpt coords, fractal_point& out) const {
-		fvalue o_re = real(coords), o_im = imag(coords);
+	virtual void prepare_pixel(const Point coords, PointData& out) const {
+		Value o_re = real(coords), o_im = imag(coords);
 
 		// Cardioid check:
-		fvalue t = o_re - 0.25;
-		fvalue im2 = o_im * o_im;
-		fvalue q = t * t + im2;
+		Value t = o_re - 0.25;
+		Value im2 = o_im * o_im;
+		Value q = t * t + im2;
 		if (q*(q + o_re - 0.25) < 0.25*im2)
 			goto SHORTCUT;
 		// Period-2 bulb check:
@@ -57,19 +58,19 @@ public:
 			goto SHORTCUT;
 
 		// The first iteration is easy, 0^2 + origin...
-		out.origin = out.point = cfpt(coords);
+		out.origin = out.point = Point(coords);
 		out.iter = 1;
 		return;
 
 		SHORTCUT:
 		out.mark_infinite();
 	}
-	virtual void plot_pixel(const int maxiter, fractal_point& out) const {
+	virtual void plot_pixel(const int maxiter, PointData& out) const {
 		// Speed notes:
-		// Don't use cfpt in the actual calculation - using straight doubles and
+		// Don't use Point in the actual calculation - using straight doubles and
 		// doing the complex maths by hand is about 6x faster for me.
 		int iter;
-		fvalue o_re = real(out.origin), o_im = imag(out.origin),
+		Value o_re = real(out.origin), o_im = imag(out.origin),
 			   z_re = real(out.point), z_im = imag(out.point), re2, im2;
 
 	#define ITER2() do { 							\
@@ -86,14 +87,14 @@ public:
 				ITER2(); ++iter;
 				ITER2(); ++iter;
 				out.iter = iter;
-				out.iterf = iter - log(log(re2 + im2)) / _consts::log2;
+				out.iterf = iter - log(log(re2 + im2)) / Consts::log2;
 				out.arg = atan2(z_im, z_re);
 				out.nomore = true;
 				return;
 			}
 		}
 		out.iter = iter;
-		out.point = cfpt(z_re,z_im);
+		out.point = Point(z_re,z_im);
 	}
 };
 
@@ -106,9 +107,9 @@ public:
 	Mandel3(string name_, string desc_) : Mandelbrot_Generic(name_, desc_) {};
 	~Mandel3() {};
 
-	virtual void plot_pixel(const int maxiter, fractal_point& out) const {
+	virtual void plot_pixel(const int maxiter, PointData& out) const {
 		int iter;
-		fvalue o_re = real(out.origin), o_im = imag(out.origin),
+		Value o_re = real(out.origin), o_im = imag(out.origin),
 				z_re = real(out.point), z_im = imag(out.point), re2, im2;
 
 #define ITER3() do { 								\
@@ -125,14 +126,14 @@ public:
 				ITER3(); ++iter;
 				ITER3(); ++iter;
 				out.iter = iter;
-				out.iterf = iter - log(log(re2 + im2)) / _consts::log3;
+				out.iterf = iter - log(log(re2 + im2)) / Consts::log3;
 				out.arg = atan2(z_im, z_re);
 				out.nomore = true;
 				return;
 			}
 		}
 		out.iter = iter;
-		out.point = cfpt(z_re,z_im);
+		out.point = Point(z_re,z_im);
 	};
 };
 
@@ -145,9 +146,9 @@ public:
 	Mandel4(string name_, string desc_) : Mandelbrot_Generic(name_, desc_) {};
 	~Mandel4() {};
 
-	virtual void plot_pixel(const int maxiter, fractal_point& out) const {
+	virtual void plot_pixel(const int maxiter, PointData& out) const {
 		int iter;
-		fvalue o_re = real(out.origin), o_im = imag(out.origin),
+		Value o_re = real(out.origin), o_im = imag(out.origin),
 				z_re = real(out.point), z_im = imag(out.point), re2, im2;
 
 #define ITER4() do { 								\
@@ -164,14 +165,14 @@ public:
 				ITER4(); ++iter;
 				ITER4(); ++iter;
 				out.iter = iter;
-				out.iterf = iter - log(log(re2 + im2)) / _consts::log4;
+				out.iterf = iter - log(log(re2 + im2)) / Consts::log4;
 				out.arg = atan2(z_im, z_re);
 				out.nomore = true;
 				return;
 			}
 		}
 		out.iter = iter;
-		out.point = cfpt(z_re,z_im);
+		out.point = Point(z_re,z_im);
 	}
 };
 
@@ -184,9 +185,9 @@ public:
 	Mandel5(string name_, string desc_) : Mandelbrot_Generic(name_, desc_) {};
 	~Mandel5() {};
 
-	virtual void plot_pixel(const int maxiter, fractal_point& out) const {
+	virtual void plot_pixel(const int maxiter, PointData& out) const {
 		int iter;
-		fvalue o_re = real(out.origin), o_im = imag(out.origin),
+		Value o_re = real(out.origin), o_im = imag(out.origin),
 				z_re = real(out.point), z_im = imag(out.point), re2, im2, re4, im4;
 
 #define ITER5() do { 								\
@@ -205,14 +206,14 @@ public:
 				ITER5(); ++iter;
 				ITER5(); ++iter;
 				out.iter = iter;
-				out.iterf = iter - log(log(re2 + im2)) / _consts::log5;
+				out.iterf = iter - log(log(re2 + im2)) / Consts::log5;
 				out.arg = atan2(z_im, z_re);
 				out.nomore = true;
 				return;
 			}
 		}
 		out.iter = iter;
-		out.point = cfpt(z_re,z_im);
+		out.point = Point(z_re,z_im);
 	};
 };
 
