@@ -748,6 +748,10 @@ static void setup_fractal_menu(_gtk_ctx *ctx, GtkWidget *menubar, string initial
 		}
 	}
 
+	if (!FractalRegistry::registry()[initial]) {
+		std::cerr << "FATAL: Initial fractal selection " << initial << " not found. Link error?" << std::endl;
+		abort();
+	}
 	fractal_menu_selection(ctx, initial);
 
     GtkWidget* fractal_item = gtk_menu_item_new_with_mnemonic ("_Fractal");
