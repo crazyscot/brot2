@@ -20,10 +20,12 @@
 #include <map>
 #include "Fractal.h"
 
-const fvalue _consts::log2 = log(2.0);
-const fvalue _consts::log3 = log(3.0);
-const fvalue _consts::log4 = log(4.0);
-const fvalue _consts::log5 = log(5.0);
+using namespace Fractal;
+
+const Value Consts::log2 = log(2.0);
+const Value Consts::log3 = log(3.0);
+const Value Consts::log4 = log(4.0);
+const Value Consts::log5 = log(5.0);
 
 FractalRegistry* FractalRegistry::_instance = 0;
 
@@ -32,7 +34,7 @@ FractalRegistry* FractalRegistry::_instance = 0;
  * the first call happens during static constructor time -
  * before I set up any threads.
  */
-std::map<std::string,Fractal*>& FractalRegistry::registry() {
+std::map<std::string,FractalImpl*>& FractalRegistry::registry() {
 	if (!_instance) {
 		load_Mandelbrot();
 		load_Mandelbar();

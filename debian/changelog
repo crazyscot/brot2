@@ -8,8 +8,9 @@ brot2 (0.2) UNRELEASED; urgency=low
   depends on libcairo and libpango.
   * LP#783083: Make member functions take a const 'this' where possible.
   * Now uses autoconf.
+  * Overhaul Fractal.h et al to use a namespace.
 
- -- Ross Younger <0ryoungerk.launchpad@coriolis.greenend.org.uk>  Tue, 24 May 2011 17:12:25 +0100
+ -- Ross Younger <0ryoungerk.launchpad@coriolis.greenend.org.uk>  Sun, 29 May 2011 12:46:58 +0100
 
 brot2 (0.1) natty; urgency=low
 
