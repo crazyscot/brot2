@@ -1,6 +1,6 @@
 AC_INIT([brot2], [0.1.wip])
 AC_CONFIG_AUX_DIR([config.aux])
-AM_INIT_AUTOMAKE([no-define])
+AM_INIT_AUTOMAKE([no-define silent-rules])
 AC_CONFIG_SRCDIR([libbrot2/Plot2.cpp])
 AM_CONFIG_HEADER([config.h])
 AC_CANONICAL_HOST

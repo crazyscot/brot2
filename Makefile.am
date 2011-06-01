@@ -18,13 +18,13 @@ AUTOGEN_SOURCES=logo_auto.c uixml_auto.c
 LOGO_IN=misc/brot2.png
 
 logo_auto.c: $(LOGO_IN)
-	echo '#include "logo.h"' > $@.new
-	gdk-pixbuf-csource --raw --extern --name=brot2_logo $(LOGO_IN) >> $@.new
-	mv -f $@.new $@
+	$(AM_V_at) echo '#include "logo.h"' > $@.new
+	$(AM_V_GEN) gdk-pixbuf-csource --raw --extern --name=brot2_logo $(LOGO_IN) >> $@.new
+	$(AM_V_at) mv -f $@.new $@
 
 uixml_auto.c: ui.xml
-	perl encodestring.pl uixml < $< > $@.new
-	mv -f $@.new $@
+	$(AM_V_GEN) perl encodestring.pl uixml < $< > $@.new
+	$(AM_V_at) mv -f $@.new $@
 
 CLEANFILES=$(AUTOGEN_SOURCES)
 
