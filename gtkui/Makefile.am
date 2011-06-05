@@ -1,7 +1,7 @@
 bin_PROGRAMS=brot2
 
-brot2_SOURCES=$(AUTOGEN_SOURCES) gtkmain.cpp \
-			  MainWindow.cpp
+brot2_SOURCES=$(AUTOGEN_SOURCES) gtkmain.cpp gtkmain.h \
+			  MainWindow.cpp MainWindow.h Menus.cpp Menus.h
 
 brot2_LDADD= ../libbrot2/libbrot2.a @brot2_LIBS@ -lm
 brot2_DEPENDENCIES= ../libbrot2/libbrot2.a

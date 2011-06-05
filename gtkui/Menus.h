@@ -1,5 +1,5 @@
 /*
-    MainWindow: GTK+ (gtkmm) main window for brot2
+    Menus: menu bar for brot2
     Copyright (C) 2011 Ross Younger
 
     This program is free software: you can redistribute it and/or modify
@@ -16,38 +16,24 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef MAINWINDOW_H_
-#define MAINWINDOW_H_
+#ifndef MENUS_H_
+#define MENUS_H_
 
-#include <iostream>
-#include <gtkmm/window.h>
 #include <gtkmm/menubar.h>
-#include <gtkmm/box.h>
-#include <gtkmm/drawingarea.h>
-#include <gtkmm/uimanager.h>
-#include <gtkmm/progressbar.h>
 
-class MainWindow : public Gtk::Window {
-	Gtk::VBox *vbox; // Main layout widget
-	Gtk::MenuBar *menubar;
-	Gtk::DrawingArea *canvas;
-	Gtk::ProgressBar *progbar;
+namespace menus {
 
-	// XXX Gtk::UIManager *uimgr;
-
+class Menus: public Gtk::MenuBar {
 public:
-	enum Zoom {
-		REDRAW_ONLY,
-		ZOOM_IN,
-		ZOOM_OUT,
-	};
+	Menus();
 
-	MainWindow();
-	virtual ~MainWindow();
-    virtual bool on_key_release_event(GdkEventKey *);
-    virtual bool on_delete_event(GdkEventAny *);
-
-    void do_zoom(enum Zoom z);
+	Gtk::MenuItem main;
+	Gtk::MenuItem plot;
+	Gtk::MenuItem options;
+	Gtk::MenuItem fractal;
+	Gtk::MenuItem colour;
 };
 
-#endif /* MAINWINDOW_H_ */
+}
+
+#endif /* MENUS_H_ */

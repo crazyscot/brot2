@@ -17,19 +17,72 @@
 */
 
 #include "MainWindow.h"
+#include "Menus.h"
 #include "misc.h"
+#include "config.h"
 
 #include <stdlib.h>
 #include <gtkmm/main.h>
 #include <gdk/gdkkeysyms.h>
+#include <pangomm.h>
 
-MainWindow::MainWindow() {
+MainWindow::MainWindow() : Gtk::Window() {
+	set_title(PACKAGE_NAME); // Renderer will update this
+	vbox = Gtk::manage(new Gtk::VBox()); // XXX false,1 ?
+	vbox->set_border_width(1);
+	add(*vbox);
+
+	menubar = Gtk::manage(new menus::Menus());
+	vbox->pack_start(*menubar, false, false, 0);
+
+	canvas = Gtk::manage(new Gtk::DrawingArea());
+	canvas->set_size_request(300,300); // XXX default size
+	vbox->pack_start(*canvas, true, true, 0);
+
+	progbar = Gtk::manage(new Gtk::ProgressBar());
+	progbar->set_text("Initialising");
+	progbar->set_ellipsize(Pango::ELLIPSIZE_END);
+	progbar->set_pulse_step(0.1);
+	vbox->pack_end(*progbar, false, false, 0);
+
+
+#if 0 //XXX are these still needed ?
+	// XXX Are these really virtual fns in Gtk::Window which I should override ?
+	g_signal_connect(window, "delete-event", G_CALLBACK(delete_event), 0);
+	g_signal_connect(window, "destroy", G_CALLBACK(destroy_event), 0);
+#endif
+
+#if 0 // TODO XXX
+	g_signal_connect (GTK_OBJECT (canvas), "expose_event",
+			(GtkSignalFunc) expose_event, &gtk_ctx);
+	g_signal_connect (GTK_OBJECT(canvas),"configure_event",
+			(GtkSignalFunc) configure_event, &gtk_ctx);
+	g_signal_connect (GTK_OBJECT (canvas), "motion_notify_event",
+			(GtkSignalFunc) motion_notify_event, &gtk_ctx);
+	g_signal_connect (GTK_OBJECT (canvas), "button_press_event",
+			(GtkSignalFunc) button_press_event, &gtk_ctx);
+	g_signal_connect (GTK_OBJECT (canvas), "button_release_event",
+			(GtkSignalFunc) button_release_event, &gtk_ctx);
+	g_signal_connect (GTK_OBJECT (window), "key_press_event",
+			(GtkSignalFunc) key_press_event, &gtk_ctx);
+
+	gtk_widget_set_events (canvas, GDK_EXPOSURE_MASK
+			| GDK_LEAVE_NOTIFY_MASK
+			| GDK_BUTTON_PRESS_MASK
+			| GDK_BUTTON_RELEASE_MASK
+			| GDK_POINTER_MOTION_MASK
+			| GDK_POINTER_MOTION_HINT_MASK);
+
+#endif
+
 }
 
 MainWindow::~MainWindow() {
+	// vbox is managed so auto-deletes
 }
 
 void MainWindow::do_zoom(enum Zoom z) {
+	std::cerr << "DO_ZOOM WRITEME" << std::endl;
 	(void)z;
 	// XXX WRITEME
 }
