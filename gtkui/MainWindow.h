@@ -24,6 +24,7 @@
 #include "palette.h"
 #include "Fractal.h"
 #include "DragRectangle.h"
+#include "HUD.h"
 
 #include <iostream>
 #include <gtkmm/window.h>
@@ -52,7 +53,7 @@ class MainWindow : public Gtk::Window, Plot2::callback_t {
 	Gtk::MenuBar *menubar;
 	Canvas *canvas;
 	Gtk::ProgressBar *progbar;
-	HUD *hud; // XXX FIXME PRIO Make this automatic, not a pointer ?
+	HUD hud;
 	DragRectangle dragrect;
 
 	unsigned char *imgbuf;

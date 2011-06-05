@@ -17,6 +17,7 @@
 */
 
 #include "HUD.h"
+#include "MainWindow.h"
 #include "Plot2.h"
 #include <pangomm.h>
 #include <cairomm/cairomm.h>

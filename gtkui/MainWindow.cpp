@@ -37,7 +37,7 @@ const int MainWindow::DEFAULT_ANTIALIAS_FACTOR = 2;
 const double MainWindow::ZOOM_FACTOR = 2.0f;
 
 MainWindow::MainWindow() : Gtk::Window(),
-			dragrect(*this),
+			hud(*this), dragrect(*this),
 			imgbuf(0), plot(0), plot_prev(0),
 			rwidth(0), rheight(0),
 			draw_hud(true), antialias(false),
@@ -71,8 +71,6 @@ MainWindow::MainWindow() : Gtk::Window(),
 	progbar->set_pulse_step(0.1);
 	vbox->pack_end(*progbar, false, false, 0);
 
-	hud = new HUD(*this);
-
 	// _main_ctx.pal initial setting by setup_colour_menu().
 	// render_ctx.fractal set by setup_fractal_menu().
 }
@@ -82,7 +80,6 @@ MainWindow::~MainWindow() {
 	delete plot;
 	delete plot_prev;
 	delete imgbuf;
-	delete hud;
 }
 
 void MainWindow::do_zoom(enum Zoom type) {
@@ -162,7 +159,7 @@ void MainWindow::render_cairo(int local_inf) {
 	}
 
 	if (draw_hud)
-		hud->draw(plot, rwidth, rheight);
+		hud.draw(plot, rwidth, rheight);
 
 	canvas->surface->mark_dirty();
 	canvas->surface->unreference();

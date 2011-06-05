@@ -19,10 +19,11 @@
 #ifndef HUD_H_
 #define HUD_H_
 
-#include "MainWindow.h"
 #include "Plot2.h"
 #include <gtkmm/window.h>
 #include <cairomm/cairomm.h>
+
+class MainWindow;
 
 class HUD {
 protected:
