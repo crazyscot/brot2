@@ -1,5 +1,5 @@
 /*
-    MainWindow: GTK+ (gtkmm) main window for brot2
+    Canvas: GTK+ (gtkmm) drawing area for brot2
     Copyright (C) 2011 Ross Younger
 
     This program is free software: you can redistribute it and/or modify
@@ -16,38 +16,22 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef MAINWINDOW_H_
-#define MAINWINDOW_H_
 
-#include "Canvas.h"
+#ifndef CANVAS_H_
+#define CANVAS_H_
 
-#include <iostream>
-#include <gtkmm/window.h>
-#include <gtkmm/menubar.h>
-#include <gtkmm/box.h>
 #include <gtkmm/drawingarea.h>
-#include <gtkmm/uimanager.h>
-#include <gtkmm/progressbar.h>
 
-class MainWindow : public Gtk::Window {
-	Gtk::VBox *vbox; // Main layout widget
-	Gtk::MenuBar *menubar;
-	Canvas *canvas;
-	Gtk::ProgressBar *progbar;
-
+class Canvas: public Gtk::DrawingArea {
 public:
-	enum Zoom {
-		REDRAW_ONLY,
-		ZOOM_IN,
-		ZOOM_OUT,
-	};
+	Canvas();
+	virtual ~Canvas();
 
-	MainWindow();
-	virtual ~MainWindow();
-    virtual bool on_key_release_event(GdkEventKey *);
-    virtual bool on_delete_event(GdkEventAny *);
-
-    void do_zoom(enum Zoom z);
+    virtual bool on_button_press_event(GdkEventButton * evt);
+    virtual bool on_button_release_event(GdkEventButton * evt);
+    virtual bool on_motion_notify_event(GdkEventMotion * evt);
+    virtual bool on_expose_event(GdkEventExpose * evt);
+    virtual bool on_configure_event(GdkEventConfigure * evt);
 };
 
-#endif /* MAINWINDOW_H_ */
+#endif /* CANVAS_H_ */
