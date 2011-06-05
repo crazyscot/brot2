@@ -37,113 +37,83 @@ Canvas::Canvas(MainWindow *parent) : main(parent), surface(0) {
 Canvas::~Canvas() {
 }
 
-bool Canvas::on_button_press_event(GdkEventButton * UNUSED(evt)) {
-#if 0 //XXX
-	_gtk_ctx * ctx = (_gtk_ctx*) dat;
-	if (ctx->canvas != NULL) {
-		Point new_ctr = pixel_to_set_tlo(ctx->mainctx, event->x, event->y);
+// Converts a clicked pixel into a fractal Point, origin = top left
+Fractal::Point Canvas::pixel_to_set_tlo(int x, int y) const
+{
+	if (main->antialias) {
+		// scale up our click to the plot point within
+		x *= main->antialias_factor;
+		y *= main->antialias_factor;
+	}
+	return main->plot->pixel_to_set_tlo(x,y);
+}
 
-		if (event->button >= 1 && event->button <= 3) {
-			ctx->mainctx->centre = new_ctr;
-			switch(event->button) {
-			case 1:
-				// LEFT: zoom in a bit
-				do_zoom(ctx, ZOOM_IN);
-				return TRUE;
-			case 3:
-				// RIGHT: zoom out
-				do_zoom(ctx, ZOOM_OUT);
-				return TRUE;
-			case 2:
-				// MIDDLE: simple pan
-				do_zoom(ctx, REDRAW_ONLY);
-				return TRUE;
-			}
-		}
-		if (event->button==8) {
-			// mouse down: store it
-			dragrect_origin_x = dragrect_current_x = (int)event->x;
-			dragrect_origin_y = dragrect_current_y = (int)event->y;
-			dragrect_active = 1;
-			return TRUE;
+bool Canvas::on_button_press_event(GdkEventButton *evt) {
+	if (!surface) return false;
+	Fractal::Point new_ctr = pixel_to_set_tlo(evt->x, evt->y);
+
+	if (evt->button >= 1 && evt->button <= 3) {
+		main->centre = new_ctr;
+		switch(evt->button) {
+		case 1:
+			// LEFT: zoom in a bit
+			main->do_zoom(MainWindow::Zoom::ZOOM_IN);
+			return true;
+		case 3:
+			// RIGHT: zoom out
+			main->do_zoom(MainWindow::Zoom::ZOOM_OUT);
+			return true;
+		case 2:
+			// MIDDLE: simple pan
+			main->do_zoom(MainWindow::Zoom::REDRAW_ONLY);
+			return true;
 		}
 	}
-#endif
-
+	if (evt->button==8) {
+		// mouse down: store it
+		main->dragrect.activate(evt->x, evt->y);
+		return true;
+	}
 	return false;
 }
-bool Canvas::on_button_release_event(GdkEventButton * UNUSED(evt)) {
-#if 0 //XXX
-	_gtk_ctx * ctx = (_gtk_ctx*) dat;
-		bool silly = false;
-		if (event->button != 8)
-			return FALSE;
 
-		//printf("button %d UP @ %d,%d\n", event->button, (int)event->x, (int)event->y);
+bool Canvas::on_button_release_event(GdkEventButton *evt) {
+	if (!surface) return false;
+	if (evt->button != 8) return false;
+	bool silly = false;
 
-		if (ctx->canvas != NULL) {
-			int l = MIN(event->x, dragrect_origin_x);
-			int r = MAX(event->x, dragrect_origin_x);
-			int t = MAX(event->y, dragrect_origin_y);
-			int b = MIN(event->y, dragrect_origin_y);
+	//printf("button %d UP @ %d,%d\n", event->button, (int)event->x, (int)event->y);
 
-			if (abs(l-r)<4 || abs(t-b)<4) silly=true;
+	int l = MIN(evt->x, main->dragrect.get_origin().x);
+	int r = MAX(evt->x, main->dragrect.get_origin().x);
+	int t = MAX(evt->y, main->dragrect.get_origin().y);
+	int b = MIN(evt->y, main->dragrect.get_origin().y);
 
-			dragrect_active = 0;
+	if (abs(l-r)<4 || abs(t-b)<4) silly=true;
 
-			if (silly) {
-				recolour(ctx->window, ctx); // Repaint over the dragrect
-			} else {
-				Point TR = pixel_to_set_tlo(ctx->mainctx, r, t);
-				Point BL = pixel_to_set_tlo(ctx->mainctx, l, b);
-				ctx->mainctx->centre = (TR+BL)/(Value)2.0;
-				ctx->mainctx->size = TR - BL;
+	main->dragrect.draw();
 
-				do_plot(ctx->window, ctx);
-			}
-		}
-		return TRUE;
-#endif
-	return false;
-}
-bool Canvas::on_motion_notify_event(GdkEventMotion * UNUSED(evt)) {
-#if 0 //XXX
-	_gtk_ctx * ctx = (_gtk_ctx*) _dat;
-	int x, y;
-	GdkModifierType state;
-
-	if (!dragrect_active) return FALSE;
-
-	if (event->is_hint) {
-		gdk_window_get_pointer (event->window, &x, &y, &state);
+	if (silly) {
+		main->recolour(); // Just get rid of it
 	} else {
-		x = event->x;
-		y = event->y;
-		state = GdkModifierType(event->state);
+		Fractal::Point TR = pixel_to_set_tlo(r, t);
+		Fractal::Point BL = pixel_to_set_tlo(l, b);
+		main->centre = (TR+BL)/(Fractal::Value)2.0;
+		main->size = TR - BL;
+		main->do_plot(false);
 	}
-
-	if (!ctx->dragrect)
-		ctx->dragrect = gdk_window_create_similar_surface(ctx->window->window,
-				CAIRO_CONTENT_COLOR_ALPHA,
-				ctx->mainctx->rwidth, ctx->mainctx->rheight);
-
-	cairo_t *cairo = cairo_create(ctx->dragrect);
-	clear_dragrect(cairo);
-	draw_dragrect(cairo,
-			dragrect_origin_x, dragrect_origin_y,
-			x - dragrect_origin_x, y - dragrect_origin_y);
-	cairo_destroy(cairo);
-
-	dragrect_current_x = x;
-	dragrect_current_y = y;
-
-	gtk_widget_queue_draw (widget);
-
-	//printf("button %d @ %d,%d\n", state, x, y);
-	return TRUE;
-#endif
-	return false;
+	return true;
 }
+
+bool Canvas::on_motion_notify_event(GdkEventMotion * UNUSED(evt)) {
+	if (!surface) return false;
+	if (!main->dragrect.is_active()) return false;
+	int x, y;
+	get_pointer(x,y);
+	main->dragrect.draw(x,y);
+	return true;
+}
+
 bool Canvas::on_expose_event(GdkEventExpose * evt) {
 	Glib::RefPtr<Gdk::Window> window = get_window();
 	if (!window) return false; // no window yet?
@@ -160,25 +130,21 @@ bool Canvas::on_expose_event(GdkEventExpose * evt) {
 	cr->set_source(surface, 0, 0);
 	cr->paint();
 
-#if 0 //XXX XYZY
-	if (dragrect_active && ctx->dragrect) {
-		cairo_save(dest);
-		cairo_set_source_surface(dest, ctx->dragrect, 0, 0);
-		cairo_paint(dest);
-		cairo_restore(dest);
+	if (main->dragrect.is_active()) {
+		cr->save();
+		cr->set_source(main->dragrect.get_surface(), 0, 0);
+		cr->paint();
+		cr->restore();
 	}
-#endif
+
 	if (main->hud) {
 		cr->set_source(main->hud->get_surface(), 0, 0); // TODO HUD position
 		cr->paint();
 	}
-	return false;
+	return true;
 }
 
 bool Canvas::on_configure_event(GdkEventConfigure *evt) {
 	main->do_resize(evt->width, evt->height);
-	return TRUE;
+	return true;
 }
-
-// XXX XYZY PRIO: dragrect
-// XXX XYZY PRIO: hud

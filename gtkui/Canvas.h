@@ -21,6 +21,7 @@
 #define CANVAS_H_
 
 class MainWindow;
+#include "Fractal.h"
 
 #include <gtkmm/drawingarea.h>
 #include <cairomm/cairomm.h>
@@ -32,6 +33,8 @@ class Canvas : public Gtk::DrawingArea {
 public:
 	Canvas(MainWindow *parent);
 	virtual ~Canvas();
+
+    Fractal::Point pixel_to_set_tlo(int x, int y) const;
 
     virtual bool on_button_press_event(GdkEventButton * evt);
     virtual bool on_button_release_event(GdkEventButton * evt);

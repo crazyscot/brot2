@@ -34,8 +34,10 @@
 #include <pangomm.h>
 
 const int MainWindow::DEFAULT_ANTIALIAS_FACTOR = 2;
+const double MainWindow::ZOOM_FACTOR = 2.0f;
 
 MainWindow::MainWindow() : Gtk::Window(),
+			dragrect(*this),
 			imgbuf(0), plot(0), plot_prev(0),
 			rwidth(0), rheight(0),
 			draw_hud(true), antialias(false),
@@ -83,10 +85,28 @@ MainWindow::~MainWindow() {
 	delete hud;
 }
 
-void MainWindow::do_zoom(enum Zoom z) {
-	std::cerr << "DO_ZOOM WRITEME" << std::endl;
-	(void)z;
-	// XXX WRITEME
+void MainWindow::do_zoom(enum Zoom type) {
+	if (!canvas) return;
+
+	switch (type) {
+	case ZOOM_IN:
+		size /= ZOOM_FACTOR;
+		break;
+	case ZOOM_OUT:
+		size *= ZOOM_FACTOR;
+		{
+			Fractal::Value d = real(size), lim = fractal->xmax - fractal->xmin;
+			if (d > lim)
+				size.real(lim);
+			d = imag(size), lim = fractal->ymax - fractal->ymin;
+			if (d > lim)
+				size.imag(lim);
+		}
+		break;
+	case REDRAW_ONLY:
+		break;
+	}
+	do_plot(false);
 }
 
 bool MainWindow::on_key_release_event(GdkEventKey *event) {
@@ -247,12 +267,7 @@ void MainWindow::do_resize(unsigned width, unsigned height)
 		}
 		delete[] imgbuf;
 		imgbuf=0;
-#if 0 //XXX DRAGRECT
-		if (ctx->dragrect) {
-			cairo_surface_destroy(ctx->dragrect);
-			ctx->dragrect = 0;
-		}
-#endif
+		dragrect.resized();
 	}
 	do_plot();
 }

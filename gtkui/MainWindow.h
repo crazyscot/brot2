@@ -23,6 +23,7 @@
 #include "Plot2.h"
 #include "palette.h"
 #include "Fractal.h"
+#include "DragRectangle.h"
 
 #include <iostream>
 #include <gtkmm/window.h>
@@ -44,7 +45,6 @@ public:
 	inline operator int() const { return f; }
 };
 
-
 class MainWindow : public Gtk::Window, Plot2::callback_t {
 	friend class Canvas;
 
@@ -52,7 +52,8 @@ class MainWindow : public Gtk::Window, Plot2::callback_t {
 	Gtk::MenuBar *menubar;
 	Canvas *canvas;
 	Gtk::ProgressBar *progbar;
-	HUD *hud;
+	HUD *hud; // XXX FIXME PRIO Make this automatic, not a pointer ?
+	DragRectangle dragrect;
 
 	unsigned char *imgbuf;
 
@@ -71,6 +72,7 @@ class MainWindow : public Gtk::Window, Plot2::callback_t {
 
 	struct timeval plot_tv_start;
 
+
 public:
 	enum Zoom {
 		REDRAW_ONLY,
@@ -78,9 +80,14 @@ public:
 		ZOOM_OUT,
 	};
 	static const int DEFAULT_ANTIALIAS_FACTOR;
+	static const double ZOOM_FACTOR;
 
 	MainWindow();
 	virtual ~MainWindow();
+
+	int get_rwidth() const { return rwidth; }
+	int get_rheight() const { return rheight; }
+
     virtual bool on_key_release_event(GdkEventKey *);
     virtual bool on_delete_event(GdkEventAny *);
 
