@@ -35,10 +35,11 @@
 const int MainWindow::DEFAULT_ANTIALIAS_FACTOR = 2;
 
 MainWindow::MainWindow() : Gtk::Window(),
-			imgbuf(0),
-			plot(0), plot_prev(0),
+			imgbuf(0), plot(0), plot_prev(0),
+			rwidth(0), rheight(0),
 			draw_hud(true), antialias(false),
-			antialias_factor(DEFAULT_ANTIALIAS_FACTOR), initializing(true) {
+			antialias_factor(DEFAULT_ANTIALIAS_FACTOR), initializing(true),
+			aspectfix(false), clip(false) {
 	set_title(PACKAGE_NAME); // Renderer will update this
 	vbox = Gtk::manage(new Gtk::VBox());
 	vbox->set_border_width(1);
@@ -246,7 +247,6 @@ void MainWindow::do_resize(unsigned width, unsigned height)
 		rheight = height;
 		if (canvas->surface) {
 			canvas->surface->finish();
-			canvas->surface->unreference();
 			canvas->surface.clear();
 		}
 		delete[] imgbuf;
