@@ -18,6 +18,7 @@
 
 #include "Canvas.h"
 #include "MainWindow.h"
+#include "HUD.h"
 #include "misc.h"
 
 #include <gdkmm/event.h>
@@ -166,11 +167,11 @@ bool Canvas::on_expose_event(GdkEventExpose * evt) {
 		cairo_paint(dest);
 		cairo_restore(dest);
 	}
-	if (ctx->hud) {
-		cairo_set_source_surface(dest, ctx->hud, 0, 0);
-		cairo_paint(dest);
-	}
 #endif
+	if (main->hud) {
+		cr->set_source(main->hud->get_surface(), 0, 0); // TODO HUD position
+		cr->paint();
+	}
 	return false;
 }
 

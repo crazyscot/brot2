@@ -19,6 +19,7 @@
 #include "MainWindow.h"
 #include "Menus.h"
 #include "Canvas.h"
+#include "HUD.h"
 #include "misc.h"
 #include "config.h"
 
@@ -68,6 +69,7 @@ MainWindow::MainWindow() : Gtk::Window(),
 	progbar->set_pulse_step(0.1);
 	vbox->pack_end(*progbar, false, false, 0);
 
+	hud = new HUD(*this);
 
 	// _main_ctx.pal initial setting by setup_colour_menu().
 	// render_ctx.fractal set by setup_fractal_menu().
@@ -78,6 +80,7 @@ MainWindow::~MainWindow() {
 	delete plot;
 	delete plot_prev;
 	delete imgbuf;
+	delete hud;
 }
 
 void MainWindow::do_zoom(enum Zoom z) {
@@ -137,18 +140,11 @@ void MainWindow::render_cairo(int local_inf) {
 			local_inf, FORMAT)) { // Oops, it vanished
 		return;
 	}
-	canvas->surface->mark_dirty();
 
-#if 0 // XXX
 	if (draw_hud)
-		draw_hud_cairo(gctx);
-	else {
-		if (gctx->hud) {
-			cairo_surface_destroy(gctx->hud);
-			gctx->hud = 0;
-		}
-	}
-#endif
+		hud->draw(plot, rwidth, rheight);
+
+	canvas->surface->mark_dirty();
 	canvas->surface->unreference();
 }
 
@@ -251,11 +247,7 @@ void MainWindow::do_resize(unsigned width, unsigned height)
 		}
 		delete[] imgbuf;
 		imgbuf=0;
-#if 0 //XXX
-		if (ctx->hud) {
-			cairo_surface_destroy(ctx->hud);
-			ctx->hud = 0;
-		}
+#if 0 //XXX DRAGRECT
 		if (ctx->dragrect) {
 			cairo_surface_destroy(ctx->dragrect);
 			ctx->dragrect = 0;

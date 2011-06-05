@@ -33,6 +33,8 @@
 #include <gtkmm/progressbar.h>
 #include <sys/time.h>
 
+class HUD;
+
 class pixpack_format {
 	// A pixel format identifier that supersets Cairo's.
 	int f; // Pixel format - one of cairo_format_t or our internal constants
@@ -50,6 +52,7 @@ class MainWindow : public Gtk::Window, Plot2::callback_t {
 	Gtk::MenuBar *menubar;
 	Canvas *canvas;
 	Gtk::ProgressBar *progbar;
+	HUD *hud;
 
 	unsigned char *imgbuf;
 
