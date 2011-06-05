@@ -19,8 +19,7 @@
 #ifndef LOGO_H_
 #define LOGO_H_
 
-#include <gtk/gtk.h>
-
+typedef unsigned char guint8;
 extern const guint8 brot2_logo[];
 
 #endif /* LOGO_H_ */
