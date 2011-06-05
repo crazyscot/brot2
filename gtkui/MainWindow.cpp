@@ -26,6 +26,7 @@
 #include <stdlib.h>
 #include <complex>
 #include <math.h>
+#include <iostream>
 
 #include <gtkmm/main.h>
 #include <gdk/gdkkeysyms.h>
@@ -51,7 +52,9 @@ MainWindow::MainWindow() : Gtk::Window(),
 	{
 		// XXX TEMP until menus in place:
 		fractal = Fractal::FractalRegistry::registry()["Mandelbrot"];
-		pal = DiscretePalette::registry["Linear rainbow"];
+		pal = SmoothPalette::registry["Linear rainbow"];
+		assert(fractal);
+		assert(pal);
 	}
 	vbox->pack_start(*menubar, false, false, 0);
 
@@ -324,11 +327,9 @@ void MainWindow::do_plot(bool is_same_plot)
 		pheight *= antialias_factor;
 	}
 	plot = new Plot2(fractal, centre, size, pwidth, pheight);
-	// XXX XYZY FIXME PRIO CALLBACK // plot->start(this);
+	plot->start(this); // <<<< HERE <<<< callbacks !!
 	// TODO try/catch (and in do_resume) - report failure. Is gtkmm exception-safe?
 }
-
-// PRIO1: render_cairo; do_configure do_plot; plot callback
 
 void MainWindow::safe_stop_plot() {
 	// As it stands this function must only ever be called from the main thread.
@@ -340,4 +341,57 @@ void MainWindow::safe_stop_plot() {
 		plot->wait();
 		gdk_threads_enter();
 	}
+}
+
+void MainWindow::plot_progress_minor(Plot2& UNUSED(plot), float workdone) {
+	gdk_threads_enter();
+	progbar->set_fraction(workdone);
+	gdk_threads_leave();
+}
+
+void MainWindow::plot_progress_major(Plot2& UNUSED(plot), unsigned current_maxiter, std::string& commentary) {
+	render_cairo(current_maxiter);
+	gdk_threads_enter();
+	progbar->set_fraction(0.98);
+	progbar->set_text(commentary.c_str());
+	queue_draw();
+	gdk_threads_leave();
+
+}
+
+void MainWindow::plot_progress_complete(Plot2& plot) {
+	struct timeval tv_after, tv_diff;
+
+	gdk_threads_enter();
+	progbar->pulse();
+	recolour();
+	gettimeofday(&tv_after,0);
+
+	tv_diff = Util::tv_subtract(tv_after, plot_tv_start);
+	double timetaken = tv_diff.tv_sec + (tv_diff.tv_usec / 1e6);
+
+	set_title(plot.info(false).c_str());
+
+	std::ostringstream info;
+	info.precision(4);
+	info << timetaken << "s; ";
+	info << plot.get_passes() <<" passes; maxiter=" << plot.get_maxiter() << ".";
+	if (aspectfix)
+		info << " Aspect ratio autofixed.";
+	if (clip)
+		info << " Resolution limit reached, cannot zoom further!";
+	clip = aspectfix = false;
+
+	progbar->set_fraction(1.0);
+	progbar->set_text(info.str().c_str());
+
+	queue_draw();
+	gdk_flush();
+	gdk_threads_leave();
+}
+
+void MainWindow::recolour()
+{
+	render_cairo();
+	queue_draw();
 }

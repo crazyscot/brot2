@@ -61,7 +61,7 @@ public:
 Menus::Menus() : main("Main"), plot("Plot"), options("Options"), fractal("Fractal"), colour("Colour") {
 	    append(main);
 	    main.set_submenu(*manage(new MainMenu()));
-#if 0
+#if 0 //XXX UISLOG
 	    append(plot);
 	    plot.set_submenu(*manage(new PlotMenu()));
 	    append(options);

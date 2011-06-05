@@ -28,5 +28,24 @@
 # define UNUSED(x) x
 #endif
 
+
+namespace Util {
+
+inline struct timeval tv_subtract (struct timeval tv1, struct timeval tv2)
+{
+	struct timeval rv;
+	rv.tv_sec = tv1.tv_sec - tv2.tv_sec;
+	if (tv1.tv_usec < tv2.tv_usec) {
+		rv.tv_usec = tv1.tv_usec + 1e6 - tv2.tv_usec;
+		--rv.tv_sec;
+	} else {
+		rv.tv_usec = tv1.tv_usec - tv2.tv_usec;
+	}
+
+	return rv;
+}
+
+};
+
 #endif // MISC_H_
 

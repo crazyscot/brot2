@@ -43,7 +43,7 @@ public:
 };
 
 
-class MainWindow : public Gtk::Window {
+class MainWindow : public Gtk::Window, Plot2::callback_t {
 	friend class Canvas;
 
 	Gtk::VBox *vbox; // Main layout widget
@@ -87,6 +87,7 @@ public:
 
     void do_zoom(enum Zoom z);
     void render_cairo(int local_inf=-1);
+    void recolour();
 
     bool render_generic(unsigned char *buf, const int rowstride, const int local_inf, pixpack_format fmt);
 
@@ -100,6 +101,11 @@ public:
 	}
 
     static const int RGB_BYTES_PER_PIXEL = 3;
+
+    // Plot2::callback_t:
+	virtual void plot_progress_minor(Plot2& plot, float workdone);
+	virtual void plot_progress_major(Plot2& plot, unsigned current_maxiter, std::string& commentary);
+	virtual void plot_progress_complete(Plot2& plot);
 };
 
 #endif /* MAINWINDOW_H_ */
