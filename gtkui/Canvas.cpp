@@ -50,25 +50,7 @@ Fractal::Point Canvas::pixel_to_set_tlo(int x, int y) const
 
 bool Canvas::on_button_press_event(GdkEventButton *evt) {
 	if (!surface) return false;
-	Fractal::Point new_ctr = pixel_to_set_tlo(evt->x, evt->y);
 
-	if (evt->button >= 1 && evt->button <= 3) {
-		main->centre = new_ctr;
-		switch(evt->button) {
-		case 1:
-			// LEFT: zoom in a bit
-			main->do_zoom(MainWindow::Zoom::ZOOM_IN);
-			return true;
-		case 3:
-			// RIGHT: zoom out
-			main->do_zoom(MainWindow::Zoom::ZOOM_OUT);
-			return true;
-		case 2:
-			// MIDDLE: simple pan
-			main->do_zoom(MainWindow::Zoom::REDRAW_ONLY);
-			return true;
-		}
-	}
 	if (evt->button==8) {
 		// mouse down: store it
 		main->dragrect.activate(evt->x, evt->y);
@@ -79,7 +61,30 @@ bool Canvas::on_button_press_event(GdkEventButton *evt) {
 
 bool Canvas::on_button_release_event(GdkEventButton *evt) {
 	if (!surface) return false;
-	if (evt->button != 8) return false;
+	Fractal::Point clickpos = pixel_to_set_tlo(evt->x, evt->y);
+	switch(evt->button) {
+	case 8:
+		return end_dragrect(evt);
+	case 1:
+		// LEFT: zoom in a bit
+		main->centre = clickpos;
+		main->do_zoom(MainWindow::Zoom::ZOOM_IN);
+		return true;
+	case 3:
+		// RIGHT: zoom out
+		main->centre = clickpos;
+		main->do_zoom(MainWindow::Zoom::ZOOM_OUT);
+		return true;
+	case 2:
+		// MIDDLE: simple pan
+		main->centre = clickpos;
+		main->do_zoom(MainWindow::Zoom::REDRAW_ONLY);
+		return true;
+	}
+	return false;
+}
+
+bool Canvas::end_dragrect(GdkEventButton *evt) {
 	bool silly = false;
 
 	//printf("button %d UP @ %d,%d\n", event->button, (int)event->x, (int)event->y);
