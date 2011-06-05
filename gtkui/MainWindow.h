@@ -88,6 +88,8 @@ public:
 
 	int get_rwidth() const { return rwidth; }
 	int get_rheight() const { return rheight; }
+	Plot2& get_plot() const { return *plot; }
+	Gtk::ProgressBar* get_progbar() const { return progbar; }
 
     virtual bool on_key_release_event(GdkEventKey *);
     virtual bool on_delete_event(GdkEventAny *);

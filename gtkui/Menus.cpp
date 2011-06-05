@@ -17,6 +17,7 @@
 */
 
 #include "Menus.h"
+
 #include <gtkmm/main.h>
 #include <gtkmm/menu.h>
 #include <gtkmm/stock.h>
@@ -26,20 +27,35 @@
 #include "config.h"
 #include "gtkmain.h"
 #include "logo.h" // in libbrot2
+#include "MainWindow.h"
+#include "SaveAsPNG.h"
 
 namespace menus {
+
+static MainWindow* find_main(Gtk::Menu *mnu) {
+	if (!mnu) return 0;
+    MainWindow *parent = 0;
+
+    Gtk::Widget *attached = mnu->get_attach_widget();
+    Gtk::Container *w = attached->get_parent();
+    while(w && (parent = dynamic_cast<MainWindow *>(w)) == NULL)
+      w = w->get_parent();
+    return parent;
+}
 
 class MainMenu : public Gtk::Menu {
 public:
 	MainMenu() : aboutI(Gtk::Stock::ABOUT), saveI(Gtk::Stock::SAVE), sepa(), quitI(Gtk::Stock::QUIT) {
 		append(aboutI);
 		aboutI.signal_activate().connect(sigc::ptr_fun(do_about));
-		append(saveI); // XXX TODO: IMPLEMENT ME, need a sigc with an object?
-		// saveI.signal_activate().connect(sigc::mem_fun(*this, do_save));
+		saveI.set_label("_Save image...");
+		append(saveI);
+		saveI.signal_activate().connect(sigc::mem_fun(this, &MainMenu::do_save));
 		append(sepa);
 		append(quitI);
 		quitI.signal_activate().connect(sigc::ptr_fun(do_quit));
 	}
+	// XXX Where are the accelerators ?
 	Gtk::ImageMenuItem aboutI, saveI, sepa, quitI;
 
 	static void do_about() {
@@ -55,6 +71,10 @@ public:
 	}
 	static void do_quit() {
 		Gtk::Main::instance()->quit();
+	}
+	void do_save() {
+		MainWindow *mw = find_main(this);
+		SaveAsPNG::do_save(mw);
 	}
 };
 

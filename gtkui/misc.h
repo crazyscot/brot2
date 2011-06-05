@@ -20,6 +20,9 @@
 #define MISC_H_
 
 #include <sys/time.h>
+#include <gtkmm/window.h>
+#include <gtkmm/messagedialog.h>
+#include <string>
 
 #ifdef UNUSED
 #elif defined(__GNUC__)
@@ -55,6 +58,15 @@ public:
 	xy(int &xx, int &yy) : x(xx), y(yy) {};
 	void reinit(int xx, int yy) { x=xx; y=yy; }
 };
+
+inline void alert(Gtk::Window *parent, const std::string& message, Gtk::MessageType type = Gtk::MessageType::MESSAGE_ERROR)
+{
+	Gtk::MessageDialog dialog(*parent, message, false,
+			type,
+			Gtk::ButtonsType::BUTTONS_OK,
+			true);
+	dialog.run();
+}
 
 };
 
