@@ -25,9 +25,10 @@ class MainWindow;
 #include <gtkmm/drawingarea.h>
 #include <cairomm/cairomm.h>
 
-class Canvas: public Gtk::DrawingArea {
+class Canvas : public Gtk::DrawingArea {
+	friend class MainWindow;
 	MainWindow *main; // Our parent
-	Cairo::RefPtr<Cairo::Surface> surface; // Staging area - we render plots here, then to the window when exposed
+	Cairo::RefPtr<Cairo::ImageSurface> surface; // Staging area - we render plots here, then to the window when exposed
 public:
 	Canvas(MainWindow *parent);
 	virtual ~Canvas();

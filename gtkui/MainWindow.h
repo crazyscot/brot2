@@ -31,6 +31,17 @@
 #include <gtkmm/drawingarea.h>
 #include <gtkmm/uimanager.h>
 #include <gtkmm/progressbar.h>
+#include <sys/time.h>
+
+class pixpack_format {
+	// A pixel format identifier that supersets Cairo's.
+	int f; // Pixel format - one of cairo_format_t or our internal constants
+public:
+	static const int PACKED_RGB_24 = CAIRO_FORMAT_RGB16_565 + 1000000;
+	pixpack_format(int c): f(c) {};
+	inline operator int() const { return f; }
+};
+
 
 class MainWindow : public Gtk::Window {
 	friend class Canvas;
@@ -39,6 +50,8 @@ class MainWindow : public Gtk::Window {
 	Gtk::MenuBar *menubar;
 	Canvas *canvas;
 	Gtk::ProgressBar *progbar;
+
+	unsigned char *imgbuf;
 
 	Plot2 * plot;
 	Plot2 * plot_prev;
@@ -50,6 +63,10 @@ class MainWindow : public Gtk::Window {
 	bool draw_hud, antialias;
 	unsigned antialias_factor;
 	bool initializing; // Disables certain event actions when set.
+
+	bool aspectfix, clip; // Details about the current render
+
+	struct timeval plot_tv_start;
 
 public:
 	enum Zoom {
@@ -64,7 +81,25 @@ public:
     virtual bool on_key_release_event(GdkEventKey *);
     virtual bool on_delete_event(GdkEventAny *);
 
+    void do_resize(unsigned width, unsigned height);
+    void do_plot(bool is_same_plot = false);
+    void safe_stop_plot();
+
     void do_zoom(enum Zoom z);
+    void render_cairo(int local_inf=-1);
+
+    bool render_generic(unsigned char *buf, const int rowstride, const int local_inf, pixpack_format fmt);
+
+    // Renders a single pixel, given the current idea of infinity and the palette to use.
+    static inline rgb render_pixel(const Fractal::PointData *data, const int local_inf, const BasePalette * pal) {
+		if (data->iter == local_inf || data->iter<0) {
+			return black;
+		} else {
+			return pal->get(*data);
+		}
+	}
+
+    static const int RGB_BYTES_PER_PIXEL = 3;
 };
 
 #endif /* MAINWINDOW_H_ */

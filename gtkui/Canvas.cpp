@@ -17,6 +17,7 @@
 */
 
 #include "Canvas.h"
+#include "MainWindow.h"
 #include "misc.h"
 
 #include <gdkmm/event.h>
@@ -148,12 +149,12 @@ bool Canvas::on_expose_event(GdkEventExpose * evt) {
 	Cairo::RefPtr<Cairo::Context> cr = window->create_cairo_context();
 
 	if (!surface) return true; // Haven't rendered yet? Nothing we can do
-#if 0 // TODO Try me
 	if (evt) {
+#if 0 // TODO Try me
 		cr->rectangle(evt->area.x, evt->area.y, evt->area.width, evt->area.height);
 		cr->clip();
-	}
 #endif
+	}
 
 	cr->set_source(surface, 0, 0);
 	cr->paint();
@@ -173,11 +174,10 @@ bool Canvas::on_expose_event(GdkEventExpose * evt) {
 	return false;
 }
 
-bool Canvas::on_configure_event(GdkEventConfigure * UNUSED(evt)) {
-	// XXX do_resize(widget, ctx, event->width, event->height); // XYZY FIXME PRIO
+bool Canvas::on_configure_event(GdkEventConfigure *evt) {
+	main->do_resize(evt->width, evt->height);
 	return TRUE;
 }
 
-// XXX XYZY PRIO: bring in render_cairo().
 // XXX XYZY PRIO: dragrect
 // XXX XYZY PRIO: hud
