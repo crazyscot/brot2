@@ -24,3 +24,5 @@ config.log
 config.status
 stamp-h1
 .deps
+.project
+.cproject
