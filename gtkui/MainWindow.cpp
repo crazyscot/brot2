@@ -27,16 +27,30 @@
 #include <gdk/gdkkeysyms.h>
 #include <pangomm.h>
 
-MainWindow::MainWindow() : Gtk::Window() {
+const int MainWindow::DEFAULT_ANTIALIAS_FACTOR = 2;
+
+MainWindow::MainWindow() : Gtk::Window(),
+			plot(0), plot_prev(0),
+			draw_hud(true), antialias(false),
+			antialias_factor(DEFAULT_ANTIALIAS_FACTOR), initializing(true) {
 	set_title(PACKAGE_NAME); // Renderer will update this
-	vbox = Gtk::manage(new Gtk::VBox()); // XXX false,1 ?
+	vbox = Gtk::manage(new Gtk::VBox());
 	vbox->set_border_width(1);
 	add(*vbox);
 
+	// Default plot params:
+	centre = {0.0,0.0};
+	size = {4.5,4.5};
+
 	menubar = Gtk::manage(new menus::Menus());
+	{
+		// XXX TEMP until menus in place:
+		fractal = Fractal::FractalRegistry::registry()["Mandelbrot"];
+		pal = DiscretePalette::registry["Linear rainbow"];
+	}
 	vbox->pack_start(*menubar, false, false, 0);
 
-	canvas = Gtk::manage(new Canvas());
+	canvas = Gtk::manage(new Canvas(this));
 	vbox->pack_start(*canvas, true, true, 0);
 
 	progbar = Gtk::manage(new Gtk::ProgressBar());
@@ -44,10 +58,16 @@ MainWindow::MainWindow() : Gtk::Window() {
 	progbar->set_ellipsize(Pango::ELLIPSIZE_END);
 	progbar->set_pulse_step(0.1);
 	vbox->pack_end(*progbar, false, false, 0);
+
+
+	// _main_ctx.pal initial setting by setup_colour_menu().
+	// render_ctx.fractal set by setup_fractal_menu().
 }
 
 MainWindow::~MainWindow() {
-	// vbox is managed so auto-deletes
+	// vbox etc are managed so auto-delete
+	delete plot;
+	delete plot_prev;
 }
 
 void MainWindow::do_zoom(enum Zoom z) {

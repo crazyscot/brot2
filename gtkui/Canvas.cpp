@@ -20,8 +20,9 @@
 #include "misc.h"
 
 #include <gdkmm/event.h>
+#include <cairomm/cairomm.h>
 
-Canvas::Canvas() {
+Canvas::Canvas(MainWindow *parent) : main(parent), surface(0) {
 	set_size_request(300,300); // XXX default size
 	add_events (Gdk::EXPOSURE_MASK
 			| Gdk::LEAVE_NOTIFY_MASK
@@ -141,24 +142,23 @@ bool Canvas::on_motion_notify_event(GdkEventMotion * UNUSED(evt)) {
 #endif
 	return false;
 }
-bool Canvas::on_expose_event(GdkEventExpose * UNUSED(evt)) {
+bool Canvas::on_expose_event(GdkEventExpose * evt) {
+	Glib::RefPtr<Gdk::Window> window = get_window();
+	if (!window) return false; // no window yet?
+	Cairo::RefPtr<Cairo::Context> cr = window->create_cairo_context();
+
+	if (!surface) return true; // Haven't rendered yet? Nothing we can do
+#if 0 // TODO Try me
+	if (evt) {
+		cr->rectangle(evt->area.x, evt->area.y, evt->area.width, evt->area.height);
+		cr->clip();
+	}
+#endif
+
+	cr->set_source(surface, 0, 0);
+	cr->paint();
+
 #if 0 //XXX XYZY
-	cairo_t *dest = gdk_cairo_create(widget->window);
-	_gtk_ctx * ctx = (_gtk_ctx*) dat;
-	if (!ctx->canvas) return TRUE; // On startup? Nothing we can do
-	assert(ctx->canvas); // If this fails then we need to handle it better. Check to see if we're being called concurrently with a plot request; if so then lock or ignore.
-
-	/* We might wish to redraw only the exposed area, for efficiency.
-	 * However there's an efficiency trap in some circumstances, so let's
-	 * only do this if we really think we need to.
-	cairo_rectangle(dest, event->area.x, event->area.y,
-	                    event->area.width, event->area.height);
-	cairo_clip(dest);
-	*/
-
-	cairo_set_source_surface(dest, ctx->canvas, 0, 0);
-	cairo_paint(dest);
-
 	if (dragrect_active && ctx->dragrect) {
 		cairo_save(dest);
 		cairo_set_source_surface(dest, ctx->dragrect, 0, 0);
@@ -169,14 +169,15 @@ bool Canvas::on_expose_event(GdkEventExpose * UNUSED(evt)) {
 		cairo_set_source_surface(dest, ctx->hud, 0, 0);
 		cairo_paint(dest);
 	}
-
-	cairo_destroy(dest);
-	return FALSE;
 #endif
 	return false;
 }
 
 bool Canvas::on_configure_event(GdkEventConfigure * UNUSED(evt)) {
-	// XXX do_resize(widget, ctx, event->width, event->height); // XYZY FIXME
+	// XXX do_resize(widget, ctx, event->width, event->height); // XYZY FIXME PRIO
 	return TRUE;
 }
+
+// XXX XYZY PRIO: bring in render_cairo().
+// XXX XYZY PRIO: dragrect
+// XXX XYZY PRIO: hud

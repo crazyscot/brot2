@@ -66,23 +66,6 @@ int main (int argc, char**argv)
 
 	MainWindow *mainwind = new MainWindow();
 
-	// XXX put a Plot2 into MainWindow (two of them?)
-	// 		- set up default params
-
-#if 0
-	// Initial settings (set up BEFORE the menubar):
-	render_ctx.centre = { 0.0, 0.0 };
-	render_ctx.size = { 4.5, 4.5 };
-
-	render_ctx.draw_hud = true;
-	render_ctx.antialias = false;
-	// _main_ctx.pal initial setting by setup_colour_menu().
-	// render_ctx.fractal set by setup_fractal_menu().
-
-	// setup ACTION ENTRIES here.
-	gtk_ctx.mainctx = &render_ctx;
-#endif
-
 	mainwind->show_all();
 	gmain->run();
 	gdk_threads_leave();

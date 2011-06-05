@@ -20,6 +20,9 @@
 #define MAINWINDOW_H_
 
 #include "Canvas.h"
+#include "Plot2.h"
+#include "palette.h"
+#include "Fractal.h"
 
 #include <iostream>
 #include <gtkmm/window.h>
@@ -30,10 +33,23 @@
 #include <gtkmm/progressbar.h>
 
 class MainWindow : public Gtk::Window {
+	friend class Canvas;
+
 	Gtk::VBox *vbox; // Main layout widget
 	Gtk::MenuBar *menubar;
 	Canvas *canvas;
 	Gtk::ProgressBar *progbar;
+
+	Plot2 * plot;
+	Plot2 * plot_prev;
+	BasePalette * pal;
+	// Yes, the following are mostly the same as in the Plot - but the plot may be torn down and recreated frequently.
+	Fractal::FractalImpl *fractal;
+	Fractal::Point centre, size;
+	unsigned rwidth, rheight; // Rendering dimensions; plot dims will be larger if antialiased
+	bool draw_hud, antialias;
+	unsigned antialias_factor;
+	bool initializing; // Disables certain event actions when set.
 
 public:
 	enum Zoom {
@@ -41,6 +57,7 @@ public:
 		ZOOM_IN,
 		ZOOM_OUT,
 	};
+	static const int DEFAULT_ANTIALIAS_FACTOR;
 
 	MainWindow();
 	virtual ~MainWindow();
