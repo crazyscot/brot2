@@ -19,6 +19,8 @@
 #ifndef MISC_H_
 #define MISC_H_
 
+#include <sys/time.h>
+
 #ifdef UNUSED
 #elif defined(__GNUC__)
 # define UNUSED(x) UNUSED_ ## x __attribute__((unused))
@@ -44,6 +46,15 @@ inline struct timeval tv_subtract (struct timeval tv1, struct timeval tv2)
 
 	return rv;
 }
+
+class xy {
+	// Represents a point in some integer space
+public:
+	int x, y;
+	xy() : x(0), y(0) {};
+	xy(int &xx, int &yy) : x(xx), y(yy) {};
+	void reinit(int xx, int yy) { x=xx; y=yy; }
+};
 
 };
 
