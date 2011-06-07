@@ -45,6 +45,8 @@ static MainWindow* find_main(Gtk::Menu *mnu) {
 
 class MainMenu : public Gtk::Menu {
 public:
+	Gtk::ImageMenuItem aboutI, saveI, sepa, quitI;
+
 	MainMenu() : aboutI(Gtk::Stock::ABOUT), saveI(Gtk::Stock::SAVE), sepa(), quitI(Gtk::Stock::QUIT) {
 		append(aboutI);
 		aboutI.signal_activate().connect(sigc::ptr_fun(do_about));
@@ -55,8 +57,6 @@ public:
 		append(quitI);
 		quitI.signal_activate().connect(sigc::ptr_fun(do_quit));
 	}
-	// XXX Where are the accelerators ?
-	Gtk::ImageMenuItem aboutI, saveI, sepa, quitI;
 
 	static void do_about() {
 		Glib::RefPtr<Gdk::Pixbuf> logo = Gdk::Pixbuf::create_from_inline(-1, brot2_logo, false);
@@ -78,18 +78,45 @@ public:
 	}
 };
 
+class PlotMenu : public Gtk::Menu {
+public:
+	Gtk::ImageMenuItem Undo, Params, Sepa1, ZoomIn, ZoomOut, Sepa2, Stop, Redraw, More;
+
+	PlotMenu() : Undo(Gtk::Stock::UNDO), Params(Gtk::Stock::PROPERTIES),
+			ZoomIn(Gtk::Stock::ZOOM_IN), ZoomOut(Gtk::Stock::ZOOM_OUT),
+			Stop(Gtk::Stock::STOP), Redraw(Gtk::Stock::REFRESH), More(Gtk::Stock::EXECUTE) {
+		append(Undo);
+		append(Params);
+		append(Sepa1);
+		append(ZoomIn);
+		append(ZoomOut);
+		append(Sepa2);
+		append(Stop);
+		append(Redraw);
+		Redraw.set_label("Redraw");
+		append(More);
+		More.set_label("More iterations");
+	}
+
+	void do_undo() {
+		MainWindow *mw = find_main(this);
+		mw->do_undo();
+	}
+
+};
+
 Menus::Menus() : main("Main"), plot("Plot"), options("Options"), fractal("Fractal"), colour("Colour") {
 	    append(main);
 	    main.set_submenu(*manage(new MainMenu()));
-#if 0 //XXX UISLOG
 	    append(plot);
 	    plot.set_submenu(*manage(new PlotMenu()));
 	    append(options);
-	    options.set_submenu(*manage(new OptionsMenu()));
 	    append(fractal);
+	    append(colour);
+#if 0 //XXX UISLOG
+	    options.set_submenu(*manage(new OptionsMenu()));
 	    // refactor: setup_fractal_menu(&gtk_ctx, menubar, "Mandelbrot");
 	    fractal.set_submenu(*manage(new FractalMenu()));
-	    append(colour);
 	    // refactor: setup_colour_menu(&gtk_ctx, menubar, "Linear rainbow");
 	    colour.set_submenu(*manage(new ColorMenu()));
 
@@ -102,26 +129,6 @@ Menus::Menus() : main("Main"), plot("Plot"), options("Options"), fractal("Fracta
 #if 0
 <ui>
 	<menubar>
-		<menu name="MainMenu" action="MainMenuAction">
-			<menuitem name="About" action="AboutAction" />
-			<menuitem name="SaveImage" action="SaveImageAction" />
-			<separator/>
-			<menuitem name="Quit" action="QuitAction" />
-		</menu>
-		<menu name="PlotMenu" action="PlotMenuAction">
-			<menuitem name="Undo" action="UndoAction" />
-			<menuitem name="Parameters" action="ParametersAction" />
-			<separator/>
-			<menuitem name="ZoomIn" action="ZoomInAction" />
-			<menuitem name="ZoomOut" action="ZoomOutAction" />
-			<separator/>
-			<menuitem name="Stop" action="StopAction" />
-			<menuitem name="Redraw" action="RedrawAction" />
-			<menuitem name="MoreIterations" action="MoreIterationsAction" />
-			<!--
-				 <menuitem name="x" action="xAction" />
-				 -->
-		</menu>
 		<menu name="OptionsMenu" action="OptionsMenuAction">
 			<menuitem name="DrawHUD" action="DrawHUDAction" />
 			<menuitem name="AntiAlias" action="AntiAliasAction" />
