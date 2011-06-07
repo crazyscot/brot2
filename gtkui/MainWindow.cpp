@@ -399,3 +399,23 @@ void MainWindow::recolour()
 	render_cairo();
 	queue_draw();
 }
+
+void MainWindow::do_undo()
+{
+	if (!canvas) return;
+	if (!plot_prev) {
+		progbar->set_text("Nothing to undo");
+		return;
+	}
+
+	Plot2 *tmp = plot;
+	plot = plot_prev;
+	plot_prev = tmp;
+
+	centre = plot->centre;
+	size = plot->size;
+	rwidth = plot->width;
+	rheight = plot->height;
+
+	recolour();
+}

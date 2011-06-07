@@ -86,6 +86,7 @@ public:
 			ZoomIn(Gtk::Stock::ZOOM_IN), ZoomOut(Gtk::Stock::ZOOM_OUT),
 			Stop(Gtk::Stock::STOP), Redraw(Gtk::Stock::REFRESH), More(Gtk::Stock::EXECUTE) {
 		append(Undo);
+		Undo.signal_activate().connect(sigc::mem_fun(this, &PlotMenu::do_undo));
 		append(Params);
 		append(Sepa1);
 		append(ZoomIn);

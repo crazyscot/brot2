@@ -101,6 +101,7 @@ public:
     void do_zoom(enum Zoom z);
     void render_cairo(int local_inf=-1);
     void recolour();
+    void do_undo();
 
     bool render_generic(unsigned char *buf, const int rowstride, const int local_inf, pixpack_format fmt);
 
