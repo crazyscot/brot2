@@ -52,7 +52,7 @@ MainWindow::MainWindow() : Gtk::Window(),
 	centre = {0.0,0.0};
 	size = {4.5,4.5};
 
-	menubar = Gtk::manage(new menus::Menus());
+	menubar = Gtk::manage(new menus::Menus(*this));
 	{
 		// XXX TEMP until menus in place:
 		fractal = Fractal::FractalRegistry::registry()["Mandelbrot"];

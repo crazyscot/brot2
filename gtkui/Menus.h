@@ -21,11 +21,13 @@
 
 #include <gtkmm/menubar.h>
 
+class MainWindow;
+
 namespace menus {
 
 class Menus: public Gtk::MenuBar {
 public:
-	Menus();
+	Menus(MainWindow& parent);
 
 	Gtk::MenuItem main;
 	Gtk::MenuItem plot;

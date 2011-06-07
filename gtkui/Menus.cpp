@@ -17,11 +17,15 @@
 */
 
 #include "Menus.h"
+#include "MainWindow.h"
 
 #include <gtkmm/main.h>
 #include <gtkmm/menu.h>
 #include <gtkmm/stock.h>
 #include <gtkmm/aboutdialog.h>
+#include <gtkmm/accelmap.h>
+#include <gtkmm/accelgroup.h>
+
 #include <gdkmm/pixbuf.h>
 
 #include "config.h"
@@ -45,9 +49,10 @@ static MainWindow* find_main(Gtk::Menu *mnu) {
 
 class MainMenu : public Gtk::Menu {
 public:
-	Gtk::ImageMenuItem aboutI, saveI, sepa, quitI;
+	Gtk::ImageMenuItem aboutI, saveI, quitI;
+	Gtk::SeparatorMenuItem sepa;
 
-	MainMenu() : aboutI(Gtk::Stock::ABOUT), saveI(Gtk::Stock::SAVE), sepa(), quitI(Gtk::Stock::QUIT) {
+	MainMenu() : aboutI(Gtk::Stock::ABOUT), saveI(Gtk::Stock::SAVE), quitI(Gtk::Stock::QUIT) {
 		append(aboutI);
 		aboutI.signal_activate().connect(sigc::ptr_fun(do_about));
 		saveI.set_label("_Save image...");
@@ -80,23 +85,40 @@ public:
 
 class PlotMenu : public Gtk::Menu {
 public:
-	Gtk::ImageMenuItem Undo, Params, Sepa1, ZoomIn, ZoomOut, Sepa2, Stop, Redraw, More;
+	Gtk::MenuItem Undo;
+	Gtk::ImageMenuItem Params, ZoomIn, ZoomOut, Stop, Redraw, More;
+	Gtk::SeparatorMenuItem Sepa1, Sepa2;
 
-	PlotMenu() : Undo(Gtk::Stock::UNDO), Params(Gtk::Stock::PROPERTIES),
+	PlotMenu(MainWindow& parent) : Undo("_Undo", true),
+			Params(Gtk::Stock::PROPERTIES),
 			ZoomIn(Gtk::Stock::ZOOM_IN), ZoomOut(Gtk::Stock::ZOOM_OUT),
-			Stop(Gtk::Stock::STOP), Redraw(Gtk::Stock::REFRESH), More(Gtk::Stock::EXECUTE) {
+			Stop(Gtk::Stock::STOP), Redraw(Gtk::Stock::REFRESH), More(Gtk::Stock::EXECUTE)
+	{
+		Glib::RefPtr<Gtk::AccelGroup> ag = Gtk::AccelGroup::create();
+		set_accel_group(ag);
+		parent.add_accel_group(ag);
+
 		append(Undo);
 		Undo.signal_activate().connect(sigc::mem_fun(this, &PlotMenu::do_undo));
+		Undo.add_accelerator("activate", ag, GDK_Z, Gdk::ModifierType::CONTROL_MASK, Gtk::ACCEL_VISIBLE);
 		append(Params);
+		Params.add_accelerator("activate", ag, GDK_P, Gdk::ModifierType::CONTROL_MASK, Gtk::ACCEL_VISIBLE);
+
 		append(Sepa1);
 		append(ZoomIn);
+		ZoomIn.add_accelerator("activate", ag, GDK_plus, Gdk::ModifierType::RELEASE_MASK, Gtk::ACCEL_VISIBLE);
 		append(ZoomOut);
+		ZoomOut.add_accelerator("activate", ag, GDK_minus, Gdk::ModifierType::RELEASE_MASK, Gtk::ACCEL_VISIBLE);
+
 		append(Sepa2);
 		append(Stop);
+		Stop.add_accelerator("activate", ag, GDK_period, Gdk::ModifierType::CONTROL_MASK, Gtk::ACCEL_VISIBLE);
 		append(Redraw);
 		Redraw.set_label("Redraw");
+		Redraw.add_accelerator("activate", ag, GDK_R, Gdk::ModifierType::CONTROL_MASK, Gtk::ACCEL_VISIBLE);
 		append(More);
 		More.set_label("More iterations");
+		More.add_accelerator("activate", ag, GDK_M, Gdk::ModifierType::CONTROL_MASK, Gtk::ACCEL_VISIBLE);
 	}
 
 	void do_undo() {
@@ -106,11 +128,11 @@ public:
 
 };
 
-Menus::Menus() : main("Main"), plot("Plot"), options("Options"), fractal("Fractal"), colour("Colour") {
+Menus::Menus(MainWindow& parent) : main("Main"), plot("Plot"), options("Options"), fractal("Fractal"), colour("Colour") {
 	    append(main);
 	    main.set_submenu(*manage(new MainMenu()));
 	    append(plot);
-	    plot.set_submenu(*manage(new PlotMenu()));
+	    plot.set_submenu(*manage(new PlotMenu(parent)));
 	    append(options);
 	    append(fractal);
 	    append(colour);
