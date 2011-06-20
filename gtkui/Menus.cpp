@@ -106,9 +106,12 @@ public:
 
 		append(Sepa1);
 		append(ZoomIn);
-		ZoomIn.add_accelerator("activate", ag, GDK_plus, Gdk::ModifierType::RELEASE_MASK, Gtk::ACCEL_VISIBLE);
+		ZoomIn.add_accelerator("activate", ag, GDK_plus, Gdk::ModifierType::SHIFT_MASK, Gtk::ACCEL_VISIBLE);
+		ZoomIn.signal_activate().connect(sigc::mem_fun(this, &PlotMenu::do_zoom_in));
+
 		append(ZoomOut);
-		ZoomOut.add_accelerator("activate", ag, GDK_minus, Gdk::ModifierType::RELEASE_MASK, Gtk::ACCEL_VISIBLE);
+		ZoomOut.add_accelerator("activate", ag, GDK_minus, Gdk::ModifierType::SHIFT_MASK, Gtk::ACCEL_VISIBLE);
+		ZoomOut.signal_activate().connect(sigc::mem_fun(this, &PlotMenu::do_zoom_out));
 
 		append(Sepa2);
 		append(Stop);
@@ -124,6 +127,15 @@ public:
 	void do_undo() {
 		MainWindow *mw = find_main(this);
 		mw->do_undo();
+	}
+
+	void do_zoom_in() {
+		MainWindow *mw = find_main(this);
+		mw->do_zoom(MainWindow::Zoom::ZOOM_IN);
+	}
+	void do_zoom_out() {
+		MainWindow *mw = find_main(this);
+		mw->do_zoom(MainWindow::Zoom::ZOOM_OUT);
 	}
 
 };
