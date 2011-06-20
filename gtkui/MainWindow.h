@@ -102,6 +102,8 @@ public:
     void render_cairo(int local_inf=-1);
     void recolour();
     void do_undo();
+	void do_stop();
+	void do_more_iters();
 
     bool render_generic(unsigned char *buf, const int rowstride, const int local_inf, pixpack_format fmt);
 

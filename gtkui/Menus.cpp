@@ -116,19 +116,23 @@ public:
 		append(Sepa2);
 		append(Stop);
 		Stop.add_accelerator("activate", ag, GDK_period, Gdk::ModifierType::CONTROL_MASK, Gtk::ACCEL_VISIBLE);
+		Stop.signal_activate().connect(sigc::mem_fun(this, &PlotMenu::do_stop));
+
 		append(Redraw);
 		Redraw.set_label("Redraw");
 		Redraw.add_accelerator("activate", ag, GDK_R, Gdk::ModifierType::CONTROL_MASK, Gtk::ACCEL_VISIBLE);
+		Redraw.signal_activate().connect(sigc::mem_fun(this, &PlotMenu::do_redraw));
+
 		append(More);
 		More.set_label("More iterations");
 		More.add_accelerator("activate", ag, GDK_M, Gdk::ModifierType::CONTROL_MASK, Gtk::ACCEL_VISIBLE);
+		More.signal_activate().connect(sigc::mem_fun(this, &PlotMenu::do_more));
 	}
 
 	void do_undo() {
 		MainWindow *mw = find_main(this);
 		mw->do_undo();
 	}
-
 	void do_zoom_in() {
 		MainWindow *mw = find_main(this);
 		mw->do_zoom(MainWindow::Zoom::ZOOM_IN);
@@ -136,6 +140,18 @@ public:
 	void do_zoom_out() {
 		MainWindow *mw = find_main(this);
 		mw->do_zoom(MainWindow::Zoom::ZOOM_OUT);
+	}
+	void do_stop() {
+		MainWindow *mw = find_main(this);
+		mw->do_stop();
+	}
+	void do_redraw() {
+		MainWindow *mw = find_main(this);
+		mw->do_plot(true);
+	}
+	void do_more() {
+		MainWindow *mw = find_main(this);
+		mw->do_more_iters();
 	}
 
 };

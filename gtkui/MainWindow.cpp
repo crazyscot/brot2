@@ -331,7 +331,7 @@ void MainWindow::do_plot(bool is_same_plot)
 		pheight *= antialias_factor;
 	}
 	plot = new Plot2(fractal, centre, size, pwidth, pheight);
-	plot->start(this); // <<<< HERE <<<< callbacks !!
+	plot->start(this);
 	// TODO try/catch (and in do_resume) - report failure. Is gtkmm exception-safe?
 }
 
@@ -418,4 +418,26 @@ void MainWindow::do_undo()
 	rheight = plot->height;
 
 	recolour();
+}
+
+void MainWindow::do_stop()
+{
+	progbar->set_text("Stopping...");
+	safe_stop_plot();
+	progbar->set_text("Stopped at user request");
+	progbar->set_fraction(0.0);
+}
+
+void MainWindow::do_more_iters()
+{
+	if (!canvas || !plot) {
+		std::cerr << "ALERT: do_more called in invalid state - trace me!" << std::endl;
+		for (;;) sleep(1);
+	}
+	if (!plot->is_done()) {
+		progbar->set_text("Plot already running");
+		return;
+	}
+	gettimeofday(&plot_tv_start,0);
+	plot->start(this, true);
 }
