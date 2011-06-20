@@ -22,6 +22,7 @@
 #include "Plot2.h"
 #include <gtkmm/window.h>
 #include <cairomm/cairomm.h>
+#include <glibmm/thread.h>
 
 class MainWindow;
 
@@ -31,7 +32,9 @@ protected:
 	Cairo::RefPtr<Cairo::Surface> surface;
 	int w, h; // Last size we drew to
 
-	void clear(Cairo::RefPtr<Cairo::Context> cr);
+	void clear_locked(Cairo::RefPtr<Cairo::Context> cr);
+
+	Glib::Mutex mux; // Protects all contents
 
 public:
 	HUD(MainWindow &w);

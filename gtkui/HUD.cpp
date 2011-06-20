@@ -29,6 +29,7 @@ HUD::HUD(MainWindow &window) : parent(window), w(0), h(0) {
 
 void HUD::draw(Plot2* plot, const int rwidth, const int rheight)
 {
+	Glib::Mutex::Lock autolock(mux); // destructor unlocks
 	if (!plot) return; // race condition trap
 	std::string info = plot->info(true);
 
@@ -45,7 +46,10 @@ void HUD::draw(Plot2* plot, const int rwidth, const int rheight)
 	}
 
 	Cairo::RefPtr<Cairo::Context> cr = Cairo::Context::create(surface);
-	clear(cr);
+	clear_locked(cr);
+
+	w = rwidth;
+	h = rheight;
 
 	Glib::RefPtr<Pango::Layout> lyt = Pango::Layout::create(cr);
 	Pango::FontDescription fontdesc("Luxi Sans 9");
@@ -75,7 +79,7 @@ void HUD::draw(Plot2* plot, const int rwidth, const int rheight)
 	lyt->show_in_cairo_context(cr);
 }
 
-void HUD::clear(Cairo::RefPtr<Cairo::Context> cr) {
+void HUD::clear_locked(Cairo::RefPtr<Cairo::Context> cr) {
 	cr->save();
 	cr->set_source_rgba(0,0,0,0);
 	cr->set_operator(Cairo::Operator::OPERATOR_SOURCE);
