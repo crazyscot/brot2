@@ -32,6 +32,7 @@
 #include "gtkmain.h"
 #include "logo.h" // in libbrot2
 #include "MainWindow.h"
+#include "ParamsDialog.h"
 #include "SaveAsPNG.h"
 
 namespace menus {
@@ -101,8 +102,10 @@ public:
 		append(Undo);
 		Undo.signal_activate().connect(sigc::mem_fun(this, &PlotMenu::do_undo));
 		Undo.add_accelerator("activate", ag, GDK_Z, Gdk::ModifierType::CONTROL_MASK, Gtk::ACCEL_VISIBLE);
+
 		append(Params);
 		Params.add_accelerator("activate", ag, GDK_P, Gdk::ModifierType::CONTROL_MASK, Gtk::ACCEL_VISIBLE);
+		Params.signal_activate().connect(sigc::mem_fun(this, &PlotMenu::do_params));
 
 		append(Sepa1);
 		append(ZoomIn);
@@ -132,6 +135,13 @@ public:
 	void do_undo() {
 		MainWindow *mw = find_main(this);
 		mw->do_undo();
+	}
+	void do_params() {
+		MainWindow *mw = find_main(this);
+		ParamsDialog params(mw);
+		int rv = params.run();
+		if (rv == Gtk::ResponseType::RESPONSE_ACCEPT)
+			mw->do_plot();
 	}
 	void do_zoom_in() {
 		MainWindow *mw = find_main(this);
