@@ -98,6 +98,11 @@ public:
     void do_plot(bool is_same_plot = false);
     void safe_stop_plot();
 
+	const Fractal::Point& get_centre() const { return centre; }
+	const Fractal::Point& get_size() const { return size; }
+
+	void update_params(Fractal::Point& centre, Fractal::Point& size);
+
     void do_zoom(enum Zoom z);
     void render_cairo(int local_inf=-1);
     void recolour();

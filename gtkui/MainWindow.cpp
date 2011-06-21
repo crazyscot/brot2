@@ -441,3 +441,9 @@ void MainWindow::do_more_iters()
 	gettimeofday(&plot_tv_start,0);
 	plot->start(this, true);
 }
+
+void MainWindow::update_params(Fractal::Point& ncentre, Fractal::Point& nsize)
+{
+	centre = ncentre;
+	size = nsize;
+}
