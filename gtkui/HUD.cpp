@@ -29,7 +29,7 @@ HUD::HUD(MainWindow &window) : parent(window), w(0), h(0) {
 
 void HUD::draw(Plot2* plot, const int rwidth, const int rheight)
 {
-	Glib::Mutex::Lock autolock(mux); // destructor unlocks
+	Glib::Mutex::Lock autolock(mux); // unwind unlocks
 	if (!plot) return; // race condition trap
 	std::string info = plot->info(true);
 

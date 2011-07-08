@@ -73,6 +73,8 @@ MainWindow::MainWindow() : Gtk::Window(),
 
 	// _main_ctx.pal initial setting by setup_colour_menu().
 	// render_ctx.fractal set by setup_fractal_menu().
+
+	initializing = false;
 }
 
 MainWindow::~MainWindow() {
@@ -446,4 +448,19 @@ void MainWindow::update_params(Fractal::Point& ncentre, Fractal::Point& nsize)
 {
 	centre = ncentre;
 	size = nsize;
+}
+
+void MainWindow::toggle_hud()
+{
+	if (initializing) return;
+	draw_hud = !draw_hud;
+	recolour();
+}
+
+void MainWindow::toggle_antialias()
+{
+	if (initializing) return;
+	safe_stop_plot();
+	antialias = !antialias;
+	do_plot(false);
 }

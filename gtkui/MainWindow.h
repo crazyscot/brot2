@@ -110,6 +110,12 @@ public:
 	void do_stop();
 	void do_more_iters();
 
+	inline bool hud_active() const {
+		return draw_hud;
+	}
+	void toggle_hud();
+	void toggle_antialias();
+
     bool render_generic(unsigned char *buf, const int rowstride, const int local_inf, pixpack_format fmt);
 
     // Renders a single pixel, given the current idea of infinity and the palette to use.

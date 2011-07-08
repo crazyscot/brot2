@@ -166,12 +166,41 @@ public:
 
 };
 
+class OptionsMenu : public Gtk::Menu {
+public:
+	Gtk::CheckMenuItem drawHUD, antiAlias;
+
+	OptionsMenu(MainWindow& parent) : drawHUD("Draw _HUD", true), antiAlias("_Antialias", true) {
+		Glib::RefPtr<Gtk::AccelGroup> ag = Gtk::AccelGroup::create();
+		set_accel_group(ag);
+		parent.add_accel_group(ag);
+
+		append(drawHUD);
+		drawHUD.set_active(true);
+		drawHUD.signal_toggled().connect(sigc::mem_fun(this, &OptionsMenu::toggle_drawHUD));
+		drawHUD.add_accelerator("activate", ag, GDK_H, Gdk::ModifierType::CONTROL_MASK, Gtk::ACCEL_VISIBLE);
+		append(antiAlias);
+		antiAlias.signal_toggled().connect(sigc::mem_fun(this, &OptionsMenu::toggle_antialias));
+		antiAlias.add_accelerator("activate", ag, GDK_A, Gdk::ModifierType::CONTROL_MASK, Gtk::ACCEL_VISIBLE);
+	}
+	void toggle_drawHUD() {
+		MainWindow *mw = find_main(this);
+		mw->toggle_hud();
+	}
+	void toggle_antialias() {
+		MainWindow *mw = find_main(this);
+		mw->toggle_antialias();
+	}
+};
+
+
 Menus::Menus(MainWindow& parent) : main("Main"), plot("Plot"), options("Options"), fractal("Fractal"), colour("Colour") {
 	    append(main);
 	    main.set_submenu(*manage(new MainMenu()));
 	    append(plot);
 	    plot.set_submenu(*manage(new PlotMenu(parent)));
 	    append(options);
+	    options.set_submenu(*manage(new OptionsMenu(parent)));
 	    append(fractal);
 	    append(colour);
 #if 0 //XXX UISLOG
@@ -187,13 +216,3 @@ Menus::Menus(MainWindow& parent) : main("Main"), plot("Plot"), options("Options"
 	  }
 }
 
-#if 0
-<ui>
-	<menubar>
-		<menu name="OptionsMenu" action="OptionsMenuAction">
-			<menuitem name="DrawHUD" action="DrawHUDAction" />
-			<menuitem name="AntiAlias" action="AntiAliasAction" />
-		</menu>
-	</menubar>
-</ui>
-#endif

@@ -142,8 +142,10 @@ bool Canvas::on_expose_event(GdkEventExpose * evt) {
 		cr->restore();
 	}
 
-	cr->set_source(main->hud.get_surface(), 0, 0); // TODO HUD position
-	cr->paint();
+	if (main->hud_active()) {
+		cr->set_source(main->hud.get_surface(), 0, 0); // TODO HUD position
+		cr->paint();
+	}
 	return true;
 }
 
