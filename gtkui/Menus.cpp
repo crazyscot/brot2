@@ -112,11 +112,13 @@ public:
 		append(Sepa1);
 		append(ZoomIn);
 		ZoomIn.add_accelerator("activate", ag, GDK_plus, Gdk::ModifierType::SHIFT_MASK, Gtk::ACCEL_VISIBLE);
-		ZoomIn.signal_activate().connect(sigc::mem_fun(this, &PlotMenu::do_zoom_in));
+		ZoomIn.signal_activate().connect(sigc::bind<MainWindow::Zoom>(
+				sigc::mem_fun(this, &PlotMenu::do_zoom), MainWindow::Zoom::ZOOM_IN));
 
 		append(ZoomOut);
 		ZoomOut.add_accelerator("activate", ag, GDK_minus, Gdk::ModifierType::SHIFT_MASK, Gtk::ACCEL_VISIBLE);
-		ZoomOut.signal_activate().connect(sigc::mem_fun(this, &PlotMenu::do_zoom_out));
+		ZoomOut.signal_activate().connect(sigc::bind<MainWindow::Zoom>(
+				sigc::mem_fun(this, &PlotMenu::do_zoom), MainWindow::Zoom::ZOOM_OUT));
 
 		append(Sepa2);
 		append(Stop);
@@ -145,13 +147,9 @@ public:
 		if (rv == Gtk::ResponseType::RESPONSE_ACCEPT)
 			mw->do_plot();
 	}
-	void do_zoom_in() {
+	void do_zoom(MainWindow::Zoom z) {
 		MainWindow *mw = find_main(this);
-		mw->do_zoom(MainWindow::Zoom::ZOOM_IN);
-	}
-	void do_zoom_out() {
-		MainWindow *mw = find_main(this);
-		mw->do_zoom(MainWindow::Zoom::ZOOM_OUT);
+		mw->do_zoom(z);
 	}
 	void do_stop() {
 		MainWindow *mw = find_main(this);
