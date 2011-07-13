@@ -16,6 +16,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include "Fractal.h"
 #include "Menus.h"
 #include "MainWindow.h"
 
@@ -42,6 +43,7 @@ static MainWindow* find_main(Gtk::Menu *mnu) {
     MainWindow *parent = 0;
 
     Gtk::Widget *attached = mnu->get_attach_widget();
+	if (!attached) return 0;
     Gtk::Container *w = attached->get_parent();
     while(w && (parent = dynamic_cast<MainWindow *>(w)) == NULL)
       w = w->get_parent();
@@ -193,8 +195,128 @@ public:
 	}
 };
 
+class FractalMenu : public Gtk::Menu {
+	MainWindow* _parent;
+public:
+	FractalMenu(MainWindow& parent, std::string& initial) {
+		_parent = &parent;
+		Gtk::RadioButtonGroup group;
 
-Menus::Menus(MainWindow& parent) : main("Main"), plot("Plot"), options("Options"), fractal("Fractal"), colour("Colour") {
+		std::map<std::string,Fractal::FractalImpl*>::iterator it;
+		unsigned maxsortorder = 0;
+		for (it = Fractal::FractalRegistry::registry().begin(); it != Fractal::FractalRegistry::registry().end(); it++) {
+			if (it->second->sortorder > maxsortorder)
+				maxsortorder = it->second->sortorder;
+		}
+
+		unsigned sortpass=0;
+		for (sortpass=0; sortpass <= maxsortorder; sortpass++) {
+			for (it = Fractal::FractalRegistry::registry().begin(); it != Fractal::FractalRegistry::registry().end(); it++) {
+				if (it->second->sortorder != sortpass)
+					continue;
+
+				Gtk::RadioMenuItem *item = new Gtk::RadioMenuItem(group, it->first.c_str());
+				append(*manage(item));
+
+				if (0==strcmp(initial.c_str(),it->second->name.c_str())) {
+					item->set_active(true);
+				}
+				item->signal_activate().connect(
+						sigc::bind<Gtk::RadioMenuItem*>(
+							sigc::mem_fun(*this, &FractalMenu::selection),
+							item));
+				item->set_tooltip_text(it->second->description.c_str());
+		}
+	}
+
+		if (!Fractal::FractalRegistry::registry()[initial]) {
+			std::cerr << "FATAL: Initial fractal selection " << initial << " not found. Link error?" << std::endl;
+			abort();
+		}
+		selection1(initial);
+	}
+	void selection(Gtk::RadioMenuItem *item) {
+		selection1(item->get_label());
+	}
+	void selection1(const std::string& lbl) {
+		Fractal::FractalImpl *sel = Fractal::FractalRegistry::registry()[lbl];
+		if (sel) {
+			_parent->fractal=sel;
+			_parent->do_plot(false);
+		}
+	}
+};
+
+class ColourMenu : public Gtk::Menu {
+	MainWindow* _parent;
+public:
+	ColourMenu(MainWindow& parent, std::string& initial) {
+		_parent = &parent;
+		Gtk::RadioButtonGroup group;
+		bool got_init = false;
+
+		Gtk::MenuItem *i1 = new Gtk::MenuItem("Discrete");
+		i1->set_sensitive(false);
+		append(*manage(i1));
+
+		std::map<std::string,DiscretePalette*>::iterator it;
+		for (it = DiscretePalette::registry.begin(); it != DiscretePalette::registry.end(); it++) {
+			Gtk::RadioMenuItem *item = new Gtk::RadioMenuItem(group, it->first.c_str());
+			append(*manage(item));
+
+			if (0==strcmp(initial.c_str(),it->second->name.c_str())) {
+				item->set_active(true);
+				got_init = true;
+			}
+			item->signal_activate().connect(
+					sigc::bind<Gtk::RadioMenuItem*>(
+						sigc::mem_fun(*this, &ColourMenu::selection),
+						item));
+		}
+
+		i1 = new Gtk::MenuItem();
+		append(*manage(i1));
+		i1 = new Gtk::MenuItem("Smooth");
+		i1->set_sensitive(false);
+		append(*manage(i1));
+
+		std::map<std::string,SmoothPalette*>::iterator it2;
+		for (it2 = SmoothPalette::registry.begin(); it2 != SmoothPalette::registry.end(); it2++) {
+			Gtk::RadioMenuItem *item = new Gtk::RadioMenuItem(group, it2->first.c_str());
+			append(*manage(item));
+
+			if (0==strcmp(initial.c_str(),it2->second->name.c_str())) {
+				item->set_active(true);
+				got_init = true;
+			}
+			item->signal_activate().connect(
+					sigc::bind<Gtk::RadioMenuItem*>(
+						sigc::mem_fun(*this, &ColourMenu::selection),
+						item));
+		}
+
+		if (!got_init) {
+			std::cerr << "FATAL: Initial palette selection " << initial << " not found. Link error?" << std::endl;
+			abort();
+		}
+		selection1(initial);
+	}
+	void selection(Gtk::RadioMenuItem *item) {
+		selection1(item->get_label());
+	}
+	void selection1(const std::string& lbl) {
+		BasePalette *sel = DiscretePalette::registry[lbl];
+		if (!sel)
+			sel = SmoothPalette::registry[lbl];
+		if (sel) {
+			_parent->pal=sel;
+			_parent->recolour();
+		}
+	}
+};
+
+
+Menus::Menus(MainWindow& parent, std::string& init_fractal, std::string& init_colour) : main("Main"), plot("Plot"), options("Options"), fractal("Fractal"), colour("Colour") {
 	    append(main);
 	    main.set_submenu(*manage(new MainMenu()));
 	    append(plot);
@@ -202,7 +324,9 @@ Menus::Menus(MainWindow& parent) : main("Main"), plot("Plot"), options("Options"
 	    append(options);
 	    options.set_submenu(*manage(new OptionsMenu(parent)));
 	    append(fractal);
+		fractal.set_submenu(*manage(new FractalMenu(parent, init_fractal)));
 	    append(colour);
+		colour.set_submenu(*manage(new ColourMenu(parent, init_colour)));
 #if 0 //XXX UISLOG
 	    options.set_submenu(*manage(new OptionsMenu()));
 	    // refactor: setup_fractal_menu(&gtk_ctx, menubar, "Mandelbrot");

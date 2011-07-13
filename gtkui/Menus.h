@@ -27,7 +27,7 @@ namespace menus {
 
 class Menus: public Gtk::MenuBar {
 public:
-	Menus(MainWindow& parent);
+	Menus(MainWindow& parent, std::string& init_fractal, std::string& init_colour);
 
 	Gtk::MenuItem main;
 	Gtk::MenuItem plot;

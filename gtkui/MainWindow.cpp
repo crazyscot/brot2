@@ -52,14 +52,10 @@ MainWindow::MainWindow() : Gtk::Window(),
 	centre = {0.0,0.0};
 	size = {4.5,4.5};
 
-	menubar = Gtk::manage(new menus::Menus(*this));
-	{
-		// XXX TEMP until menus in place:
-		fractal = Fractal::FractalRegistry::registry()["Mandelbrot"];
-		pal = SmoothPalette::registry["Linear rainbow"];
-		assert(fractal);
-		assert(pal);
-	}
+	std::string init_fract = "Mandelbrot",
+		init_pal = "Linear rainbow";
+
+	menubar = Gtk::manage(new menus::Menus(*this, init_fract, init_pal));
 	vbox->pack_start(*menubar, false, false, 0);
 
 	canvas = Gtk::manage(new Canvas(this));
@@ -276,6 +272,7 @@ void MainWindow::do_resize(unsigned width, unsigned height)
 // (Re)draws us, then sets up to queue an expose event when it's done.
 void MainWindow::do_plot(bool is_same_plot)
 {
+	if (initializing) return;
 	safe_stop_plot();
 
 	if (!canvas) {
@@ -399,6 +396,7 @@ void MainWindow::plot_progress_complete(Plot2& plot) {
 
 void MainWindow::recolour()
 {
+	if (initializing) return;
 	render_cairo();
 	queue_draw();
 }
