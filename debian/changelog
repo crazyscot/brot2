@@ -9,8 +9,11 @@ brot2 (0.2) UNRELEASED; urgency=low
   * LP#783083: Make member functions take a const 'this' where possible.
   * Now uses autoconf.
   * Overhaul Fractal.h et al to use a namespace.
+  * Rearrange source into libbrot2/ and gtkui/.
+  * LP#783036: Split up gtkui source, convert to gtkmm.
+  * LP#785166: Replace getopt with Glib::OptionOptionContext etc.
 
- -- Ross Younger <0ryoungerk.launchpad@coriolis.greenend.org.uk>  Sun, 29 May 2011 12:46:58 +0100
+ -- Ross Younger <0ryoungerk.launchpad@coriolis.greenend.org.uk>  Wed, 13 Jul 2011 23:18:55 +1200
 
 brot2 (0.1) natty; urgency=low
 
