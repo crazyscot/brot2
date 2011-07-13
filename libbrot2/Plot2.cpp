@@ -111,7 +111,7 @@ Plot2::Plot2(FractalImpl* f, Point centre, Point size,
 		width(width), height(height),
 		plotted_maxiter(0), plotted_passes(0),
 		callback(0), _data(0), _abort(false), _done(false), _outstanding(0),
-		jobs(0)
+		_completed(0), jobs(0)
 {
 }
 
@@ -244,7 +244,10 @@ void Plot2::_per_plot_threadfunc()
 	}
 	while (live && !_abort) {
 		++passcount;
-		unsigned out_ptr = 0, jobsdone = 0;
+		assert(_outstanding==0);
+		_completed=0;
+
+		unsigned out_ptr = 0;
 		for (i=0; i<NJOBS; i++)
 			jobs[i].set(this_pass_maxiter);
 
@@ -256,24 +259,22 @@ void Plot2::_per_plot_threadfunc()
 			}
 			_worker_signal.wait(plot_lock); // Signals that a job has completed, or we're asked to abort.
 			if (!_abort) {
-				++jobsdone;
 				if (callback) {
-					// Don't release here, or we may miss notifies from workers?
-					//_auto.release();
-					callback->plot_progress_minor(*this, (float)jobsdone / NJOBS);
-					//_auto.acquire();
+					float fractx = (float)_completed/NJOBS;
+					_auto.release();
+					callback->plot_progress_minor(*this, fractx);
+					_auto.acquire();
 				}
 			}
 		};
 		// Now wait for them to finish.
 		while(_outstanding) {
 			_worker_signal.wait(plot_lock);
-			++jobsdone;
 			if (callback) {
-				// Don't release here, or we may miss notifies from workers?
-				//_auto.release();
-				callback->plot_progress_minor(*this, (float)jobsdone / NJOBS);
-				//_auto.acquire();
+				float fractx = (float)_completed/NJOBS;
+				_auto.release();
+				callback->plot_progress_minor(*this, fractx);
+				_auto.acquire();
 			}
 		};
 
@@ -318,7 +319,9 @@ void Plot2::_per_plot_threadfunc()
 			info << "Pass " << passcount << ": maxiter=" << this_pass_maxiter;
 			info << ": " << livecount << " pixels live";
 			string infos = info.str();
+			_auto.release();
 			callback->plot_progress_major(*this, this_pass_maxiter, infos);
+			_auto.acquire();
 		}
 
 		last_pass_maxiter = this_pass_maxiter;
@@ -338,10 +341,9 @@ void Plot2::_per_plot_threadfunc()
 	}
 
 	if (callback && !_abort) {
-		// Don't release the lock unnecessarily.
-		//_auto.release();
+		_auto.release();
 		callback->plot_progress_complete(*this);
-		//_auto.acquire();
+		_auto.acquire();
 	}
 	_done = true;
 	_plot_complete.broadcast();

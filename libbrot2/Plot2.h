@@ -121,7 +121,8 @@ private:
 	callback_t* callback;  // Written few times, read many.
 	Fractal::PointData* _data;  // Concurrently written by worker threads. Beware! (N.B. We own this pointer.)
 	volatile bool _abort, _done; // Protected by plot_lock
-	unsigned _outstanding; // How many jobs remain? Protected by plot_lock.
+	unsigned _outstanding; // How many jobs are live? Protected by plot_lock.
+	unsigned _completed; // How many jobs are finished? Protected by plot_lock.
 
 	class worker_job; // Opaque to Plot2.cpp.
 	void _per_plot_threadfunc();
@@ -131,7 +132,10 @@ private:
 	// May optionally decrement the outstanding-jobs counter (which is protected by the same lock).
 	inline void awaken(bool job_complete=false) {
 		Glib::Mutex::Lock _auto(plot_lock);
-		if (job_complete) --_outstanding;
+		if (job_complete) {
+			--_outstanding;
+			++_completed;
+		}
 		_worker_signal.broadcast();
 	};
 

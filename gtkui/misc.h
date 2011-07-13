@@ -19,6 +19,11 @@
 #ifndef MISC_H_
 #define MISC_H_
 
+#include <sys/time.h>
+#include <gtkmm/window.h>
+#include <gtkmm/messagedialog.h>
+#include <string>
+
 #ifdef UNUSED
 #elif defined(__GNUC__)
 # define UNUSED(x) UNUSED_ ## x __attribute__((unused))
@@ -27,6 +32,43 @@
 #else
 # define UNUSED(x) x
 #endif
+
+
+namespace Util {
+
+inline struct timeval tv_subtract (struct timeval tv1, struct timeval tv2)
+{
+	struct timeval rv;
+	rv.tv_sec = tv1.tv_sec - tv2.tv_sec;
+	if (tv1.tv_usec < tv2.tv_usec) {
+		rv.tv_usec = tv1.tv_usec + 1e6 - tv2.tv_usec;
+		--rv.tv_sec;
+	} else {
+		rv.tv_usec = tv1.tv_usec - tv2.tv_usec;
+	}
+
+	return rv;
+}
+
+class xy {
+	// Represents a point in some integer space
+public:
+	int x, y;
+	xy() : x(0), y(0) {};
+	xy(int &xx, int &yy) : x(xx), y(yy) {};
+	void reinit(int xx, int yy) { x=xx; y=yy; }
+};
+
+inline void alert(Gtk::Window *parent, const std::string& message, Gtk::MessageType type = Gtk::MessageType::MESSAGE_ERROR)
+{
+	Gtk::MessageDialog dialog(*parent, message, false,
+			type,
+			Gtk::ButtonsType::BUTTONS_OK,
+			true);
+	dialog.run();
+}
+
+};
 
 #endif // MISC_H_
 
