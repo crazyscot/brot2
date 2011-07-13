@@ -315,26 +315,17 @@ public:
 
 
 Menus::Menus(MainWindow& parent, std::string& init_fractal, std::string& init_colour) : main("Main"), plot("Plot"), options("Options"), fractal("Fractal"), colour("Colour") {
-	    append(main);
-	    main.set_submenu(*manage(new MainMenu()));
-	    append(plot);
-	    plot.set_submenu(*manage(new PlotMenu(parent)));
-	    append(options);
-	    options.set_submenu(*manage(new OptionsMenu(parent)));
-	    append(fractal);
-		fractal.set_submenu(*manage(new FractalMenu(parent, init_fractal)));
-	    append(colour);
-		colour.set_submenu(*manage(new ColourMenu(parent, init_colour)));
-#if 0 //XXX UISLOG
-	    options.set_submenu(*manage(new OptionsMenu()));
-	    // refactor: setup_fractal_menu(&gtk_ctx, menubar, "Mandelbrot");
-	    fractal.set_submenu(*manage(new FractalMenu()));
-	    // refactor: setup_colour_menu(&gtk_ctx, menubar, "Linear rainbow");
-	    colour.set_submenu(*manage(new ColorMenu()));
-
-	    // TODO Kill off uixml
-	    // TODO Ensure our custom accelerators work
-#endif
-	  }
+	append(main);
+	main.set_submenu(*manage(new MainMenu()));
+	append(plot);
+	plot.set_submenu(*manage(new PlotMenu(parent)));
+	append(options);
+	options.set_submenu(*manage(new OptionsMenu(parent)));
+	append(fractal);
+	fractal.set_submenu(*manage(new FractalMenu(parent, init_fractal)));
+	append(colour);
+	colour.set_submenu(*manage(new ColourMenu(parent, init_colour)));
 }
+
+} // end namespace
 
