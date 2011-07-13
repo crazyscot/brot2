@@ -126,12 +126,12 @@ public:
 		Stop.signal_activate().connect(sigc::mem_fun(this, &PlotMenu::do_stop));
 
 		append(Redraw);
-		Redraw.set_label("Redraw");
+		Redraw.set_label("_Redraw");
 		Redraw.add_accelerator("activate", ag, GDK_R, Gdk::ModifierType::CONTROL_MASK, Gtk::ACCEL_VISIBLE);
 		Redraw.signal_activate().connect(sigc::mem_fun(this, &PlotMenu::do_redraw));
 
 		append(More);
-		More.set_label("More iterations");
+		More.set_label("_More iterations");
 		More.add_accelerator("activate", ag, GDK_M, Gdk::ModifierType::CONTROL_MASK, Gtk::ACCEL_VISIBLE);
 		More.signal_activate().connect(sigc::mem_fun(this, &PlotMenu::do_more));
 	}
@@ -314,7 +314,7 @@ public:
 };
 
 
-Menus::Menus(MainWindow& parent, std::string& init_fractal, std::string& init_colour) : main("Main"), plot("Plot"), options("Options"), fractal("Fractal"), colour("Colour") {
+Menus::Menus(MainWindow& parent, std::string& init_fractal, std::string& init_colour) : main("_Main", true), plot("_Plot", true), options("_Options", true), fractal("_Fractal", true), colour("_Colour", true) {
 	append(main);
 	main.set_submenu(*manage(new MainMenu()));
 	append(plot);
