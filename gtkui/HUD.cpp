@@ -58,7 +58,7 @@ void HUD::draw(Plot2* plot, const int rwidth, const int rheight)
 	lyt->set_width(Pango::SCALE * rwidth);
 	lyt->set_wrap(Pango::WRAP_WORD_CHAR);
 
-	Pango::Rectangle rect = lyt->get_logical_extents();
+	//Pango::Rectangle rect = lyt->get_logical_extents();
 
 	Pango::LayoutIter iter = lyt->get_iter();
 	do {
