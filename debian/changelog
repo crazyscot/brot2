@@ -1,5 +1,6 @@
-brot2 (0.2) UNRELEASED; urgency=low
+brot2 (0.2) natty; urgency=low
 
+  * Alpha release.
   * LP#783038: Replace deprecated calls to gtk_signal_connect(_object)
   * LP#783038: Overhaul menu creation to use GtkUIManager instead of
   GtkItemFactory. 
@@ -13,7 +14,7 @@ brot2 (0.2) UNRELEASED; urgency=low
   * LP#783036: Split up gtkui source, convert to gtkmm.
   * LP#785166: Replace getopt with Glib::OptionOptionContext etc.
 
- -- Ross Younger <0ryoungerk.launchpad@coriolis.greenend.org.uk>  Wed, 13 Jul 2011 23:18:55 +1200
+ -- Ross Younger <0ryoungerk.launchpad@coriolis.greenend.org.uk>  Fri, 15 Jul 2011 19:05:11 +1200
 
 brot2 (0.1) natty; urgency=low
 
