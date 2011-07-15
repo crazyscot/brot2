@@ -1,3 +1,9 @@
+brot2 (0.5~unreleased) unstable; urgency=low
+
+  * Beta release series.
+
+ -- Ross Younger <0ryoungerk.launchpad@coriolis.greenend.org.uk>  Fri, 15 Jul 2011 19:17:04 +1200
+
 brot2 (0.2) natty; urgency=low
 
   * Alpha release.
