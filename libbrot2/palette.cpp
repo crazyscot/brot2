@@ -18,6 +18,7 @@
 
 #include "palette.h"
 #include "Fractal.h"
+#include "Registry.h"
 #include <math.h>
 #include <stdio.h>
 #include <iostream>
@@ -40,8 +41,6 @@ std::ostream& operator<<(std::ostream &stream, rgbf o) {
 	  stream << "rgbf(" << o.r << "," << o.g << "," << o.b << ")";
 	  return stream;
 }
-
-map<string,DiscretePalette*> DiscretePalette::registry;
 
 // HSV->RGB conversion algorithm coded up from the formula on Wikipedia.
 hsvf::operator rgb() {
@@ -84,7 +83,7 @@ std::ostream& operator<<(std::ostream &stream, hsvf o) {
 
 /////////////////////////////////////////////////////////////////////////
 
-class Kaleidoscopic : DiscretePalette {
+class Kaleidoscopic : public DiscretePalette {
 public:
 	Kaleidoscopic(string name, int n) : DiscretePalette(name,n) {};
 	virtual rgb get(const PointData &pt) const {
@@ -98,9 +97,7 @@ public:
 	};
 };
 
-Kaleidoscopic kaleido32("Kaleidoscopic", 32);
-
-class Rainbow : DiscretePalette {
+class Rainbow : public DiscretePalette {
 public:
 	Rainbow(string name, int n) : DiscretePalette(name, n) {};
 	virtual rgb get(const PointData &pt) const {
@@ -116,9 +113,7 @@ public:
 	};
 };
 
-Rainbow grad32("Rainbow", 32);
-
-class PastelSalad : DiscretePalette {
+class PastelSalad : public DiscretePalette {
 public:
 	PastelSalad(string name, int n) : DiscretePalette(name, n) {};
 	virtual rgb get(const PointData &pt) const {
@@ -128,8 +123,6 @@ public:
 
 	};
 };
-
-PastelSalad pastel32("Pastel Salad", 32);
 
 class SawtoothGradient : public DiscretePalette {
 protected:
@@ -147,14 +140,25 @@ public:
 	}
 };
 
-#define SAWTOOTH(id,desc,n,p1,p2) \
-	SawtoothGradient id(#desc, n, p1, p2)
+//#define SAWTOOTH(id,desc,n,p1,p2) SawtoothGradient id(#desc, n, p1, p2)
 
 //SAWTOOTH(saw_red_blue, Gradient red-blue, 16, rgbf(1,0,0), rgbf(0,0,1));
 //SAWTOOTH(saw_green_pink, Gradient green-pink, 16, rgbf(0,1,0), rgbf(1,0,1));
-SAWTOOTH(saw_red_cyan, Red-cyan sawtooth, 16, rgbf(0,1,1), rgbf(1,0,0));
+//SAWTOOTH(saw_red_cyan, Red-cyan sawtooth, 16, rgbf(0,1,1), rgbf(1,0,0));
 //SAWTOOTH(saw_blue_purple, Gradient blue-purple, 16, rgbf(0.5,0,0.5), rgbf(0,0.5,1));
 //SAWTOOTH(saw_org_green, Gradient orange-green, 16, rgbf(1,0.56,0), rgbf(0,0.56,0));
+
+RegistryWithoutDescription<DiscretePalette> DiscretePalette::all;
+int DiscretePalette::base_registered=0;
+
+void DiscretePalette::register_base() {
+	if (base_registered) return;
+	all.reg("Kaleidoscopic", new Kaleidoscopic("", 32));
+	all.reg("Rainbow", new Rainbow("", 32));
+	all.reg("Pastel Salad", new PastelSalad("", 32));
+	all.reg("Red-cyan sawtooth", new SawtoothGradient("", 16, rgbf(0,1,1), rgbf(1,0,0)));
+	base_registered = 1;
+}
 
 ////////////////////////////////////////////////////////////////
 

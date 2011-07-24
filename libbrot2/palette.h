@@ -23,6 +23,7 @@
 #include <map>
 #include <iostream>
 #include "Fractal.h"
+#include "Registry.h"
 
 class rgb;
 
@@ -108,31 +109,19 @@ class DiscretePalette : public BasePalette {
 public:
 	// Construction registration in one go.
 	DiscretePalette(std::string nam, int n) : BasePalette(nam), size(n) {
-		reg();
 	};
 
 	// Destructor will deregister iff the instance was registered.
 	virtual ~DiscretePalette() {
-		dereg();
 	};
 
 	const int size; // number of colours in the palette
 
-	// Instances must implement:
-	// virtual rgb get(const PointData &pt) const = 0;
-
-	static std::map<std::string,DiscretePalette*> registry;
-
-	void reg() { registry[name] = this; isRegistered = 1; }
-	void dereg()
-	{
-		if (isRegistered)
-			registry.erase(name);
-		isRegistered = 0;
-	}
-
+public:
+	static RegistryWithoutDescription<DiscretePalette> all;
+	static void register_base();
 protected:
-	int isRegistered;
+	static int base_registered;
 };
 
 ///////////////////////////////////////////////////////////////////
