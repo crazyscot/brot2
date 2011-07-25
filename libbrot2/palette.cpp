@@ -85,7 +85,7 @@ std::ostream& operator<<(std::ostream &stream, hsvf o) {
 
 class Kaleidoscopic : public DiscretePalette {
 public:
-	Kaleidoscopic(string name, int n) : DiscretePalette(name,n) {};
+	Kaleidoscopic(int n) : DiscretePalette(n) {};
 	virtual rgb get(const PointData &pt) const {
 		// This one jumps at random around the hue space.
 			hsvf h(0.5+cos(pt.iter)/2.0, 0.87, 0.87);
@@ -99,7 +99,7 @@ public:
 
 class Rainbow : public DiscretePalette {
 public:
-	Rainbow(string name, int n) : DiscretePalette(name, n) {};
+	Rainbow(int n) : DiscretePalette(n) {};
 	virtual rgb get(const PointData &pt) const {
 		// This is a continuous "gradient" around the Hue wheel.
 		double n = (double)pt.iter / size;
@@ -115,7 +115,7 @@ public:
 
 class PastelSalad : public DiscretePalette {
 public:
-	PastelSalad(string name, int n) : DiscretePalette(name, n) {};
+	PastelSalad(int n) : DiscretePalette(n) {};
 	virtual rgb get(const PointData &pt) const {
 		return rgb((size-pt.iter)*255/size,
 					144,
@@ -128,7 +128,7 @@ class SawtoothGradient : public DiscretePalette {
 protected:
 	rgbf point1, point2;
 public:
-	SawtoothGradient(string nam, int n, const rgbf p1, const rgbf p2) : DiscretePalette(nam,n), point1(p1), point2(p2) {};
+	SawtoothGradient(int n, const rgbf p1, const rgbf p2) : DiscretePalette(n), point1(p1), point2(p2) {};
 
 	virtual rgb get(const PointData &pt) const {
 		// I tried a sinusoid function here as well, but it didn't work so well.
@@ -153,10 +153,10 @@ int DiscretePalette::base_registered=0;
 
 void DiscretePalette::register_base() {
 	if (base_registered) return;
-	all.reg("Kaleidoscopic", new Kaleidoscopic("", 32));
-	all.reg("Rainbow", new Rainbow("", 32));
-	all.reg("Pastel Salad", new PastelSalad("", 32));
-	all.reg("Red-cyan sawtooth", new SawtoothGradient("", 16, rgbf(0,1,1), rgbf(1,0,0)));
+	all.reg("Kaleidoscopic", new Kaleidoscopic(32));
+	all.reg("Rainbow", new Rainbow(32));
+	all.reg("Pastel Salad", new PastelSalad(32));
+	all.reg("Red-cyan sawtooth", new SawtoothGradient(16, rgbf(0,1,1), rgbf(1,0,0)));
 	base_registered = 1;
 }
 
@@ -166,7 +166,7 @@ class HueCycle : public SmoothPalette {
 public:
 	const double wrap;
 	const hsvf pointa, pointb; // Points to smooth between
-	HueCycle(std::string name, float wrap, hsvf pa, hsvf pb) : SmoothPalette(name), wrap(wrap), pointa(pa), pointb(pb) {};
+	HueCycle(float wrap, hsvf pa, hsvf pb) : SmoothPalette(), wrap(wrap), pointa(pa), pointb(pb) {};
 	rgb get(const PointData &pt) const {
 		float tau = pt.iterf / wrap;
 		tau -= floor(tau);
@@ -197,7 +197,7 @@ HUECYCLE(viol_red_16, Shallow greenish, 16, hsvf(0,1,1), hsvf(1,1,1));
 
 class LogSmoothed : public SmoothPalette {
 public:
-	LogSmoothed(std::string name) : SmoothPalette(name) {};
+	LogSmoothed() : SmoothPalette() {};
 	hsvf get_hsvf(const PointData &pt) const {
 		hsvf rv;
 		double t = log(pt.iterf);
@@ -215,7 +215,7 @@ public:
 
 class LogSmoothedRays : public LogSmoothed {
 public:
-	LogSmoothedRays(std::string name) : LogSmoothed(name) {};
+	LogSmoothedRays() : LogSmoothed() {};
 	rgb get(const PointData &pt) const {
 		hsvf rv = get_hsvf(pt);
 		rv.s = 0.5 + cos(pt.arg) / 2.0;
@@ -223,12 +223,9 @@ public:
 	};
 };
 
-LogSmoothedRays log_smoothed_with_rays("Logarithmic rainbow  with rays");
-// nasty hack: two spaces to sort this one next to the plain log rainbow.
-
 class FastLogSmoothed : public SmoothPalette {
 public:
-	FastLogSmoothed(std::string name) : SmoothPalette(name) {};
+	FastLogSmoothed() : SmoothPalette() {};
 	hsvf get_hsvf(const PointData &pt) const {
 		hsvf rv;
 		rv.h = log(pt.iterf) + 0.5;
@@ -241,13 +238,9 @@ public:
 	};
 };
 
-/* What to call it? I originally called it _fast_, but it could mislead as
- * it doesn't make the plot any faster; the gradient is _steeper_ perhaps? */
-FastLogSmoothed fast_log_smoothed("Logarithmic rainbow (steep)");
-
 class SinLogSmoothed : public SmoothPalette {
 public:
-	SinLogSmoothed(std::string name) : SmoothPalette(name) {};
+	SinLogSmoothed() : SmoothPalette() {};
 	hsvf get_hsvf(const PointData &pt) const {
 		hsvf rv;
 		rv.h = sin(log(pt.iterf))/2.0 + 0.5;
@@ -262,7 +255,7 @@ public:
 
 class SlowSineLog : public SmoothPalette {
 public:
-	SlowSineLog(std::string name) : SmoothPalette(name) {};
+	SlowSineLog() : SmoothPalette() {};
 	rgb get(const PointData &pt) const {
 		hsvf rv;
 		rv.h = 0.5 + sin(log(pt.iterf)/3*M_PI)/2.0;
@@ -274,7 +267,7 @@ public:
 
 class FastSineLog : public SmoothPalette {
 public:
-	FastSineLog(std::string name) : SmoothPalette(name) {};
+	FastSineLog() : SmoothPalette() {};
 	rgb get(const PointData &pt) const {
 		hsvf rv;
 		rv.h = 0.5+sin(log(pt.iterf)*M_PI)/2.0;
@@ -286,7 +279,7 @@ public:
 
 class CosLogSmoothed : public SmoothPalette {
 public:
-	CosLogSmoothed(std::string name) : SmoothPalette(name) {};
+	CosLogSmoothed() : SmoothPalette() {};
 	hsvf get_hsvf(const PointData &pt) const {
 		hsvf rv;
 		rv.h = cos(log(pt.iterf))/2.0 + 0.5;
@@ -301,7 +294,7 @@ public:
 
 class SlowCosLog : public SmoothPalette {
 public:
-	SlowCosLog(std::string name) : SmoothPalette(name) {};
+	SlowCosLog() : SmoothPalette() {};
 	rgb get(const PointData &pt) const {
 		hsvf rv;
 		rv.h = 0.5 + cos(log(pt.iterf)/3*M_PI)/2.0;
@@ -313,7 +306,7 @@ public:
 
 class FastCosLog : public SmoothPalette {
 public:
-	FastCosLog(std::string name) : SmoothPalette(name) {};
+	FastCosLog() : SmoothPalette() {};
 	rgb get(const PointData &pt) const {
 		hsvf rv;
 		rv.h = 0.5+cos(log(pt.iterf)*M_PI)/2.0;
@@ -329,17 +322,21 @@ int SmoothPalette::base_registered=0;
 void SmoothPalette::register_base() {
 	if (base_registered) return;
 	base_registered = 1;
-	all.reg("Linear rainbow", new HueCycle("", 32, hsvf(0.5,1,1), hsvf(1.5,1,1)));
+	all.reg("Linear rainbow", new HueCycle(32, hsvf(0.5,1,1), hsvf(1.5,1,1)));
 
-	all.reg("Logarithmic rainbow", new LogSmoothed(""));
-	all.reg("Logarithmic rainbow  with rays", new LogSmoothedRays ("Logarithmic rainbow  with rays"));
-	all.reg("Logarithmic rainbow (steep)", new FastLogSmoothed("Logarithmic rainbow (steep)"));
+	all.reg("Logarithmic rainbow", new LogSmoothed());
+	all.reg("Logarithmic rainbow  with rays", new LogSmoothedRays());
+// nasty hack: two spaces to sort this one next to the plain log rainbow.
+	all.reg("Logarithmic rainbow (steep)", new FastLogSmoothed());
+/* What to call it? I originally called it _fast_, but it could mislead as
+ * it doesn't make the plot any faster; the gradient is _steeper_ perhaps? */
 
-	all.reg("sin(log)", new SinLogSmoothed("sin(log)"));
-	all.reg("sin(log) shallow", new SlowSineLog("sin(log) shallow"));
-	all.reg("sin(log) steep", new FastSineLog("sin(log) steep"));
 
-	all.reg("cos(log)", new CosLogSmoothed("cos(log)"));
-	all.reg("cos(log) shallow", new SlowCosLog("cos(log) shallow"));
-	all.reg("cos(log) steep", new FastCosLog("cos(log) steep"));
+	all.reg("sin(log)", new SinLogSmoothed());
+	all.reg("sin(log) shallow", new SlowSineLog());
+	all.reg("sin(log) steep", new FastSineLog());
+
+	all.reg("cos(log)", new CosLogSmoothed());
+	all.reg("cos(log) shallow", new SlowCosLog());
+	all.reg("cos(log) steep", new FastCosLog());
 }
