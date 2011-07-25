@@ -112,7 +112,7 @@ public:
 	const int size; // number of colours in the palette
 
 public:
-	static RegistryWithoutDescription<DiscretePalette> all;
+	static SimpleRegistry<DiscretePalette> all;
 	static void register_base();
 protected:
 	static int base_registered;
@@ -127,7 +127,7 @@ public:
 
 	virtual rgb get(const Fractal::PointData &pt) const = 0;
 
-	static RegistryWithoutDescription<SmoothPalette> all;
+	static SimpleRegistry<SmoothPalette> all;
 	static void register_base();
 
 protected:

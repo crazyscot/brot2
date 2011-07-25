@@ -24,7 +24,7 @@
 #include <map>
 
 template <class T>
-class RegistryWithoutDescription
+class SimpleRegistry
 {
 	protected:
 		std::map<std::string, T*> instances;

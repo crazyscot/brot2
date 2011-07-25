@@ -148,7 +148,7 @@ public:
 //SAWTOOTH(saw_blue_purple, Gradient blue-purple, 16, rgbf(0.5,0,0.5), rgbf(0,0.5,1));
 //SAWTOOTH(saw_org_green, Gradient orange-green, 16, rgbf(1,0.56,0), rgbf(0,0.56,0));
 
-RegistryWithoutDescription<DiscretePalette> DiscretePalette::all;
+SimpleRegistry<DiscretePalette> DiscretePalette::all;
 int DiscretePalette::base_registered=0;
 
 void DiscretePalette::register_base() {
@@ -316,7 +316,7 @@ public:
 	};
 };
 
-RegistryWithoutDescription<SmoothPalette> SmoothPalette::all;
+SimpleRegistry<SmoothPalette> SmoothPalette::all;
 int SmoothPalette::base_registered=0;
 
 void SmoothPalette::register_base() {
