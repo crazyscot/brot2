@@ -23,6 +23,7 @@
 #include <complex>
 #include <map>
 #include <iostream>
+#include "Registry.h"
 
 namespace Fractal {
 
@@ -67,13 +68,17 @@ public:
 
 class FractalImpl;
 
-class FractalRegistry {
+class FractalCommon {
 public:
-	static std::map<std::string,FractalImpl*>& registry();
-private:
-	static FractalRegistry* _instance;
-	std::map<std::string,FractalImpl*> _registry;
+	// Master registry of all known fractals
+	static SimpleRegistry<FractalImpl> registry;
+	// Call on startup to load the base fractals.
+	static void load_base();
+protected:
+	// Set when the base set has been loaded.
+	static bool base_loaded;
 };
+
 
 // Base fractal definition. An instance knows all about a fractal _type_
 // but nothing about an individual _plot_ of it (meta-instance?)
@@ -115,11 +120,11 @@ public:
 
 private:
 	bool isRegistered;
-	void reg() { FractalRegistry::registry()[name] = this; isRegistered = 1; }
+	void reg() { FractalCommon::registry.reg(name, this); isRegistered = 1; }
 	void dereg()
 	{
 		if (isRegistered)
-			FractalRegistry::registry().erase(name);
+			FractalCommon::registry.dereg(name);
 		isRegistered = false;
 	}
 };

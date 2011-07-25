@@ -22,8 +22,6 @@
 using namespace std;
 using namespace Fractal;
 
-void Fractal::load_Mandelbrot() { }
-
 // Abstract base class for common unoptimized code
 class Mandelbrot_Generic : public FractalImpl {
 public:
@@ -98,8 +96,6 @@ public:
 	}
 };
 
-Mandelbrot mandelbrot("Mandelbrot", "The original Mandelbrot set, z:=z^2+c");
-
 // --------------------------------------------------------------------
 
 class Mandel3 : public Mandelbrot_Generic {
@@ -135,8 +131,6 @@ public:
 		out.point = Point(z_re,z_im);
 	};
 };
-
-Mandel3 mandel3("Mandelbrot^3", "z:=z^3+c");
 
 // --------------------------------------------------------------------
 
@@ -174,8 +168,6 @@ public:
 		out.point = Point(z_re,z_im);
 	}
 };
-
-Mandel4 mandel4("Mandelbrot^4", "z:=z^4+c");
 
 // --------------------------------------------------------------------
 
@@ -217,4 +209,16 @@ public:
 	};
 };
 
-Mandel5 Mandel5("Mandelbrot^5", "z:=z^5+c");
+
+#define REGISTER(cls, name, desc) do {				\
+	cls* cls##impl = new cls(name, desc);			\
+	FractalCommon::registry.reg(name, cls##impl);	\
+} while(0)
+
+void Fractal::load_Mandelbrot() {
+	REGISTER(Mandelbrot, "Mandelbrot", "The original Mandelbrot set, z:=z^2+c");
+	REGISTER(Mandel3, "Mandelbrot^3", "z:=z^3+c");
+	REGISTER(Mandel4, "Mandelbrot^4", "z:=z^4+c");
+	REGISTER(Mandel5, "Mandelbrot^5", "z:=z^5+c");
+}
+

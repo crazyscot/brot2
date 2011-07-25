@@ -23,8 +23,6 @@
 using namespace std;
 using namespace Fractal;
 
-void Fractal::load_Mandelbar() { }
-
 // Abstract base class for common unoptimized code
 class Mandelbar_Generic : public FractalImpl {
 public:
@@ -77,8 +75,6 @@ public:
 	};
 };
 
-Mandelbar2 mandelbar("Mandelbar (Tricorn)", "z:=(zbar)^2+c");
-
 // --------------------------------------------------
 
 class Mandelbar3: public Mandelbar_Generic {
@@ -116,8 +112,6 @@ public:
 	};
 };
 
-Mandelbar3 mandelbar3("Mandelbar^3", "z:=(zbar)^3+c");
-
 // --------------------------------------------------
 
 class Mandelbar4: public Mandelbar_Generic {
@@ -154,9 +148,6 @@ public:
 
 	};
 };
-
-Mandelbar4 mandelbar4("Mandelbar^4", "z:=(zbar)^4+c");
-
 
 // --------------------------------------------------
 
@@ -197,4 +188,14 @@ public:
 	};
 };
 
-Mandelbar5 mandelbar5("Mandelbar^5", "z:=(zbar)^5+c");
+#define REGISTER(cls, name, desc) do { 				\
+	cls* cls##impl = new cls(name, desc);           \
+	FractalCommon::registry.reg(name, cls##impl);   \
+} while(0)
+
+void Fractal::load_Mandelbar() {
+	REGISTER(Mandelbar2, "Mandelbar (Tricorn)", "z:=(zbar)^2+c");
+	REGISTER(Mandelbar3, "Mandelbar^3", "z:=(zbar)^3+c");
+	REGISTER(Mandelbar4, "Mandelbar^4", "z:=(zbar)^4+c");
+	REGISTER(Mandelbar5, "Mandelbar^5", "z:=(zbar)^5+c");
+}
