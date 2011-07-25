@@ -27,18 +27,14 @@ const Value Consts::log3 = log(3.0);
 const Value Consts::log4 = log(4.0);
 const Value Consts::log5 = log(5.0);
 
-FractalRegistry* FractalRegistry::_instance = 0;
+SimpleRegistry<FractalImpl> Fractal::FractalCommon::registry;
+bool Fractal::FractalCommon::base_loaded;
 
-/*
- * I assert that I don't need to worry about thread-safety, as
- * the first call happens during static constructor time -
- * before I set up any threads.
- */
-std::map<std::string,FractalImpl*>& FractalRegistry::registry() {
-	if (!_instance) {
-		load_Mandelbrot();
-		load_Mandelbar();
-		_instance = new FractalRegistry();
-	}
-	return _instance->_registry;
+// Called during initialisation time, so no need to worry about thread-safety.
+void Fractal::FractalCommon::load_base() {
+	if (base_loaded) return;
+	base_loaded = true;
+	load_Mandelbrot();
+	load_Mandelbar();
 }
+

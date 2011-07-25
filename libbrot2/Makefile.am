@@ -1,7 +1,7 @@
 noinst_LIBRARIES=libbrot2.a
 
 libbrot2_a_SOURCES= libbrot2.h \
-					logo.h logo_auto.c \
+					logo.h logo_auto.c Registry.h \
 					Fractal.cpp Fractal.h palette.cpp palette.h \
 					Plot2.cpp Plot2.h \
 					Mandelbar.cpp Mandelbrots.cpp
