@@ -128,28 +128,16 @@ protected:
 
 class SmoothPalette : public BasePalette {
 public:
-	// Base constructor registers the class.
-	SmoothPalette(std::string newname) : BasePalette(newname) { reg(); };
-
-	// Destructor will deregister iff the instance was registered.
-	virtual ~SmoothPalette() {
-		dereg();
-	}
-
-	static std::map<std::string,SmoothPalette*> registry;
-
-	void reg() { registry[name] = this; isRegistered = 1; }
-	void dereg()
-	{
-		if (isRegistered)
-			registry.erase(name);
-		isRegistered = 0;
-	}
+	SmoothPalette(std::string newname) : BasePalette(newname) { };
+	virtual ~SmoothPalette() { };
 
 	virtual rgb get(const Fractal::PointData &pt) const = 0;
 
+	static RegistryWithoutDescription<SmoothPalette> all;
+	static void register_base();
+
 protected:
-	int isRegistered;
+	static int base_registered;
 };
 
 #endif /* PALETTE_H_ */

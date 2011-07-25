@@ -280,12 +280,13 @@ public:
 		i1->set_sensitive(false);
 		append(*manage(i1));
 
-		std::map<std::string,SmoothPalette*>::iterator it2;
-		for (it2 = SmoothPalette::registry.begin(); it2 != SmoothPalette::registry.end(); it2++) {
-			Gtk::RadioMenuItem *item = new Gtk::RadioMenuItem(group, it2->first.c_str());
+		SmoothPalette::register_base();
+		std::set<std::string> smooths = SmoothPalette::all.names();
+		for (it = smooths.begin(); it != smooths.end(); it++) {
+			Gtk::RadioMenuItem *item = new Gtk::RadioMenuItem(group, it->c_str());
 			append(*manage(item));
 
-			if (0==strcmp(initial.c_str(),it2->second->name.c_str())) {
+			if (0==strcmp(initial.c_str(),it->c_str())) {
 				item->set_active(true);
 				got_init = true;
 			}
@@ -307,7 +308,7 @@ public:
 	void selection1(const std::string& lbl) {
 		BasePalette *sel = DiscretePalette::all.get(lbl);
 		if (!sel)
-			sel = SmoothPalette::registry[lbl];
+			sel = SmoothPalette::all.get(lbl);
 		if (sel) {
 			_parent->pal=sel;
 			_parent->recolour();

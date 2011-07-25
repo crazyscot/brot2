@@ -162,8 +162,6 @@ void DiscretePalette::register_base() {
 
 ////////////////////////////////////////////////////////////////
 
-std::map<std::string,SmoothPalette*> SmoothPalette::registry;
-
 class HueCycle : public SmoothPalette {
 public:
 	const double wrap;
@@ -180,10 +178,10 @@ public:
 	};
 };
 
+/*
 #define HUECYCLE(id,name,wrap,a,b) \
 	HueCycle id(#name, wrap, a, b)
 
-/*
 HUECYCLE(red_violet_64, Deep red-yellow, 64, hsvf(1,1,1), hsvf(0,1,1));
 HUECYCLE(red_violet_32, Mid orange, 32, hsvf(1,1,1), hsvf(0,1,1));
 HUECYCLE(red_violet_16, Shallow yellow, 16, hsvf(1,1,1), hsvf(0,1,1));
@@ -193,7 +191,7 @@ HUECYCLE(viol_red_16, Shallow greenish, 16, hsvf(0,1,1), hsvf(1,1,1));
 */
 
 // In fact my HSV space conversion just copes with values >1, so you can do this:
-HUECYCLE(green_32, Linear rainbow, 32, hsvf(0.5,1,1), hsvf(1.5,1,1));
+//HUECYCLE(green_32, Linear rainbow, 32, hsvf(0.5,1,1), hsvf(1.5,1,1));
 //HUECYCLE(green_16, Shallow rainbow, 16, hsvf(0.5,1,1), hsvf(1.5,1,1));
 //HUECYCLE(green_64, Deep rainbow, 64, hsvf(0.5,1,1), hsvf(1.5,1,1));
 
@@ -214,8 +212,6 @@ public:
 		return get_hsvf(pt);
 	};
 };
-
-LogSmoothed log_smoothed("Logarithmic rainbow");
 
 class LogSmoothedRays : public LogSmoothed {
 public:
@@ -264,8 +260,6 @@ public:
 	};
 };
 
-SinLogSmoothed sin_log("sin(log)");
-
 class SlowSineLog : public SmoothPalette {
 public:
 	SlowSineLog(std::string name) : SmoothPalette(name) {};
@@ -278,8 +272,6 @@ public:
 	};
 };
 
-SlowSineLog slow_sine_log("sin(log) shallow");
-
 class FastSineLog : public SmoothPalette {
 public:
 	FastSineLog(std::string name) : SmoothPalette(name) {};
@@ -291,8 +283,6 @@ public:
 		return rv;
 	};
 };
-
-FastSineLog fast_sine_log("sin(log) steep");
 
 class CosLogSmoothed : public SmoothPalette {
 public:
@@ -309,8 +299,6 @@ public:
 	};
 };
 
-CosLogSmoothed cos_log("cos(log)");
-
 class SlowCosLog : public SmoothPalette {
 public:
 	SlowCosLog(std::string name) : SmoothPalette(name) {};
@@ -322,8 +310,6 @@ public:
 		return rv;
 	};
 };
-
-SlowCosLog slow_cos_log("cos(log) shallow");
 
 class FastCosLog : public SmoothPalette {
 public:
@@ -337,5 +323,23 @@ public:
 	};
 };
 
-FastCosLog fast_cos_log("cos(log) steep");
+RegistryWithoutDescription<SmoothPalette> SmoothPalette::all;
+int SmoothPalette::base_registered=0;
 
+void SmoothPalette::register_base() {
+	if (base_registered) return;
+	base_registered = 1;
+	all.reg("Linear rainbow", new HueCycle("", 32, hsvf(0.5,1,1), hsvf(1.5,1,1)));
+
+	all.reg("Logarithmic rainbow", new LogSmoothed(""));
+	all.reg("Logarithmic rainbow  with rays", new LogSmoothedRays ("Logarithmic rainbow  with rays"));
+	all.reg("Logarithmic rainbow (steep)", new FastLogSmoothed("Logarithmic rainbow (steep)"));
+
+	all.reg("sin(log)", new SinLogSmoothed("sin(log)"));
+	all.reg("sin(log) shallow", new SlowSineLog("sin(log) shallow"));
+	all.reg("sin(log) steep", new FastSineLog("sin(log) steep"));
+
+	all.reg("cos(log)", new CosLogSmoothed("cos(log)"));
+	all.reg("cos(log) shallow", new SlowCosLog("cos(log) shallow"));
+	all.reg("cos(log) steep", new FastCosLog("cos(log) steep"));
+}
