@@ -26,6 +26,8 @@
 
 struct Render {
 
+	static const int RGB_BYTES_PER_PIXEL = 3;
+
 	class pixpack_format {
 		// A pixel format identifier that supersets Cairo's.
 		int f; // Pixel format - one of cairo_format_t or our internal constants
@@ -64,7 +66,7 @@ struct Render {
  * our feet (typically by the user doing something to cause us to render
  * afresh).
  */
-	static bool render_generic(unsigned char *buf, const int rowstride, const int local_inf, pixpack_format fmt, Plot2& plot, unsigned rwidth, unsigned rheight, unsigned /*antialias*/factor, BasePalette& pal);
+	static bool render_generic(unsigned char *buf, const int rowstride, const int local_inf, pixpack_format fmt, Plot2& plot, unsigned rwidth, unsigned rheight, unsigned /*antialias*/factor, const BasePalette& pal);
 
 	// Renders a single pixel, given the current idea of infinity and the palette to use.
 	static inline rgb render_pixel(const Fractal::PointData *data, const int local_inf, const BasePalette * pal) {
@@ -75,7 +77,16 @@ struct Render {
 		}
 	}
 
-	static const int RGB_BYTES_PER_PIXEL = 3;
+	// Renders a plot as a PNG.
+	// FILE* f must be open in mode wb and ready to write.
+	// width and height are in pixels.
+	// plot and pal are the plot to render and palette to use.
+	// antialias is the antialias factor we're using (1 in most cases).
+	// Return: 0 for success, 1 for failure (in which case *error_string_o
+	// is updated to point to a description of the error).
+	static int save_as_png(FILE *f, const unsigned width, const unsigned height,
+			Plot2& plot, const BasePalette& pal, const int antialias,
+			const char** error_string_o);
 };
 
 #endif /* RENDER_H_ */

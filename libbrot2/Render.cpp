@@ -15,7 +15,9 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+
 #include <assert.h>
+#include <png.h>
 #include <stdlib.h>
 #include "Render.h"
 #include "Plot2.h"
@@ -41,7 +43,7 @@
  * our feet (typically by the user doing something to cause us to render
  * afresh).
  */
-bool Render::render_generic(unsigned char *buf, const int rowstride, const int local_inf, pixpack_format fmt, Plot2& plot, unsigned rwidth, unsigned rheight, unsigned /*antialias*/factor, BasePalette& pal)
+bool Render::render_generic(unsigned char *buf, const int rowstride, const int local_inf, pixpack_format fmt, Plot2& plot, unsigned rwidth, unsigned rheight, unsigned /*antialias*/factor, const BasePalette& pal)
 {
 	assert(buf);
 	assert((unsigned)rowstride >= RGB_BYTES_PER_PIXEL * rwidth);
@@ -97,4 +99,65 @@ bool Render::render_generic(unsigned char *buf, const int rowstride, const int l
 		}
 	}
 	return true;
+}
+
+// returns 0 for success, !0 for failure
+int Render::save_as_png(FILE *f, const unsigned width, const unsigned height,
+		Plot2& plot, const BasePalette& pal, const int antialias,
+		const char** error_string_o)
+{
+	*error_string_o = 0;
+	png_structp png = png_create_write_struct(PNG_LIBPNG_VER_STRING, 0, 0, 0);
+	png_infop png_info=0;
+	if (png)
+		png_info = png_create_info_struct(png);
+	if (!png_info) {
+		*error_string_o = "Could not create PNG structs (out of memory?)";
+		if (png)
+			png_destroy_write_struct(&png, 0);
+		return ENOMEM;
+	}
+
+#if 0
+	jmp_buf jbuf;
+	if (setjmp(jbuf)) {
+		fclose(f);
+		return;
+	}
+#endif
+
+	png_init_io(png, f);
+
+	png_set_compression_level(png, Z_BEST_SPEED);
+	png_set_IHDR(png, png_info,
+			width, height, 8 /* 24bpp */,
+			PNG_COLOR_TYPE_RGB, PNG_INTERLACE_NONE,
+			PNG_COMPRESSION_TYPE_DEFAULT, PNG_FILTER_TYPE_DEFAULT);
+
+	std::string comment = plot.info(true);
+	const char* SOFTWARE = "brot2",
+		      * INFO = comment.c_str();
+	png_text texts[2] = {
+			{PNG_TEXT_COMPRESSION_NONE, (char*)"Software", (char*)SOFTWARE, strlen(SOFTWARE)},
+			{PNG_TEXT_COMPRESSION_NONE, (char*)"Comment", (char*)INFO, strlen(INFO) },
+	};
+	png_set_text(png, png_info, texts, 2);
+
+	png_write_info(png, png_info);
+
+	const int rowstride = Render::RGB_BYTES_PER_PIXEL * width;
+
+	unsigned char * pngbuf = new unsigned char[rowstride * height];
+	Render::render_generic(pngbuf, rowstride, -1, Render::pixpack_format::PACKED_RGB_24, plot, width, height, antialias, pal);
+	unsigned char ** pngrows = new unsigned char*[height];
+	for (unsigned i=0; i<height; i++) {
+		pngrows[i] = pngbuf + rowstride*i;
+	}
+	png_write_image(png, pngrows);
+	delete[] pngrows;
+	delete[] pngbuf;
+	png_write_end(png,png_info);
+	png_destroy_write_struct(&png, &png_info);
+
+	return 0;
 }

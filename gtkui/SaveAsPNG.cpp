@@ -16,8 +16,6 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <png.h>
-
 #include "SaveAsPNG.h"
 #include "Render.h"
 #include "misc.h"
@@ -46,57 +44,12 @@ void SaveAsPNG::to_png(MainWindow *mw, std::string& filename)
 		return;
 	}
 
-	png_structp png = png_create_write_struct(PNG_LIBPNG_VER_STRING, 0, 0, 0);
-	png_infop png_info=0;
-	if (png)
-		png_info = png_create_info_struct(png);
-	if (!png_info) {
-		Util::alert(mw, "Could not create PNG structs (out of memory?)");
-		if (png)
-			png_destroy_write_struct(&png, 0);
+	const char *errs = 0;
+	if (0 != Render::save_as_png(f, mw->get_rwidth(), mw->get_rheight(),
+			mw->get_plot(), *mw->pal, mw->get_antialias(), &errs)) {
+		Util::alert(mw, errs);
 		return;
 	}
-	jmp_buf jbuf;
-	if (setjmp(jbuf)) {
-		fclose(f);
-		return;
-	}
-
-	const unsigned width = mw->get_rwidth(),
-			height = mw->get_rheight();
-
-	png_init_io(png, f);
-
-	png_set_compression_level(png, Z_BEST_SPEED);
-	png_set_IHDR(png, png_info,
-			width, height, 8 /* 24bpp */,
-			PNG_COLOR_TYPE_RGB, PNG_INTERLACE_NONE,
-			PNG_COMPRESSION_TYPE_DEFAULT, PNG_FILTER_TYPE_DEFAULT);
-
-	std::string comment = mw->get_plot().info(true);
-	const char* SOFTWARE = "brot2",
-		      * INFO = comment.c_str();
-	png_text texts[2] = {
-			{PNG_TEXT_COMPRESSION_NONE, (char*)"Software", (char*)SOFTWARE, strlen(SOFTWARE)},
-			{PNG_TEXT_COMPRESSION_NONE, (char*)"Comment", (char*)INFO, strlen(INFO) },
-	};
-	png_set_text(png, png_info, texts, 2);
-
-	png_write_info(png, png_info);
-
-	const int rowstride = Render::RGB_BYTES_PER_PIXEL * width;
-
-	guchar * pngbuf = new unsigned char[rowstride * height];
-	Render::render_generic(pngbuf, rowstride, -1, Render::pixpack_format::PACKED_RGB_24, mw->get_plot(), width, height, mw->get_antialias(), *mw->pal);
-	guchar ** pngrows = new unsigned char*[height];
-	for (unsigned i=0; i<height; i++) {
-		pngrows[i] = pngbuf + rowstride*i;
-	}
-	png_write_image(png, pngrows);
-	delete[] pngrows;
-	delete[] pngbuf;
-	png_write_end(png,png_info);
-	png_destroy_write_struct(&png, &png_info);
 
 	if (0==fclose(f)) {
 		mw->get_progbar()->set_text("Successfully saved");

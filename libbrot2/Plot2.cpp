@@ -115,7 +115,7 @@ Plot2::Plot2(FractalImpl* f, Point centre, Point size,
 {
 }
 
-string Plot2::info(bool verbose) {
+string Plot2::info(bool verbose) const {
 	std::ostringstream rv;
 	rv.precision(MAXIMAL_DECIMAL_PRECISION);
 	rv << fract->name

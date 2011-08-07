@@ -58,7 +58,7 @@ public:
 	const Fractal::Point origin() const { return centre - size/(Fractal::Value)2.0; }
 
 	// Returns a human-readable summary of this plot for the status bar.
-	virtual std::string info(bool verbose = false);
+	virtual std::string info(bool verbose = false) const;
 
 	/* The constructor may request the fractal to do any precomputation
 	 * necessary (known-blank regions, for example). */
