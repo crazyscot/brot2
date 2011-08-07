@@ -1,5 +1,5 @@
 /*
-    climain.h: definitions for climain.cpp
+    reporter.h: definitions for reporter.cpp
     Copyright (C) 2011 Ross Younger
 
     This program is free software: you can redistribute it and/or modify
@@ -15,10 +15,22 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#ifndef CLIMAIN_H_
-#define CLIMAIN_H_
+#ifndef REPORTER_H_
+#define REPORTER_H_
 
-extern const char* license_text;
-extern const char *copyright_string;
+#include "Plot2.h"
 
-#endif /* CLIMAIN_H_ */
+class Reporter : public Plot2::callback_t {
+	public:
+		// Constructor may take an explicit terminal width argument.
+		// Otherwise assumes something sensible.
+		Reporter(int columns=0);
+
+		virtual void plot_progress_minor(Plot2& plot, float workdone);
+		virtual void plot_progress_major(Plot2& plot, unsigned current_maxiter, std::string& commentary);
+		virtual void plot_progress_complete(Plot2& plot);
+	protected:
+		int ncolumns;
+};
+
+#endif /* REPORTER_H_ */

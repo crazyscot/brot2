@@ -1,6 +1,6 @@
 bin_PROGRAMS=brot2cli
 
-brot2cli_SOURCES=$(AUTOGEN_SOURCES) climain.cpp
+brot2cli_SOURCES=$(AUTOGEN_SOURCES) climain.cpp reporter.cpp
 
 brot2cli_LDADD= ../libbrot2/libbrot2.a @glibmm_LIBS@ -lm
 brot2cli_DEPENDENCIES= ../libbrot2/libbrot2.a
