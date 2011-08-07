@@ -22,7 +22,6 @@ const char *copyright_string = "(c) 2010-2011 Ross Younger";
 #include <iostream>
 
 #include <glibmm.h>
-#include <gtkmm.h>
 #include <X11/Xlib.h>
 
 #include "config.h"
@@ -46,10 +45,9 @@ int main (int argc, char**argv)
 	octx.set_ignore_unknown_options(false);
 	octx.set_main_group(options);
 
-	// XXX sane option parsing w/o gtkmain ?
-	std::auto_ptr<Gtk::Main> gmain;
 	try {
-		gmain.reset(new Gtk::Main(argc, argv, octx));
+		if (!octx.parse(argc,argv))
+			return EXIT_FAILURE;
 	} catch(Glib::Exception& e) {
 		std::cerr << e.what() << std::endl;
 		return EXIT_FAILURE;
