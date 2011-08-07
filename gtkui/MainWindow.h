@@ -37,15 +37,6 @@
 
 class HUD;
 
-class pixpack_format {
-	// A pixel format identifier that supersets Cairo's.
-	int f; // Pixel format - one of cairo_format_t or our internal constants
-public:
-	static const int PACKED_RGB_24 = CAIRO_FORMAT_RGB16_565 + 1000000;
-	pixpack_format(int c): f(c) {};
-	inline operator int() const { return f; }
-};
-
 class MainWindow : public Gtk::Window, Plot2::callback_t {
 	friend class Canvas;
 
@@ -117,19 +108,9 @@ public:
 	}
 	void toggle_hud();
 	void toggle_antialias();
-
-    bool render_generic(unsigned char *buf, const int rowstride, const int local_inf, pixpack_format fmt);
-
-    // Renders a single pixel, given the current idea of infinity and the palette to use.
-    static inline rgb render_pixel(const Fractal::PointData *data, const int local_inf, const BasePalette * pal) {
-		if (data->iter == local_inf || data->iter<0) {
-			return black;
-		} else {
-			return pal->get(*data);
-		}
+	int get_antialias() const {
+		return antialias ? antialias_factor : 1;
 	}
-
-    static const int RGB_BYTES_PER_PIXEL = 3;
 
     // Plot2::callback_t:
 	virtual void plot_progress_minor(Plot2& plot, float workdone);

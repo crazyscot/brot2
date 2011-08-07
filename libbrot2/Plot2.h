@@ -53,7 +53,7 @@ public:
 
 	/* What is this plot about? */
 	const Fractal::FractalImpl* fract;
-	const Fractal::Point centre, size;
+	const Fractal::Point centre, size; // Centre co-ordinates; axis length
 	const unsigned width, height; // plot size in pixels
 	const Fractal::Point origin() const { return centre - size/(Fractal::Value)2.0; }
 

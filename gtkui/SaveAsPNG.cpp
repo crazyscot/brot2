@@ -19,6 +19,7 @@
 #include <png.h>
 
 #include "SaveAsPNG.h"
+#include "Render.h"
 #include "misc.h"
 
 #include "MainWindow.h"
@@ -83,10 +84,10 @@ void SaveAsPNG::to_png(MainWindow *mw, std::string& filename)
 
 	png_write_info(png, png_info);
 
-	const int rowstride = MainWindow::RGB_BYTES_PER_PIXEL * width;
+	const int rowstride = Render::RGB_BYTES_PER_PIXEL * width;
 
 	guchar * pngbuf = new unsigned char[rowstride * height];
-	mw->render_generic(pngbuf, rowstride, -1, pixpack_format::PACKED_RGB_24);
+	Render::render_generic(pngbuf, rowstride, -1, Render::pixpack_format::PACKED_RGB_24, mw->get_plot(), width, height, mw->get_antialias(), *mw->pal);
 	guchar ** pngrows = new unsigned char*[height];
 	for (unsigned i=0; i<height; i++) {
 		pngrows[i] = pngbuf + rowstride*i;
