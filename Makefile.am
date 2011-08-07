@@ -1,2 +1,2 @@
-SUBDIRS=libbrot2 gtkui
+SUBDIRS=libbrot2 cli gtkui
 EXTRA_DIST=debian
