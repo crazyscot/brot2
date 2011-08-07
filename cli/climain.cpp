@@ -20,6 +20,8 @@ const char *copyright_string = "(c) 2010-2011 Ross Younger";
 
 #include <memory>
 #include <iostream>
+#include <stdio.h>
+#include <string.h>
 
 #include <glibmm.h>
 #include <X11/Xlib.h>
@@ -30,6 +32,7 @@ const char *copyright_string = "(c) 2010-2011 Ross Younger";
 #include "palette.h"
 #include "Fractal.h"
 #include "reporter.h"
+#include "Render.h"
 
 static bool do_version;
 
@@ -76,7 +79,8 @@ int main (int argc, char**argv)
 	std::string entered_palette = "Logarithmic rainbow"; // To become a parameter
 	Fractal::Point centre(-1.246406250,0.3215625);
 	Fractal::Point size(0.2812,0.2812);
-	unsigned plot_h=1000, plot_w=1000;
+	const unsigned plot_h=1000, plot_w=1000, output_h=1000, output_w=1000, antialias=1;
+	const char *filename = "brot2-out.png";
 
 
 	Fractal::FractalCommon::load_base();
@@ -102,17 +106,26 @@ int main (int argc, char**argv)
 	Reporter reporter;
 	plot.start(&reporter);
 	plot.wait();
-	// - colourise with palette
-	// - write to png.
 
-#if 0
-	// Do not delete the fractal before the plot has been stopped, otherwise
-	// a crash is inevitable if the user quits mid-plot.
-	if (render_ctx.plot) {
-		render_ctx.plot->stop();
-		render_ctx.plot->wait();
+	FILE *f = fopen(filename, "wb");
+	if (!f) {
+		std::cerr << "Could not open file for writing: " << errno << " (" << strerror(errno) << ")";
+		return 4;
 	}
-#endif
+
+	const char *err_str = "";
+	if (0 != Render::save_as_png(f,
+				output_w, output_h, plot, *selected_palette, antialias,
+				&err_str)) {
+		std::cerr << "Saving as PNG failed: " << err_str << std::endl;
+		return 3;
+	}
+
+	if (0!=fclose(f)) {
+		std::cerr << "Error closing the save: " << errno << " (" << strerror(errno) << ")";
+		return 2;
+	}
+
 	// XXX what about maxiter ???
 	// XXX ensure built correctly into the deb.
 	// XXX will need a manpage.
