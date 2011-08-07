@@ -24,7 +24,7 @@ fi
 AC_SUBST([global_CFLAGS], ["-O3"])
 AC_SUBST([global_CXXFLAGS], ["-O3 -std=c++0x"])
 
-PKG_CHECK_MODULES([glibmm],[glibmm-2.4])
+PKG_CHECK_MODULES([libbrot2],[glibmm-2.4 libpng12])
 PKG_CHECK_MODULES([brot2gui],[glibmm-2.4 gtkmm-2.4 gdkmm-2.4 pangocairo cairo pango libpng12])
 
 AC_CONFIG_FILES([Makefile libbrot2/Makefile cli/Makefile gtkui/Makefile])

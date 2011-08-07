@@ -8,7 +8,7 @@ libbrot2_a_SOURCES= libbrot2.h \
 					Render.h Render.cpp
 
 AM_CFLAGS=@global_CFLAGS@
-AM_CXXFLAGS=@global_CXXFLAGS@ @glibmm_CFLAGS@
+AM_CXXFLAGS=@global_CXXFLAGS@ @libbrot2_CFLAGS@
 
 AUTOGEN=logo_auto.c
 
