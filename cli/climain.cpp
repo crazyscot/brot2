@@ -20,6 +20,7 @@ const char *copyright_string = "(c) 2010-2011 Ross Younger";
 
 #include <memory>
 #include <iostream>
+#include <string>
 #include <stdio.h>
 #include <string.h>
 
@@ -35,6 +36,46 @@ const char *copyright_string = "(c) 2010-2011 Ross Younger";
 #include "Render.h"
 
 static bool do_version;
+static Glib::ustring c_re_x, c_im_y, length_x;
+
+static void setup_options(Glib::OptionGroup& options)
+{
+	Glib::OptionEntry version;
+	version.set_long_name("version");
+	version.set_short_name('v');
+	version.set_description("Outputs this program's version number");
+	options.add_entry(version, do_version);
+
+	Glib::OptionEntry Cre;
+	Cre.set_long_name("real-centre");
+	Cre.set_short_name('X');
+	Cre.set_description("Sets the Real (X) centre of the plot");
+	options.add_entry(Cre, c_re_x);
+
+	Glib::OptionEntry Cim;
+	Cim.set_long_name("imaginary-centre");
+	Cim.set_short_name('Y');
+	Cim.set_description("Sets the Imaginary (Y) centre of the plot");
+	options.add_entry(Cim, c_im_y);
+
+	Glib::OptionEntry Xlen;
+	Xlen.set_long_name("real-axis-length");
+	Xlen.set_short_name('l');
+	Xlen.set_description("Sets the length of the real (X) axis");
+	options.add_entry(Xlen, length_x);
+}
+
+// returns false on error
+static bool parse_fractal_value(Glib::ustring& in, Fractal::Value& out)
+{
+	std::istringstream tmp(in, std::istringstream::in);
+	tmp.precision(MAXIMAL_DECIMAL_PRECISION);
+	tmp >> out;
+	if (tmp.fail()) {
+		return false;
+	}
+	return true;
+}
 
 int main (int argc, char**argv)
 {
@@ -42,11 +83,7 @@ int main (int argc, char**argv)
 
 	Glib::OptionContext octx;
 	Glib::OptionGroup options("brot2", "brot2 options", "Options relating to brot2");
-	Glib::OptionEntry version;
-	version.set_long_name("version");
-	version.set_short_name('v');
-	version.set_description("Outputs this program's version number");
-	options.add_entry(version, do_version);
+	setup_options(options);
 
 	octx.set_help_enabled(true);
 	octx.set_ignore_unknown_options(false);
@@ -65,23 +102,60 @@ int main (int argc, char**argv)
 		return EXIT_SUCCESS;
 	}
 
-	// XXX SECOND: CLI args:
-	// Fractal params - Real centre, Im centre, Real axis length (poss options to do others later), iteration count (or auto)
-	// Fractal type (--list-fractals)
-	// Palette (--list-palettes)
-	// Plot size
-	// Progress callback fn (may be disabled)
-	// Output filename (PNG only ?)
-	// Antialias option (default on?)
-	// HUD option (default off?)
+	bool fail=false;
+	if (c_re_x.length()==0) {
+		std::cerr << "Error: Real (X) centre is mandatory" << std::endl;
+		fail=true;
+	}
+	if (c_im_y.length()==0) {
+		std::cerr << "Error: Imaginary (Y) centre is mandatory" << std::endl;
+		fail=true;
+	}
+	if (length_x.length()==0) {
+		std::cerr << "Error: Axis length is mandatory" << std::endl;
+		fail=true;
+	}
+	if (fail) return 4;
+
+	Fractal::Value CRe, CIm, XAxisLength;
+	if (!parse_fractal_value(c_re_x, CRe)) {
+		std::cerr << "cannot parse input real centre " << c_re_x << std::endl;
+		fail = true;
+	}
+	if (!parse_fractal_value(c_im_y, CIm)) {
+		std::cerr << "cannot parse input imaginary centre " << c_im_y << std::endl;
+		fail = true;
+	}
+	if (!parse_fractal_value(length_x, XAxisLength)) {
+		std::cerr << "cannot parse input axis length " << length_x << std::endl;
+		fail = true;
+	}
+	if (XAxisLength < MINIMUM_PIXEL_SIZE) {
+		std::cerr << "input axis length is smaller than the resolution limit" << std::endl;
+		fail = true;
+	}
+
+	if (fail) return 4;
+
+	// XXX We are here: CLI args:
+	// Fractal type (--list-fractals) (--fractal Mandelbrot) (ideally may abbreviate these, or specify by index no. in the list)
+	// Palette (--list-palettes) (--palette "Linear rainbow") (also abbrev or index)
+	// Render size (--height N --width N)
+	// Progress (may be disabled, --> silent Reporter) (--quiet) (--no-progress)
+	// Output filename (PNG only, at least for now) (--output foo.png) (MANDATORY)
+	// Antialias option (default on?) -- double the plot pixels, set factor=2 (--antialias)
 
 	std::string entered_fractal = "Mandelbrot"; // To become a parameter
 	std::string entered_palette = "Logarithmic rainbow"; // To become a parameter
-	Fractal::Point centre(-1.246406250,0.3215625);
-	Fractal::Point size(0.2812,0.2812);
+	Fractal::Point centre(CRe, CIm);
 	const unsigned plot_h=1000, plot_w=1000, output_h=1000, output_w=1000, antialias=1;
 	const char *filename = "brot2-out.png";
 
+	double aspect = (double)plot_w / plot_h;
+	Fractal::Value YAxisLength = XAxisLength / aspect;
+	Fractal::Point size(XAxisLength, YAxisLength);
+
+	// TODO allow pixel size / axes length to be specified in other ways
 
 	Fractal::FractalCommon::load_base();
 	Fractal::FractalImpl *selected_fractal = Fractal::FractalCommon::registry.get(entered_fractal);
@@ -126,7 +200,8 @@ int main (int argc, char**argv)
 		return 2;
 	}
 
-	// XXX what about maxiter ???
+	// TODO: max iteration control?
+	// allow HUD to be rendered? tricky.
 	// XXX ensure built correctly into the deb.
 	// XXX will need a manpage.
 	return 0;
