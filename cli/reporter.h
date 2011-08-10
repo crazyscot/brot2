@@ -24,13 +24,14 @@ class Reporter : public Plot2::callback_t {
 	public:
 		// Constructor may take an explicit terminal width argument.
 		// Otherwise assumes something sensible.
-		Reporter(int columns=0);
+		Reporter(int columns=0, bool silent=false);
 
 		virtual void plot_progress_minor(Plot2& plot, float workdone);
 		virtual void plot_progress_major(Plot2& plot, unsigned current_maxiter, std::string& commentary);
 		virtual void plot_progress_complete(Plot2& plot);
 	protected:
 		int ncolumns;
+		bool quiet;
 };
 
 #endif /* REPORTER_H_ */

@@ -29,15 +29,17 @@
 # define UNUSED(x) x
 #endif
 
-Reporter::Reporter(int columns)
+Reporter::Reporter(int columns, bool silent)
 {
 	ncolumns = columns;
 	if (!ncolumns)
 		ncolumns = 80;
+	quiet = silent;
 }
 
 void Reporter::plot_progress_minor(Plot2& UNUSED(plot), float workdone)
 {
+	if (quiet) return;
 	if (ncolumns > 10) {
 		int j, n=ncolumns * workdone;
 		for (j=0; j<n; j++)
@@ -52,11 +54,13 @@ void Reporter::plot_progress_major(Plot2& UNUSED(plot),
 		unsigned UNUSED(current_maxiter),
 		std::string& commentary)
 {
+	if (quiet) return;
 	std::cout << std::endl << commentary << std::endl;
 }
 
 void Reporter::plot_progress_complete(Plot2& UNUSED(plot))
 {
+	if (quiet) return;
 	std::cout << std::endl << "Complete!" << std::endl;
 }
 
