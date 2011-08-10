@@ -38,31 +38,20 @@ const char *copyright_string = "(c) 2010-2011 Ross Younger";
 static bool do_version;
 static Glib::ustring c_re_x, c_im_y, length_x;
 
+#define OPTION(_SHRT, _LNG, _DESC, _VAR) do {	\
+	Glib::OptionEntry _t;						\
+	_t.set_short_name(_SHRT);					\
+	_t.set_long_name(_LNG);						\
+	_t.set_description(_DESC);					\
+	options.add_entry(_t, _VAR);				\
+} while(0)
+
 static void setup_options(Glib::OptionGroup& options)
 {
-	Glib::OptionEntry version;
-	version.set_long_name("version");
-	version.set_short_name('v');
-	version.set_description("Outputs this program's version number");
-	options.add_entry(version, do_version);
-
-	Glib::OptionEntry Cre;
-	Cre.set_long_name("real-centre");
-	Cre.set_short_name('X');
-	Cre.set_description("Sets the Real (X) centre of the plot");
-	options.add_entry(Cre, c_re_x);
-
-	Glib::OptionEntry Cim;
-	Cim.set_long_name("imaginary-centre");
-	Cim.set_short_name('Y');
-	Cim.set_description("Sets the Imaginary (Y) centre of the plot");
-	options.add_entry(Cim, c_im_y);
-
-	Glib::OptionEntry Xlen;
-	Xlen.set_long_name("real-axis-length");
-	Xlen.set_short_name('l');
-	Xlen.set_description("Sets the length of the real (X) axis");
-	options.add_entry(Xlen, length_x);
+	OPTION('v', "version", "Outputs this program's version number", do_version);
+	OPTION('X', "real-centre", "Sets the Real (X) centre of the plot", c_re_x);
+	OPTION('Y', "imaginary-centre", "Sets the Imaginary (Y) centre of the plot", c_im_y);
+	OPTION('l', "real-axis-length", "Sets the length of the real (X) axis", length_x);
 }
 
 // returns false on error
