@@ -98,6 +98,7 @@ bool Render::render_generic(unsigned char *buf, const int rowstride, const int l
 			}
 		}
 	}
+	delete[] srcs;
 	return true;
 }
 
