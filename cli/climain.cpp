@@ -52,25 +52,25 @@ static int output_h=300, output_w=300;
 
 static void setup_options(Glib::OptionGroup& options)
 {
-	OPTION('v', "version", "Outputs this program's version number", do_version);
-	OPTION(0, "list-fractals", "Lists all known fractals", do_list_fractals);
-	OPTION(0, "list-palettes", "Lists all known palettes", do_list_palettes);
-
 	OPTION('X', "real-centre", "Sets the Real (X) centre of the plot", c_re_x);
 	OPTION('Y', "imaginary-centre", "Sets the Imaginary (Y) centre of the plot", c_im_y);
 	OPTION('l', "real-axis-length", "Sets the length of the real (X) axis", length_x);
 
 	OPTION('f', "fractal", "The fractal to use", entered_fractal);
+	OPTION(0, "list-fractals", "Lists all known fractals", do_list_fractals);
 	OPTION('p', "palette", "The palette to use", entered_palette);
+	OPTION(0, "list-palettes", "Lists all known palettes", do_list_palettes);
 
 	OPTION('h', "height", "Height of the output in pixels", output_h);
 	OPTION('w', "width", "Width of the output in pixels", output_w);
 
-	OPTION('q', "quiet", "Inhibits progress reporting", quiet);
-	OPTION('a', "antialias", "Linear antialiasing", do_antialias);
+	OPTION('o', "output", "The filename to write to (or '-' for stdout)", filename);
 
-	OPTION('o', "output", "Output filename", filename);
+	OPTION('q', "quiet", "Inhibits progress reporting", quiet);
+	OPTION('a', "antialias", "Enables linear antialiasing", do_antialias);
+
 	OPTION('i', "info", "Outputs the plot's info string on completion", do_info);
+	OPTION('v', "version", "Outputs this program's version number", do_version);
 }
 
 // returns false on error
