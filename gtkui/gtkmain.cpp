@@ -70,13 +70,6 @@ int main (int argc, char**argv)
 	gmain->run();
 	gdk_threads_leave();
 
-#if 0
-	// Do not delete the fractal before the plot has been stopped, otherwise
-	// a crash is inevitable if the user quits mid-plot.
-	if (render_ctx.plot) {
-		render_ctx.plot->stop();
-		render_ctx.plot->wait();
-	}
-#endif
+	delete mainwind;
 	return 0;
 }

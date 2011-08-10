@@ -76,6 +76,10 @@ MainWindow::MainWindow() : Gtk::Window(),
 
 MainWindow::~MainWindow() {
 	// vbox etc are managed so auto-delete
+	if (plot) {
+		plot->stop();
+		plot->wait();
+	}
 	delete plot;
 	delete plot_prev;
 	delete imgbuf;
