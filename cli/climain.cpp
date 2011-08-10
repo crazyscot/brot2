@@ -35,7 +35,7 @@ const char *copyright_string = "(c) 2010-2011 Ross Younger";
 #include "reporter.h"
 #include "Render.h"
 
-static bool do_version, do_list_fractals, do_list_palettes;
+static bool do_version, do_list_fractals, do_list_palettes, quiet;
 static Glib::ustring c_re_x, c_im_y, length_x;
 static Glib::ustring entered_fractal = "Mandelbrot";
 static Glib::ustring entered_palette = "Linear rainbow";
@@ -64,6 +64,8 @@ static void setup_options(Glib::OptionGroup& options)
 
 	OPTION('h', "height", "Height of the output in pixels", output_h);
 	OPTION('w', "width", "Width of the output in pixels", output_w);
+
+	OPTION('q', "quiet", "Inhibits progress reporting", quiet);
 }
 
 // returns false on error
@@ -180,7 +182,6 @@ int main (int argc, char**argv)
 	if (fail) return 4;
 
 	// XXX We are here: CLI args:
-	// Progress (may be disabled, --> silent Reporter) (--quiet) (--no-progress)
 	// Output filename (PNG only, at least for now) (--output foo.png) (MANDATORY)
 	// Antialias option (default on?) -- double the plot pixels, set factor=2 (--antialias)
 
@@ -212,7 +213,7 @@ int main (int argc, char**argv)
 
 
 	Plot2 plot(selected_fractal, centre, size, plot_w, plot_h);
-	Reporter reporter;
+	Reporter reporter(0, quiet);
 	plot.start(&reporter);
 	plot.wait();
 
