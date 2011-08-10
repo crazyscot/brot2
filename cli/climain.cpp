@@ -39,6 +39,7 @@ static bool do_version, do_list_fractals, do_list_palettes, quiet, do_antialias;
 static Glib::ustring c_re_x, c_im_y, length_x;
 static Glib::ustring entered_fractal = "Mandelbrot";
 static Glib::ustring entered_palette = "Linear rainbow";
+static Glib::ustring filename;
 static int output_h=300, output_w=300;
 
 #define OPTION(_SHRT, _LNG, _DESC, _VAR) do {	\
@@ -67,6 +68,8 @@ static void setup_options(Glib::OptionGroup& options)
 
 	OPTION('q', "quiet", "Inhibits progress reporting", quiet);
 	OPTION('a', "antialias", "Linear antialiasing", do_antialias);
+
+	OPTION('o', "output", "Output filename", filename);
 }
 
 // returns false on error
@@ -179,16 +182,15 @@ int main (int argc, char**argv)
 		std::cerr << "input axis length is smaller than the resolution limit" << std::endl;
 		fail = true;
 	}
-
+	if (filename.length()==0) {
+		std::cerr << "output filename is required (use '-' for stdout)" << std::endl;
+		fail = true;
+	}
 	if (fail) return 4;
-
-	// XXX We are here: CLI args:
-	// Output filename (PNG only, at least for now) (--output foo.png) (MANDATORY)
 
 	Fractal::Point centre(CRe, CIm);
 	const unsigned antialias= do_antialias ? 2 : 1;
 	unsigned plot_h=output_h*antialias, plot_w=output_w*antialias;
-	const char *filename = "brot2-out.png";
 
 	double aspect = (double)plot_w / plot_h;
 	Fractal::Value YAxisLength = XAxisLength / aspect;
@@ -211,17 +213,22 @@ int main (int argc, char**argv)
 		return 5;
 	}
 
+	FILE *closeme=0, *f;
+	if (filename.length()==1 && filename[0]=='-') {
+		f = stdout;
+	} else {
+		f = fopen(filename.c_str(), "wb");
+		closeme = f;
+	}
+	if (!f) {
+		std::cerr << "Could not open file for writing: " << errno << " (" << strerror(errno) << ")" << std::endl;
+		return 4;
+	}
 
 	Plot2 plot(selected_fractal, centre, size, plot_w, plot_h);
 	Reporter reporter(0, quiet);
 	plot.start(&reporter);
 	plot.wait();
-
-	FILE *f = fopen(filename, "wb");
-	if (!f) {
-		std::cerr << "Could not open file for writing: " << errno << " (" << strerror(errno) << ")";
-		return 4;
-	}
 
 	const char *err_str = "";
 	if (0 != Render::save_as_png(f,
@@ -231,7 +238,7 @@ int main (int argc, char**argv)
 		return 3;
 	}
 
-	if (0!=fclose(f)) {
+	if (closeme && 0!=fclose(closeme)) {
 		std::cerr << "Error closing the save: " << errno << " (" << strerror(errno) << ")";
 		return 2;
 	}
