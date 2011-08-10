@@ -249,7 +249,5 @@ int main (int argc, char**argv)
 
 	// TODO: max iteration control?
 	// allow HUD to be rendered? tricky.
-	// XXX ensure built correctly into the deb.
-	// XXX will need a manpage.
 	return 0;
 }
