@@ -35,8 +35,10 @@ const char *copyright_string = "(c) 2010-2011 Ross Younger";
 #include "reporter.h"
 #include "Render.h"
 
-static bool do_version;
+static bool do_version, do_list_fractals, do_list_palettes;
 static Glib::ustring c_re_x, c_im_y, length_x;
+static Glib::ustring entered_fractal = "Mandelbrot";
+static Glib::ustring entered_palette = "Linear rainbow";
 
 #define OPTION(_SHRT, _LNG, _DESC, _VAR) do {	\
 	Glib::OptionEntry _t;						\
@@ -49,9 +51,15 @@ static Glib::ustring c_re_x, c_im_y, length_x;
 static void setup_options(Glib::OptionGroup& options)
 {
 	OPTION('v', "version", "Outputs this program's version number", do_version);
+	OPTION(0, "list-fractals", "Lists all known fractals", do_list_fractals);
+	OPTION(0, "list-palettes", "Lists all known palettes", do_list_palettes);
+
 	OPTION('X', "real-centre", "Sets the Real (X) centre of the plot", c_re_x);
 	OPTION('Y', "imaginary-centre", "Sets the Imaginary (Y) centre of the plot", c_im_y);
 	OPTION('l', "real-axis-length", "Sets the length of the real (X) axis", length_x);
+
+	OPTION('f', "fractal", "The fractal to use", entered_fractal);
+	OPTION('p', "palette", "The palette to use", entered_palette);
 }
 
 // returns false on error
@@ -64,6 +72,33 @@ static bool parse_fractal_value(Glib::ustring& in, Fractal::Value& out)
 		return false;
 	}
 	return true;
+}
+
+static void list_fractals(void)
+{
+	std::set<std::string> names = Fractal::FractalCommon::registry.names();
+	std::set<std::string>::iterator it;
+
+	std::cout << "Fractals:" << std::endl;
+	for (it = names.begin(); it != names.end(); it++)
+		std::cout << '\t' << *it << std::endl;
+	std::cout << std::endl;
+}
+
+static void list_palettes(void)
+{
+	std::set<std::string>::iterator it;
+
+	std::cout << "Palettes:" << std::endl;
+	std::cout << "  (key: [D] Discrete, [S] Smooth)" << std::endl;
+
+	std::set<std::string> names = DiscretePalette::all.names();
+	for (it = names.begin(); it != names.end(); it++)
+		std::cout << "   [D]\t" << *it << std::endl;
+	names = SmoothPalette::all.names();
+	for (it = names.begin(); it != names.end(); it++)
+		std::cout << "   [S]\t" << *it << std::endl;
+	std::cout << std::endl;
 }
 
 int main (int argc, char**argv)
@@ -86,22 +121,36 @@ int main (int argc, char**argv)
 		return EXIT_FAILURE;
 	}
 
+	Fractal::FractalCommon::load_base();
+	DiscretePalette::register_base();
+	SmoothPalette::register_base();
+
+	bool did_something=false;
 	if (do_version) {
 		std::cout << PACKAGE_STRING << std::endl;
-		return EXIT_SUCCESS;
+		did_something=true;
 	}
+	if (do_list_fractals) {
+		list_fractals();
+		did_something=true;
+	}
+	if (do_list_palettes) {
+		list_palettes();
+		did_something=true;
+	}
+	if (did_something) return EXIT_SUCCESS;
 
 	bool fail=false;
 	if (c_re_x.length()==0) {
-		std::cerr << "Error: Real (X) centre is mandatory" << std::endl;
+		std::cerr << "Error: Real centre (-X) is mandatory" << std::endl;
 		fail=true;
 	}
 	if (c_im_y.length()==0) {
-		std::cerr << "Error: Imaginary (Y) centre is mandatory" << std::endl;
+		std::cerr << "Error: Imaginary centre (-Y) is mandatory" << std::endl;
 		fail=true;
 	}
 	if (length_x.length()==0) {
-		std::cerr << "Error: Axis length is mandatory" << std::endl;
+		std::cerr << "Error: Axis length (-l) is mandatory" << std::endl;
 		fail=true;
 	}
 	if (fail) return 4;
@@ -127,15 +176,11 @@ int main (int argc, char**argv)
 	if (fail) return 4;
 
 	// XXX We are here: CLI args:
-	// Fractal type (--list-fractals) (--fractal Mandelbrot) (ideally may abbreviate these, or specify by index no. in the list)
-	// Palette (--list-palettes) (--palette "Linear rainbow") (also abbrev or index)
 	// Render size (--height N --width N)
 	// Progress (may be disabled, --> silent Reporter) (--quiet) (--no-progress)
 	// Output filename (PNG only, at least for now) (--output foo.png) (MANDATORY)
 	// Antialias option (default on?) -- double the plot pixels, set factor=2 (--antialias)
 
-	std::string entered_fractal = "Mandelbrot"; // To become a parameter
-	std::string entered_palette = "Logarithmic rainbow"; // To become a parameter
 	Fractal::Point centre(CRe, CIm);
 	const unsigned plot_h=1000, plot_w=1000, output_h=1000, output_w=1000, antialias=1;
 	const char *filename = "brot2-out.png";
@@ -146,7 +191,6 @@ int main (int argc, char**argv)
 
 	// TODO allow pixel size / axes length to be specified in other ways
 
-	Fractal::FractalCommon::load_base();
 	Fractal::FractalImpl *selected_fractal = Fractal::FractalCommon::registry.get(entered_fractal);
 
 	if (!selected_fractal) {
@@ -154,8 +198,6 @@ int main (int argc, char**argv)
 		return 5;
 	}
 
-	DiscretePalette::register_base();
-	SmoothPalette::register_base();
 	BasePalette *selected_palette = DiscretePalette::all.get(entered_palette);
 	if (!selected_palette)
 		selected_palette = SmoothPalette::all.get(entered_palette);
