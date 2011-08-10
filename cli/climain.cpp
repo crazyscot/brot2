@@ -35,7 +35,7 @@ const char *copyright_string = "(c) 2010-2011 Ross Younger";
 #include "reporter.h"
 #include "Render.h"
 
-static bool do_version, do_list_fractals, do_list_palettes, quiet, do_antialias;
+static bool do_version, do_list_fractals, do_list_palettes, quiet, do_antialias, do_info;
 static Glib::ustring c_re_x, c_im_y, length_x;
 static Glib::ustring entered_fractal = "Mandelbrot";
 static Glib::ustring entered_palette = "Linear rainbow";
@@ -70,6 +70,7 @@ static void setup_options(Glib::OptionGroup& options)
 	OPTION('a', "antialias", "Linear antialiasing", do_antialias);
 
 	OPTION('o', "output", "Output filename", filename);
+	OPTION('i', "info", "Outputs the plot's info string on completion", do_info);
 }
 
 // returns false on error
@@ -242,6 +243,9 @@ int main (int argc, char**argv)
 		std::cerr << "Error closing the save: " << errno << " (" << strerror(errno) << ")";
 		return 2;
 	}
+
+	if (do_info)
+		std::cout << plot.info(true) << std::endl;
 
 	// TODO: max iteration control?
 	// allow HUD to be rendered? tricky.
