@@ -35,7 +35,7 @@ const char *copyright_string = "(c) 2010-2011 Ross Younger";
 #include "reporter.h"
 #include "Render.h"
 
-static bool do_version, do_list_fractals, do_list_palettes, quiet;
+static bool do_version, do_list_fractals, do_list_palettes, quiet, do_antialias;
 static Glib::ustring c_re_x, c_im_y, length_x;
 static Glib::ustring entered_fractal = "Mandelbrot";
 static Glib::ustring entered_palette = "Linear rainbow";
@@ -66,6 +66,7 @@ static void setup_options(Glib::OptionGroup& options)
 	OPTION('w', "width", "Width of the output in pixels", output_w);
 
 	OPTION('q', "quiet", "Inhibits progress reporting", quiet);
+	OPTION('a', "antialias", "Linear antialiasing", do_antialias);
 }
 
 // returns false on error
@@ -183,10 +184,9 @@ int main (int argc, char**argv)
 
 	// XXX We are here: CLI args:
 	// Output filename (PNG only, at least for now) (--output foo.png) (MANDATORY)
-	// Antialias option (default on?) -- double the plot pixels, set factor=2 (--antialias)
 
 	Fractal::Point centre(CRe, CIm);
-	const unsigned antialias=1;
+	const unsigned antialias= do_antialias ? 2 : 1;
 	unsigned plot_h=output_h*antialias, plot_w=output_w*antialias;
 	const char *filename = "brot2-out.png";
 
