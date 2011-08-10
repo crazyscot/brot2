@@ -3,8 +3,10 @@ brot2 (0.5~unreleased) unstable; urgency=low
   * Beta release series.
   * LP#789693: Create a Registry class, overhaul palettes and fractals to use
     it.
+  * LP#786605: Implemented command-line interface as a separate
+    executable, brot2cli.
 
- -- Ross Younger <0ryoungerk.launchpad@coriolis.greenend.org.uk>  Mon, 25 Jul 2011 21:45:59 +1200
+ -- Ross Younger <0ryoungerk.launchpad@coriolis.greenend.org.uk>  Wed, 10 Aug 2011 23:26:05 +1200
 
 brot2 (0.2) natty; urgency=low
 

@@ -1,0 +1,82 @@
+.\"                                      Hey, EMACS: -*- nroff -*-
+.\" First parameter, NAME, should be all caps
+.\" Second parameter, SECTION, should be 1-8, maybe w/ subsection
+.\" other parameters are allowed: see man(7), man(1)
+.TH BROT2 1 "Aug 10, 2011"
+.\" Please adjust this date whenever revising the manpage.
+.\"
+.\" Some roff macros, for reference:
+.\" .nh        disable hyphenation
+.\" .hy        enable hyphenation
+.\" .ad l      left justify
+.\" .ad b      justify to both left and right margins
+.\" .nf        disable filling
+.\" .fi        enable filling
+.\" .br        insert line break
+.\" .sp <n>    insert n+1 empty lines
+.\" for manpage-specific macros, see man(7)
+.SH NAME
+brot2cli \- programmable fractal plotter
+.\".SH SYNOPSIS
+.\".B brot2
+.\".RI [ options ] " files" ...
+.\".br
+.SH DESCRIPTION
+.\" TeX users may be more comfortable with the \fB<whatever>\fP and
+.\" \fI<whatever>\fP escape sequences to invode bold face and italics,
+.\" respectively.
+\fBbrot2cli\fP is a fractal plotter which uses the same fractal engine
+as \fBbrot2\fP.
+.SH SYNOPSIS
+.B "brot2cli -X <real> -Y <imag> -l <axis> -o <output file>"\fR [other options]
+.SH DESCRIPTION 
+This program renders the fractal described by its options as a PNG file.
+.SH MANDATORY ARGUMENTS
+.TP
+\fB\-X\fR <value>, \fB\-\-real-centre\fR <value>
+sets the real component of the plot centre. The value may be expressed as a decimal (0.001234), or in scientific notation (1.234e-3).
+.TP
+\fB\-Y\fR <value>, \fB\-\-imaginary-centre\fR <value>
+sets the imaginary component of the plot centre, expressed similarly
+.TP
+\fB\-l\fR <value>, \fB\-\-real-axis-length\fR <value>
+sets the length of the real (X) axis. \fI(The length of the Y axis is implicit, computed from the X length and the plot size in pixels.)\fP
+.TP
+\fB\-o\fR <filename>, \fB\-\-output\fR <filename>
+specifies the output file to write to, or '-' to use the standard output.
+.SH ADDITIONAL OPTIONS
+.TP
+\fB\-h\fR <height>, \fB\-\-height\fR <height>, \fB\-w\fR <height>, \fB\-\-width\fR <height>
+set the desired output size in pixels. \fI(The default is 300x300.)\fP
+.TP
+\fB\-f\fR <name>, \fB\-\-fractal\fR <name>
+names the fractal to use. The default is `\fIMandelbrot\fP'.
+\fI(N.B. If invoking brot2cli from a shell, you may need to quote the name.)\fP
+.TP
+\fB\-\-list\-fractals\fR
+outputs the list of all known fractals.
+.TP
+\fB\-p\fR <name>, \fB\-\-palette\fR <name>
+names the palette to use. The default is `\fILinear rainbow\fP'.
+\fI(N.B. If invoking brot2cli from a shell, you may need to quote the name.)\fP
+.TP
+\fB\-\-list\-palettes\fR
+outputs the list of all known palettes.
+.TP
+\fB\-q\fR, \fB\-\-quiet\fR
+Quiet mode. Does not report on its progress.
+.TP
+\fB\-a\fR, \fB\-\-antialias\fR
+Antialias mode. Enables simple linear antialiasing of the render.
+\fI(Be aware that this takes \fBfour times\fI the time and memory to compute a plot.)\fP
+.TP
+\fB\-i\fR, \fB\-\-info\fR
+Outputs an info string to the standard output when the plot has been completed. (If you use this at the same time as \fB-o -\fI, the results are not well defined.)\fP
+.TP
+\fB\-v\fR, \fB\-\-version\fR
+Reports the program's version number.
+.SH SEE ALSO
+.BR http://en.wikipedia.org/wiki/Mandelbrot_set
+.br
+.SH AUTHOR
+brot2cli, and this man page, were written by Ross Younger.
