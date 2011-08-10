@@ -50,16 +50,18 @@ specifies the output file to write to, or '-' to use the standard output.
 set the desired output size in pixels. \fI(The default is 300x300.)\fP
 .TP
 \fB\-f\fR <name>, \fB\-\-fractal\fR <name>
-names the fractal to use.
-\fB\-\-list\-fractalsf\fR
-outputs the list of all known fractals.
+names the fractal to use. The default is `\fIMandelbrot\fP'.
 \fI(N.B. If invoking brot2cli from a shell, you may need to quote the name.)\fP
 .TP
+\fB\-\-list\-fractals\fR
+outputs the list of all known fractals.
+.TP
 \fB\-p\fR <name>, \fB\-\-palette\fR <name>
-names the palette to use.
+names the palette to use. The default is `\fILinear rainbow\fP'.
+\fI(N.B. If invoking brot2cli from a shell, you may need to quote the name.)\fP
+.TP
 \fB\-\-list\-palettes\fR
 outputs the list of all known palettes.
-\fI(N.B. If invoking brot2cli from a shell, you may need to quote the name.)\fP
 .TP
 \fB\-q\fR, \fB\-\-quiet\fR
 Quiet mode. Does not report on its progress.
@@ -70,6 +72,9 @@ Antialias mode. Enables simple linear antialiasing of the render.
 .TP
 \fB\-i\fR, \fB\-\-info\fR
 Outputs an info string to the standard output when the plot has been completed. (If you use this at the same time as \fB-o -\fI, the results are not well defined.)\fP
+.TP
+\fB\-v\fR, \fB\-\-version\fR
+Reports the program's version number.
 .SH SEE ALSO
 .BR http://en.wikipedia.org/wiki/Mandelbrot_set
 .br
