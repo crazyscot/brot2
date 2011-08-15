@@ -5,6 +5,7 @@ libbrot2_a_SOURCES= libbrot2.h \
 					Fractal.cpp Fractal.h palette.cpp palette.h \
 					Plot2.cpp Plot2.h \
 					Mandelbar.cpp Mandelbrots.cpp \
+					Mandeldrop.cpp \
 					Render.h Render.cpp
 
 AM_CFLAGS=@global_CFLAGS@

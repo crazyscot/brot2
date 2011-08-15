@@ -36,5 +36,6 @@ void Fractal::FractalCommon::load_base() {
 	base_loaded = true;
 	load_Mandelbrot();
 	load_Mandelbar();
+	load_Mandeldrop();
 }
 

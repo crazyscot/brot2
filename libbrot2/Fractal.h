@@ -31,6 +31,7 @@ namespace Fractal {
 // They are called in Fractal.cpp.
 void load_Mandelbrot();
 void load_Mandelbar();
+void load_Mandeldrop();
 
 // Maths types etc
 
