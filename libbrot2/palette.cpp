@@ -44,9 +44,15 @@ std::ostream& operator<<(std::ostream &stream, rgbf o) {
 
 // HSV->RGB conversion algorithm coded up from the formula on Wikipedia.
 hsvf::operator rgb() {
-	if (isnan(h)) return rgb(v,v,v); // "undefined" case
+	if (isnan(h)) {
+		return rgbf(v,v,v); // "undefined" case
+	}
+	if (!isnormal(h)) {
+		abort(); // should never happen
+		return rgb(0,0,0); // eek, not a real number
+	}
 	float chroma = v * s;
-	if (h>=1.0) h -= floor(h);
+	if ((h<0.0) || (h>=1.0)) h -= floor(h);
 	// h': which part of the hexcone does h fall into?
 	float hp = h*6.0;
 	float hm = hp;
