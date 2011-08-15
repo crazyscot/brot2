@@ -27,6 +27,8 @@ const Value Consts::log3 = log(3.0);
 const Value Consts::log4 = log(4.0);
 const Value Consts::log5 = log(5.0);
 
+const float Fractal::PointData::ITERF_LOW_CLAMP = 0.0001;
+
 SimpleRegistry<FractalImpl> Fractal::FractalCommon::registry;
 bool Fractal::FractalCommon::base_loaded;
 

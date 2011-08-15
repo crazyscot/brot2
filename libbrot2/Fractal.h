@@ -56,6 +56,7 @@ public:
 	Point point; // Current value of the point. Not valid if iter<0.
 	bool nomore; // When true, this pixel plays no further part - may also mean "infinite".
 	float iterf; // smooth iterations count (only valid the pixel has nomore)
+	static const float ITERF_LOW_CLAMP; // lowest possible iterf (they will be clamped to this value if lower)
 	float arg; // argument of final point (only computed after pixel has nomore)
 
 	PointData() : iter(0), origin(Point(0,0)), point(Point(0,0)), nomore(false), iterf(0), arg(0) {};
