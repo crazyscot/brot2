@@ -40,7 +40,7 @@ static Glib::ustring c_re_x, c_im_y, length_x;
 static Glib::ustring entered_fractal = "Mandelbrot";
 static Glib::ustring entered_palette = "Linear rainbow";
 static Glib::ustring filename;
-static int output_h=300, output_w=300;
+static int output_h=300, output_w=300, max_passes=0;
 
 #define OPTION(_SHRT, _LNG, _DESC, _VAR) do {	\
 	Glib::OptionEntry _t;						\
@@ -65,6 +65,8 @@ static void setup_options(Glib::OptionGroup& options)
 	OPTION('w', "width", "Width of the output in pixels", output_w);
 
 	OPTION('o', "output", "The filename to write to (or '-' for stdout)", filename);
+
+	OPTION('m', "max-passes", "Limits the number of passes of the plot", max_passes);
 
 	OPTION('q', "quiet", "Inhibits progress reporting", quiet);
 	OPTION('a', "antialias", "Enables linear antialiasing", do_antialias);
@@ -226,7 +228,7 @@ int main (int argc, char**argv)
 		return 4;
 	}
 
-	Plot2 plot(selected_fractal, centre, size, plot_w, plot_h);
+	Plot2 plot(selected_fractal, centre, size, plot_w, plot_h, max_passes);
 	Reporter reporter(0, quiet);
 	plot.start(&reporter);
 	plot.wait();
