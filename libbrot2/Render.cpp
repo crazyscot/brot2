@@ -162,3 +162,12 @@ int Render::save_as_png(FILE *f, const unsigned width, const unsigned height,
 
 	return 0;
 }
+
+/* Returns data for a single fractal point, identified by its pixel co-ordinates within a plot. */
+const Fractal::PointData& Render::single_pixel_data(Plot2& plot,
+		int x, int y, unsigned antialias_factor)
+{
+	// de-antialias, argh
+	int xx=x*antialias_factor, yy=y*antialias_factor;
+	return plot.get_pixel_point(xx,yy);
+}

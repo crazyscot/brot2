@@ -411,6 +411,14 @@ Point Plot2::pixel_to_set(int x, int y) const
 	return origin() + delta;
 }
 
+/* Returns data for a single point, identified by its pixel co-ordinates within the plot. Does NOT understand antialiasing. */
+const Fractal::PointData& Plot2::get_pixel_point(int x, int y)
+{
+	Glib::Mutex::Lock _auto(plot_lock);
+	return _data[y * width + x];
+}
+
+
 Plot2::~Plot2() {
 	stop();
 	wait();
