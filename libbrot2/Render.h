@@ -68,6 +68,9 @@ struct Render {
  */
 	static bool render_generic(unsigned char *buf, const int rowstride, const int local_inf, pixpack_format fmt, Plot2& plot, unsigned rwidth, unsigned rheight, unsigned /*antialias*/factor, const BasePalette& pal);
 
+	/* Returns data for a single fractal point, identified by its pixel co-ordinates within a plot. */
+	static const Fractal::PointData& single_pixel_data(Plot2& plot, int x, int y, unsigned antialias_factor);
+
 	// Renders a single pixel, given the current idea of infinity and the palette to use.
 	static inline rgb render_pixel(const Fractal::PointData *data, const int local_inf, const BasePalette * pal) {
 		if (data->iter == local_inf || data->iter<0) {

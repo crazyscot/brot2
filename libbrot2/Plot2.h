@@ -80,6 +80,11 @@ public:
 	/* Read-only access to the plot data. */
 	const Fractal::PointData * get_data() { if (!this) return 0; return _data; }
 
+	/* Returns data for a single point, identified by its pixel co-ordinates within the plot.
+	 * (NB. This function does not know about antialiasing! Use the
+	 * Render equivalent.) */
+	const Fractal::PointData& get_pixel_point(int x, int y);
+
 	/* Converts an (x,y) pair on the render (say, from a mouse click) to their complex co-ordinates.
 	 * Returns 1 for success, 0 if the point was outside of the render.
 	 * N.B. that we assume that pixel co-ordinates have a bottom-left origin! */

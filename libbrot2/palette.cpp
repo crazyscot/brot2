@@ -44,9 +44,15 @@ std::ostream& operator<<(std::ostream &stream, rgbf o) {
 
 // HSV->RGB conversion algorithm coded up from the formula on Wikipedia.
 hsvf::operator rgb() {
-	if (isnan(h)) return rgb(v,v,v); // "undefined" case
+	if (isnan(h)) {
+		return rgbf(v,v,v); // "undefined" case
+	}
+	if (!isnormal(h)) {
+		abort(); // should never happen
+		return rgb(0,0,0); // eek, not a real number
+	}
 	float chroma = v * s;
-	if (h>=1.0) h -= floor(h);
+	if ((h<0.0) || (h>=1.0)) h -= floor(h);
 	// h': which part of the hexcone does h fall into?
 	float hp = h*6.0;
 	float hm = hp;
@@ -200,7 +206,10 @@ public:
 	LogSmoothed() : SmoothPalette() {};
 	hsvf get_hsvf(const PointData &pt) const {
 		hsvf rv;
-		double t = log(pt.iterf);
+		float f = pt.iterf;
+		if (f < Fractal::PointData::ITERF_LOW_CLAMP)
+			f = Fractal::PointData::ITERF_LOW_CLAMP;
+		double t = log(f);
 		rv.h = t/2.0 + 0.5;
 		// Arbitrary scaling, chosen by accident but turns out to
 		// provide slightly less eye-bleeding colours on the initial plot.
@@ -227,8 +236,11 @@ class FastLogSmoothed : public SmoothPalette {
 public:
 	FastLogSmoothed() : SmoothPalette() {};
 	hsvf get_hsvf(const PointData &pt) const {
+		float f = pt.iterf;
+		if (f < Fractal::PointData::ITERF_LOW_CLAMP)
+			f = Fractal::PointData::ITERF_LOW_CLAMP;
 		hsvf rv;
-		rv.h = log(pt.iterf) + 0.5;
+		rv.h = log(f) + 0.5;
 		rv.s = 1.0;
 		rv.v = 1.0;
 		return rv;
@@ -242,8 +254,12 @@ class SinLogSmoothed : public SmoothPalette {
 public:
 	SinLogSmoothed() : SmoothPalette() {};
 	hsvf get_hsvf(const PointData &pt) const {
+		float f = pt.iterf;
+		if (f < Fractal::PointData::ITERF_LOW_CLAMP)
+			f = Fractal::PointData::ITERF_LOW_CLAMP;
+		double t = log(f);
 		hsvf rv;
-		rv.h = sin(log(pt.iterf))/2.0 + 0.5;
+		rv.h = sin(t)/2.0 + 0.5;
 		rv.s = 1.0;
 		rv.v = 1.0;
 		return rv;
@@ -257,8 +273,12 @@ class SlowSineLog : public SmoothPalette {
 public:
 	SlowSineLog() : SmoothPalette() {};
 	rgb get(const PointData &pt) const {
+		float f = pt.iterf;
+		if (f < Fractal::PointData::ITERF_LOW_CLAMP)
+			f = Fractal::PointData::ITERF_LOW_CLAMP;
+		double t = log(f);
 		hsvf rv;
-		rv.h = 0.5 + sin(log(pt.iterf)/3*M_PI)/2.0;
+		rv.h = 0.5 + sin(t/3.0*M_PI)/2.0;
 		rv.s = 1.0;
 		rv.v = 1.0;
 		return rv;
@@ -269,8 +289,12 @@ class FastSineLog : public SmoothPalette {
 public:
 	FastSineLog() : SmoothPalette() {};
 	rgb get(const PointData &pt) const {
+		float f = pt.iterf;
+		if (f < Fractal::PointData::ITERF_LOW_CLAMP)
+			f = Fractal::PointData::ITERF_LOW_CLAMP;
+		double t = log(f);
 		hsvf rv;
-		rv.h = 0.5+sin(log(pt.iterf)*M_PI)/2.0;
+		rv.h = 0.5+sin(t*M_PI)/2.0;
 		rv.s = 1.0;
 		rv.v = 1.0;
 		return rv;
@@ -281,8 +305,12 @@ class CosLogSmoothed : public SmoothPalette {
 public:
 	CosLogSmoothed() : SmoothPalette() {};
 	hsvf get_hsvf(const PointData &pt) const {
+		float f = pt.iterf;
+		if (f < Fractal::PointData::ITERF_LOW_CLAMP)
+			f = Fractal::PointData::ITERF_LOW_CLAMP;
+		double t = log(f);
 		hsvf rv;
-		rv.h = cos(log(pt.iterf))/2.0 + 0.5;
+		rv.h = cos(t)/2.0 + 0.5;
 		rv.s = 1.0;
 		rv.v = 1.0;
 		return rv;
@@ -296,8 +324,12 @@ class SlowCosLog : public SmoothPalette {
 public:
 	SlowCosLog() : SmoothPalette() {};
 	rgb get(const PointData &pt) const {
+		float f = pt.iterf;
+		if (f < Fractal::PointData::ITERF_LOW_CLAMP)
+			f = Fractal::PointData::ITERF_LOW_CLAMP;
+		double t = log(f);
 		hsvf rv;
-		rv.h = 0.5 + cos(log(pt.iterf)/3*M_PI)/2.0;
+		rv.h = 0.5 + cos(t/3.0*M_PI)/2.0;
 		rv.s = 1.0;
 		rv.v = 1.0;
 		return rv;
@@ -308,8 +340,12 @@ class FastCosLog : public SmoothPalette {
 public:
 	FastCosLog() : SmoothPalette() {};
 	rgb get(const PointData &pt) const {
+		float f = pt.iterf;
+		if (f < Fractal::PointData::ITERF_LOW_CLAMP)
+			f = Fractal::PointData::ITERF_LOW_CLAMP;
+		double t = log(f);
 		hsvf rv;
-		rv.h = 0.5+cos(log(pt.iterf)*M_PI)/2.0;
+		rv.h = 0.5+cos(t*M_PI)/2.0;
 		rv.s = 1.0;
 		rv.v = 1.0;
 		return rv;

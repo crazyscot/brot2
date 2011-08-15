@@ -337,6 +337,8 @@ void Plot2::_per_plot_threadfunc()
 		for (i=0; i<height*width; i++) {
 			if (_data[i].iter >= last_pass_maxiter)
 				_data[i].iter = _data[i].iterf = -1;
+			else if (_data[i].iterf < Fractal::PointData::ITERF_LOW_CLAMP)
+				_data[i].iterf = Fractal::PointData::ITERF_LOW_CLAMP;
 		}
 	}
 
@@ -410,6 +412,16 @@ Point Plot2::pixel_to_set(int x, int y) const
 	Point delta (x*pixwide, y*pixhigh);
 	return origin() + delta;
 }
+
+/* Returns data for a single point, identified by its pixel co-ordinates within the plot. Does NOT understand antialiasing. */
+const Fractal::PointData& Plot2::get_pixel_point(int x, int y)
+{
+	Glib::Mutex::Lock _auto(plot_lock);
+	assert((unsigned)y < height);
+	assert((unsigned)x < width);
+	return _data[y * width + x];
+}
+
 
 Plot2::~Plot2() {
 	stop();
