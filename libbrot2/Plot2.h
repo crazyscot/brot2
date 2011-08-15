@@ -62,7 +62,7 @@ public:
 
 	/* The constructor may request the fractal to do any precomputation
 	 * necessary (known-blank regions, for example). */
-	Plot2(Fractal::FractalImpl* f, Fractal::Point centre, Fractal::Point size, unsigned width, unsigned height);
+	Plot2(Fractal::FractalImpl* f, Fractal::Point centre, Fractal::Point size, unsigned width, unsigned height, unsigned max_passes=0);
 	virtual ~Plot2();
 
 	/* Starts a plot. A thread is spawned to do the actual work.
@@ -117,6 +117,7 @@ protected:
 
 	int plotted_maxiter; // How far did we get before bailing?
 	int plotted_passes; // How many passes before bailing?
+	unsigned passes_max; // Do we have an absolute limit on the number of passes?
 
 private:
 	Glib::Mutex plot_lock;

@@ -5,8 +5,9 @@ brot2 (0.5~unreleased) unstable; urgency=low
     it.
   * LP#786605: Implemented command-line interface as a separate
     executable, brot2cli.
+  * Fix some edge cases in smooth palettes.
 
- -- Ross Younger <0ryoungerk.launchpad@coriolis.greenend.org.uk>  Wed, 10 Aug 2011 23:26:05 +1200
+ -- Ross Younger <0ryoungerk.launchpad@coriolis.greenend.org.uk>  Mon, 15 Aug 2011 21:25:47 +1200
 
 brot2 (0.2) natty; urgency=low
 
