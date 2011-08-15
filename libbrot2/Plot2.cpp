@@ -106,13 +106,15 @@ static SingletonThreadPool worker_thread_pool(true);
 using namespace std;
 
 Plot2::Plot2(FractalImpl* f, Point centre, Point size,
-		unsigned width, unsigned height) :
+		unsigned width, unsigned height, unsigned max_passes) :
 		fract(f), centre(centre), size(size),
 		width(width), height(height),
-		plotted_maxiter(0), plotted_passes(0),
+		plotted_maxiter(0), plotted_passes(0), passes_max(max_passes),
 		callback(0), _data(0), _abort(false), _done(false), _outstanding(0),
 		_completed(0), jobs(0)
 {
+	if (passes_max==0)
+		passes_max = (unsigned)-1;
 }
 
 string Plot2::info(bool verbose) const {
@@ -242,7 +244,7 @@ void Plot2::_per_plot_threadfunc()
 			// TODO Explain to the user why we're not doing any more.
 		}
 	}
-	while (live && !_abort) {
+	while (live && !_abort && (passcount < passes_max) ) {
 		++passcount;
 		assert(_outstanding==0);
 		_completed=0;
