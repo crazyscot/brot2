@@ -6,8 +6,9 @@ brot2 (0.5~unreleased) unstable; urgency=low
   * LP#786605: Implemented command-line interface as a separate
     executable, brot2cli.
   * Fix some edge cases in smooth palettes.
+  * LP#783077: Implement Mandeldrop fractal and its derivatives.
 
- -- Ross Younger <0ryoungerk.launchpad@coriolis.greenend.org.uk>  Mon, 15 Aug 2011 21:25:47 +1200
+ -- Ross Younger <0ryoungerk.launchpad@coriolis.greenend.org.uk>  Tue, 11 Oct 2011 21:33:43 +1300
 
 brot2 (0.2) natty; urgency=low
 
