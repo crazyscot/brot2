@@ -79,7 +79,6 @@ static void setup_options(Glib::OptionGroup& options)
 static bool parse_fractal_value(Glib::ustring& in, Fractal::Value& out)
 {
 	std::istringstream tmp(in, std::istringstream::in);
-	tmp.precision(MAXIMAL_DECIMAL_PRECISION);
 	tmp >> out;
 	if (tmp.fail()) {
 		return false;

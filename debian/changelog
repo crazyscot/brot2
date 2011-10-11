@@ -7,8 +7,10 @@ brot2 (0.5~unreleased) unstable; urgency=low
     executable, brot2cli.
   * Fix some edge cases in smooth palettes.
   * LP#783077: Implement Mandeldrop fractal and its derivatives.
+  * LP#783087: Compute better precision limits for params dialog and HUD.
+  Don't bother with a precision limit on input.
 
- -- Ross Younger <0ryoungerk.launchpad@coriolis.greenend.org.uk>  Tue, 11 Oct 2011 21:33:43 +1300
+ -- Ross Younger <0ryoungerk.launchpad@coriolis.greenend.org.uk>  Tue, 11 Oct 2011 23:12:14 +1300
 
 brot2 (0.2) natty; urgency=low
 

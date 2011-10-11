@@ -39,8 +39,8 @@ typedef long double Value; // short for "fractal value"
 typedef std::complex<Value> Point; // "complex fractal point"
 #define MINIMUM_PIXEL_SIZE ((Fractal::Value)0.000000000000000444089209850062616169452667236328125)
 // This is 2^-51 : specific to long double; adjust for any future change.
-#define MAXIMAL_DECIMAL_PRECISION 15
-// How many decimal digits do you need to show this and ideally not hit artefacts?
+
+#define AXIS_LENGTH_PRECISION 4 // For decimal output.
 
 class Consts {
 public:

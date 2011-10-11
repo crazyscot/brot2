@@ -63,10 +63,10 @@ ParamsDialog::ParamsDialog(MainWindow *_mw) : Gtk::Dialog("Parameters", _mw, tru
 	box->pack_start(*tbl);
 }
 
-static void update_entry_float(Gtk::Entry& entry, const Fractal::Value val)
+static void update_entry_float(Gtk::Entry& entry, const Fractal::Value val, const int precision)
 {
 	std::ostringstream tmp;
-	tmp.precision(MAXIMAL_DECIMAL_PRECISION);
+	tmp.precision(precision);
 	tmp << val;
 	entry.set_text(tmp.str().c_str());
 }
@@ -75,7 +75,7 @@ static bool read_entry_float(const Gtk::Entry& entry, Fractal::Value& val_out)
 {
 	Glib::ustring raw = entry.get_text();
 	std::istringstream tmp(raw, std::istringstream::in);
-	tmp.precision(MAXIMAL_DECIMAL_PRECISION);
+	// (LP#783087: Don't apply a precision limit to reading digits.)
 	Fractal::Value rv=0;
 
 	tmp >> rv;
@@ -88,9 +88,18 @@ static bool read_entry_float(const Gtk::Entry& entry, Fractal::Value& val_out)
 
 int ParamsDialog::run() {
 	const Fractal::Point& ctr = mw->get_centre();
-	update_entry_float(*f_c_re, real(ctr));
-	update_entry_float(*f_c_im, imag(ctr));
-	update_entry_float(*f_size_re, real(mw->get_size()));
+	/* LP#783087:
+	 * Compute the size of a pixel in fractal units, then work out the
+	 * decimal precision required to express that, plus 1 for a safety
+	 * margin. */
+	const Fractal::Value xpixsize = real(mw->get_size()) / mw->get_rwidth();
+	const Fractal::Value ypixsize = imag(mw->get_size()) / mw->get_rheight();
+	const int clampx = 1+ceill(0-log10(xpixsize)),
+			  clampy = 1+ceill(0-log10(ypixsize));
+
+	update_entry_float(*f_c_re, real(ctr), clampx);
+	update_entry_float(*f_c_im, imag(ctr), clampy);
+	update_entry_float(*f_size_re, real(mw->get_size()), AXIS_LENGTH_PRECISION);
 	show_all();
 
 	bool error;

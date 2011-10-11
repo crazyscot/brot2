@@ -119,9 +119,20 @@ Plot2::Plot2(FractalImpl* f, Point centre, Point size,
 
 string Plot2::info(bool verbose) const {
 	std::ostringstream rv;
-	rv.precision(MAXIMAL_DECIMAL_PRECISION);
-	rv << fract->name
-	   << "@(" << real(centre) << ", " << imag(centre) << ")";
+	/* LP#783087:
+	 * Compute the size of a pixel in fractal units, then work out the
+	 * decimal precision required to express that, plus 1 for a safety
+	 * margin. */
+	const Fractal::Value xpixsize = fabsl(real(size) / width),
+						 ypixsize = fabsl(imag(size) / height);
+	const int clampx = 1+ceill(0-log10(xpixsize)),
+		      clampy = 1+ceill(0-log10(ypixsize));
+
+	rv << fract->name << "@(";
+	rv.precision(clampx);
+	rv << real(centre) << ", ";
+	rv.precision(clampy);
+	rv << imag(centre) << ")";
 	rv << ( verbose ? ", maxiter=" : " max=");
 	rv << plotted_maxiter;
 
