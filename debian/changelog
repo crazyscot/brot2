@@ -1,4 +1,4 @@
-brot2 (0.5) unstable; urgency=low
+brot2 (0.5) natty; urgency=low
 
   * Beta release series.
   * LP#789693: Create a Registry class, overhaul palettes and fractals to use
@@ -10,7 +10,7 @@ brot2 (0.5) unstable; urgency=low
   * LP#783087: Compute better precision limits for params dialog and HUD.
   Don't bother with a precision limit on input.
 
- -- Ross Younger <0ryoungerk.launchpad@coriolis.greenend.org.uk>  Wed, 12 Oct 2011 21:50:26 +1300
+ -- Ross Younger <0ryoungerk.launchpad@coriolis.greenend.org.uk>  Wed, 12 Oct 2011 22:02:47 +1300
 
 brot2 (0.2) natty; urgency=low
 
