@@ -6,7 +6,12 @@ libbrot2_a_SOURCES= libbrot2.h \
 					Plot2.cpp Plot2.h \
 					Mandelbar.cpp Mandelbrots.cpp \
 					Mandeldrop.cpp \
-					Render.h Render.cpp
+					Render.h Render.cpp \
+					Prefs.h Prefs.cpp
+
+noinst_PROGRAMS=prefstest
+prefstest_SOURCES= prefstest.cpp
+prefstest_LDADD=libbrot2.a @libbrot2_LIBS@
 
 AM_CFLAGS=@global_CFLAGS@
 AM_CXXFLAGS=@global_CXXFLAGS@ @libbrot2_CFLAGS@
