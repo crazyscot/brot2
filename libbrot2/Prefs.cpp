@@ -34,11 +34,18 @@ class KeyfilePrefs;
 #define KEY_VERSION "version"
 #define CURRENT_VERSION 1
 
-#define GROUP_FOO "foo_group"
-#define KEY_FOO "foo"
+#define GROUP_MOUSE "mouse_actions"
 
-int Prefs::default_foo() {
-	return 42;
+void MouseActions::set_to_default() {
+	a[0] = Action::NO_ACTION;
+	a[1] = Action::ZOOM_IN;
+	a[2] = Action::ZOOM_OUT;
+	a[3] = Action::RECENTRE;
+	a[4] = Action::NO_ACTION;
+	a[5] = Action::NO_ACTION;
+	a[6] = Action::NO_ACTION;
+	a[7] = Action::NO_ACTION;
+	a[8] = Action::DRAG_TO_ZOOM;
 }
 
 class KeyfilePrefs : public Prefs {
@@ -74,7 +81,6 @@ class KeyfilePrefs : public Prefs {
 					case Glib::FileError::Code::NO_SUCH_ENTITY:
 						break; // ignore, use defaults only
 					default:
-						std::cerr << "read gave " << e.code() << std::endl;//XXX
 						throw Exception("reading prefs from " + fn + ": " + e.what());
 				}
 			} catch (Glib::KeyFileError e) {
@@ -97,8 +103,16 @@ class KeyfilePrefs : public Prefs {
 						throw Exception("Could not unlink " + fn + ": " + strerror(errno));
 				}
 			}
-			f.open(fn);
 			kf.set_comment("written by brot2");
+
+			std::ostringstream acts;
+			acts << Action::name(Action::MIN);
+			for (int i=Action::MIN+1; i<=Action::MAX; i++)
+				acts << ", " << Action::name(i);
+
+			kf.set_comment(GROUP_MOUSE, "Supported actions are: " + acts.str());
+
+			f.open(fn);
 			f << kf.to_data();
 			f.close();
 
@@ -110,17 +124,33 @@ class KeyfilePrefs : public Prefs {
 			}
 		}
 
-		virtual int foo() {
-			try {
-				return kf.get_integer(GROUP_FOO, KEY_FOO);
-			} catch (Glib::KeyFileError e) {
-				int def = Prefs::default_foo();
-				foo(def);
-				return def;
+		/* MOUSE ACTIONS:
+		 * Store as a group of a suitable name.
+		 * Keys are named act_N with values from the Action enum. */
+		virtual void mouseActions(const MouseActions& mouse) {
+			int i;
+			for (i=mouse.MIN; i<mouse.MAX; i++) {
+				char buf[32];
+				snprintf(buf, sizeof buf, "action_%d", i);
+				kf.set_string(GROUP_MOUSE, buf, mouse[i].name());
 			}
 		}
-		virtual void foo(int newfoo) {
-			kf.set_integer(GROUP_FOO, KEY_FOO, newfoo);
+		virtual MouseActions mouseActions() {
+			MouseActions rv; // Constructor sets to defaults
+			int i;
+			for (i=rv.MIN; i<rv.MAX; i++) {
+				char buf[32];
+				snprintf(buf, sizeof buf, "action_%d", i);
+				try {
+					Glib::ustring val = kf.get_string(GROUP_MOUSE, buf);
+					rv[i] = val;
+				} catch (Glib::KeyFileError e) {
+					// ignore - use default for that action
+				} catch (Exception e) {
+					std::cerr << "Warning: " << e << " in " GROUP_MOUSE <<":" << buf << ": defaulting" << std::endl;
+				}
+			}
+			return rv;
 		}
 };
 

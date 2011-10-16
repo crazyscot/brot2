@@ -23,6 +23,82 @@
 #include <assert.h>
 #include <Exception.h>
 
+// Second-order macro to easily define our constants and have their strings to hand.
+#define ALL_ACTIONS(ACTION) \
+	ACTION(NO_ACTION, 0) \
+	ACTION(RECENTRE, 1) \
+	ACTION(ZOOM_IN, 2) \
+	ACTION(ZOOM_OUT, 3) \
+	ACTION(DRAG_TO_ZOOM, 4)
+
+#define FIRST_ACTION NO_ACTION
+#define LAST_ACTION DRAG_TO_ZOOM
+
+struct Action {
+#define CONSTDEF(_name,_num) static const int _name = _num;
+	ALL_ACTIONS(CONSTDEF);
+
+	static const int MIN = FIRST_ACTION;
+	static const int MAX = LAST_ACTION;
+
+	static std::string name(int n) {
+		switch(n) {
+#define NAMEIT(_name,_num) case _num: return #_name;
+			ALL_ACTIONS(NAMEIT)
+		}
+		return "???";
+	}
+
+	static int lookup(const std::string& n) {
+		// Linear search - a bit horrible, but OK for small lists.
+#define LOOKUP(_name,_num) if (n.compare(#_name)==0) return _num;
+		ALL_ACTIONS(LOOKUP)
+		return -1;
+	}
+
+	inline std::string name() const {
+		assert((value >= MIN) && (value <= MAX));
+		return name(value);
+	}
+
+	inline void operator=(int newval) throw(Exception) {
+		if ((newval < MIN) || (newval > MAX) )
+			throw Exception("Illegal enum value");
+		value = newval;
+	}
+	inline operator int() const { return value; }
+	inline operator std::string() const { return name(); }
+
+	inline void operator=(std::string newname) throw(Exception) {
+		int newval = lookup(newname);
+		if (newval==-1) throw Exception("Unrecognised enum string");
+		value = newval;
+	}
+
+	private:
+		int value;
+};
+
+struct MouseActions {
+	/* What action, if any, does a mouse button event cause? */
+
+	static const int MIN = 1;
+	static const int MAX = 9;
+	// At least button 8 is used by the Kensington Expert Mouse
+
+	Action a[MAX];
+	inline Action& operator[] (unsigned i) { return a[i]; }
+	inline Action const& operator[] (unsigned i) const { return a[i]; }
+
+	void set_to_default();
+	static inline MouseActions get_default() {
+		MouseActions rv;
+		rv.set_to_default();
+		return rv;
+	}
+	MouseActions() { set_to_default(); }
+};
+
 class Prefs {
 	/* This class represents the entire set of preferences that we're
 	 * interested in. Implicitly it is connected to a backing store
@@ -58,9 +134,8 @@ class Prefs {
 		// Data accessors. Note that the getters may change internal state
 		// if the relevant backing store did not contain the relevant
 		// information, causing a default to be loaded.
-		virtual int foo() = 0;
-		virtual void foo(int newfoo) = 0;
-		static int default_foo();
+		virtual MouseActions mouseActions() = 0;
+		virtual void mouseActions(const MouseActions& mouse) = 0;
 };
 
 
