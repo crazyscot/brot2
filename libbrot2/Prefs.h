@@ -79,25 +79,25 @@ struct Action {
 		int value;
 };
 
-struct MouseActions {
-	/* What action, if any, does a mouse button event cause? */
+template<int _MIN,int _MAX> struct ActionsList {
+	static const int MIN = _MIN;
+	static const int MAX = _MAX;
 
-	static const int MIN = 1;
-	static const int MAX = 9;
-	// At least button 8 is used by the Kensington Expert Mouse
-
-	Action a[MAX];
-	inline Action& operator[] (unsigned i) { return a[i]; }
-	inline Action const& operator[] (unsigned i) const { return a[i]; }
+	Action a[MAX+1];
+	inline Action& operator[] (unsigned i) { assert(i>=_MIN); assert(i<=_MAX); return a[i]; }
+	inline Action const& operator[] (unsigned i) const { assert(i>=_MIN); assert(i<=_MAX); return a[i]; }
 
 	void set_to_default();
-	static inline MouseActions get_default() {
-		MouseActions rv;
+	static inline ActionsList<_MIN,_MAX> get_default() {
+		ActionsList<_MIN,_MAX> rv;
 		rv.set_to_default();
 		return rv;
 	}
-	MouseActions() { set_to_default(); }
+	ActionsList<_MIN,_MAX>() { set_to_default(); }
 };
+
+// Mouse actions: At least button 8 is used by the Kensington Expert Mouse
+typedef ActionsList<1,9> MouseActions;
 
 class Prefs {
 	/* This class represents the entire set of preferences that we're

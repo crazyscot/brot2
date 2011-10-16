@@ -28,7 +28,7 @@ int main(void)
 		MouseActions ma = p.mouseActions();
 		p.mouseActions(ma);
 		p.commit();
-		for (i=0; i<ma.MAX; i++)
+		for (i=1; i<ma.MAX; i++)
 			cout << "action "<<i<<" is " << (std::string) ma[i] << endl;
 	} catch (Exception e) {
 		cerr << "Error! " << e << endl;

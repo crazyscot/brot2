@@ -36,6 +36,7 @@ class KeyfilePrefs;
 
 #define GROUP_MOUSE "mouse_actions"
 
+template<>
 void MouseActions::set_to_default() {
 	a[0] = Action::NO_ACTION;
 	a[1] = Action::ZOOM_IN;
