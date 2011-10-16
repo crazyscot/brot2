@@ -93,8 +93,14 @@ class KeyfilePrefs : public Prefs {
 						throw Exception("reading prefs from " + fn + ": " + e.what());
 				}
 			} catch (Glib::KeyFileError e) {
-				// Catch empty files.
-				throw Exception("KeyFileError reading prefs from " + fn + ": " + e.what());
+				switch (e.code()) {
+					case Glib::KeyFileError::Code::PARSE:
+						// may mean an empty file
+						std::cerr << "Warning: KeyFileError reading prefs from " + fn + ": " + e.what()+": will overwrite when saving" << std::endl;
+						break;
+					default:
+						throw Exception("KeyFileError reading prefs from " + fn + ": " + e.what());
+				}
 			}
 		}
 
