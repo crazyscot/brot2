@@ -30,6 +30,7 @@ Canvas::Canvas(MainWindow *parent) : main(parent), surface(0) {
 			| Gdk::LEAVE_NOTIFY_MASK
 			| Gdk::BUTTON_PRESS_MASK
 			| Gdk::BUTTON_RELEASE_MASK
+			| Gdk::SCROLL_MASK
 			| Gdk::POINTER_MOTION_MASK
 			| Gdk::POINTER_MOTION_HINT_MASK);
 }
@@ -80,6 +81,20 @@ bool Canvas::on_button_release_event(GdkEventButton *evt) {
 		main->centre = clickpos;
 		main->do_zoom(MainWindow::Zoom::REDRAW_ONLY);
 		return true;
+	}
+	return false;
+}
+
+bool Canvas::on_scroll_event(GdkEventScroll *evt) {
+	if (!surface) return false;
+
+	switch (evt->direction) {
+		case GDK_SCROLL_UP:
+		case GDK_SCROLL_DOWN:
+		case GDK_SCROLL_LEFT:
+		case GDK_SCROLL_RIGHT:
+			// XYZY WRITEME
+			break;
 	}
 	return false;
 }

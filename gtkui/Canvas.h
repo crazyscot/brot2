@@ -44,6 +44,7 @@ public:
     virtual bool on_motion_notify_event(GdkEventMotion * evt);
     virtual bool on_expose_event(GdkEventExpose * evt);
     virtual bool on_configure_event(GdkEventConfigure * evt);
+    virtual bool on_scroll_event(GdkEventScroll * evt);
 };
 
 #endif /* CANVAS_H_ */
