@@ -35,10 +35,10 @@ class KeyfilePrefs;
 #define CURRENT_VERSION 1
 
 #define GROUP_MOUSE "mouse_actions"
+#define GROUP_SCROLL "scroll_actions"
 
 template<>
 void MouseActions::set_to_default() {
-	a[0] = Action::NO_ACTION;
 	a[1] = Action::ZOOM_IN;
 	a[2] = Action::ZOOM_OUT;
 	a[3] = Action::RECENTRE;
@@ -47,6 +47,14 @@ void MouseActions::set_to_default() {
 	a[6] = Action::NO_ACTION;
 	a[7] = Action::NO_ACTION;
 	a[8] = Action::DRAG_TO_ZOOM;
+}
+
+template<>
+void ScrollActions::set_to_default() {
+	a[1] = Action::NO_ACTION;
+	a[2] = Action::NO_ACTION;
+	a[3] = Action::NO_ACTION;
+	a[4] = Action::NO_ACTION;
 }
 
 class KeyfilePrefs : public Prefs {
@@ -111,7 +119,14 @@ class KeyfilePrefs : public Prefs {
 			for (int i=Action::MIN+1; i<=Action::MAX; i++)
 				acts << ", " << Action::name(i);
 
-			kf.set_comment(GROUP_MOUSE, "Supported actions are: " + acts.str());
+			if (!kf.has_group(GROUP_MOUSE))
+				mouseActions(MouseActions());
+			kf.set_comment(GROUP_MOUSE, "Mouse button actions. Supported actions are: " + acts.str());
+			if (!kf.has_group(GROUP_SCROLL))
+				scrollActions(ScrollActions());
+			kf.set_comment(GROUP_SCROLL, "Scroll wheel actions. Supported actions are: " + acts.str());
+
+			// !!! Adding new options or groups? Ensure they are set to reasonable defaults here.
 
 			f.open(fn);
 			f << kf.to_data();
@@ -129,8 +144,7 @@ class KeyfilePrefs : public Prefs {
 		 * Store as a group of a suitable name.
 		 * Keys are named act_N with values from the Action enum. */
 		virtual void mouseActions(const MouseActions& mouse) {
-			int i;
-			for (i=mouse.MIN; i<mouse.MAX; i++) {
+			for (int i=mouse.MIN; i<mouse.MAX; i++) {
 				char buf[32];
 				snprintf(buf, sizeof buf, "action_%d", i);
 				kf.set_string(GROUP_MOUSE, buf, mouse[i].name());
@@ -138,8 +152,7 @@ class KeyfilePrefs : public Prefs {
 		}
 		virtual MouseActions mouseActions() {
 			MouseActions rv; // Constructor sets to defaults
-			int i;
-			for (i=rv.MIN; i<rv.MAX; i++) {
+			for (int i=rv.MIN; i<rv.MAX; i++) {
 				char buf[32];
 				snprintf(buf, sizeof buf, "action_%d", i);
 				try {
@@ -153,6 +166,35 @@ class KeyfilePrefs : public Prefs {
 			}
 			return rv;
 		}
+
+		// FIXME: Figure out a way to template my way out of this clone and hack:
+		/* SCROLL ACTIONS:
+		 * Store as a group of a suitable name.
+		 * Keys are named act_N with values from the Action enum. */
+		virtual void scrollActions(const ScrollActions& scroll) {
+			for (int i=scroll.MIN; i<scroll.MAX; i++) {
+				char buf[32];
+				snprintf(buf, sizeof buf, "action_%d", i);
+				kf.set_string(GROUP_SCROLL, buf, scroll[i].name());
+			}
+		}
+		virtual ScrollActions scrollActions() {
+			ScrollActions rv; // Constructor sets to defaults
+			for (int i=rv.MIN; i<rv.MAX; i++) {
+				char buf[32];
+				snprintf(buf, sizeof buf, "action_%d", i);
+				try {
+					Glib::ustring val = kf.get_string(GROUP_SCROLL, buf);
+					rv[i] = val;
+				} catch (Glib::KeyFileError e) {
+					// ignore - use default for that action
+				} catch (Exception e) {
+					std::cerr << "Warning: " << e << " in " GROUP_SCROLL <<":" << buf << ": defaulting" << std::endl;
+				}
+			}
+			return rv;
+		}
+
 };
 
 namespace {

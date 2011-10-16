@@ -26,7 +26,9 @@ int main(void)
 	try {
 		Prefs& p = Prefs::getDefaultInstance();
 		MouseActions ma = p.mouseActions();
-		p.mouseActions(ma);
+		//p.mouseActions(ma);
+		//ScrollActions sa = p.scrollActions();
+		//p.scrollActions(sa);
 		p.commit();
 		for (i=1; i<ma.MAX; i++)
 			cout << "action "<<i<<" is " << (std::string) ma[i] << endl;
