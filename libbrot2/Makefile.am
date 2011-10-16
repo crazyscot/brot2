@@ -1,6 +1,7 @@
 noinst_LIBRARIES=libbrot2.a
 
-libbrot2_a_SOURCES= libbrot2.h \
+libbrot2_a_SOURCES= \
+					Exception.h \
 					logo.h logo_auto.c Registry.h \
 					Fractal.cpp Fractal.h palette.cpp palette.h \
 					Plot2.cpp Plot2.h \

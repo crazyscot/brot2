@@ -20,6 +20,8 @@
 #define PREFS_H_
 
 #include <string>
+#include <assert.h>
+#include <Exception.h>
 
 class Prefs {
 	/* This class represents the entire set of preferences that we're
@@ -44,14 +46,14 @@ class Prefs {
 
 	public:
 		// Most of the time we expect accesses to Prefs will be via this method.
-		// If something went wrong (e.g. backing store I/O error), throws a
-		// String explaining what; it's up to the caller to inform the user.
-		static Prefs& getDefaultInstance() throw(std::string);
+		// If something went wrong (e.g. backing store I/O error), throws an
+		// Exception explaining what; it's up to the caller to inform the user.
+		static Prefs& getDefaultInstance() throw(Exception);
 
 		// Commits all outstanding writes to backing store. May be a no-op.
-		// If something went wrong, throws a String explaining what; it's
+		// If something went wrong, throws an Exception explaining what; it's
 		// up to the caller to inform the user suitably.
-		virtual void commit() throw(std::string) = 0;
+		virtual void commit() throw(Exception) = 0;
 
 		// Data accessors. Note that the getters may change internal state
 		// if the relevant backing store did not contain the relevant

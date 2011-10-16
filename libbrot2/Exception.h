@@ -1,4 +1,5 @@
-/*  prefstest.cpp: Test program for prefs lib
+/*
+    Exception.h: Exception holding class
     Copyright (C) 2011 Ross Younger
 
     This program is free software: you can redistribute it and/or modify
@@ -15,28 +16,22 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "Prefs.h"
-#include <iostream>
-#include <glibmm/keyfile.h>
-using namespace std;
+#ifndef EXCEPTION_H_
+#define EXCEPTION_H_
 
-int main(void)
-{
-	int i;
-	try {
-		Prefs& p = Prefs::getDefaultInstance();
-		MouseActions ma = p.mouseActions();
-		p.mouseActions(ma);
-		p.commit();
-		for (i=0; i<ma.MAX; i++)
-			cout << "action "<<i<<" is " << (std::string) ma[i] << endl;
-	} catch (Exception e) {
-		cerr << "Error! " << e << endl;
-		return 1;
-	} catch (Glib::KeyFileError e) {
-		cerr << "KeyFileError! " << e.what() << endl;
-		return 1;
-	}
-	return 0;
+#include <string>
+#include <iostream>
+
+struct Exception {
+	const std::string msg;
+
+	Exception(const std::string m) : msg(m) { }
+	virtual operator const std::string&() const { return msg; }
+};
+
+inline std::ostream& operator<< (std::ostream& out, Exception val) {
+	out << val.msg;
+	return out;
 }
 
+#endif /* EXCEPTION_H_ */
