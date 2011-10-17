@@ -51,11 +51,13 @@ class MainWindow : public Gtk::Window, Plot2::callback_t {
 
 	Plot2 * plot;
 	Plot2 * plot_prev;
-	public:
+
+public:
 	BasePalette * pal;
 	// Yes, the following are mostly the same as in the Plot - but the plot may be torn down and recreated frequently.
 	Fractal::FractalImpl *fractal;
-	private:
+
+private:
 	Fractal::Point centre, size;
 	unsigned rwidth, rheight; // Rendering dimensions; plot dims will be larger if antialiased
 	bool draw_hud, antialias;

@@ -84,8 +84,8 @@ template<int _MIN,int _MAX> struct ActionsList {
 	static const int MAX = _MAX;
 
 	Action a[MAX+1];
-	inline Action& operator[] (unsigned i) { assert(i>=_MIN); assert(i<=_MAX); return a[i]; }
-	inline Action const& operator[] (unsigned i) const { assert(i>=_MIN); assert(i<=_MAX); return a[i]; }
+	inline Action& operator[] (int i) { assert(i>=_MIN); assert(i<=_MAX); return a[i]; }
+	inline Action const& operator[] (int i) const { assert(i>=_MIN); assert(i<=_MAX); return a[i]; }
 
 	void set_to_default(); // Must be defined by each template user!
 	static inline ActionsList<_MIN,_MAX> get_default() {
@@ -97,10 +97,10 @@ template<int _MIN,int _MAX> struct ActionsList {
 };
 
 // Mouse actions: At least button 8 is used by the Kensington Expert Mouse
-typedef ActionsList<1,9> MouseActions;
+typedef ActionsList<1,8> MouseActions;
 
 // Scroll actions:  GDK_SCROLL_{UP,DOWN,LEFT,RIGHT}
-typedef ActionsList<1,4> ScrollActions;
+typedef ActionsList<0,3> ScrollActions;
 
 class Prefs {
 	/* This class represents the entire set of preferences that we're
