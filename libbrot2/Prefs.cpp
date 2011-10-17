@@ -60,6 +60,8 @@ void ScrollActions::set_to_default() {
 class KeyfilePrefs : public Prefs {
 	private:
 		Glib::KeyFile kf;
+		MouseActions mouse_cache;
+		ScrollActions scroll_cache;
 
 	protected:
 		~KeyfilePrefs() {
@@ -102,6 +104,10 @@ class KeyfilePrefs : public Prefs {
 						throw Exception("KeyFileError reading prefs from " + fn + ": " + e.what());
 				}
 			}
+
+			// Pre-populate our caches.
+			reread_mouse_actions();
+			reread_scroll_actions();
 		}
 
 		virtual void commit() throw(Exception) {
@@ -126,7 +132,7 @@ class KeyfilePrefs : public Prefs {
 				acts << ", " << Action::name(i);
 
 			if (!kf.has_group(GROUP_MOUSE))
-				mouseActions(MouseActions());
+				mouseActions(mouse_cache);
 			kf.set_comment(GROUP_MOUSE, "Mouse button actions. Supported actions are: " + acts.str());
 
 			acts.str("");
@@ -164,13 +170,18 @@ class KeyfilePrefs : public Prefs {
 		 * Store as a group of a suitable name.
 		 * Keys are named act_N with values from the Action enum. */
 		virtual void mouseActions(const MouseActions& mouse) {
+			mouse_cache=mouse;
 			for (int i=mouse.MIN; i<=mouse.MAX; i++) {
 				char buf[32];
 				snprintf(buf, sizeof buf, "action_%d", i);
 				kf.set_string(GROUP_MOUSE, buf, mouse[i].name());
 			}
 		}
-		virtual MouseActions mouseActions() {
+		virtual const MouseActions& mouseActions() {
+			return mouse_cache;
+		}
+
+		void reread_mouse_actions() {
 			MouseActions rv; // Constructor sets to defaults
 			for (int i=rv.MIN; i<=rv.MAX; i++) {
 				char buf[32];
@@ -184,7 +195,7 @@ class KeyfilePrefs : public Prefs {
 					std::cerr << "Warning: " << e << " in " GROUP_MOUSE <<":" << buf << ": defaulting" << std::endl;
 				}
 			}
-			return rv;
+			mouse_cache = rv;
 		}
 
 		// FIXME: Figure out a way to template my way out of this clone and hack:
@@ -192,13 +203,17 @@ class KeyfilePrefs : public Prefs {
 		 * Store as a group of a suitable name.
 		 * Keys are named act_N with values from the Action enum. */
 		virtual void scrollActions(const ScrollActions& scroll) {
+			scroll_cache = scroll;
 			for (int i=scroll.MIN; i<=scroll.MAX; i++) {
 				char buf[32];
 				snprintf(buf, sizeof buf, "action_%d", i);
 				kf.set_string(GROUP_SCROLL, buf, scroll[i].name());
 			}
 		}
-		virtual ScrollActions scrollActions() {
+		virtual const ScrollActions& scrollActions() {
+			return scroll_cache;
+		}
+		void reread_scroll_actions() {
 			ScrollActions rv; // Constructor sets to defaults
 			for (int i=rv.MIN; i<=rv.MAX; i++) {
 				char buf[32];
@@ -212,7 +227,7 @@ class KeyfilePrefs : public Prefs {
 					std::cerr << "Warning: " << e << " in " GROUP_SCROLL <<":" << buf << ": defaulting" << std::endl;
 				}
 			}
-			return rv;
+			scroll_cache=rv;
 		}
 
 };

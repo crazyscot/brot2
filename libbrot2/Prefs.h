@@ -137,10 +137,10 @@ class Prefs {
 		// Data accessors. Note that the getters may change internal state
 		// if the relevant backing store did not contain the relevant
 		// information, causing a default to be loaded.
-		virtual MouseActions mouseActions() = 0;
+		virtual const MouseActions& mouseActions() = 0;
 		virtual void mouseActions(const MouseActions& mouse) = 0;
 
-		virtual ScrollActions scrollActions() = 0;
+		virtual const ScrollActions& scrollActions() = 0;
 		virtual void scrollActions(const ScrollActions& scroll) = 0;
 };
 
