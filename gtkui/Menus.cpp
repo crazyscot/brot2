@@ -34,6 +34,7 @@
 #include "logo.h" // in libbrot2
 #include "MainWindow.h"
 #include "ParamsDialog.h"
+#include "PrefsDialog.h"
 #include "SaveAsPNG.h"
 
 namespace menus {
@@ -169,8 +170,12 @@ public:
 class OptionsMenu : public Gtk::Menu {
 public:
 	Gtk::CheckMenuItem drawHUD, antiAlias;
+	Gtk::ImageMenuItem Prefs;
 
-	OptionsMenu(MainWindow& parent) : drawHUD("Draw _HUD", true), antiAlias("_Antialias", true) {
+	OptionsMenu(MainWindow& parent) : drawHUD("Draw _HUD", true),
+					antiAlias("_Antialias", true),
+					Prefs(Gtk::Stock::PREFERENCES)
+	{
 		Glib::RefPtr<Gtk::AccelGroup> ag = Gtk::AccelGroup::create();
 		set_accel_group(ag);
 		parent.add_accel_group(ag);
@@ -179,9 +184,14 @@ public:
 		drawHUD.set_active(true);
 		drawHUD.signal_toggled().connect(sigc::mem_fun(this, &OptionsMenu::toggle_drawHUD));
 		drawHUD.add_accelerator("activate", ag, GDK_H, Gdk::ModifierType::CONTROL_MASK, Gtk::ACCEL_VISIBLE);
+
 		append(antiAlias);
 		antiAlias.signal_toggled().connect(sigc::mem_fun(this, &OptionsMenu::toggle_antialias));
 		antiAlias.add_accelerator("activate", ag, GDK_A, Gdk::ModifierType::CONTROL_MASK, Gtk::ACCEL_VISIBLE);
+
+		append(Prefs);
+		Prefs.add_accelerator("activate", ag, GDK_P, Gdk::ModifierType::CONTROL_MASK | Gdk::ModifierType::SHIFT_MASK, Gtk::ACCEL_VISIBLE);
+		Prefs.signal_activate().connect(sigc::mem_fun(this, &OptionsMenu::do_prefs));
 	}
 	void toggle_drawHUD() {
 		MainWindow *mw = find_main(this);
@@ -190,6 +200,14 @@ public:
 	void toggle_antialias() {
 		MainWindow *mw = find_main(this);
 		mw->toggle_antialias();
+	}
+	void do_prefs() {
+		MainWindow *mw = find_main(this);
+		PrefsDialog prefs(mw);
+		int rv = prefs.run();
+		if (rv == Gtk::ResponseType::RESPONSE_ACCEPT) {
+			// Do nothing special.
+		}
 	}
 };
 
