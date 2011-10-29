@@ -177,7 +177,7 @@ class KeyfilePrefs : public Prefs {
 				kf.set_string(GROUP_MOUSE, buf, mouse[i].name());
 			}
 		}
-		virtual const MouseActions& mouseActions() {
+		virtual const MouseActions& mouseActions() const {
 			return mouse_cache;
 		}
 
@@ -210,7 +210,7 @@ class KeyfilePrefs : public Prefs {
 				kf.set_string(GROUP_SCROLL, buf, scroll[i].name());
 			}
 		}
-		virtual const ScrollActions& scrollActions() {
+		virtual const ScrollActions& scrollActions() const {
 			return scroll_cache;
 		}
 		void reread_scroll_actions() {

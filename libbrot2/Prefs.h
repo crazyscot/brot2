@@ -38,6 +38,13 @@ struct Action {
 #define CONSTDEF(_name,_num) static const int _name = _num;
 	ALL_ACTIONS(CONSTDEF);
 
+	Action() { }
+
+	Action(int val) {
+		assert((val >= MIN) && (val <= MAX));
+		value = val;
+	}
+
 	static const int MIN = FIRST_ACTION;
 	static const int MAX = LAST_ACTION;
 
@@ -137,10 +144,10 @@ class Prefs {
 		// Data accessors. Note that the getters may change internal state
 		// if the relevant backing store did not contain the relevant
 		// information, causing a default to be loaded.
-		virtual const MouseActions& mouseActions() = 0;
+		virtual const MouseActions& mouseActions() const = 0;
 		virtual void mouseActions(const MouseActions& mouse) = 0;
 
-		virtual const ScrollActions& scrollActions() = 0;
+		virtual const ScrollActions& scrollActions() const = 0;
 		virtual void scrollActions(const ScrollActions& scroll) = 0;
 };
 
