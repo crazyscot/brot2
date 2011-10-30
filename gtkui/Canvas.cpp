@@ -20,6 +20,7 @@
 #include "MainWindow.h"
 #include "HUD.h"
 #include "misc.h"
+#include "Prefs.h"
 
 #include <gdkmm/event.h>
 #include <cairomm/cairomm.h>
@@ -30,6 +31,7 @@ Canvas::Canvas(MainWindow *parent) : main(parent), surface(0) {
 			| Gdk::LEAVE_NOTIFY_MASK
 			| Gdk::BUTTON_PRESS_MASK
 			| Gdk::BUTTON_RELEASE_MASK
+			| Gdk::SCROLL_MASK
 			| Gdk::POINTER_MOTION_MASK
 			| Gdk::POINTER_MOTION_HINT_MASK);
 }
@@ -51,10 +53,17 @@ Fractal::Point Canvas::pixel_to_set_tlo(int x, int y) const
 bool Canvas::on_button_press_event(GdkEventButton *evt) {
 	if (!surface) return false;
 
-	if (evt->button==8) {
-		// mouse down: store it
-		main->dragrect.activate(evt->x, evt->y);
-		return true;
+	MouseActions ma = Prefs::getDefaultInstance().mouseActions();
+	if (evt->button <= (unsigned)ma.MAX) {
+		switch(ma[evt->button]) {
+			case Action::DRAG_TO_ZOOM:
+				main->dragrect.activate(evt->x, evt->y);
+				return true;
+			case Action::ZOOM_IN:
+			case Action::ZOOM_OUT:
+			case Action::RECENTRE:
+				break;
+		}
 	}
 	return false;
 }
@@ -62,24 +71,52 @@ bool Canvas::on_button_press_event(GdkEventButton *evt) {
 bool Canvas::on_button_release_event(GdkEventButton *evt) {
 	if (!surface) return false;
 	Fractal::Point clickpos = pixel_to_set_tlo(evt->x, evt->y);
-	switch(evt->button) {
-	case 8:
-		return end_dragrect(evt);
-	case 1:
-		// LEFT: zoom in a bit
-		main->centre = clickpos;
-		main->do_zoom(MainWindow::Zoom::ZOOM_IN);
-		return true;
-	case 3:
-		// RIGHT: zoom out
-		main->centre = clickpos;
-		main->do_zoom(MainWindow::Zoom::ZOOM_OUT);
-		return true;
-	case 2:
-		// MIDDLE: simple pan
-		main->centre = clickpos;
-		main->do_zoom(MainWindow::Zoom::REDRAW_ONLY);
-		return true;
+
+	MouseActions ma = Prefs::getDefaultInstance().mouseActions();
+	// TODO: Reading from the file every time may be too slow - possibly cache within the Canvas or MW.
+	if (evt->button <= (unsigned)ma.MAX) {
+		switch (ma[evt->button]) {
+			case Action::DRAG_TO_ZOOM:
+				return end_dragrect(evt);
+			case Action::ZOOM_IN:
+				main->centre = clickpos;
+				main->do_zoom(MainWindow::Zoom::ZOOM_IN);
+				return true;
+			case Action::ZOOM_OUT:
+				main->centre = clickpos;
+				main->do_zoom(MainWindow::Zoom::ZOOM_OUT);
+				return true;
+			case Action::RECENTRE:
+				main->centre = clickpos;
+				main->do_zoom(MainWindow::Zoom::REDRAW_ONLY);
+				return true;
+		}
+	}
+	return false;
+}
+
+bool Canvas::on_scroll_event(GdkEventScroll *evt) {
+	if (!surface) return false;
+	ScrollActions sa = Prefs::getDefaultInstance().scrollActions();
+	Fractal::Point clickpos = pixel_to_set_tlo(evt->x, evt->y);
+
+	if (evt->direction <= (unsigned)sa.MAX) {
+		switch (sa[evt->direction]) {
+			case Action::ZOOM_IN:
+				main->do_zoom(MainWindow::Zoom::ZOOM_IN);
+				return true;
+			case Action::ZOOM_OUT:
+				main->do_zoom(MainWindow::Zoom::ZOOM_OUT);
+				return true;
+			case Action::RECENTRE:
+				// Ugh, this could be confusing.
+				main->centre = clickpos;
+				main->do_zoom(MainWindow::Zoom::REDRAW_ONLY);
+				return true;
+			case Action::DRAG_TO_ZOOM:
+				// Can't sanely do this with a single-shot event. Ignore.
+				break;
+		}
 	}
 	return false;
 }
