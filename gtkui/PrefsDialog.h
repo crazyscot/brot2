@@ -26,12 +26,14 @@
 
 namespace Actions {
 	class MouseButtonsPanel;
+	class ScrollButtonsPanel;
 };
 
 class PrefsDialog : public Gtk::Dialog {
 	protected:
 		MainWindow* mw;
 		Actions::MouseButtonsPanel* mouse;
+		Actions::ScrollButtonsPanel* scroll;
 
 	public:
 		PrefsDialog(MainWindow *_mw);

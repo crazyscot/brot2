@@ -29,6 +29,7 @@
 #include <gtkmm/stock.h>
 #include <gtkmm/combobox.h>
 #include <gtkmm/liststore.h>
+#include <gtkmm/enums.h>
 
 #include <sstream>
 
@@ -158,6 +159,64 @@ class MouseButtonsPanel {
 		}
 };
 
+class ScrollButtonsPanel {
+	private:
+		Combo* actions[ScrollActions::MAX+1];
+
+	public:
+		ScrollButtonsPanel(const Prefs& prefs) {
+			const ScrollActions& ma = prefs.scrollActions();
+			for (int i=ScrollActions::MIN; i<=ScrollActions::MAX; i++) {
+				actions[i] = Gtk::manage(new Combo());
+				actions[i]->set(ma[i]);
+			}
+		}
+
+		void saveToPrefs(Prefs &prefs) {
+			ScrollActions ma;
+			for (int i=ScrollActions::MIN; i<=ScrollActions::MAX; i++) {
+				ma[i] = actions[i]->get();
+			}
+			prefs.scrollActions(ma);
+		}
+
+		Gtk::Frame *frame() {
+			Gtk::Frame *frm = Gtk::manage(new Gtk::Frame("Scroll wheel actions"));
+
+			Gtk::Table *tbl = Gtk::manage(new Gtk::Table(ScrollActions::MAX, 2, false));
+			for (int i=ScrollActions::MIN; i<=ScrollActions::MAX; i++) {
+				char buf[32];
+				Gtk::Label* label;
+				switch (i) {
+					case GDK_SCROLL_UP:
+						snprintf(buf, sizeof buf, "Up");
+						break;
+					case GDK_SCROLL_DOWN:
+						snprintf(buf, sizeof buf, "Down");
+						break;
+					case GDK_SCROLL_LEFT:
+						snprintf(buf, sizeof buf, "Left");
+						break;
+					case GDK_SCROLL_RIGHT:
+						snprintf(buf, sizeof buf, "Right");
+						break;
+					default:
+						snprintf(buf, sizeof buf, "Scroll direction %d", i);
+						break;
+				}
+				Glib::ustring txt(buf);
+				label = Gtk::manage(new Gtk::Label(txt));
+				label->set_alignment(0, 0.5);
+
+				tbl->attach(*label, 0, 1, i, i+1);
+				tbl->attach(*actions[i], 1, 2, i, i+1);
+			}
+			frm->add(*tbl);
+
+			return frm;
+		}
+};
+
 }; // namespace Actions
 
 PrefsDialog::PrefsDialog(MainWindow *_mw) : Gtk::Dialog("Preferences", _mw, true),
@@ -167,16 +226,21 @@ PrefsDialog::PrefsDialog(MainWindow *_mw) : Gtk::Dialog("Preferences", _mw, true
 	add_button(Gtk::Stock::OK, Gtk::ResponseType::RESPONSE_ACCEPT);
 
 	Gtk::Box* box = get_vbox();
-	Gtk::Table *tbl = Gtk::manage(new Gtk::Table(3,1,false)); // rows,cols
+	Gtk::Table *tbl = Gtk::manage(new Gtk::Table(3,3,false)); // rows,cols
 
     mouse = new Actions::MouseButtonsPanel(Prefs::getDefaultInstance());
-	tbl->attach(*mouse->frame(), 0, 1, 0, 1);
+	tbl->attach(*mouse->frame(), 0, 1, 0, 2); // left right top bottom
+
+	// scroll is shorter than mouse.
+    scroll = new Actions::ScrollButtonsPanel(Prefs::getDefaultInstance());
+	tbl->attach(*scroll->frame(), 1, 2, 0, 1);
 
 	box->pack_start(*tbl);
 }
 
 PrefsDialog::~PrefsDialog() {
 	delete mouse;
+	delete scroll;
 }
 
 int PrefsDialog::run() {
@@ -191,6 +255,7 @@ int PrefsDialog::run() {
 		if (result == GTK_RESPONSE_ACCEPT) {
 			Prefs& p = Prefs::getDefaultInstance();
 			mouse->saveToPrefs(p);
+			scroll->saveToPrefs(p);
 			// Perform any sanity checks here.
 
 			if (error) {
