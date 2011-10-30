@@ -77,7 +77,7 @@ bool Canvas::on_button_release_event(GdkEventButton *evt) {
 	if (evt->button <= (unsigned)ma.MAX) {
 		switch (ma[evt->button]) {
 			case Action::DRAG_TO_ZOOM:
-				return end_dragrect(evt);
+				return end_dragrect(evt->x, evt->y);
 			case Action::ZOOM_IN:
 				main->centre = clickpos;
 				main->do_zoom(MainWindow::Zoom::ZOOM_IN);
@@ -103,33 +103,39 @@ bool Canvas::on_scroll_event(GdkEventScroll *evt) {
 	if (evt->direction <= (unsigned)sa.MAX) {
 		switch (sa[evt->direction]) {
 			case Action::ZOOM_IN:
+				main->centre = clickpos;
 				main->do_zoom(MainWindow::Zoom::ZOOM_IN);
 				return true;
 			case Action::ZOOM_OUT:
+				main->centre = clickpos;
 				main->do_zoom(MainWindow::Zoom::ZOOM_OUT);
 				return true;
 			case Action::RECENTRE:
-				// Ugh, this could be confusing.
 				main->centre = clickpos;
 				main->do_zoom(MainWindow::Zoom::REDRAW_ONLY);
 				return true;
 			case Action::DRAG_TO_ZOOM:
-				// Can't sanely do this with a single-shot event. Ignore.
+				if (!main->dragrect.is_active()) {
+					main->dragrect.activate(evt->x, evt->y);
+					return true;
+				} else {
+					return end_dragrect(evt->x, evt->y);
+				}
 				break;
 		}
 	}
 	return false;
 }
 
-bool Canvas::end_dragrect(GdkEventButton *evt) {
+bool Canvas::end_dragrect(gdouble x, gdouble y) {
 	bool silly = false;
 
 	//printf("button %d UP @ %d,%d\n", event->button, (int)event->x, (int)event->y);
 
-	int l = MIN(evt->x, main->dragrect.get_origin().x);
-	int r = MAX(evt->x, main->dragrect.get_origin().x);
-	int t = MAX(evt->y, main->dragrect.get_origin().y);
-	int b = MIN(evt->y, main->dragrect.get_origin().y);
+	int l = MIN(x, main->dragrect.get_origin().x);
+	int r = MAX(x, main->dragrect.get_origin().x);
+	int t = MAX(y, main->dragrect.get_origin().y);
+	int b = MIN(y, main->dragrect.get_origin().y);
 
 	if (abs(l-r)<4 || abs(t-b)<4) silly=true;
 

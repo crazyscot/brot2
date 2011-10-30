@@ -31,7 +31,7 @@ class Canvas : public Gtk::DrawingArea {
 	MainWindow *main; // Our parent
 	Cairo::RefPtr<Cairo::ImageSurface> surface; // Staging area - we render plots here, then to the window when exposed
 
-	bool end_dragrect(GdkEventButton *evt);
+	bool end_dragrect(gdouble x, gdouble y);
 
 public:
 	Canvas(MainWindow *parent);
