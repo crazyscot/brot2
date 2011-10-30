@@ -24,12 +24,18 @@
 #include <gtkmm/dialog.h>
 #include <gtkmm/entry.h>
 
+namespace Actions {
+	class MouseButtonsPanel;
+};
+
 class PrefsDialog : public Gtk::Dialog {
 	protected:
 		MainWindow* mw;
+		Actions::MouseButtonsPanel* mouse;
 
 	public:
 		PrefsDialog(MainWindow *_mw);
+		~PrefsDialog();
 		int run(); // Returns the Gtk::ResponseType::RESPONSE_* code selected. If ACCEPT, the MainWindow params have been directly updated.
 };
 

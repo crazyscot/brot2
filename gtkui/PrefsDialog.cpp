@@ -55,6 +55,24 @@ public:
 		pack_start(cols.name); // column(s) to display in order.
 	}
 
+	void set(Action a) {
+		assert(model_inited);
+		Gtk::TreeModel::Children entries = master_model->children();
+		Gtk::TreeModel::iterator it = entries.begin();
+		for ( ; it != entries.end(); it++) {
+			if ((*it)->get_value(cols.val) == (int)a) {
+				set_active(it);
+				break;
+			}
+		}
+	}
+
+	int get() const {
+		const Gtk::TreeModel::iterator it = get_active();
+		return (*it)->get_value(cols.val);
+	}
+
+
 protected:
 	static Columns cols;
 	static Glib::RefPtr< Gtk::ListStore > master_model;
@@ -75,13 +93,50 @@ protected:
 			model_inited = true;
 		}
 	}
-
-	// XXX do we need an on_changed to stash the active enu?
 };
 
 Glib::RefPtr< Gtk::ListStore > Combo::master_model;
 bool Combo::model_inited;
 Columns Combo::cols;
+
+class MouseButtonsPanel {
+	private:
+		Combo* actions[MouseActions::MAX+1];
+
+	public:
+		MouseButtonsPanel(const Prefs& prefs) {
+			const MouseActions& ma = prefs.mouseActions();
+			for (int i=MouseActions::MIN; i<=MouseActions::MAX; i++) {
+				actions[i] = Gtk::manage(new Combo());
+				actions[i]->set(ma[i]);
+			}
+		}
+
+		void saveToPrefs(Prefs &prefs) {
+			MouseActions ma;
+			for (int i=MouseActions::MIN; i<=MouseActions::MAX; i++) {
+				ma[i] = actions[i]->get();
+			}
+			prefs.mouseActions(ma);
+		}
+
+		Gtk::Table *table() {
+			Gtk::Table *tbl = Gtk::manage(new Gtk::Table(MouseActions::MAX, 2, true));
+			for (int i=MouseActions::MIN; i<=MouseActions::MAX; i++) {
+				char buf[32];
+				Gtk::Label* label;
+				snprintf(buf, sizeof buf, "Button %d", i);
+				Glib::ustring txt(buf);
+				label = Gtk::manage(new Gtk::Label(txt));
+				label->set_alignment(0.5, 0.5);
+
+				tbl->attach(*label, 0, 1, i, i+1);
+				tbl->attach(*actions[i], 1, 2, i, i+1);
+			}
+
+			return tbl;
+		}
+};
 
 }; // namespace Actions
 
@@ -92,27 +147,25 @@ PrefsDialog::PrefsDialog(MainWindow *_mw) : Gtk::Dialog("Preferences", _mw, true
 	add_button(Gtk::Stock::OK, Gtk::ResponseType::RESPONSE_ACCEPT);
 
 	Gtk::Box* box = get_vbox();
-	Gtk::Table *tbl = Gtk::manage(new Gtk::Table(3,2));
+	Gtk::Table *tbl = Gtk::manage(new Gtk::Table(3,1)); // rows,cols
 
 	Gtk::Label* label;
 
-	label = Gtk::manage(new Gtk::Label("foobarbazqux"));
+	label = Gtk::manage(new Gtk::Label("Mouse button actions"));
 	label->set_alignment(0.5, 0.5);
 	tbl->attach(*label, 0, 1, 0, 1);
 
-	Actions::Combo* combo = Gtk::manage(new Actions::Combo());
-	tbl->attach(*combo, 0, 1, 1, 2);
-
-	// XXX: Keep pointers to the combos somewhere.
-	// Do this by defining a panel class (in this cpp) ...
+    mouse = new Actions::MouseButtonsPanel(Prefs::getDefaultInstance());
+	tbl->attach(*mouse->table(), 0, 1, 1, 2);
 
 	box->pack_start(*tbl);
 }
 
-int PrefsDialog::run() {
-	// XXX set up widgets/panel from current prefs
-	// combo.set_active_row_number()
+PrefsDialog::~PrefsDialog() {
+	delete mouse;
+}
 
+int PrefsDialog::run() {
 	show_all();
 
 	bool error;
@@ -120,16 +173,16 @@ int PrefsDialog::run() {
 	do {
 		error = false;
 		result = Gtk::Dialog::run();
-		Fractal::Point new_ctr, new_size;
 
 		if (result == GTK_RESPONSE_ACCEPT) {
-			// XXX read out widgets/panel
-			// combo.get_active() returns an Iterator - then read its val.
+			Prefs& p = Prefs::getDefaultInstance();
+			mouse->saveToPrefs(p);
+			// Perform any sanity checks here.
 
 			if (error) {
 				Util::alert(mw, "Sorry, I could not parse that; care to try again?");
 			} else {
-				// XXX update prefs/etc via mw.
+				p.commit();
 			}
 		}
 	} while (error && result == GTK_RESPONSE_ACCEPT);
