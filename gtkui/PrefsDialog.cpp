@@ -24,6 +24,7 @@
 
 #include <gtkmm/dialog.h>
 #include <gtkmm/table.h>
+#include <gtkmm/frame.h>
 #include <gtkmm/box.h>
 #include <gtkmm/stock.h>
 #include <gtkmm/combobox.h>
@@ -120,8 +121,10 @@ class MouseButtonsPanel {
 			prefs.mouseActions(ma);
 		}
 
-		Gtk::Table *table() {
-			Gtk::Table *tbl = Gtk::manage(new Gtk::Table(MouseActions::MAX, 2, true));
+		Gtk::Frame *frame() {
+			Gtk::Frame *frm = Gtk::manage(new Gtk::Frame("Mouse button actions"));
+
+			Gtk::Table *tbl = Gtk::manage(new Gtk::Table(MouseActions::MAX, 2, false));
 			for (int i=MouseActions::MIN; i<=MouseActions::MAX; i++) {
 				char buf[32];
 				Gtk::Label* label;
@@ -133,8 +136,9 @@ class MouseButtonsPanel {
 				tbl->attach(*label, 0, 1, i, i+1);
 				tbl->attach(*actions[i], 1, 2, i, i+1);
 			}
+			frm->add(*tbl);
 
-			return tbl;
+			return frm;
 		}
 };
 
@@ -147,16 +151,10 @@ PrefsDialog::PrefsDialog(MainWindow *_mw) : Gtk::Dialog("Preferences", _mw, true
 	add_button(Gtk::Stock::OK, Gtk::ResponseType::RESPONSE_ACCEPT);
 
 	Gtk::Box* box = get_vbox();
-	Gtk::Table *tbl = Gtk::manage(new Gtk::Table(3,1)); // rows,cols
-
-	Gtk::Label* label;
-
-	label = Gtk::manage(new Gtk::Label("Mouse button actions"));
-	label->set_alignment(0.5, 0.5);
-	tbl->attach(*label, 0, 1, 0, 1);
+	Gtk::Table *tbl = Gtk::manage(new Gtk::Table(3,1,false)); // rows,cols
 
     mouse = new Actions::MouseButtonsPanel(Prefs::getDefaultInstance());
-	tbl->attach(*mouse->table(), 0, 1, 1, 2);
+	tbl->attach(*mouse->frame(), 0, 1, 0, 1);
 
 	box->pack_start(*tbl);
 }
