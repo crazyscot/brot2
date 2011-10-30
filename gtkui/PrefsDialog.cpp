@@ -128,10 +128,23 @@ class MouseButtonsPanel {
 			for (int i=MouseActions::MIN; i<=MouseActions::MAX; i++) {
 				char buf[32];
 				Gtk::Label* label;
-				snprintf(buf, sizeof buf, "Button %d", i);
+				switch (i) {
+					case 1:
+						snprintf(buf, sizeof buf, "Left");
+						break;
+					case 2:
+						snprintf(buf, sizeof buf, "Middle");
+						break;
+					case 3:
+						snprintf(buf, sizeof buf, "Right");
+						break;
+					default:
+						snprintf(buf, sizeof buf, "Button %d", i);
+						break;
+				}
 				Glib::ustring txt(buf);
 				label = Gtk::manage(new Gtk::Label(txt));
-				label->set_alignment(0.5, 0.5);
+				label->set_alignment(0, 0.5);
 
 				tbl->attach(*label, 0, 1, i, i+1);
 				tbl->attach(*actions[i], 1, 2, i, i+1);
