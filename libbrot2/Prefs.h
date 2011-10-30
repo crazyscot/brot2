@@ -24,18 +24,19 @@
 #include <Exception.h>
 
 // Second-order macro to easily define our constants and have their strings to hand.
+// ACTION macro takes three args: symbolic constant, numeric constant, friendly string.
 #define ALL_ACTIONS(ACTION) \
-	ACTION(NO_ACTION, 0) \
-	ACTION(RECENTRE, 1) \
-	ACTION(ZOOM_IN, 2) \
-	ACTION(ZOOM_OUT, 3) \
-	ACTION(DRAG_TO_ZOOM, 4)
+	ACTION(NO_ACTION, 0, Nothing) \
+	ACTION(RECENTRE, 1, Recentre) \
+	ACTION(ZOOM_IN, 2, Zoom in) \
+	ACTION(ZOOM_OUT, 3, Zoom out) \
+	ACTION(DRAG_TO_ZOOM, 4, Drag-to-zoom)
 
 #define FIRST_ACTION NO_ACTION
 #define LAST_ACTION DRAG_TO_ZOOM
 
 struct Action {
-#define CONSTDEF(_name,_num) static const int _name = _num;
+#define CONSTDEF(_name,_num,_x) static const int _name = _num;
 	ALL_ACTIONS(CONSTDEF);
 
 	Action() { }
@@ -50,7 +51,7 @@ struct Action {
 
 	static std::string name(int n) {
 		switch(n) {
-#define NAMEIT(_name,_num) case _num: return #_name;
+#define NAMEIT(_name,_num,_x) case _num: return #_name;
 			ALL_ACTIONS(NAMEIT)
 		}
 		return "???";
@@ -58,7 +59,7 @@ struct Action {
 
 	static int lookup(const std::string& n) {
 		// Linear search - a bit horrible, but OK for small lists.
-#define LOOKUP(_name,_num) if (n.compare(#_name)==0) return _num;
+#define LOOKUP(_name,_num,_x) if (n.compare(#_name)==0) return _num;
 		ALL_ACTIONS(LOOKUP)
 		return -1;
 	}

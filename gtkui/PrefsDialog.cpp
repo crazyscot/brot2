@@ -41,9 +41,10 @@ class Columns : public Gtk::TreeModel::ColumnRecord
 public:
 	Gtk::TreeModelColumn<Glib::ustring> name;
 	Gtk::TreeModelColumn<int> val;
+	Gtk::TreeModelColumn<Glib::ustring> text;
 
 	Columns() {
-		add(name); add(val);
+		add(name); add(val); add(text);
 	}
 };
 
@@ -53,7 +54,7 @@ public:
 		init_master_model();
 		set_model(master_model);
 		set_entry_text_column(1);
-		pack_start(cols.name); // column(s) to display in order.
+		pack_start(cols.text); // column(s) to display in order.
 	}
 
 	void set(Action a) {
@@ -83,11 +84,13 @@ protected:
 			master_model = Gtk::ListStore::create(cols);
 			Gtk::TreeIter iter;
 
-#define POPULATE(_NAME,_VAL) do {				\
+#define POPULATE(_NAME,_VAL,_TEXT) do {			\
 			iter = master_model->append(); 		\
 			Glib::ustring tmp = #_NAME;			\
 			(*iter)->set_value(cols.name, tmp);	\
 			(*iter)->set_value(cols.val, _VAL);	\
+			tmp = #_TEXT;						\
+			(*iter)->set_value(cols.text, tmp);	\
 } while(0);
 			ALL_ACTIONS(POPULATE);
 
