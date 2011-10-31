@@ -38,14 +38,11 @@
 class HUD;
 
 class MainWindow : public Gtk::Window, Plot2::callback_t {
-	friend class Canvas;
-
 	Gtk::VBox *vbox; // Main layout widget
 	Gtk::MenuBar *menubar;
 	Canvas *canvas;
 	Gtk::ProgressBar *progbar;
 	HUD hud;
-	DragRectangle dragrect;
 
 	unsigned char *imgbuf;
 
@@ -66,6 +63,7 @@ public:
 	BasePalette * pal;
 	// Yes, the following are mostly the same as in the Plot - but the plot may be torn down and recreated frequently.
 	Fractal::FractalImpl *fractal;
+	DragRectangle dragrect;
 
 	enum Zoom {
 		REDRAW_ONLY,
@@ -112,6 +110,10 @@ public:
 	void toggle_antialias();
 	int get_antialias() const {
 		return antialias ? antialias_factor : 1;
+	}
+
+	Cairo::RefPtr<Cairo::Surface>& get_hud_surface() {
+		return hud.get_surface();
 	}
 
     // Plot2::callback_t:

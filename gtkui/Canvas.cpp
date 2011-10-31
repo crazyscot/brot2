@@ -42,12 +42,13 @@ Canvas::~Canvas() {
 // Converts a clicked pixel into a fractal Point, origin = top left
 Fractal::Point Canvas::pixel_to_set_tlo(int x, int y) const
 {
-	if (main->antialias) {
+	int aa = main->get_antialias();
+	if (aa>1) {
 		// scale up our click to the plot point within
-		x *= main->antialias_factor;
-		y *= main->antialias_factor;
+		x *= aa;
+		y *= aa;
 	}
-	return main->plot->pixel_to_set_tlo(x,y);
+	return main->get_plot().pixel_to_set_tlo(x,y);
 }
 
 bool Canvas::on_button_press_event(GdkEventButton *evt) {
@@ -140,8 +141,9 @@ bool Canvas::end_dragrect(gdouble x, gdouble y) {
 	} else {
 		Fractal::Point TR = pixel_to_set_tlo(r, t);
 		Fractal::Point BL = pixel_to_set_tlo(l, b);
-		main->size = TR - BL;
 		Fractal::Point newcentre = (TR+BL)/(Fractal::Value)2.0;
+		Fractal::Point newsize = TR-BL;
+		main->update_params(newcentre, newsize);
 		main->new_centre_checked( newcentre );
 		main->do_plot(false);
 	}
@@ -181,7 +183,7 @@ bool Canvas::on_expose_event(GdkEventExpose * evt) {
 	}
 
 	if (main->hud_active()) {
-		Cairo::RefPtr<Cairo::Surface>& sfc = main->hud.get_surface();
+		Cairo::RefPtr<Cairo::Surface>& sfc = main->get_hud_surface();
 		if (sfc)
 			cr->set_source(sfc, 0, 0); // TODO HUD position
 		cr->paint();

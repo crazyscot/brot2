@@ -38,12 +38,13 @@ const int MainWindow::DEFAULT_ANTIALIAS_FACTOR = 2;
 const double MainWindow::ZOOM_FACTOR = 2.0f;
 
 MainWindow::MainWindow() : Gtk::Window(),
-			hud(*this), dragrect(*this),
+			hud(*this),
 			imgbuf(0), plot(0), plot_prev(0),
 			rwidth(0), rheight(0),
 			draw_hud(true), antialias(false),
 			antialias_factor(DEFAULT_ANTIALIAS_FACTOR), initializing(true),
-			aspectfix(false), clip(false) {
+			aspectfix(false), clip(false),
+			dragrect(*this) {
 	set_title(PACKAGE_NAME); // Renderer will update this
 	vbox = Gtk::manage(new Gtk::VBox());
 	vbox->set_border_width(1);
