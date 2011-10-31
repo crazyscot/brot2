@@ -1,5 +1,5 @@
 /*
-    BurningShip.cpp: Burning Ship fractal
+    Misc.cpp: Miscellaneous fractals (Burning Ship, ...)
     Copyright (C) 2011 Ross Younger
 
     This program is free software: you can redistribute it and/or modify
@@ -23,10 +23,10 @@ using namespace std;
 using namespace Fractal;
 
 // Abstract base class for common unoptimized code
-class BurningShip_Generic : public FractalImpl {
+class Misc_Generic : public FractalImpl {
 public:
-	BurningShip_Generic(std::string name_, std::string desc_, Value xmin_=-3.0, Value xmax_=3.0, Value ymin_=-3.0, Value ymax_=3.0) : FractalImpl(name_, desc_, xmin_, xmax_, ymin_, ymax_, 10) {};
-	~BurningShip_Generic() {};
+	Misc_Generic(std::string name_, std::string desc_, Value xmin_=-3.0, Value xmax_=3.0, Value ymin_=-3.0, Value ymax_=3.0) : FractalImpl(name_, desc_, xmin_, xmax_, ymin_, ymax_, 10) {};
+	~Misc_Generic() {};
 
 	virtual void prepare_pixel(const Point coords, PointData& out) const {
 		// This fractal is "upside-down" in this co-ordinate system, so invert it.
@@ -38,9 +38,9 @@ public:
 	};
 };
 
-class BurningShip : public BurningShip_Generic {
+class BurningShip : public Misc_Generic {
 public:
-	BurningShip(std::string name_, std::string desc_, Value xmin_=-3.0, Value xmax_=3.0, Value ymin_=-3.0, Value ymax_=3.0) : BurningShip_Generic(name_, desc_, xmin_, xmax_, ymin_, ymax_) {};
+	BurningShip(std::string name_, std::string desc_, Value xmin_=-3.0, Value xmax_=3.0, Value ymin_=-3.0, Value ymax_=3.0) : Misc_Generic(name_, desc_, xmin_, xmax_, ymin_, ymax_) {};
 	~BurningShip() {};
 
 	static inline void ITER2(Value& o_re, Value& o_im, Value& re2, Value& im2, Value& z_re, Value& z_im) {
@@ -80,7 +80,7 @@ public:
 	FractalCommon::registry.reg(name, cls##impl);	\
 } while(0)
 
-void Fractal::load_BurningShip() {
+void Fractal::load_Misc() {
 	REGISTER(BurningShip, "Burning Ship", "z:=(|Re(z)|+i|Im(z)|)^2+c");
 }
 
