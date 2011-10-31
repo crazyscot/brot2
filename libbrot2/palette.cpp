@@ -22,6 +22,7 @@
 #include <math.h>
 #include <stdio.h>
 #include <iostream>
+#include <assert.h>
 
 using namespace std;
 using namespace Fractal;
@@ -47,8 +48,8 @@ hsvf::operator rgb() {
 	if (isnan(h)) {
 		return rgbf(v,v,v); // "undefined" case
 	}
-	if (!isnormal(h)) {
-		abort(); // should never happen
+	if (isinf(h)) {
+		assert(false); // should never happen
 		return rgb(0,0,0); // eek, not a real number
 	}
 	float chroma = v * s;
