@@ -85,9 +85,7 @@ MainWindow::~MainWindow() {
 	delete imgbuf;
 }
 
-void MainWindow::do_zoom(enum Zoom type) {
-	if (!canvas) return;
-
+void MainWindow::zoom_mechanics(enum Zoom type) {
 	switch (type) {
 	case ZOOM_IN:
 		size /= ZOOM_FACTOR;
@@ -106,6 +104,18 @@ void MainWindow::do_zoom(enum Zoom type) {
 	case REDRAW_ONLY:
 		break;
 	}
+}
+
+void MainWindow::do_zoom(enum Zoom type) {
+	if (!canvas) return;
+	zoom_mechanics(type);
+	do_plot(false);
+}
+
+void MainWindow::do_zoom(enum Zoom type, const Fractal::Point& newcentre) {
+	if (!canvas) return;
+	zoom_mechanics(type);
+	new_centre_checked(newcentre);
 	do_plot(false);
 }
 
@@ -367,8 +377,50 @@ void MainWindow::do_more_iters()
 
 void MainWindow::update_params(Fractal::Point& ncentre, Fractal::Point& nsize)
 {
-	centre = ncentre;
 	size = nsize;
+	new_centre_checked(ncentre);
+}
+
+void MainWindow::new_centre_checked(const Fractal::Point& ncentre)
+{
+	centre = ncentre;
+	Fractal::Point halfsize = Fractal::divide(size,2.0);
+	Fractal::Point TR = centre + halfsize,
+				   BL = centre - halfsize;
+	bool clipped = false;
+
+	if (real(TR) > fractal->xmax) {
+		Fractal::Point shift(fractal->xmax-real(TR), 0);
+		centre += shift; TR += shift; BL += shift;
+	}
+	if (real(BL) < fractal->xmin) {
+		Fractal::Point shift(fractal->xmin-real(BL), 0);
+		centre += shift; TR += shift; BL += shift;
+		if (real(TR) > fractal->xmax) {
+			// I'm not sure how this might come about, but my sixth sense tells me to cope with it anyway.
+			TR.real(fractal->xmax);
+			clipped = true;
+		}
+	}
+
+	if (imag(TR) > fractal->ymax) {
+		Fractal::Point shift(0, fractal->ymax-imag(TR));
+		centre += shift; TR += shift; BL += shift;
+	}
+	if (imag(BL) < fractal->ymin) {
+		Fractal::Point shift(0, fractal->ymin-imag(BL));
+		centre += shift; TR += shift; BL += shift;
+		if (imag(TR) > fractal->ymax) {
+			// I'm not sure how this might come about, but my sixth sense tells me to cope with it anyway.
+			TR.imag(fractal->ymax);
+			clipped = true;
+		}
+	}
+	if (clipped) {
+		// need to recompute size and centre.
+		size = TR - BL;
+		centre = TR - Fractal::divide(size,2.0);
+	}
 }
 
 void MainWindow::toggle_hud()

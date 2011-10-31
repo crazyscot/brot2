@@ -68,7 +68,6 @@ private:
 
 	struct timeval plot_tv_start;
 
-
 public:
 	enum Zoom {
 		REDRAW_ONLY,
@@ -97,8 +96,15 @@ public:
 	const Fractal::Point& get_size() const { return size; }
 
 	void update_params(Fractal::Point& centre, Fractal::Point& size);
+	void new_centre_checked(const Fractal::Point& centre);
 
     void do_zoom(enum Zoom z);
+    void do_zoom(enum Zoom z, const Fractal::Point& newcentre);
+
+private:
+    void zoom_mechanics(enum Zoom z);
+public:
+
     void render_cairo(int local_inf=-1);
     void recolour();
     void do_undo();

@@ -79,16 +79,13 @@ bool Canvas::on_button_release_event(GdkEventButton *evt) {
 			case Action::DRAG_TO_ZOOM:
 				return end_dragrect(evt->x, evt->y);
 			case Action::ZOOM_IN:
-				main->centre = clickpos;
-				main->do_zoom(MainWindow::Zoom::ZOOM_IN);
+				main->do_zoom(MainWindow::Zoom::ZOOM_IN, clickpos);
 				return true;
 			case Action::ZOOM_OUT:
-				main->centre = clickpos;
-				main->do_zoom(MainWindow::Zoom::ZOOM_OUT);
+				main->do_zoom(MainWindow::Zoom::ZOOM_OUT, clickpos);
 				return true;
 			case Action::RECENTRE:
-				main->centre = clickpos;
-				main->do_zoom(MainWindow::Zoom::REDRAW_ONLY);
+				main->do_zoom(MainWindow::Zoom::REDRAW_ONLY, clickpos);
 				return true;
 		}
 	}
@@ -103,16 +100,13 @@ bool Canvas::on_scroll_event(GdkEventScroll *evt) {
 	if (evt->direction <= (unsigned)sa.MAX) {
 		switch (sa[evt->direction]) {
 			case Action::ZOOM_IN:
-				main->centre = clickpos;
-				main->do_zoom(MainWindow::Zoom::ZOOM_IN);
+				main->do_zoom(MainWindow::Zoom::ZOOM_IN, clickpos);
 				return true;
 			case Action::ZOOM_OUT:
-				main->centre = clickpos;
-				main->do_zoom(MainWindow::Zoom::ZOOM_OUT);
+				main->do_zoom(MainWindow::Zoom::ZOOM_OUT, clickpos);
 				return true;
 			case Action::RECENTRE:
-				main->centre = clickpos;
-				main->do_zoom(MainWindow::Zoom::REDRAW_ONLY);
+				main->do_zoom(MainWindow::Zoom::REDRAW_ONLY, clickpos);
 				return true;
 			case Action::DRAG_TO_ZOOM:
 				if (!main->dragrect.is_active()) {
@@ -146,8 +140,9 @@ bool Canvas::end_dragrect(gdouble x, gdouble y) {
 	} else {
 		Fractal::Point TR = pixel_to_set_tlo(r, t);
 		Fractal::Point BL = pixel_to_set_tlo(l, b);
-		main->centre = (TR+BL)/(Fractal::Value)2.0;
 		main->size = TR - BL;
+		Fractal::Point newcentre = (TR+BL)/(Fractal::Value)2.0;
+		main->new_centre_checked( newcentre );
 		main->do_plot(false);
 	}
 	return true;
