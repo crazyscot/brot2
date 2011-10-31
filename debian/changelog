@@ -3,8 +3,10 @@ brot2 (0.9~unreleased) oneiric; urgency=low
   * Gamma release series.
   * LP#783040: Create preferences mechanism, make mouse button and scroll
   events configurable.
+  * LP#783077: Add Burning Ship, Generalised Celtic, Variant and Bird of Prey
+  fractals.
 
- -- Ross Younger <0ryoungerk.launchpad@coriolis.greenend.org.uk>  Sun, 30 Oct 2011 22:50:27 +1300
+ -- Ross Younger <0ryoungerk.launchpad@coriolis.greenend.org.uk>  Mon, 31 Oct 2011 19:22:34 +1300
 
 brot2 (0.5) natty; urgency=low
 
