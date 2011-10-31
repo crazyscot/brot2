@@ -46,7 +46,7 @@ public:
 	static inline void ITER2(Value& o_re, Value& o_im, Value& re2, Value& im2, Value& z_re, Value& z_im) {
 		re2 = z_re * z_re;
 		im2 = z_im * z_im;
-		z_im = 2 * fabsl(z_re * z_im) + o_im;
+		z_im = 2.0 * fabsl(z_re * z_im) + o_im;
 		z_re = re2 - im2 + o_re;
 	}
 	virtual void plot_pixel(const int maxiter, PointData& out) const {
@@ -83,7 +83,7 @@ public:
 	static inline void ITER2(Value& o_re, Value& o_im, Value& re2, Value& im2, Value& z_re, Value& z_im) {
 		re2 = z_re * z_re;
 		im2 = z_im * z_im;
-		z_im = 2 * z_re * z_im + o_im;
+		z_im = 2.0 * z_re * z_im + o_im;
 		z_re = fabsl(re2 - im2) + o_re;
 	}
 	virtual void plot_pixel(const int maxiter, PointData& out) const {
@@ -112,6 +112,45 @@ public:
 
 // --------------------------------------------------------------------
 
+class Variant : public Misc_Generic {
+public:
+	Variant(std::string name_, std::string desc_, Value xmin_=-3.0, Value xmax_=3.0, Value ymin_=-3.0, Value ymax_=3.0) : Misc_Generic(name_, desc_, xmin_, xmax_, ymin_, ymax_) {};
+	~Variant() {};
+
+	static inline void ITER2(Value& o_re, Value& o_im, Value& re2, Value& im2, Value& z_re, Value& z_im, const int iter) {
+		re2 = z_re * z_re;
+		im2 = z_im * z_im;
+		z_im = 2.0 * z_re * z_im + o_im;
+		if (iter%2)
+			z_re = fabsl(re2-im2) + o_re;
+		else
+			z_re = re2 - im2 + o_re;
+	}
+	virtual void plot_pixel(const int maxiter, PointData& out) const {
+		int iter;
+		Value o_re = real(out.origin), o_im = imag(out.origin),
+			   z_re = real(out.point), z_im = imag(out.point), re2, im2;
+
+		for (iter=out.iter; iter<maxiter; iter++) {
+			ITER2(o_re, o_im, re2, im2, z_re, z_im,iter);
+			if (re2 + im2 > 4.0) {
+				// Fractional escape count: See http://linas.org/art-gallery/escape/escape.html
+				ITER2(o_re, o_im, re2, im2, z_re, z_im,++iter);
+				ITER2(o_re, o_im, re2, im2, z_re, z_im,++iter);
+				out.iter = iter;
+				out.iterf = iter - log(log(re2 + im2)) / Consts::log2;
+				out.arg = atan2(z_im, z_re);
+				out.nomore = true;
+				return;
+			}
+		}
+		out.iter = iter;
+		out.point = Point(z_re,z_im);
+	}
+};
+
+// --------------------------------------------------------------------
+
 #define REGISTER(cls, name, desc) do {				\
 	cls* cls##impl = new cls(name, desc);			\
 	FractalCommon::registry.reg(name, cls##impl);	\
@@ -119,6 +158,7 @@ public:
 
 void Fractal::load_Misc() {
 	REGISTER(BurningShip, "Burning Ship", "z:=(|Re(z)|+i|Im(z)|)^2+c");
-	REGISTER(Celtic, "Generalised Celtic", "Re(z):=abs(Re(z^2))+c, Im(z):=Im(z^2)+c");
+	REGISTER(Celtic, "Generalised Celtic", "z:=z^2+c with Re(z):=|Re(z)|");
+	REGISTER(Variant, "The Variant", "z:=z^2+c with Re(z):=|Re(z)| on odd iterations");
 }
 
