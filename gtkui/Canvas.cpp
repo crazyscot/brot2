@@ -181,7 +181,9 @@ bool Canvas::on_expose_event(GdkEventExpose * evt) {
 	}
 
 	if (main->hud_active()) {
-		cr->set_source(main->hud.get_surface(), 0, 0); // TODO HUD position
+		Cairo::RefPtr<Cairo::Surface>& sfc = main->hud.get_surface();
+		if (sfc)
+			cr->set_source(sfc, 0, 0); // TODO HUD position
 		cr->paint();
 	}
 	return true;
