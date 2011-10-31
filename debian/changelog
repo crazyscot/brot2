@@ -7,6 +7,8 @@ brot2 (0.9~unreleased) oneiric; urgency=low
   to worry about infinities).
   * LP#883771: Apply clip limits when recentring/zooming.
   * Tentative fix for occasional Cairo segfault on startup.
+  * LP#783077: Add Burning Ship, Generalised Celtic, Variant and Bird of Prey
+  fractals.
 
  -- Ross Younger <0ryoungerk.launchpad@coriolis.greenend.org.uk>  Mon, 31 Oct 2011 22:52:10 +1300
 

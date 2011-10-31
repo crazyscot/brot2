@@ -7,6 +7,7 @@ libbrot2_a_SOURCES= \
 					Plot2.cpp Plot2.h \
 					Mandelbar.cpp Mandelbrots.cpp \
 					Mandeldrop.cpp \
+					Misc.cpp \
 					Render.h Render.cpp \
 					Prefs.h Prefs.cpp
 
