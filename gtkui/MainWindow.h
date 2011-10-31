@@ -52,12 +52,6 @@ class MainWindow : public Gtk::Window, Plot2::callback_t {
 	Plot2 * plot;
 	Plot2 * plot_prev;
 
-public:
-	BasePalette * pal;
-	// Yes, the following are mostly the same as in the Plot - but the plot may be torn down and recreated frequently.
-	Fractal::FractalImpl *fractal;
-
-private:
 	Fractal::Point centre, size;
 	unsigned rwidth, rheight; // Rendering dimensions; plot dims will be larger if antialiased
 	bool draw_hud, antialias;
@@ -69,6 +63,10 @@ private:
 	struct timeval plot_tv_start;
 
 public:
+	BasePalette * pal;
+	// Yes, the following are mostly the same as in the Plot - but the plot may be torn down and recreated frequently.
+	Fractal::FractalImpl *fractal;
+
 	enum Zoom {
 		REDRAW_ONLY,
 		ZOOM_IN,
@@ -101,10 +99,6 @@ public:
     void do_zoom(enum Zoom z);
     void do_zoom(enum Zoom z, const Fractal::Point& newcentre);
 
-private:
-    void zoom_mechanics(enum Zoom z);
-public:
-
     void render_cairo(int local_inf=-1);
     void recolour();
     void do_undo();
@@ -124,6 +118,10 @@ public:
 	virtual void plot_progress_minor(Plot2& plot, float workdone);
 	virtual void plot_progress_major(Plot2& plot, unsigned current_maxiter, std::string& commentary);
 	virtual void plot_progress_complete(Plot2& plot);
+
+private:
+    void zoom_mechanics(enum Zoom z);
+
 };
 
 #endif /* MAINWINDOW_H_ */
