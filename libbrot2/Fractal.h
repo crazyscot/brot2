@@ -32,6 +32,7 @@ namespace Fractal {
 void load_Mandelbrot();
 void load_Mandelbar();
 void load_Mandeldrop();
+void load_BurningShip();
 
 // Maths types etc
 

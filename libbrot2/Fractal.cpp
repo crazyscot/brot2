@@ -39,5 +39,6 @@ void Fractal::FractalCommon::load_base() {
 	load_Mandelbrot();
 	load_Mandelbar();
 	load_Mandeldrop();
+	load_BurningShip();
 }
 
