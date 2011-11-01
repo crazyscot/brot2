@@ -21,13 +21,14 @@
 #include <gdk/gdkkeysyms.h>
 
 MouseHelpWindow::MouseHelpWindow(MainWindow& parent, Prefs& prefs) : myparent(parent), myprefs(prefs) {
-	set_title("Controls help");
+	set_title("Controls");
 	// ... XXX put controls here XXX
 }
 // XXX "prod" or "update" when prefs changed.
 
 bool MouseHelpWindow::close() {
 	hide();
+	myparent.optionsMenu()->set_mousehelp(false);
 	return true;
 }
 

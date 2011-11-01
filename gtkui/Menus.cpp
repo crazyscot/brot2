@@ -174,7 +174,7 @@ public:
 
 	OptionsMenu(MainWindow& parent) : drawHUD("Draw _HUD", true),
 					antiAlias("_Antialias", true),
-					showMouseHelp("_Mouse help", true),
+					showMouseHelp("_Controls window", true),
 					PrefsItem(Gtk::Stock::PREFERENCES)
 	{
 		Glib::RefPtr<Gtk::AccelGroup> ag = Gtk::AccelGroup::create();
