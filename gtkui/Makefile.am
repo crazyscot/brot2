@@ -6,6 +6,7 @@ brot2_SOURCES=$(AUTOGEN_SOURCES) gtkmain.cpp gtkmain.h misc.h \
 			  PrefsDialog.cpp PrefsDialog.h \
 			  Canvas.cpp Canvas.h HUD.cpp HUD.h \
 			  DragRectangle.cpp DragRectangle.h \
+			  MouseHelp.cpp MouseHelp.h \
 			  SaveAsPNG.cpp SaveAsPNG.h
 
 brot2_LDADD= ../libbrot2/libbrot2.a @brot2gui_LIBS@ -lm
