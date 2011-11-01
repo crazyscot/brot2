@@ -37,6 +37,10 @@ class KeyfilePrefs;
 #define GROUP_MOUSE "mouse_actions"
 #define GROUP_SCROLL "scroll_actions"
 
+#define GROUP_UI "ui"
+#define KEY_MOUSEHELP "show_mouse_help"
+#define DEFAULT_MOUSEHELP true
+
 template<>
 void MouseActions::set_to_default() {
 	a[1] = Action::RECENTRE;
@@ -108,6 +112,12 @@ class KeyfilePrefs : public Prefs {
 			// Pre-populate our caches.
 			reread_mouse_actions();
 			reread_scroll_actions();
+
+			try {
+				(void)kf.get_boolean(GROUP_UI, KEY_MOUSEHELP);
+			} catch (Glib::KeyFileError e) {
+				showMouseHelp(DEFAULT_MOUSEHELP);
+			}
 		}
 
 		virtual void commit() throw(Exception) {
@@ -230,6 +240,16 @@ class KeyfilePrefs : public Prefs {
 			scroll_cache=rv;
 		}
 
+		virtual bool showMouseHelp() const {
+			try {
+				return kf.get_boolean(GROUP_UI, KEY_MOUSEHELP);
+			} catch (Glib::KeyFileError e) {
+				return DEFAULT_MOUSEHELP;
+			}
+		}
+		virtual void showMouseHelp(const bool& b) {
+			kf.set_boolean(GROUP_UI, KEY_MOUSEHELP, b);
+		}
 };
 
 namespace {
