@@ -167,14 +167,15 @@ public:
 
 };
 
-class OptionsMenu : public Gtk::Menu {
+class OptionsMenu : public AbstractOptionsMenu {
 public:
-	Gtk::CheckMenuItem drawHUD, antiAlias;
-	Gtk::ImageMenuItem Prefs;
+	Gtk::CheckMenuItem drawHUD, antiAlias, showMouseHelp;
+	Gtk::ImageMenuItem PrefsItem;
 
 	OptionsMenu(MainWindow& parent) : drawHUD("Draw _HUD", true),
 					antiAlias("_Antialias", true),
-					Prefs(Gtk::Stock::PREFERENCES)
+					showMouseHelp("_Mouse help", true),
+					PrefsItem(Gtk::Stock::PREFERENCES)
 	{
 		Glib::RefPtr<Gtk::AccelGroup> ag = Gtk::AccelGroup::create();
 		set_accel_group(ag);
@@ -189,9 +190,15 @@ public:
 		antiAlias.signal_toggled().connect(sigc::mem_fun(this, &OptionsMenu::toggle_antialias));
 		antiAlias.add_accelerator("activate", ag, GDK_A, Gdk::ModifierType::CONTROL_MASK, Gtk::ACCEL_VISIBLE);
 
-		append(Prefs);
-		Prefs.add_accelerator("activate", ag, GDK_P, Gdk::ModifierType::CONTROL_MASK | Gdk::ModifierType::SHIFT_MASK, Gtk::ACCEL_VISIBLE);
-		Prefs.signal_activate().connect(sigc::mem_fun(this, &OptionsMenu::do_prefs));
+		append(showMouseHelp);
+		showMouseHelp.signal_toggled().connect(sigc::mem_fun(this, &OptionsMenu::toggle_mousehelp));
+		showMouseHelp.add_accelerator("activate", ag, GDK_H, Gdk::ModifierType::CONTROL_MASK | Gdk::ModifierType::SHIFT_MASK, Gtk::ACCEL_VISIBLE);
+
+		append(PrefsItem);
+		PrefsItem.add_accelerator("activate", ag, GDK_P, Gdk::ModifierType::CONTROL_MASK | Gdk::ModifierType::SHIFT_MASK, Gtk::ACCEL_VISIBLE);
+		PrefsItem.signal_activate().connect(sigc::mem_fun(this, &OptionsMenu::do_prefs));
+
+		// MainWindow will call set_mousehelp() on startup.
 	}
 	void toggle_drawHUD() {
 		MainWindow *mw = find_main(this);
@@ -200,6 +207,23 @@ public:
 	void toggle_antialias() {
 		MainWindow *mw = find_main(this);
 		mw->toggle_antialias();
+	}
+	// Called by outsiders:
+	virtual void set_mousehelp(bool active) {
+		showMouseHelp.set_active(active);
+		// ... may cause a toggle_mousehelp()
+	}
+	void toggle_mousehelp() {
+		MainWindow *mw = find_main(this);
+		bool state = showMouseHelp.get_active();
+		assert(mw);
+		Prefs& p = mw->prefs();
+		p.showMouseHelp(state);
+		p.commit();
+		if (state)
+			mw->mouseHelp().show();
+		else
+			mw->mouseHelp().hide();
 	}
 	void do_prefs() {
 		MainWindow *mw = find_main(this);
@@ -345,8 +369,11 @@ Menus::Menus(MainWindow& parent, std::string& init_fractal, std::string& init_co
 	main.set_submenu(*manage(new MainMenu()));
 	append(plot);
 	plot.set_submenu(*manage(new PlotMenu(parent)));
+
+	optionsMenu = new OptionsMenu(parent);
 	append(options);
-	options.set_submenu(*manage(new OptionsMenu(parent)));
+	options.set_submenu(*manage(optionsMenu));
+
 	append(fractal);
 	fractal.set_submenu(*manage(new FractalMenu(parent, init_fractal)));
 	append(colour);

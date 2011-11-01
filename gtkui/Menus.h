@@ -20,10 +20,16 @@
 #define MENUS_H_
 
 #include <gtkmm/menubar.h>
+#include <gtkmm/menu.h>
 
 class MainWindow;
 
 namespace menus {
+
+class AbstractOptionsMenu : public Gtk::Menu {
+	public:
+		virtual void set_mousehelp(bool active) = 0;
+};
 
 class Menus: public Gtk::MenuBar {
 public:
@@ -34,6 +40,8 @@ public:
 	Gtk::MenuItem options;
 	Gtk::MenuItem fractal;
 	Gtk::MenuItem colour;
+
+	AbstractOptionsMenu* optionsMenu;
 };
 
 }
