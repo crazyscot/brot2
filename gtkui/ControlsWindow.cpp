@@ -148,6 +148,7 @@ class MouseButtonsPanel : NotifyTarget {
 
 		Gtk::Frame *frame() {
 			Gtk::Frame *frm = Gtk::manage(new Gtk::Frame("Mouse button actions"));
+			frm->set_border_width(10);
 
 			Gtk::Table *tbl = Gtk::manage(new Gtk::Table(MouseActions::MAX, 2, false));
 			for (int i=MouseActions::MIN; i<=MouseActions::MAX; i++) {
@@ -213,6 +214,7 @@ class ScrollButtonsPanel : public NotifyTarget {
 
 		Gtk::Frame *frame() {
 			Gtk::Frame *frm = Gtk::manage(new Gtk::Frame("Scroll wheel actions"));
+			frm->set_border_width(10);
 
 			Gtk::Table *tbl = Gtk::manage(new Gtk::Table(ScrollActions::MAX, 2, false));
 			for (int i=ScrollActions::MIN; i<=ScrollActions::MAX; i++) {
