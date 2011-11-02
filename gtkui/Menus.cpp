@@ -169,12 +169,12 @@ public:
 
 class OptionsMenu : public AbstractOptionsMenu {
 public:
-	Gtk::CheckMenuItem drawHUD, antiAlias, showMouseHelp;
+	Gtk::CheckMenuItem drawHUD, antiAlias, showControls;
 	Gtk::ImageMenuItem PrefsItem;
 
 	OptionsMenu(MainWindow& parent) : drawHUD("Draw _HUD", true),
 					antiAlias("_Antialias", true),
-					showMouseHelp("_Controls window", true),
+					showControls("_Controls window", true),
 					PrefsItem(Gtk::Stock::PREFERENCES)
 	{
 		Glib::RefPtr<Gtk::AccelGroup> ag = Gtk::AccelGroup::create();
@@ -190,15 +190,17 @@ public:
 		antiAlias.signal_toggled().connect(sigc::mem_fun(this, &OptionsMenu::toggle_antialias));
 		antiAlias.add_accelerator("activate", ag, GDK_A, Gdk::ModifierType::CONTROL_MASK, Gtk::ACCEL_VISIBLE);
 
-		append(showMouseHelp);
-		showMouseHelp.signal_toggled().connect(sigc::mem_fun(this, &OptionsMenu::toggle_mousehelp));
-		showMouseHelp.add_accelerator("activate", ag, GDK_H, Gdk::ModifierType::CONTROL_MASK | Gdk::ModifierType::SHIFT_MASK, Gtk::ACCEL_VISIBLE);
+		append(showControls);
+		showControls.signal_toggled().connect(sigc::mem_fun(this, &OptionsMenu::toggle_controls));
+		showControls.add_accelerator("activate", ag, GDK_C, Gdk::ModifierType::CONTROL_MASK | Gdk::ModifierType::SHIFT_MASK, Gtk::ACCEL_VISIBLE);
 
+		/* disabled while the dialog is empty
 		append(PrefsItem);
 		PrefsItem.add_accelerator("activate", ag, GDK_P, Gdk::ModifierType::CONTROL_MASK | Gdk::ModifierType::SHIFT_MASK, Gtk::ACCEL_VISIBLE);
 		PrefsItem.signal_activate().connect(sigc::mem_fun(this, &OptionsMenu::do_prefs));
+		*/
 
-		// MainWindow will call set_mousehelp() on startup.
+		// MainWindow will call set_controls_status() on startup.
 	}
 	void toggle_drawHUD() {
 		MainWindow *mw = find_main(this);
@@ -209,30 +211,32 @@ public:
 		mw->toggle_antialias();
 	}
 	// Called by outsiders:
-	virtual void set_mousehelp(bool active) {
-		showMouseHelp.set_active(active);
-		// ... may cause a toggle_mousehelp()
+	virtual void set_controls_status(bool active) {
+		showControls.set_active(active);
+		// ... may cause a toggle_controls()
 	}
-	void toggle_mousehelp() {
+	void toggle_controls() {
 		MainWindow *mw = find_main(this);
-		bool state = showMouseHelp.get_active();
+		bool state = showControls.get_active();
 		assert(mw);
 		Prefs& p = mw->prefs();
 		p.showMouseHelp(state);
 		p.commit();
 		if (state)
-			mw->mouseHelp().show();
+			mw->controlsWindow().show();
 		else
-			mw->mouseHelp().hide();
+			mw->controlsWindow().hide();
 	}
+	/*
 	void do_prefs() {
 		MainWindow *mw = find_main(this);
-		ControlsWindow prefs(mw);
+		PrefsDialog prefs(mw);
 		int rv = prefs.run();
 		if (rv == Gtk::ResponseType::RESPONSE_ACCEPT) {
 			// Do nothing special.
 		}
 	}
+	*/
 };
 
 class FractalMenu : public Gtk::Menu {

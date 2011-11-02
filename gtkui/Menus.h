@@ -28,7 +28,7 @@ namespace menus {
 
 class AbstractOptionsMenu : public Gtk::Menu {
 	public:
-		virtual void set_mousehelp(bool active) = 0;
+		virtual void set_controls_status(bool active) = 0;
 };
 
 class Menus: public Gtk::MenuBar {

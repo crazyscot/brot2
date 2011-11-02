@@ -20,25 +20,30 @@
 #define CONTROLSWINDOW_H
 
 #include "Plot2.h"
+#include "Prefs.h"
 #include <gtkmm/dialog.h>
 #include <gtkmm/entry.h>
+
+class MainWindow;
 
 namespace Actions {
 	class MouseButtonsPanel;
 	class ScrollButtonsPanel;
 };
 
-class ControlsWindow: public Gtk::Dialog {
+class ControlsWindow: public Gtk::Window{
 	protected:
-		MainWindow* mw;
+		MainWindow& mw;
+		Prefs &prefs;
 		Actions::MouseButtonsPanel* mouse;
 		Actions::ScrollButtonsPanel* scroll;
 
 	public:
-		ControlsWindow(MainWindow *_mw);
+		ControlsWindow(MainWindow& _mw, Prefs& prefs);
 		~ControlsWindow();
-		int run(); // Returns the Gtk::ResponseType::RESPONSE_* code selected. If ACCEPT, the MainWindow params have been directly updated.
-};
 
+		bool close();
+		bool on_delete_event(GdkEventAny *evt);
+};
 
 #endif // CONTROLSWINDOW_H

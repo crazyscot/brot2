@@ -75,7 +75,7 @@ MainWindow::MainWindow() : Gtk::Window(),
 	// render_ctx.fractal set by setup_fractal_menu().
 
 	initializing = false;
-	menubar->optionsMenu->set_mousehelp( Prefs::getDefaultInstance().showMouseHelp() );
+	menubar->optionsMenu->set_controls_status( Prefs::getDefaultInstance().showMouseHelp() );
 }
 
 MainWindow::~MainWindow() {
@@ -87,6 +87,7 @@ MainWindow::~MainWindow() {
 	delete plot;
 	delete plot_prev;
 	delete imgbuf;
+	Prefs::getDefaultInstance().commit();
 }
 
 void MainWindow::zoom_mechanics(enum Zoom type) {
