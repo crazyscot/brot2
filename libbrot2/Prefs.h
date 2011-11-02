@@ -151,8 +151,8 @@ class Prefs {
 		virtual const ScrollActions& scrollActions() const = 0;
 		virtual void scrollActions(const ScrollActions& scroll) = 0;
 
-		virtual bool showMouseHelp() const = 0;
-		virtual void showMouseHelp(const bool& b) = 0;
+		virtual bool showControls() const = 0;
+		virtual void showControls(const bool& b) = 0;
 };
 
 

@@ -38,8 +38,8 @@ class KeyfilePrefs;
 #define GROUP_SCROLL "scroll_actions"
 
 #define GROUP_UI "ui"
-#define KEY_MOUSEHELP "show_mouse_help"
-#define DEFAULT_MOUSEHELP true
+#define KEY_CONTROLS "show_controls"
+#define DEFAULT_CONTROLS true
 
 template<>
 void MouseActions::set_to_default() {
@@ -114,9 +114,9 @@ class KeyfilePrefs : public Prefs {
 			reread_scroll_actions();
 
 			try {
-				(void)kf.get_boolean(GROUP_UI, KEY_MOUSEHELP);
+				(void)kf.get_boolean(GROUP_UI, KEY_CONTROLS);
 			} catch (Glib::KeyFileError e) {
-				showMouseHelp(DEFAULT_MOUSEHELP);
+				showControls(DEFAULT_CONTROLS);
 			}
 		}
 
@@ -240,15 +240,15 @@ class KeyfilePrefs : public Prefs {
 			scroll_cache=rv;
 		}
 
-		virtual bool showMouseHelp() const {
+		virtual bool showControls() const {
 			try {
-				return kf.get_boolean(GROUP_UI, KEY_MOUSEHELP);
+				return kf.get_boolean(GROUP_UI, KEY_CONTROLS);
 			} catch (Glib::KeyFileError e) {
-				return DEFAULT_MOUSEHELP;
+				return DEFAULT_CONTROLS;
 			}
 		}
-		virtual void showMouseHelp(const bool& b) {
-			kf.set_boolean(GROUP_UI, KEY_MOUSEHELP, b);
+		virtual void showControls(const bool& b) {
+			kf.set_boolean(GROUP_UI, KEY_CONTROLS, b);
 		}
 };
 
