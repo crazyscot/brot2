@@ -1,5 +1,5 @@
 /*
-    PrefsDialog: brot2 fractal parameters configuration dialog
+    ControlsWindow: brot2 mouse/scroll configuration dialog
     Copyright (C) 2011 Ross Younger
 
     This program is free software: you can redistribute it and/or modify
@@ -16,7 +16,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "PrefsDialog.h"
+#include "ControlsWindow.h"
 #include "MainWindow.h"
 #include "Fractal.h"
 #include "misc.h"
@@ -219,7 +219,7 @@ class ScrollButtonsPanel {
 
 }; // namespace Actions
 
-PrefsDialog::PrefsDialog(MainWindow *_mw) : Gtk::Dialog("Preferences", _mw, true),
+ControlsWindow::ControlsWindow(MainWindow *_mw) : Gtk::Dialog("Preferences", _mw, true),
 	mw(_mw)
 {
 	add_button(Gtk::Stock::CANCEL, Gtk::ResponseType::RESPONSE_CANCEL);
@@ -238,12 +238,12 @@ PrefsDialog::PrefsDialog(MainWindow *_mw) : Gtk::Dialog("Preferences", _mw, true
 	box->pack_start(*tbl);
 }
 
-PrefsDialog::~PrefsDialog() {
+ControlsWindow::~ControlsWindow() {
 	delete mouse;
 	delete scroll;
 }
 
-int PrefsDialog::run() {
+int ControlsWindow::run() {
 	show_all();
 
 	bool error;

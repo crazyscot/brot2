@@ -34,7 +34,7 @@
 #include "logo.h" // in libbrot2
 #include "MainWindow.h"
 #include "ParamsDialog.h"
-#include "PrefsDialog.h"
+#include "ControlsWindow.h"
 #include "SaveAsPNG.h"
 
 namespace menus {
@@ -227,7 +227,7 @@ public:
 	}
 	void do_prefs() {
 		MainWindow *mw = find_main(this);
-		PrefsDialog prefs(mw);
+		ControlsWindow prefs(mw);
 		int rv = prefs.run();
 		if (rv == Gtk::ResponseType::RESPONSE_ACCEPT) {
 			// Do nothing special.

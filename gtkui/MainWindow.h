@@ -25,7 +25,7 @@
 #include "Fractal.h"
 #include "DragRectangle.h"
 #include "HUD.h"
-#include "MouseHelp.h"
+#include "ControlsWindow.h"
 #include "Prefs.h"
 #include "Menus.h"
 
@@ -39,6 +39,7 @@
 #include <sys/time.h>
 
 class HUD;
+class ControlsWindow;
 
 class MainWindow : public Gtk::Window, Plot2::callback_t {
 	Gtk::VBox *vbox; // Main layout widget
@@ -46,7 +47,7 @@ class MainWindow : public Gtk::Window, Plot2::callback_t {
 	Canvas *canvas;
 	Gtk::ProgressBar *progbar;
 	HUD hud;
-	MouseHelpWindow mousehelp;
+	ControlsWindow controlsWin;
 
 	unsigned char *imgbuf;
 
@@ -120,8 +121,8 @@ public:
 		return hud.get_surface();
 	}
 
-	MouseHelpWindow& mouseHelp() {
-		return mousehelp;
+	ControlsWindow& controlsWindow() {
+		return controlsWin;
 	}
 
 	Prefs& prefs() {

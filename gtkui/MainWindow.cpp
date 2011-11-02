@@ -23,7 +23,7 @@
 #include "Render.h"
 #include "misc.h"
 #include "config.h"
-#include "MouseHelp.h"
+#include "ControlsWindow.h"
 
 #include <assert.h>
 #include <stdlib.h>
@@ -40,7 +40,7 @@ const double MainWindow::ZOOM_FACTOR = 2.0f;
 
 MainWindow::MainWindow() : Gtk::Window(),
 			hud(*this),
-			mousehelp(*this, Prefs::getDefaultInstance()),
+			controlsWin(*this, Prefs::getDefaultInstance()),
 			imgbuf(0), plot(0), plot_prev(0),
 			rwidth(0), rheight(0),
 			draw_hud(true), antialias(false),
