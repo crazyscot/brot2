@@ -25,6 +25,9 @@
 #include "Fractal.h"
 #include "DragRectangle.h"
 #include "HUD.h"
+#include "ControlsWindow.h"
+#include "Prefs.h"
+#include "Menus.h"
 
 #include <iostream>
 #include <gtkmm/window.h>
@@ -36,13 +39,15 @@
 #include <sys/time.h>
 
 class HUD;
+class ControlsWindow;
 
 class MainWindow : public Gtk::Window, Plot2::callback_t {
 	Gtk::VBox *vbox; // Main layout widget
-	Gtk::MenuBar *menubar;
+	menus::Menus *menubar;
 	Canvas *canvas;
 	Gtk::ProgressBar *progbar;
 	HUD hud;
+	ControlsWindow controlsWin;
 
 	unsigned char *imgbuf;
 
@@ -114,6 +119,18 @@ public:
 
 	Cairo::RefPtr<Cairo::Surface>& get_hud_surface() {
 		return hud.get_surface();
+	}
+
+	ControlsWindow& controlsWindow() {
+		return controlsWin;
+	}
+
+	Prefs& prefs() {
+		return Prefs::getDefaultInstance();
+	}
+
+	menus::AbstractOptionsMenu *optionsMenu() {
+		return menubar->optionsMenu;
 	}
 
     // Plot2::callback_t:

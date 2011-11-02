@@ -1,5 +1,5 @@
 /*
-    PrefsDialog: brot2 preferences dialog
+    ControlsWindow: brot2 mouse/scroll control window
     Copyright (C) 2011 Ross Younger
 
     This program is free software: you can redistribute it and/or modify
@@ -16,30 +16,37 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef PREFS_DIALOG_H
-#define PREFS_DIALOG_H
+#ifndef CONTROLSWINDOW_H
+#define CONTROLSWINDOW_H
 
-#include "MainWindow.h"
 #include "Plot2.h"
+#include "Prefs.h"
 #include <gtkmm/dialog.h>
 #include <gtkmm/entry.h>
+
+class MainWindow;
 
 namespace Actions {
 	class MouseButtonsPanel;
 	class ScrollButtonsPanel;
 };
 
-class PrefsDialog : public Gtk::Dialog {
+class ControlsWindow: public Gtk::Window{
 	protected:
-		MainWindow* mw;
+		MainWindow& mw;
+		Prefs &prefs;
 		Actions::MouseButtonsPanel* mouse;
 		Actions::ScrollButtonsPanel* scroll;
 
+		// Resets the controls to their defaults.
+		void on_defaults();
+
 	public:
-		PrefsDialog(MainWindow *_mw);
-		~PrefsDialog();
-		int run(); // Returns the Gtk::ResponseType::RESPONSE_* code selected. If ACCEPT, the MainWindow params have been directly updated.
+		ControlsWindow(MainWindow& _mw, Prefs& prefs);
+		~ControlsWindow();
+
+		bool close();
+		bool on_delete_event(GdkEventAny *evt);
 };
 
-#endif
-
+#endif // CONTROLSWINDOW_H

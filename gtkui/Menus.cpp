@@ -34,7 +34,7 @@
 #include "logo.h" // in libbrot2
 #include "MainWindow.h"
 #include "ParamsDialog.h"
-#include "PrefsDialog.h"
+#include "ControlsWindow.h"
 #include "SaveAsPNG.h"
 
 namespace menus {
@@ -167,14 +167,15 @@ public:
 
 };
 
-class OptionsMenu : public Gtk::Menu {
+class OptionsMenu : public AbstractOptionsMenu {
 public:
-	Gtk::CheckMenuItem drawHUD, antiAlias;
-	Gtk::ImageMenuItem Prefs;
+	Gtk::CheckMenuItem drawHUD, antiAlias, showControls;
+	Gtk::ImageMenuItem PrefsItem;
 
 	OptionsMenu(MainWindow& parent) : drawHUD("Draw _HUD", true),
 					antiAlias("_Antialias", true),
-					Prefs(Gtk::Stock::PREFERENCES)
+					showControls("_Controls window", true),
+					PrefsItem(Gtk::Stock::PREFERENCES)
 	{
 		Glib::RefPtr<Gtk::AccelGroup> ag = Gtk::AccelGroup::create();
 		set_accel_group(ag);
@@ -189,9 +190,17 @@ public:
 		antiAlias.signal_toggled().connect(sigc::mem_fun(this, &OptionsMenu::toggle_antialias));
 		antiAlias.add_accelerator("activate", ag, GDK_A, Gdk::ModifierType::CONTROL_MASK, Gtk::ACCEL_VISIBLE);
 
-		append(Prefs);
-		Prefs.add_accelerator("activate", ag, GDK_P, Gdk::ModifierType::CONTROL_MASK | Gdk::ModifierType::SHIFT_MASK, Gtk::ACCEL_VISIBLE);
-		Prefs.signal_activate().connect(sigc::mem_fun(this, &OptionsMenu::do_prefs));
+		append(showControls);
+		showControls.signal_toggled().connect(sigc::mem_fun(this, &OptionsMenu::toggle_controls));
+		showControls.add_accelerator("activate", ag, GDK_C, Gdk::ModifierType::CONTROL_MASK | Gdk::ModifierType::SHIFT_MASK, Gtk::ACCEL_VISIBLE);
+
+		/* disabled while the dialog is empty
+		append(PrefsItem);
+		PrefsItem.add_accelerator("activate", ag, GDK_P, Gdk::ModifierType::CONTROL_MASK | Gdk::ModifierType::SHIFT_MASK, Gtk::ACCEL_VISIBLE);
+		PrefsItem.signal_activate().connect(sigc::mem_fun(this, &OptionsMenu::do_prefs));
+		*/
+
+		// MainWindow will call set_controls_status() on startup.
 	}
 	void toggle_drawHUD() {
 		MainWindow *mw = find_main(this);
@@ -201,6 +210,24 @@ public:
 		MainWindow *mw = find_main(this);
 		mw->toggle_antialias();
 	}
+	// Called by outsiders:
+	virtual void set_controls_status(bool active) {
+		showControls.set_active(active);
+		// ... may cause a toggle_controls()
+	}
+	void toggle_controls() {
+		MainWindow *mw = find_main(this);
+		bool state = showControls.get_active();
+		assert(mw);
+		Prefs& p = mw->prefs();
+		p.showControls(state);
+		p.commit();
+		if (state)
+			mw->controlsWindow().show();
+		else
+			mw->controlsWindow().hide();
+	}
+	/*
 	void do_prefs() {
 		MainWindow *mw = find_main(this);
 		PrefsDialog prefs(mw);
@@ -209,6 +236,7 @@ public:
 			// Do nothing special.
 		}
 	}
+	*/
 };
 
 class FractalMenu : public Gtk::Menu {
@@ -345,8 +373,11 @@ Menus::Menus(MainWindow& parent, std::string& init_fractal, std::string& init_co
 	main.set_submenu(*manage(new MainMenu()));
 	append(plot);
 	plot.set_submenu(*manage(new PlotMenu(parent)));
+
+	optionsMenu = new OptionsMenu(parent);
 	append(options);
-	options.set_submenu(*manage(new OptionsMenu(parent)));
+	options.set_submenu(*manage(optionsMenu));
+
 	append(fractal);
 	fractal.set_submenu(*manage(new FractalMenu(parent, init_fractal)));
 	append(colour);

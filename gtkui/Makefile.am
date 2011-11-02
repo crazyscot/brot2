@@ -3,7 +3,7 @@ bin_PROGRAMS=brot2
 brot2_SOURCES=$(AUTOGEN_SOURCES) gtkmain.cpp gtkmain.h misc.h \
 			  MainWindow.cpp MainWindow.h Menus.cpp Menus.h \
 			  ParamsDialog.cpp ParamsDialog.h \
-			  PrefsDialog.cpp PrefsDialog.h \
+			  ControlsWindow.cpp ControlsWindow.h \
 			  Canvas.cpp Canvas.h HUD.cpp HUD.h \
 			  DragRectangle.cpp DragRectangle.h \
 			  SaveAsPNG.cpp SaveAsPNG.h
