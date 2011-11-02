@@ -125,11 +125,10 @@ class MouseButtonsPanel : NotifyTarget {
 	public:
 		MouseButtonsPanel(Prefs& prefs) : myprefs(prefs) {
 			initialising = true;
-			const MouseActions& ma = prefs.mouseActions();
 			for (int i=MouseActions::MIN; i<=MouseActions::MAX; i++) {
 				actions[i] = Gtk::manage(new Combo(*this));
-				actions[i]->set(ma[i]);
 			}
+			refresh(); // itself sets/clears initialising
 			initialising = false;
 		}
 
@@ -146,6 +145,24 @@ class MouseButtonsPanel : NotifyTarget {
 				saveToPrefs();
 		}
 
+		void defaults() {
+			MouseActions ma(myprefs.mouseActions());
+			ma.set_to_default();
+			myprefs.mouseActions(ma);
+			refresh();
+		}
+
+	protected:
+		void refresh(void) {
+			initialising = true;
+			const MouseActions& ma = myprefs.mouseActions();
+			for (int i=MouseActions::MIN; i<=MouseActions::MAX; i++) {
+				actions[i]->set(ma[i]);
+			}
+			initialising = false;
+		}
+
+	public:
 		Gtk::Frame *frame() {
 			Gtk::Frame *frm = Gtk::manage(new Gtk::Frame("Mouse button actions"));
 			frm->set_border_width(10);
@@ -190,11 +207,10 @@ class ScrollButtonsPanel : public NotifyTarget {
 	public:
 		ScrollButtonsPanel(Prefs& prefs) : myprefs(prefs) {
 			initialising = true;
-			const ScrollActions& ma = prefs.scrollActions();
 			for (int i=ScrollActions::MIN; i<=ScrollActions::MAX; i++) {
 				actions[i] = Gtk::manage(new Combo(*this));
-				actions[i]->set(ma[i]);
 			}
+			refresh(); // itself sets/clears initialising
 			initialising = false;
 		}
 
@@ -211,7 +227,24 @@ class ScrollButtonsPanel : public NotifyTarget {
 				saveToPrefs();
 		}
 
+		void defaults() {
+			ScrollActions sa(myprefs.scrollActions());
+			sa.set_to_default();
+			myprefs.scrollActions(sa);
+			refresh();
+		}
 
+	protected:
+		void refresh(void) {
+			initialising = true;
+			const ScrollActions& sa = myprefs.scrollActions();
+			for (int i=ScrollActions::MIN; i<=ScrollActions::MAX; i++) {
+				actions[i]->set(sa[i]);
+			}
+			initialising = false;
+		}
+
+	public:
 		Gtk::Frame *frame() {
 			Gtk::Frame *frm = Gtk::manage(new Gtk::Frame("Scroll wheel actions"));
 			frm->set_border_width(10);
@@ -270,7 +303,19 @@ ControlsWindow::ControlsWindow(MainWindow& _mw, Prefs& _prefs) : mw(_mw), prefs(
 	tbl->attach(*scroll->frame(), 1, 2, 0, 1);
 
 	box->pack_start(*tbl);
+
+	// And now a separate table for the Defaults button.
+	Gtk::HButtonBox *bbox = Gtk::manage(new Gtk::HButtonBox());
+	Gtk::Button *btn = Gtk::manage(new Gtk::Button("Defaults"));
+	bbox->add(*btn);
+	box->pack_end(*bbox);
+	btn->signal_clicked().connect(sigc::mem_fun(*this, &ControlsWindow::on_defaults) );
 	show_all();
+}
+
+void ControlsWindow::on_defaults() {
+	mouse->defaults();
+	scroll->defaults();
 }
 
 ControlsWindow::~ControlsWindow() {

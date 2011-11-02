@@ -38,6 +38,9 @@ class ControlsWindow: public Gtk::Window{
 		Actions::MouseButtonsPanel* mouse;
 		Actions::ScrollButtonsPanel* scroll;
 
+		// Resets the controls to their defaults.
+		void on_defaults();
+
 	public:
 		ControlsWindow(MainWindow& _mw, Prefs& prefs);
 		~ControlsWindow();
