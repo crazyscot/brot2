@@ -72,7 +72,7 @@ void DragRectangle::draw_internal() {
 		cr->save();
 		cr->set_operator(Cairo::Operator::OPERATOR_OVER);
 		cr->rectangle(x,y,width,height);
-		cr->set_line_width(1.5);
+		cr->set_line_width(2);
 
 		// First do it in black...
 		cr->set_source_rgb(0,0,0);

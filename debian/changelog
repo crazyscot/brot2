@@ -11,8 +11,9 @@ brot2 (0.9~unreleased) oneiric; urgency=low
   fractals.
   * LP#883774: Turn control prefs into a first-class window.
   * Speed up some of the palette wrangling maths.
+  * Speed up perceived sluggishness in drag-to-zoom rects on large windows.
 
- -- Ross Younger <0ryoungerk.launchpad@coriolis.greenend.org.uk>  Wed, 02 Nov 2011 22:47:24 +1300
+ -- Ross Younger <0ryoungerk.launchpad@coriolis.greenend.org.uk>  Thu, 03 Nov 2011 22:28:47 +1300
 
 brot2 (0.5) natty; urgency=low
 
