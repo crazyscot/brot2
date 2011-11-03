@@ -30,10 +30,9 @@
 #include <gtkmm/combobox.h>
 #include <gtkmm/liststore.h>
 #include <gtkmm/enums.h>
+#include <gtkmm/alignment.h>
 
 #include <sstream>
-
-// TODO Make this non-modal!
 
 namespace Actions {
 
@@ -298,9 +297,11 @@ ControlsWindow::ControlsWindow(MainWindow& _mw, Prefs& _prefs) : mw(_mw), prefs(
     mouse = new Actions::MouseButtonsPanel(Prefs::getDefaultInstance());
 	tbl->attach(*mouse->frame(), 0, 1, 0, 2); // left right top bottom
 
-	// scroll is shorter than mouse.
+	// scroll is shorter than mouse, don't let it expand (looks silly)
+	Gtk::Alignment *align = Gtk::manage(new Gtk::Alignment(0.5, 0.0, 0.0, 0.0));
     scroll = new Actions::ScrollButtonsPanel(Prefs::getDefaultInstance());
-	tbl->attach(*scroll->frame(), 1, 2, 0, 1);
+	align->add(*scroll->frame());
+	tbl->attach(*align, 1, 2, 0, 1);
 
 	box->pack_start(*tbl);
 
