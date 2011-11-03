@@ -311,7 +311,9 @@ ControlsWindow::ControlsWindow(MainWindow& _mw, Prefs& _prefs) : mw(_mw), prefs(
 	bbox->add(*btn);
 	box->pack_end(*bbox);
 	btn->signal_clicked().connect(sigc::mem_fun(*this, &ControlsWindow::on_defaults) );
-	show_all();
+
+	hide();
+	box->show_all();
 }
 
 void ControlsWindow::on_defaults() {
