@@ -52,8 +52,8 @@ hsvf::operator rgb() {
 		assert(false); // should never happen
 		return rgb(0,0,0); // eek, not a real number
 	}
-	float chroma = v * s;
-	if ((h<0.0) || (h>=1.0)) h -= floor(h);
+	float chroma = v * s, tmp;
+	if ((h<0.0) || (h>=1.0)) h = modff(h,&tmp);
 	// h': which part of the hexcone does h fall into?
 	float hp = h*6.0;
 	float hm = hp;
@@ -64,7 +64,7 @@ hsvf::operator rgb() {
 	x *= chroma;
 
 	rgbf rv;
-	switch((int)(floor(hp))) {
+	switch((int)hp) {
 	case 0: case 6:
 		rv = rgbf(chroma,x,0); break;
 	case 1:
@@ -110,7 +110,8 @@ public:
 	virtual rgb get(const PointData &pt) const {
 		// This is a continuous "gradient" around the Hue wheel.
 		double n = (double)pt.iter / size;
-		n -= floor(n);
+		double tmp;
+		n = modf(n,&tmp);
 		hsvf h(n, 1, 1);
 		rgb r(h);
 	#if DEBUG_DUMP_HSV
@@ -175,8 +176,9 @@ public:
 	const hsvf pointa, pointb; // Points to smooth between
 	HueCycle(float wrap, hsvf pa, hsvf pb) : SmoothPalette(), wrap(wrap), pointa(pa), pointb(pb) {};
 	rgb get(const PointData &pt) const {
-		float tau = pt.iterf / wrap;
-		tau -= floor(tau);
+		float tau,tmp;
+		tau = pt.iterf / wrap;
+		tau = modff(tau,&tmp);
 		float taup = 1.0 - tau;
 		hsvf rv (pointa.h*tau + pointb.h*taup,
 				 pointa.s*tau + pointb.s*taup,
