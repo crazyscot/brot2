@@ -153,6 +153,14 @@ class Prefs {
 
 		virtual bool showControls() const = 0;
 		virtual void showControls(const bool& b) = 0;
+
+		// LP#783034:
+		virtual unsigned initial_maxiter() const = 0;
+		virtual void initial_maxiter(const unsigned& i) = 0;
+		virtual double plot_live_threshold_fract() const = 0;
+		virtual void plot_live_threshold_fract(const double& f) = 0;
+		virtual unsigned min_escapee_pct() const = 0;
+		virtual void min_escapee_pct(const unsigned& i) = 0;
 };
 
 

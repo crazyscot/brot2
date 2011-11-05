@@ -27,11 +27,13 @@ int main(void)
 		Prefs& p = Prefs::getDefaultInstance();
 		MouseActions ma = p.mouseActions();
 		p.mouseActions(ma);
-		//ScrollActions sa = p.scrollActions();
-		//p.scrollActions(sa);
+		ScrollActions sa = p.scrollActions();
+		p.scrollActions(sa);
 		p.commit();
 		for (i=1; i<=ma.MAX; i++)
 			cout << "action "<<i<<" is " << (std::string) ma[i] << endl;
+
+		cout << "Initial maxiter is " << p.initial_maxiter() << ", live threshold proportion is " << p.plot_live_threshold_fract() << ", min escapee proportion is " << p.min_escapee_pct() << "%" << endl;
 	} catch (Exception e) {
 		cerr << "Error! " << e << endl;
 		return 1;

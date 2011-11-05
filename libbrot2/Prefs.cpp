@@ -41,6 +41,14 @@ class KeyfilePrefs;
 #define KEY_CONTROLS "show_controls"
 #define DEFAULT_CONTROLS true
 
+#define GROUP_PLOT_CONTROL "plot_control"
+#define KEY_INITMAXITER "initial_maxiter"
+#define DEFAULT_INITMAXITER 512
+#define KEY_LIVE_THRESHOLD "live_threshold"
+#define DEFAULT_LIVE_THRESHOLD 0.001f
+#define KEY_MIN_ESCAPEE_PCT "minimum_done_percent"
+#define DEFAULT_MIN_ESCAPEE_PCT 20
+
 template<>
 void MouseActions::set_to_default() {
 	a[1] = Action::RECENTRE;
@@ -109,7 +117,7 @@ class KeyfilePrefs : public Prefs {
 				}
 			}
 
-			// Pre-populate our caches.
+			// Pre-populate our caches and defaults for any new prefs.
 			reread_mouse_actions();
 			reread_scroll_actions();
 
@@ -117,6 +125,21 @@ class KeyfilePrefs : public Prefs {
 				(void)kf.get_boolean(GROUP_UI, KEY_CONTROLS);
 			} catch (Glib::KeyFileError e) {
 				showControls(DEFAULT_CONTROLS);
+			}
+			try {
+				(void)kf.get_integer(GROUP_PLOT_CONTROL, KEY_INITMAXITER);
+			} catch (Glib::KeyFileError e) {
+				initial_maxiter(DEFAULT_INITMAXITER);
+			}
+			try {
+				(void)kf.get_double(GROUP_PLOT_CONTROL, KEY_LIVE_THRESHOLD);
+			} catch (Glib::KeyFileError e) {
+				plot_live_threshold_fract(DEFAULT_LIVE_THRESHOLD);
+			}
+			try {
+				(void)kf.get_integer(GROUP_PLOT_CONTROL, KEY_MIN_ESCAPEE_PCT);
+			} catch (Glib::KeyFileError e) {
+				min_escapee_pct(DEFAULT_MIN_ESCAPEE_PCT);
 			}
 		}
 
@@ -249,6 +272,26 @@ class KeyfilePrefs : public Prefs {
 		}
 		virtual void showControls(const bool& b) {
 			kf.set_boolean(GROUP_UI, KEY_CONTROLS, b);
+		}
+
+		// LP#783034:
+		virtual unsigned initial_maxiter() const {
+			return kf.get_integer(GROUP_PLOT_CONTROL, KEY_INITMAXITER);
+		}
+		virtual void initial_maxiter(const unsigned& i) {
+			kf.set_integer(GROUP_PLOT_CONTROL, KEY_INITMAXITER, i);
+		}
+		virtual double plot_live_threshold_fract() const {
+			return kf.get_double(GROUP_PLOT_CONTROL, KEY_LIVE_THRESHOLD);
+		}
+		virtual void plot_live_threshold_fract(const double& f) {
+			kf.set_double(GROUP_PLOT_CONTROL, KEY_LIVE_THRESHOLD, f);
+		}
+		virtual unsigned min_escapee_pct() const {
+			return kf.get_integer(GROUP_PLOT_CONTROL, KEY_MIN_ESCAPEE_PCT);
+		}
+		virtual void min_escapee_pct(const unsigned& i) {
+			kf.set_integer(GROUP_PLOT_CONTROL, KEY_MIN_ESCAPEE_PCT, i);
 		}
 };
 
