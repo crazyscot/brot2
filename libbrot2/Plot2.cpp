@@ -21,27 +21,28 @@
 #include <unistd.h>
 #include <values.h>
 #include "Plot2.h"
+#include "Prefs.h"
 
 using namespace std;
 using namespace Fractal;
 
-#define INITIAL_PASS_MAXITER 512
 /* Judging the number of iterations and how to scale it on successive passes
  * is really tricky. Too many and it takes too long to get that first pass home;
  * too few (too slow growth) and you're wasting cycles keeping track of the
  * live count and your initial pass might be all-black anyway - not to mention
- * the chance of hitting the quality threshold sooner than you might have liked).
+ * the chance of hitting the quality threshold sooner than you might have liked.
  * There are also edge-case effects where some pixels escape quickly and some
  * slowly - if the scaling is too slow then these plots will conk out too soon.
  */
+//#define INITIAL_PASS_MAXITER 512 // Now read from Prefs
 
 /* We consider the plot to be complete when at least the minimum threshold
  * of the image has escaped, and the number of pixels escaping
  * in the last pass drops below some threshold of the whole picture size.
  * Beware that this can still lead to infinite loops if you look at regions
  * with excessive numbers of points within the set... */
-#define LIVE_THRESHOLD_FRACT 0.001
-#define MIN_ESCAPEE_PCT 20
+//#define LIVE_THRESHOLD_FRACT 0.001 // Now read from Prefs
+//#define MIN_ESCAPEE_PCT 20 // Now read from Prefs
 
 class SingletonThreadPool {
 	int n_threads, max_unused;
@@ -109,6 +110,7 @@ Plot2::Plot2(FractalImpl* f, Point centre, Point size,
 		unsigned width, unsigned height, unsigned max_passes) :
 		fract(f), centre(centre), size(size),
 		width(width), height(height),
+		prefs(Prefs::getDefaultInstance()),
 		plotted_maxiter(0), plotted_passes(0), passes_max(max_passes),
 		callback(0), _data(0), _abort(false), _done(false), _outstanding(0),
 		_completed(0), jobs(0)
@@ -208,12 +210,16 @@ void Plot2::prepare()
 		render_point.real(real(_origin));
 		render_point += rowstep;
 	}
+
+	initial_maxiter = prefs.initial_maxiter();
+	live_threshold = prefs.plot_live_threshold_fract();
+	minimum_escapee_percent = prefs.min_escapee_pct();
 }
 
 void Plot2::_per_plot_threadfunc()
 {
 	Glib::Mutex::Lock _auto (plot_lock);
-	unsigned i, passcount=plotted_passes, delta_threshold = width * height * LIVE_THRESHOLD_FRACT;
+	unsigned i, passcount=plotted_passes;
 	unsigned joblines = (10000 / width + 1); // 10k points is a good number to do as a batch; round up to nearest line
 	const unsigned NJOBS = (height < joblines) ? 1 : height / joblines;
 	bool live = true;
@@ -230,13 +236,13 @@ void Plot2::_per_plot_threadfunc()
 			jobs[i] = worker_job(this, step*i, step);
 	}
 
-	unsigned livecount=0, prev_livecount;
+	unsigned livecount=0, prev_livecount, delta_threshold = width * height * live_threshold;
 	for (i=0; i<NJOBS; i++) livecount += jobs[i].live_pixels;
 #ifdef DEBUG_LIVECOUNT
-	printf("Initial livecount %u\n", livecount);
+	printf("Initial livecount %u, delta threshold %u\n", livecount, delta_threshold);
 #endif
 
-	int this_pass_maxiter = INITIAL_PASS_MAXITER, last_pass_maxiter = plotted_maxiter, maxiter_scale = 0;
+	int this_pass_maxiter = initial_maxiter, last_pass_maxiter = plotted_maxiter, maxiter_scale = 0;
 
 	int _t_maxo = worker_thread_pool.n_workers();
 	if (_t_maxo==-1) _t_maxo = MAXINT;
@@ -309,10 +315,11 @@ void Plot2::_per_plot_threadfunc()
 #endif
 			livecount += jobs[i].live_pixels;
 		}
+		unsigned pixel_threshold = width * height * (100-minimum_escapee_percent) / 100;
 #ifdef DEBUG_LIVECOUNT
-		printf("total %u live pixels remain\n", livecount);
+		printf("total %u live pixels remain, threshold=%u\n", livecount, pixel_threshold);
 #endif
-		if (livecount < width * height * (100-MIN_ESCAPEE_PCT) / 100) {
+		if (livecount < pixel_threshold) {
 			unsigned delta = prev_livecount - livecount;
 			if (delta < delta_threshold) {
 				live = false;
@@ -323,6 +330,14 @@ void Plot2::_per_plot_threadfunc()
 				// This idea lifted from fanf's code.
 				// Close enough unless it suddenly speeds up again next run?
 				delta_threshold *= 2;
+#ifdef DEBUG_LIVECOUNT
+				std::cout << "Delta " << delta << " getting close to threshold " << delta_threshold << " - doubling threshold" << std::endl;
+#endif
+			} else {
+#ifdef DEBUG_LIVECOUNT
+				std::cout << "Delta " << delta << " < threshold " << delta_threshold << " - still going" << std::endl;
+#endif
+
 			}
 		}
 
@@ -435,6 +450,9 @@ const Fractal::PointData& Plot2::get_pixel_point(int x, int y)
 	return _data[y * width + x];
 }
 
+void Plot2::set_prefs(Prefs& newprefs) {
+	prefs = newprefs;
+}
 
 Plot2::~Plot2() {
 	stop();

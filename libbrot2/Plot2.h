@@ -22,6 +22,7 @@
 #include <glibmm.h>
 #include "Fractal.h"
 
+class Prefs;
 
 class Plot2 {
 public:
@@ -109,12 +110,22 @@ public:
 		return _done;
 	}
 
+	// Overrides the default prefs.
+	void set_prefs(Prefs& newprefs);
+
 protected:
 	/* Prepares a plot: creates the _data array and asks the fractal to
 	 * initialise it.
 	 * THIS FUNCTION WILL BE CALLED WITH plot_lock HELD. */
 	void prepare();
 
+	/* Plot completion detection: */
+	Prefs& prefs; // Where to get our global settings from. This is requeried on prepare().
+	unsigned initial_maxiter; // Iteration limit on first pass
+	double live_threshold; // Proportion of the pixels that must escape in a pass; if less, we consider stopping
+	unsigned minimum_escapee_percent; // Minimum %age of pixels that must be done in order to consider stopping
+
+	/* Plot statistics: */
 	int plotted_maxiter; // How far did we get before bailing?
 	int plotted_passes; // How many passes before bailing?
 	unsigned passes_max; // Do we have an absolute limit on the number of passes?
