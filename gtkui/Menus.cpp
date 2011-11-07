@@ -19,6 +19,7 @@
 #include "Fractal.h"
 #include "Menus.h"
 #include "MainWindow.h"
+#include "PrefsDialog.h"
 
 #include <gtkmm/main.h>
 #include <gtkmm/menu.h>
@@ -194,11 +195,9 @@ public:
 		showControls.signal_toggled().connect(sigc::mem_fun(this, &OptionsMenu::toggle_controls));
 		showControls.add_accelerator("activate", ag, GDK_C, Gdk::ModifierType::CONTROL_MASK | Gdk::ModifierType::SHIFT_MASK, Gtk::ACCEL_VISIBLE);
 
-		/* disabled while the dialog is empty
 		append(PrefsItem);
 		PrefsItem.add_accelerator("activate", ag, GDK_P, Gdk::ModifierType::CONTROL_MASK | Gdk::ModifierType::SHIFT_MASK, Gtk::ACCEL_VISIBLE);
 		PrefsItem.signal_activate().connect(sigc::mem_fun(this, &OptionsMenu::do_prefs));
-		*/
 
 		// MainWindow will call set_controls_status() on startup.
 	}
@@ -227,16 +226,14 @@ public:
 		else
 			mw->controlsWindow().hide();
 	}
-	/*
 	void do_prefs() {
 		MainWindow *mw = find_main(this);
 		PrefsDialog prefs(mw);
 		int rv = prefs.run();
 		if (rv == Gtk::ResponseType::RESPONSE_ACCEPT) {
-			// Do nothing special.
+			// Do nothing special, callee takes care of it.
 		}
 	}
-	*/
 };
 
 class FractalMenu : public Gtk::Menu {
