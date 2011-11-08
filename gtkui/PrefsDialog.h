@@ -24,9 +24,14 @@
 #include <gtkmm/dialog.h>
 #include <gtkmm/entry.h>
 
+namespace PrefsDialogBits {
+	class ThresholdFrame;
+};
+
 class PrefsDialog : public Gtk::Dialog {
 	protected:
 		MainWindow* mw;
+		PrefsDialogBits::ThresholdFrame* threshold;
 
 	public:
 		PrefsDialog(MainWindow *_mw);

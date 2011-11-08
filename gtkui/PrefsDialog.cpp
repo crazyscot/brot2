@@ -21,6 +21,7 @@
 #include "misc.h"
 #include "Plot2.h"
 #include "Prefs.h"
+#include "Exception.h"
 
 #include <gtkmm/dialog.h>
 #include <gtkmm/table.h>
@@ -33,19 +34,91 @@
 
 #include <sstream>
 
+namespace PrefsDialogBits {
+	class ThresholdFrame : public Gtk::Frame {
+		public:
+		// Editable fields:
+		Util::HandyEntry<int> *f_init_maxiter, *f_min_done_pct;
+		Util::HandyEntry<double> *f_live_threshold;
+
+		ThresholdFrame() : Gtk::Frame("Plot finish threshold tuning") {
+			f_init_maxiter = Gtk::manage(new Util::HandyEntry<int>());
+			f_min_done_pct = Gtk::manage(new Util::HandyEntry<int>());
+			f_live_threshold = Gtk::manage(new Util::HandyEntry<double>());
+
+			set_border_width(10);
+			Gtk::Table *tbl = Gtk::manage(new Gtk::Table(3, 2, false));
+			Gtk::Label *lbl;
+
+			lbl = Gtk::manage(new Gtk::Label("Initial maxiter"));
+			lbl->set_tooltip_text("Iteration limit for the first pass");
+			f_init_maxiter->set_tooltip_text("Iteration limit for the first pass");
+			tbl->attach(*lbl, 0, 1, 0, 1);
+			tbl->attach(*f_init_maxiter, 1, 2, 0, 1);
+
+			lbl = Gtk::manage(new Gtk::Label("Minimum done %"));
+			lbl->set_tooltip_text("Percentage of pixels required to have escaped before a plot is considered finished");
+			f_min_done_pct->set_tooltip_text("Percentage of pixels required to have escaped before a plot is considered finished");
+			tbl->attach(*lbl, 0, 1, 1, 2);
+			tbl->attach(*f_min_done_pct, 1, 2, 1, 2);
+
+			lbl = Gtk::manage(new Gtk::Label("Live threshold"));
+			lbl->set_tooltip_text("The smallest number of pixels which may be escaping in order for a plot to be considered finished");
+			f_live_threshold->set_tooltip_text("The smallest number of pixels which may be escaping in order for a plot to be considered finished");
+			tbl->attach(*lbl, 0, 1, 2, 3);
+			tbl->attach(*f_live_threshold, 1, 2, 2, 3);
+
+			add(*tbl);
+		}
+
+		void prepare(Prefs& prefs) {
+			f_init_maxiter->update(prefs.initial_maxiter());
+			f_min_done_pct->update(prefs.min_escapee_pct());
+			f_live_threshold->update(prefs.plot_live_threshold_fract(),4);
+		}
+
+		void readout(Prefs& prefs) throw(Exception) {
+			unsigned tmpu;
+			int tmpi=0;
+
+			if (!f_init_maxiter->read(tmpi))
+				throw Exception("Sorry, I don't understand your initial maxiter");
+			if (tmpi < 2)
+				throw Exception("Initial maxiter must be at least 2");
+			tmpu = tmpi;
+			prefs.initial_maxiter(tmpu);
+
+			if (!f_min_done_pct->read(tmpi))
+				throw Exception("Sorry, I don't understand your Minimum done %");
+			if ((tmpi<1)||(tmpi>99))
+				throw Exception("Minimum done % must be from 1 to 99");
+			tmpu = tmpi;
+			prefs.min_escapee_pct(tmpu);
+
+			double tmpf;
+			if (!f_live_threshold->read(tmpf))
+				throw Exception("Sorry, I don't understand your Live threshold");
+			if ((tmpf<0.0)||(tmpf>1.0))
+				throw Exception("Live threshold must be between 0 and 1");
+			prefs.plot_live_threshold_fract(tmpf);
+		}
+	};
+};
+
 PrefsDialog::PrefsDialog(MainWindow *_mw) : Gtk::Dialog("Preferences", _mw, true),
 	mw(_mw)
 {
 	add_button(Gtk::Stock::CANCEL, Gtk::ResponseType::RESPONSE_CANCEL);
 	add_button(Gtk::Stock::OK, Gtk::ResponseType::RESPONSE_ACCEPT);
 
-	// This might conceivably become a multi-pane job later.
 	Gtk::Box* box = get_vbox();
-	Gtk::Label *lbl = Gtk::manage(new Gtk::Label("Foo!"));
-	box->pack_start(*lbl);
+	threshold = Gtk::manage(new PrefsDialogBits::ThresholdFrame());
+	box->pack_start(*threshold);
 }
 
 int PrefsDialog::run() {
+	Prefs& p = Prefs::getDefaultInstance();
+	threshold->prepare(p);
 	show_all();
 
 	bool error;
@@ -55,15 +128,19 @@ int PrefsDialog::run() {
 		result = Gtk::Dialog::run();
 
 		if (result == GTK_RESPONSE_ACCEPT) {
-			Prefs& p = Prefs::getDefaultInstance();
-			// Update p.
-			// Perform any sanity checks here.
+			try {
+				threshold->readout(p);
+			} catch (Exception e) {
+				Util::alert(mw, e.msg);
+				error = true;
+				continue;
+			}
 
 			if (error) {
-				Util::alert(mw, "Sorry, I could not parse that; care to try again?");
+				// Any other error cases?
 			} else {
 				p.commit();
-				// XXX: Poke things that might need to reread.
+				// Poke anything that might want to know.
 			}
 		}
 	} while (error && result == GTK_RESPONSE_ACCEPT);
