@@ -38,9 +38,9 @@ ParamsDialog::ParamsDialog(MainWindow *_mw) : Gtk::Dialog("Parameters", _mw, tru
 	Gtk::Box* box = get_vbox();
 	Gtk::Table *tbl = Gtk::manage(new Gtk::Table(3,2));
 
-	f_c_re = Gtk::manage(new Gtk::Entry());
-	f_c_im = Gtk::manage(new Gtk::Entry());
-	f_size_re = Gtk::manage(new Gtk::Entry());
+	f_c_re = Gtk::manage(new Util::HandyEntry<Fractal::Value>());
+	f_c_im = Gtk::manage(new Util::HandyEntry<Fractal::Value>());
+	f_size_re = Gtk::manage(new Util::HandyEntry<Fractal::Value>());
 
 	Gtk::Label* label;
 
@@ -63,29 +63,6 @@ ParamsDialog::ParamsDialog(MainWindow *_mw) : Gtk::Dialog("Parameters", _mw, tru
 	box->pack_start(*tbl);
 }
 
-static void update_entry_float(Gtk::Entry& entry, const Fractal::Value val, const int precision)
-{
-	std::ostringstream tmp;
-	tmp.precision(precision);
-	tmp << val;
-	entry.set_text(tmp.str().c_str());
-}
-
-static bool read_entry_float(const Gtk::Entry& entry, Fractal::Value& val_out)
-{
-	Glib::ustring raw = entry.get_text();
-	std::istringstream tmp(raw, std::istringstream::in);
-	// (LP#783087: Don't apply a precision limit to reading digits.)
-	Fractal::Value rv=0;
-
-	tmp >> rv;
-	if (tmp.fail())
-		return false;
-
-	val_out = rv;
-	return true;
-}
-
 int ParamsDialog::run() {
 	const Fractal::Point& ctr = mw->get_centre();
 	/* LP#783087:
@@ -97,9 +74,9 @@ int ParamsDialog::run() {
 	const int clampx = 1+ceill(0-log10(xpixsize)),
 			  clampy = 1+ceill(0-log10(ypixsize));
 
-	update_entry_float(*f_c_re, real(ctr), clampx);
-	update_entry_float(*f_c_im, imag(ctr), clampy);
-	update_entry_float(*f_size_re, real(mw->get_size()), AXIS_LENGTH_PRECISION);
+	f_c_re->update(real(ctr), clampx);
+	f_c_im->update(imag(ctr), clampy);
+	f_size_re->update(real(mw->get_size()), AXIS_LENGTH_PRECISION);
 	show_all();
 
 	bool error;
@@ -111,13 +88,13 @@ int ParamsDialog::run() {
 
 		if (result == GTK_RESPONSE_ACCEPT) {
 			Fractal::Value res=0;
-			if (read_entry_float(*f_c_re, res))
+			if (f_c_re->read(res))
 				new_ctr.real(res);
 			else error = true;
-			if (read_entry_float(*f_c_im, res))
+			if (f_c_im->read(res))
 				new_ctr.imag(res);
 			else error = true;
-			if (read_entry_float(*f_size_re, res))
+			if (f_size_re->read(res))
 				new_size.real(res);
 			else error = true;
 			// imaginary axis length is implicit.
