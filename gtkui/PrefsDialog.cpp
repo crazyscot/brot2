@@ -131,7 +131,7 @@ int PrefsDialog::run() {
 			try {
 				threshold->readout(p);
 			} catch (Exception e) {
-				Util::alert(mw, e.msg);
+				Util::alert(this, e.msg);
 				error = true;
 				continue;
 			}

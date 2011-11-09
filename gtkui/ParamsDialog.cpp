@@ -100,7 +100,7 @@ int ParamsDialog::run() {
 			// imaginary axis length is implicit.
 
 			if (error)
-				Util::alert(mw, "Sorry, I could not parse that; care to try again?");
+				Util::alert(this, "Sorry, I could not parse that; care to try again?");
 			else
 				mw->update_params(new_ctr, new_size);
 		}
