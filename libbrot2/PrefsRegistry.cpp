@@ -35,7 +35,18 @@ namespace BrotPrefs {
 		InitialMaxIter("Initial maxiter",
 				"First pass iteration limit (minimum 2)",
 				2, 256, INT_MAX,
-				GROUP_PLOT_CONTROL, "initial_maxiter")
+				GROUP_PLOT_CONTROL, "initial_maxiter"),
+		LiveThreshold("Live threshold",
+				"Minimal pixel escape rate in order to consider a plot "
+				"finished (0.0-1.0)",
+				0.0, 0.001, 1.0,
+				GROUP_PLOT_CONTROL, "live_threshold"),
+		MinEscapeePct("Minimum escapee %",
+				"Percentage of pixels required to have escaped before a plot "
+				"is considered finished",
+				0, 20, 100,
+				GROUP_PLOT_CONTROL, "minimum_done_percent")
+
 	{ }
 
 }; // namespace BrotPrefs

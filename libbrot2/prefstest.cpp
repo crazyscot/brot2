@@ -33,7 +33,7 @@ int main(void)
 		for (i=1; i<=ma.MAX; i++)
 			cout << "action "<<i<<" is " << (std::string) ma[i] << endl;
 
-		cout << "Initial maxiter is " << p.get(PREF(InitialMaxIter)) << ", live threshold proportion is " << p.plot_live_threshold_fract() << ", min escapee proportion is " << p.min_escapee_pct() << "%" << endl;
+		cout << "Initial maxiter is " << p.get(PREF(InitialMaxIter)) << ", live threshold proportion is " << p.get(PREF(LiveThreshold)) << ", min escapee proportion is " << p.get(PREF(MinEscapeePct)) << "%" << endl;
 	} catch (Exception e) {
 		cerr << "Error! " << e << endl;
 		return 1;

@@ -56,15 +56,15 @@ namespace PrefsDialogBits {
 			tbl->attach(*lbl, 0, 1, 0, 1);
 			tbl->attach(*f_init_maxiter, 1, 2, 0, 1);
 
-			lbl = Gtk::manage(new Gtk::Label("Minimum done %"));
-			lbl->set_tooltip_text("Percentage of pixels required to have escaped before a plot is considered finished");
-			f_min_done_pct->set_tooltip_text("Percentage of pixels required to have escaped before a plot is considered finished");
+			lbl = Gtk::manage(new Gtk::Label(PREFNAME(MinEscapeePct)));
+			lbl->set_tooltip_text(PREFDESC(MinEscapeePct));
+			f_min_done_pct->set_tooltip_text(PREFDESC(MinEscapeePct));
 			tbl->attach(*lbl, 0, 1, 1, 2);
 			tbl->attach(*f_min_done_pct, 1, 2, 1, 2);
 
-			lbl = Gtk::manage(new Gtk::Label("Live threshold"));
-			lbl->set_tooltip_text("The smallest number of pixels which may be escaping in order for a plot to be considered finished");
-			f_live_threshold->set_tooltip_text("The smallest number of pixels which may be escaping in order for a plot to be considered finished");
+			lbl = Gtk::manage(new Gtk::Label(PREFNAME(LiveThreshold)));
+			lbl->set_tooltip_text(PREFDESC(LiveThreshold));
+			f_live_threshold->set_tooltip_text(PREFDESC(LiveThreshold));
 			tbl->attach(*lbl, 0, 1, 2, 3);
 			tbl->attach(*f_live_threshold, 1, 2, 2, 3);
 
@@ -73,8 +73,8 @@ namespace PrefsDialogBits {
 
 		void prepare(Prefs& prefs) {
 			f_init_maxiter->update(prefs.get(PREF(InitialMaxIter)));
-			f_min_done_pct->update(prefs.min_escapee_pct());
-			f_live_threshold->update(prefs.plot_live_threshold_fract(),4);
+			f_min_done_pct->update(prefs.get(PREF(MinEscapeePct)));
+			f_live_threshold->update(prefs.get(PREF(LiveThreshold)), 4);
 		}
 
 		void readout(Prefs& prefs) throw(Exception) {
@@ -90,17 +90,17 @@ namespace PrefsDialogBits {
 
 			if (!f_min_done_pct->read(tmpi))
 				throw Exception("Sorry, I don't understand your Minimum done %");
-			if ((tmpi<1)||(tmpi>99))
+			if ((tmpi<PREF(MinEscapeePct)._min)||(tmpi>PREF(MinEscapeePct)._max))
 				throw Exception("Minimum done % must be from 1 to 99");
 			tmpu = tmpi;
-			prefs.min_escapee_pct(tmpu);
+			prefs.set(PREF(MinEscapeePct),tmpu);
 
 			double tmpf;
 			if (!f_live_threshold->read(tmpf))
 				throw Exception("Sorry, I don't understand your Live threshold");
-			if ((tmpf<0.0)||(tmpf>1.0))
+			if ((tmpf<PREF(LiveThreshold)._min)||(tmpf>PREF(LiveThreshold)._max))
 				throw Exception("Live threshold must be between 0 and 1");
-			prefs.plot_live_threshold_fract(tmpf);
+			prefs.set(PREF(LiveThreshold), tmpf);
 		}
 	};
 };

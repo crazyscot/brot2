@@ -212,8 +212,8 @@ void Plot2::prepare()
 	}
 
 	initial_maxiter = prefs.get(PREF(InitialMaxIter));
-	live_threshold = prefs.plot_live_threshold_fract();
-	minimum_escapee_percent = prefs.min_escapee_pct();
+	live_threshold = prefs.get(PREF(LiveThreshold));
+	minimum_escapee_percent = prefs.get(PREF(MinEscapeePct));
 }
 
 void Plot2::_per_plot_threadfunc()

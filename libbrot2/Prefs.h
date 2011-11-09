@@ -159,13 +159,10 @@ class Prefs {
 		virtual void showControls(const bool& b) = 0;
 
 		// LP#783034:
-		virtual double plot_live_threshold_fract() const = 0;
-		virtual void plot_live_threshold_fract(const double& f) = 0;
-		virtual unsigned min_escapee_pct() const = 0;
-		virtual void min_escapee_pct(const unsigned& i) = 0;
-
 		virtual int get(const BrotPrefs::Base<int>& B) const = 0;
 		virtual void set(const BrotPrefs::Base<int>& B, const int& newval) = 0;
+		virtual double get(const BrotPrefs::Base<double>& B) const = 0;
+		virtual void set(const BrotPrefs::Base<double>& B, const double& newval) = 0;
 };
 
 

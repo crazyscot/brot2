@@ -55,7 +55,8 @@ typedef Numeric<double> Float;
 
 struct Registry {
 	Int InitialMaxIter;
-	//static Float LiveThreshold;
+	Float LiveThreshold;
+	Int MinEscapeePct;
 
 	static const Registry& get();
 	private:
@@ -65,7 +66,7 @@ struct Registry {
 
 }; // namespace BrotPrefs
 
-// And a syntactic sugar macro...
+// And a set of syntactic sugar macros...
 #define PREF(_member) (BrotPrefs::Registry::get()._member)
 #define PREFNAME(_member) (PREF(_member)._name)
 #define PREFDESC(_member) (PREF(_member)._description)

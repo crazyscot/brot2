@@ -71,10 +71,12 @@ static void setup_options(Glib::OptionGroup& options)
 	OPTION('o', "output", "The filename to write to (or '-' for stdout)", filename);
 
 	OPTION('m', "max-passes", "Limits the number of passes of the plot", max_passes);
-	OPTION('I', "initial-maxiter", PREFDESC(InitialMaxIter),
-			init_maxiter);
-	OPTION('E', "minimum-escapee-percent", "Percentage of pixels required to have escaped before a plot is considered finished", min_escapee_pct);
-	OPTION('T', "live-threshold-proportion", "The smallest number of pixels which may be escaping in order for a plot to be considered finished", live_threshold_fract);
+	OPTION('I', "initial-maxiter",
+			PREFDESC(InitialMaxIter), init_maxiter);
+	OPTION('E', "minimum-escapee-percent",
+			PREFDESC(MinEscapeePct), min_escapee_pct);
+	OPTION('T', "live-threshold-proportion",
+			PREFDESC(LiveThreshold), live_threshold_fract);
 
 	OPTION('q', "quiet", "Inhibits progress reporting", quiet);
 	OPTION('a', "antialias", "Enables linear antialiasing", do_antialias);
@@ -208,19 +210,19 @@ int main (int argc, char**argv)
 		prefs.set(PREF(InitialMaxIter), init_maxiter);
 	}
 	if (min_escapee_pct!=-1) {
-		if ((min_escapee_pct<1) || (min_escapee_pct>99)) {
-			std::cerr << "Error: Minimum escapee percent (-E) must be from 1 to 99" << std::endl;
+		if ((min_escapee_pct<PREF(MinEscapeePct)._min) || (min_escapee_pct>PREF(MinEscapeePct)._max)) {
+			std::cerr << "Error: Minimum escapee percent (-E) must be from 0 to 100" << std::endl;
 			fail=true;
 		}
-		prefs.min_escapee_pct(min_escapee_pct);
+		prefs.set(PREF(MinEscapeePct), min_escapee_pct);
 	}
 	if (live_threshold_fract!=-1.0) {
-		if ((live_threshold_fract<0.0) || (live_threshold_fract>1.0)) {
+		if ((live_threshold_fract<PREF(LiveThreshold)._min) || (live_threshold_fract>PREF(LiveThreshold)._max)) {
 			std::cerr << "Error: Pixel escape maximum speed (-T) must be between 0.0 and 1.0" << std::endl;
 			fail=true;
 
 		}
-		prefs.plot_live_threshold_fract(live_threshold_fract);
+		prefs.set(PREF(LiveThreshold), live_threshold_fract);
 	}
 	if (fail) return 4;
 
