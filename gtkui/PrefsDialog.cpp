@@ -95,7 +95,7 @@ namespace PrefsDialogBits {
 			tmpu = tmpi;
 			prefs.set(PREF(MinEscapeePct),tmpu);
 
-			double tmpf;
+			double tmpf=0.0;
 			if (!f_live_threshold->read(tmpf))
 				throw Exception("Sorry, I don't understand your Live threshold");
 			if ((tmpf<PREF(LiveThreshold)._min)||(tmpf>PREF(LiveThreshold)._max))

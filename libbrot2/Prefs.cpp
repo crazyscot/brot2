@@ -236,12 +236,12 @@ class KeyfilePrefs : public Prefs {
 		}
 
 		// LP#783034:
-		virtual int get(const BrotPrefs::Base<int>& B) const;
-		virtual void set(const BrotPrefs::Base<int>& B, const int& newval);
-		virtual double get(const BrotPrefs::Base<double>& B) const;
-		virtual void set(const BrotPrefs::Base<double>& B, const double& newval);
+		virtual int get(const BrotPrefs::Numeric<int>& B) const;
+		virtual void set(const BrotPrefs::Numeric<int>& B, int newval);
+		virtual double get(const BrotPrefs::Numeric<double>& B) const;
+		virtual void set(const BrotPrefs::Numeric<double>& B, double newval);
 		virtual bool get(const BrotPrefs::Base<bool>& B) const;
-		virtual void set(const BrotPrefs::Base<bool>& B, const bool& newval);
+		virtual void set(const BrotPrefs::Base<bool>& B, const bool newval);
 
 		template<typename T> void ensure(const BrotPrefs::Base<T>& B) {
 			try {
@@ -250,26 +250,47 @@ class KeyfilePrefs : public Prefs {
 				set(B, B._default);
 			}
 		}
+		template<typename T> void ensure(const BrotPrefs::Numeric<T>& B) {
+			try {
+				(void)get(B);
+			} catch (Glib::KeyFileError e) {
+				set(B, B._default);
+			}
+		}
 };
 
-int KeyfilePrefs::get(const BrotPrefs::Base<int>& B) const {
-	return kf.get_integer(B._group, B._key);
+int KeyfilePrefs::get(const BrotPrefs::Numeric<int>& B) const {
+	int rv = kf.get_integer(B._group, B._key);
+	if ((rv < B._min) || (rv > B._max))
+		rv = B._default;
+	return rv;
 }
-void KeyfilePrefs::set(const BrotPrefs::Base<int>& B, const int& newval) {
+void KeyfilePrefs::set(const BrotPrefs::Numeric<int>& B, int newval) {
+	if ((newval < B._min) || (newval > B._max)) {
+		assert(false);
+		newval = B._default;
+	}
 	kf.set_integer(B._group, B._key, newval);
 }
 
-double KeyfilePrefs::get(const BrotPrefs::Base<double>& B) const {
-	return kf.get_double(B._group, B._key);
+double KeyfilePrefs::get(const BrotPrefs::Numeric<double>& B) const {
+	double rv = kf.get_double(B._group, B._key);
+	if ((rv < B._min) || (rv > B._max))
+		rv = B._default;
+	return rv;
 }
-void KeyfilePrefs::set(const BrotPrefs::Base<double>& B, const double& newval) {
+void KeyfilePrefs::set(const BrotPrefs::Numeric<double>& B, double newval) {
+	if ((newval < B._min) || (newval > B._max)) {
+		assert(false);
+		newval = B._default;
+	}
 	kf.set_double(B._group, B._key, newval);
 }
 
 bool KeyfilePrefs::get(const BrotPrefs::Base<bool>& B) const {
 	return kf.get_boolean(B._group, B._key);
 }
-void KeyfilePrefs::set(const BrotPrefs::Base<bool>& B, const bool& newval) {
+void KeyfilePrefs::set(const BrotPrefs::Base<bool>& B, const bool newval) {
 	kf.set_boolean(B._group, B._key, newval);
 }
 
