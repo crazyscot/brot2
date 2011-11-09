@@ -211,7 +211,7 @@ void Plot2::prepare()
 		render_point += rowstep;
 	}
 
-	initial_maxiter = prefs.initial_maxiter();
+	initial_maxiter = prefs.get(PREF(InitialMaxIter));
 	live_threshold = prefs.plot_live_threshold_fract();
 	minimum_escapee_percent = prefs.min_escapee_pct();
 }

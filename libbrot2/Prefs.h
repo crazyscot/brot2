@@ -22,6 +22,7 @@
 #include <string>
 #include <assert.h>
 #include <Exception.h>
+#include "PrefsRegistry.h"
 
 // Second-order macro to easily define our constants and have their strings to hand.
 // ACTION macro takes three args: symbolic constant, numeric constant, friendly string.
@@ -110,6 +111,9 @@ typedef ActionsList<1,8> MouseActions;
 // Scroll actions:  GDK_SCROLL_{UP,DOWN,LEFT,RIGHT}
 typedef ActionsList<0,3> ScrollActions;
 
+///////////////////////////////////////////////////////////
+// Putting it all together ...
+
 class Prefs {
 	/* This class represents the entire set of preferences that we're
 	 * interested in. Implicitly it is connected to a backing store
@@ -155,12 +159,13 @@ class Prefs {
 		virtual void showControls(const bool& b) = 0;
 
 		// LP#783034:
-		virtual unsigned initial_maxiter() const = 0;
-		virtual void initial_maxiter(const unsigned& i) = 0;
 		virtual double plot_live_threshold_fract() const = 0;
 		virtual void plot_live_threshold_fract(const double& f) = 0;
 		virtual unsigned min_escapee_pct() const = 0;
 		virtual void min_escapee_pct(const unsigned& i) = 0;
+
+		virtual int get(const BrotPrefs::Base<int>& B) const = 0;
+		virtual void set(const BrotPrefs::Base<int>& B, const int& newval) = 0;
 };
 
 

@@ -293,7 +293,18 @@ class KeyfilePrefs : public Prefs {
 		virtual void min_escapee_pct(const unsigned& i) {
 			kf.set_integer(GROUP_PLOT_CONTROL, KEY_MIN_ESCAPEE_PCT, i);
 		}
+
+		virtual int get(const BrotPrefs::Base<int>& B) const;
+		virtual void set(const BrotPrefs::Base<int>& B, const int& newval);
 };
+
+int KeyfilePrefs::get(const BrotPrefs::Base<int>& B) const {
+	return kf.get_integer(B._group, B._key);
+}
+void KeyfilePrefs::set(const BrotPrefs::Base<int>& B, const int& newval) {
+	kf.set_integer(B._group, B._key, newval);
+}
+
 
 namespace {
 	KeyfilePrefs *gtkPrefs = 0;

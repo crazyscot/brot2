@@ -35,6 +35,7 @@ const char *copyright_string = "(c) 2010-2011 Ross Younger";
 #include "reporter.h"
 #include "Render.h"
 #include "Prefs.h"
+#include "PrefsRegistry.h"
 
 static bool do_version, do_list_fractals, do_list_palettes, quiet, do_antialias, do_info;
 static Glib::ustring c_re_x, c_im_y, length_x;
@@ -70,7 +71,8 @@ static void setup_options(Glib::OptionGroup& options)
 	OPTION('o', "output", "The filename to write to (or '-' for stdout)", filename);
 
 	OPTION('m', "max-passes", "Limits the number of passes of the plot", max_passes);
-	OPTION('I', "initial-maxiter", "First pass iteration limit", init_maxiter);
+	OPTION('I', "initial-maxiter", PREFDESC(InitialMaxIter),
+			init_maxiter);
 	OPTION('E', "minimum-escapee-percent", "Percentage of pixels required to have escaped before a plot is considered finished", min_escapee_pct);
 	OPTION('T', "live-threshold-proportion", "The smallest number of pixels which may be escaping in order for a plot to be considered finished", live_threshold_fract);
 
@@ -199,11 +201,11 @@ int main (int argc, char**argv)
 	Prefs& prefs = Prefs::getDefaultInstance();
 
 	if (init_maxiter !=-1) {
-		if (init_maxiter < 2) {
+		if (init_maxiter < PREF(InitialMaxIter)._min) {
 			std::cerr << "Error: First pass maxiter (-I) must be at least 2" << std::endl;
 			fail=true;
 		}
-		prefs.initial_maxiter(init_maxiter);
+		prefs.set(PREF(InitialMaxIter), init_maxiter);
 	}
 	if (min_escapee_pct!=-1) {
 		if ((min_escapee_pct<1) || (min_escapee_pct>99)) {

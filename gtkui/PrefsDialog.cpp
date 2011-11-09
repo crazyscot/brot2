@@ -50,9 +50,9 @@ namespace PrefsDialogBits {
 			Gtk::Table *tbl = Gtk::manage(new Gtk::Table(3, 2, false));
 			Gtk::Label *lbl;
 
-			lbl = Gtk::manage(new Gtk::Label("Initial maxiter"));
-			lbl->set_tooltip_text("Iteration limit for the first pass");
-			f_init_maxiter->set_tooltip_text("Iteration limit for the first pass");
+			lbl = Gtk::manage(new Gtk::Label(PREFNAME(InitialMaxIter)));
+			lbl->set_tooltip_text(PREFDESC(InitialMaxIter));
+			f_init_maxiter->set_tooltip_text(PREFDESC(InitialMaxIter));
 			tbl->attach(*lbl, 0, 1, 0, 1);
 			tbl->attach(*f_init_maxiter, 1, 2, 0, 1);
 
@@ -72,7 +72,7 @@ namespace PrefsDialogBits {
 		}
 
 		void prepare(Prefs& prefs) {
-			f_init_maxiter->update(prefs.initial_maxiter());
+			f_init_maxiter->update(prefs.get(PREF(InitialMaxIter)));
 			f_min_done_pct->update(prefs.min_escapee_pct());
 			f_live_threshold->update(prefs.plot_live_threshold_fract(),4);
 		}
@@ -83,10 +83,10 @@ namespace PrefsDialogBits {
 
 			if (!f_init_maxiter->read(tmpi))
 				throw Exception("Sorry, I don't understand your initial maxiter");
-			if (tmpi < 2)
+			if ((tmpi < PREF(InitialMaxIter)._min) || (tmpi > PREF(InitialMaxIter)._max))
 				throw Exception("Initial maxiter must be at least 2");
 			tmpu = tmpi;
-			prefs.initial_maxiter(tmpu);
+			prefs.set(PREF(InitialMaxIter), tmpu);
 
 			if (!f_min_done_pct->read(tmpi))
 				throw Exception("Sorry, I don't understand your Minimum done %");

@@ -9,7 +9,7 @@ libbrot2_a_SOURCES= \
 					Mandeldrop.cpp \
 					Misc.cpp \
 					Render.h Render.cpp \
-					Prefs.h Prefs.cpp
+					Prefs.h Prefs.cpp PrefsRegistry.h PrefsRegistry.cpp
 
 noinst_PROGRAMS=prefstest
 prefstest_SOURCES= prefstest.cpp
