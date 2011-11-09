@@ -75,7 +75,7 @@ MainWindow::MainWindow() : Gtk::Window(),
 	// render_ctx.fractal set by setup_fractal_menu().
 
 	initializing = false;
-	menubar->optionsMenu->set_controls_status( Prefs::getDefaultInstance().showControls() );
+	menubar->optionsMenu->set_controls_status( Prefs::getDefaultInstance().get(PREF(ShowControls)) );
 }
 
 MainWindow::~MainWindow() {

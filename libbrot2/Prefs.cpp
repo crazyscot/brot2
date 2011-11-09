@@ -37,10 +37,6 @@ class KeyfilePrefs;
 #define GROUP_MOUSE "mouse_actions"
 #define GROUP_SCROLL "scroll_actions"
 
-#define GROUP_UI "ui"
-#define KEY_CONTROLS "show_controls"
-#define DEFAULT_CONTROLS true
-
 template<>
 void MouseActions::set_to_default() {
 	a[1] = Action::RECENTRE;
@@ -113,11 +109,7 @@ class KeyfilePrefs : public Prefs {
 			reread_mouse_actions();
 			reread_scroll_actions();
 
-			try {
-				(void)kf.get_boolean(GROUP_UI, KEY_CONTROLS);
-			} catch (Glib::KeyFileError e) {
-				showControls(DEFAULT_CONTROLS);
-			}
+			ensure(PREF(ShowControls));
 			ensure(PREF(InitialMaxIter));
 			ensure(PREF(LiveThreshold));
 			ensure(PREF(MinEscapeePct));
@@ -243,22 +235,14 @@ class KeyfilePrefs : public Prefs {
 			scroll_cache=rv;
 		}
 
-		virtual bool showControls() const {
-			try {
-				return kf.get_boolean(GROUP_UI, KEY_CONTROLS);
-			} catch (Glib::KeyFileError e) {
-				return DEFAULT_CONTROLS;
-			}
-		}
-		virtual void showControls(const bool& b) {
-			kf.set_boolean(GROUP_UI, KEY_CONTROLS, b);
-		}
-
 		// LP#783034:
 		virtual int get(const BrotPrefs::Base<int>& B) const;
 		virtual void set(const BrotPrefs::Base<int>& B, const int& newval);
 		virtual double get(const BrotPrefs::Base<double>& B) const;
 		virtual void set(const BrotPrefs::Base<double>& B, const double& newval);
+		virtual bool get(const BrotPrefs::Base<bool>& B) const;
+		virtual void set(const BrotPrefs::Base<bool>& B, const bool& newval);
+
 		template<typename T> void ensure(const BrotPrefs::Base<T>& B) {
 			try {
 				(void)get(B);
@@ -280,6 +264,13 @@ double KeyfilePrefs::get(const BrotPrefs::Base<double>& B) const {
 }
 void KeyfilePrefs::set(const BrotPrefs::Base<double>& B, const double& newval) {
 	kf.set_double(B._group, B._key, newval);
+}
+
+bool KeyfilePrefs::get(const BrotPrefs::Base<bool>& B) const {
+	return kf.get_boolean(B._group, B._key);
+}
+void KeyfilePrefs::set(const BrotPrefs::Base<bool>& B, const bool& newval) {
+	kf.set_boolean(B._group, B._key, newval);
 }
 
 namespace {

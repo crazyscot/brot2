@@ -20,6 +20,7 @@
 #include "PrefsRegistry.h"
 
 static std::string GROUP_PLOT_CONTROL = "plot_control";
+static std::string GROUP_UI = "ui";
 
 namespace BrotPrefs {
 
@@ -32,6 +33,10 @@ namespace BrotPrefs {
 	}
 
 	Registry::Registry() :
+		ShowControls("Show controls window",
+				"Shows the controls window", // sigh
+				true, GROUP_UI, "show_controls"),
+
 		InitialMaxIter("Initial maxiter",
 				"First pass iteration limit (minimum 2)",
 				2, 256, INT_MAX,

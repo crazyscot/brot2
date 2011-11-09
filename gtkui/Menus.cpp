@@ -219,7 +219,7 @@ public:
 		bool state = showControls.get_active();
 		assert(mw);
 		Prefs& p = mw->prefs();
-		p.showControls(state);
+		p.set(PREF(ShowControls),state);
 		p.commit();
 		if (state)
 			mw->controlsWindow().show();

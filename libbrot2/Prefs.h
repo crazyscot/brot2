@@ -155,14 +155,13 @@ class Prefs {
 		virtual const ScrollActions& scrollActions() const = 0;
 		virtual void scrollActions(const ScrollActions& scroll) = 0;
 
-		virtual bool showControls() const = 0;
-		virtual void showControls(const bool& b) = 0;
-
 		// LP#783034:
 		virtual int get(const BrotPrefs::Base<int>& B) const = 0;
 		virtual void set(const BrotPrefs::Base<int>& B, const int& newval) = 0;
 		virtual double get(const BrotPrefs::Base<double>& B) const = 0;
 		virtual void set(const BrotPrefs::Base<double>& B, const double& newval) = 0;
+		virtual bool get(const BrotPrefs::Base<bool>& B) const = 0;
+		virtual void set(const BrotPrefs::Base<bool>& B, const bool& newval) = 0;
 };
 
 

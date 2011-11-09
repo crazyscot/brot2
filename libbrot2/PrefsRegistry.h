@@ -54,6 +54,8 @@ typedef Numeric<double> Float;
 //typedef Base<bool> Bool; // not legal C++, alas
 
 struct Registry {
+	Base<bool> ShowControls;
+
 	Int InitialMaxIter;
 	Float LiveThreshold;
 	Int MinEscapeePct;
