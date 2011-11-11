@@ -145,7 +145,7 @@ public:
 		MainWindow *mw = find_main(this);
 		ParamsDialog params(mw);
 		int rv = params.run();
-		if (rv == Gtk::ResponseType::RESPONSE_ACCEPT)
+		if (rv == Gtk::ResponseType::RESPONSE_OK)
 			mw->do_plot();
 	}
 	void do_zoom(MainWindow::Zoom z) {

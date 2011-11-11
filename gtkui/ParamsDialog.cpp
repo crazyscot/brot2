@@ -33,14 +33,17 @@ ParamsDialog::ParamsDialog(MainWindow *_mw) : Gtk::Dialog("Parameters", _mw, tru
 	mw(_mw)
 {
 	add_button(Gtk::Stock::CANCEL, Gtk::ResponseType::RESPONSE_CANCEL);
-	add_button(Gtk::Stock::OK, Gtk::ResponseType::RESPONSE_ACCEPT);
+	add_button(Gtk::Stock::OK, Gtk::ResponseType::RESPONSE_OK);
 
 	Gtk::Box* box = get_vbox();
 	Gtk::Table *tbl = Gtk::manage(new Gtk::Table(3,2));
 
 	f_c_re = Gtk::manage(new Gtk::Entry());
+	f_c_re->set_activates_default(true);
 	f_c_im = Gtk::manage(new Gtk::Entry());
+	f_c_im->set_activates_default(true);
 	f_size_re = Gtk::manage(new Gtk::Entry());
+	f_size_re->set_activates_default(true);
 
 	Gtk::Label* label;
 
@@ -61,6 +64,7 @@ ParamsDialog::ParamsDialog(MainWindow *_mw) : Gtk::Dialog("Parameters", _mw, tru
 	// Don't bother with imaginary axis length, it's implicit from the aspect ratio.
 
 	box->pack_start(*tbl);
+	set_default_response(Gtk::ResponseType::RESPONSE_OK);
 }
 
 static void update_entry_float(Gtk::Entry& entry, const Fractal::Value val, const int precision)
@@ -109,7 +113,7 @@ int ParamsDialog::run() {
 		result = Gtk::Dialog::run();
 		Fractal::Point new_ctr, new_size;
 
-		if (result == GTK_RESPONSE_ACCEPT) {
+		if (result == Gtk::ResponseType::RESPONSE_OK) {
 			Fractal::Value res=0;
 			if (read_entry_float(*f_c_re, res))
 				new_ctr.real(res);
@@ -127,7 +131,7 @@ int ParamsDialog::run() {
 			else
 				mw->update_params(new_ctr, new_size);
 		}
-	} while (error && result == GTK_RESPONSE_ACCEPT);
+	} while (error && result == Gtk::ResponseType::RESPONSE_OK);
 
 	return result;
 }
