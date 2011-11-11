@@ -62,7 +62,7 @@ struct Registry {
 
 	static const Registry& get();
 	private:
-		static Registry *_instance;
+		static Registry _instance;
 		Registry();
 };
 

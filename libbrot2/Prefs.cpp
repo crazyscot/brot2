@@ -58,6 +58,8 @@ void ScrollActions::set_to_default() {
 }
 
 class KeyfilePrefs : public Prefs {
+	friend class Prefs;
+
 	private:
 		// Don't forget to add any new fields to the copy constructor if appropriate!
 		Glib::KeyFile kf;
@@ -67,6 +69,8 @@ class KeyfilePrefs : public Prefs {
 		KeyfilePrefs* _parent; // NULL if this is the master instance
 
 		static int _childCount; // number of working copies
+
+		static KeyfilePrefs _MASTER;
 
 	private:
 		KeyfilePrefs(const KeyfilePrefs& src, KeyfilePrefs* parent) : _parent(parent) {
@@ -324,15 +328,11 @@ void KeyfilePrefs::set(const BrotPrefs::Base<bool>& B, const bool newval) {
 	kf.set_boolean(B._group, B._key, newval);
 }
 
-namespace {
-	KeyfilePrefs *gtkPrefs = 0;
-};
+KeyfilePrefs KeyfilePrefs::_MASTER;
 
 // Default accessor, singleton-like.
 const Prefs& Prefs::getMaster() throw(Exception) {
-	if (gtkPrefs == NULL)
-		gtkPrefs = new KeyfilePrefs();
-	return *gtkPrefs;
+	return KeyfilePrefs::_MASTER;
 }
 
 std::unique_ptr<Prefs> KeyfilePrefs::getWorkingCopy() const throw(Exception) {

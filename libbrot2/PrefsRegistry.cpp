@@ -24,12 +24,10 @@ static std::string GROUP_UI = "ui";
 
 namespace BrotPrefs {
 
-	Registry * Registry::_instance;
+	Registry Registry::_instance;
 
 	const Registry& Registry::get() {
-		if (!_instance)
-			_instance = new Registry();
-		return *_instance;
+		return _instance;
 	}
 
 	Registry::Registry() :
