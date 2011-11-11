@@ -21,6 +21,7 @@
 #include <stdlib.h>
 #include "Render.h"
 #include "Plot2.h"
+#include "Exception.h"
 
 /*
  * The actual work of turning an array of fractal_points - maybe an antialiased
@@ -91,7 +92,7 @@ bool Render::render_generic(unsigned char *buf, const int rowstride, const int l
 					break;
 
 				default:
-					abort();
+					THROW(Exception,"Unhandled pixpack format "+(int)fmt);
 			}
 			for (unsigned k=0; k < factor; k++) {
 				srcs[k] += factor;

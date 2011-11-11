@@ -120,7 +120,7 @@ class KeyfilePrefs : public Prefs {
 					case Glib::FileError::Code::NO_SUCH_ENTITY:
 						break; // ignore, use defaults only
 					default:
-						throw Exception("reading prefs from " + fn + ": " + e.what());
+						THROW(Exception,"reading prefs from " + fn + ": " + e.what());
 				}
 			} catch (Glib::KeyFileError e) {
 				switch (e.code()) {
@@ -129,7 +129,7 @@ class KeyfilePrefs : public Prefs {
 						std::cerr << "Warning: KeyFileError reading prefs from " + fn + ": " + e.what()+": will overwrite when saving" << std::endl;
 						break;
 					default:
-						throw Exception("KeyFileError reading prefs from " + fn + ": " + e.what());
+						THROW(Exception,"KeyFileError reading prefs from " + fn + ": " + e.what());
 				}
 			}
 
@@ -147,7 +147,7 @@ class KeyfilePrefs : public Prefs {
 			// This is sneaky... We write to the backing store, and
 			// prod the parent to reread.
 			if (!_parent)
-				throw Assert("commit called on unparented KeyFilePrefs");
+				THROW(Assert,"commit called on unparented KeyFilePrefs");
 			int rv;
 			std::string fn = filename(true); // write to foo.tmp
 			std::ofstream f;
@@ -158,7 +158,7 @@ class KeyfilePrefs : public Prefs {
 					case ENOENT: 
 						break; //ignore
 					default:
-						throw Exception("Could not unlink " + fn + ": " + strerror(errno));
+						THROW(Exception,"Could not unlink " + fn + ": " + strerror(errno));
 				}
 			}
 			kf.set_comment("written by brot2");
@@ -199,7 +199,7 @@ class KeyfilePrefs : public Prefs {
 			std::string newfn = filename();
 			rv = rename(fn.c_str(), newfn.c_str());
 			if (rv==-1) {
-				throw Exception("Could not rename " + fn + " to " + newfn + ": " + strerror(errno));
+				THROW(Exception,"Could not rename " + fn + " to " + newfn + ": " + strerror(errno));
 			}
 
 			_parent->reread();
@@ -303,7 +303,7 @@ int KeyfilePrefs::get(const BrotPrefs::Numeric<int>& B) const {
 }
 void KeyfilePrefs::set(const BrotPrefs::Numeric<int>& B, int newval) {
 	if ((newval < B._min) || (newval > B._max)) {
-		throw Exception("Pref set out of range");
+		THROW(Exception,"Pref set out of range");
 	}
 	kf.set_integer(B._group, B._key, newval);
 }
@@ -316,7 +316,7 @@ double KeyfilePrefs::get(const BrotPrefs::Numeric<double>& B) const {
 }
 void KeyfilePrefs::set(const BrotPrefs::Numeric<double>& B, double newval) {
 	if ((newval < B._min) || (newval > B._max)) {
-		throw Exception("Pref set out of range");
+		THROW(Exception,"Pref set out of range");
 	}
 	kf.set_double(B._group, B._key, newval);
 }
@@ -337,9 +337,9 @@ const Prefs& Prefs::getMaster() throw(Exception) {
 
 std::unique_ptr<Prefs> KeyfilePrefs::getWorkingCopy() const throw(Exception) {
 	if (_parent != NULL)
-		throw Exception("Prefs: Cannot make a working copy of a working copy!");
+		THROW(Exception,"Prefs: Cannot make a working copy of a working copy!");
 	if (_childCount)
-		throw Exception("Prefs: cannot make a working copy when there's one outstanding");
+		THROW(Exception,"Prefs: cannot make a working copy when there's one outstanding");
 
 	Prefs *rv = new KeyfilePrefs(*this, const_cast<KeyfilePrefs*>(this));
 	std::unique_ptr<Prefs> prv(rv);

@@ -21,21 +21,39 @@
 
 #include <string>
 #include <iostream>
+#include <sstream>
 
 struct Exception {
 	const std::string msg;
+	const std::string file;
+	const int line;
 
-	Exception(const std::string m) : msg(m) { }
-	virtual operator const std::string&() const { return msg; }
+	Exception(const std::string& m) : msg(m), file(""), line(-1) { }
+	Exception(const std::string& m, const std::string& f, int l) : msg(m), file(f), line(l) { }
+	virtual std::string detail() const {
+		std::stringstream str;
+		str << msg;
+		if (file.length())
+			str << " at " << file << " line " << line;
+		else
+			str << " (unknown location)";
+		return str.str();
+	}
+	virtual operator const std::string() const {
+		return detail();
+	}
 };
 
 struct Assert : Exception {
-	Assert(const std::string m) : Exception(m) { }
+	Assert(const std::string& m) : Exception(m) { }
+	Assert(const std::string& m, const std::string& f, int l) : Exception(m,f,l) { }
 };
 
 inline std::ostream& operator<< (std::ostream& out, Exception val) {
-	out << val.msg;
+	out << val.detail();
 	return out;
 }
+
+#define THROW(type,msg) do { throw type(msg,__FILE__,__LINE__); } while(0)
 
 #endif /* EXCEPTION_H_ */

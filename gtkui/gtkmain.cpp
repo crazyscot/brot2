@@ -31,7 +31,7 @@ const char *copyright_string = "(c) 2010-2011 Ross Younger";
 
 static bool do_version;
 
-int main (int argc, char**argv)
+static int realmain(int argc, char**argv)
 {
 	XInitThreads();
 	Glib::thread_init();
@@ -72,4 +72,13 @@ int main (int argc, char**argv)
 
 	delete mainwind;
 	return 0;
+}
+
+int main (int argc, char**argv)
+{
+	try {
+		realmain(argc,argv);
+	} catch (Exception e) {
+		std::cerr << "Died from an uncaught exception. This shouldn't happen. Please debug. Message follows." << std::endl << e.msg << std::endl;
+	}
 }

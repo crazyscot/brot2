@@ -73,7 +73,7 @@ struct Action {
 
 	inline void operator=(int newval) throw(Exception) {
 		if ((newval < MIN) || (newval > MAX) )
-			throw Exception("Illegal enum value");
+			THROW(Exception,"Illegal enum value");
 		value = newval;
 	}
 	inline operator int() const { return value; }
@@ -81,7 +81,7 @@ struct Action {
 
 	inline void operator=(std::string newname) throw(Exception) {
 		int newval = lookup(newname);
-		if (newval==-1) throw Exception("Unrecognised enum string");
+		if (newval==-1) THROW(Exception,"Unrecognised enum string");
 		value = newval;
 	}
 

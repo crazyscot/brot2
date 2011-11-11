@@ -277,10 +277,8 @@ public:
 		}
 	}
 
-		if (!Fractal::FractalCommon::registry.get(initial)) {
-			std::cerr << "FATAL: Initial fractal selection " << initial << " not found. Link error?" << std::endl;
-			abort();
-		}
+		if (!Fractal::FractalCommon::registry.get(initial))
+			THROW(Exception,"FATAL: Initial fractal selection " + initial + " not found. Link error?");
 		selection1(initial);
 	}
 	void selection(Gtk::RadioMenuItem *item) {
@@ -346,10 +344,8 @@ public:
 						item));
 		}
 
-		if (!got_init) {
-			std::cerr << "FATAL: Initial palette selection " << initial << " not found. Link error?" << std::endl;
-			abort();
-		}
+		if (!got_init)
+			THROW(Exception,"FATAL: Initial palette selection " + initial + " not found. Link error?");
 		selection1(initial);
 	}
 	void selection(Gtk::RadioMenuItem *item) {
