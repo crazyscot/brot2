@@ -241,12 +241,31 @@ public:
 
 class FractalMenu : public Gtk::Menu {
 	MainWindow* _parent;
+	std::list<Gtk::RadioMenuItem*> all; // for prev/next handling
 public:
 	FractalMenu(MainWindow& parent, std::string& initial) {
 		Fractal::FractalCommon::load_base();
-
 		_parent = &parent;
+
+		Glib::RefPtr<Gtk::AccelGroup> ag = Gtk::AccelGroup::create();
+		set_accel_group(ag);
+		parent.add_accel_group(ag);
+
 		Gtk::RadioButtonGroup group;
+		Gtk::MenuItem *i1;
+
+		i1 = new Gtk::MenuItem("Previous");
+		append(*manage(i1));
+		i1->signal_activate().connect(sigc::mem_fun(*this, &FractalMenu::do_previous));
+		i1->add_accelerator("activate", ag, GDK_3, Gdk::ModifierType::CONTROL_MASK, Gtk::ACCEL_VISIBLE);
+
+		i1 = new Gtk::MenuItem("Next");
+		append(*manage(i1));
+		i1->signal_activate().connect(sigc::mem_fun(*this, &FractalMenu::do_next));
+		i1->add_accelerator("activate", ag, GDK_4, Gdk::ModifierType::CONTROL_MASK, Gtk::ACCEL_VISIBLE);
+
+		i1 = new Gtk::SeparatorMenuItem();
+		append(*manage(i1));
 
 		std::set<std::string> fractals = Fractal::FractalCommon::registry.names();
 		std::set<std::string>::iterator it;
@@ -264,8 +283,9 @@ public:
 				if (f->sortorder != sortpass)
 					continue;
 
-				Gtk::RadioMenuItem *item = new Gtk::RadioMenuItem(group, it->c_str());
+				Gtk::RadioMenuItem* item = new Gtk::RadioMenuItem(group, it->c_str());
 				append(*manage(item));
+				all.push_back(item);
 
 				if (0==strcmp(initial.c_str(),f->name.c_str())) {
 					item->set_active(true);
@@ -292,17 +312,58 @@ public:
 			_parent->do_plot(false);
 		}
 	}
+
+	void do_next() {
+		std::list<Gtk::RadioMenuItem*>::iterator it;
+		for (it = all.begin(); it != all.end(); it++) {
+			if ((*it)->get_active()) break;
+		}
+		// So now it points to the CURRENT active item.
+		it++;
+		if (it == all.end())
+			it = all.begin();
+		(*it)->set_active(true);
+	}
+	void do_previous() {
+		std::list<Gtk::RadioMenuItem*>::iterator it;
+		for (it = all.begin(); it != all.end(); it++) {
+			if ((*it)->get_active()) break;
+		}
+		// So now it points to the CURRENT active item.
+		if (it == all.begin())
+			it = all.end();
+		it--;
+		(*it)->set_active(true);
+	}
 };
 
 class ColourMenu : public Gtk::Menu {
 	MainWindow* _parent;
+	std::list<Gtk::RadioMenuItem*> all; // for prev/next handling
 public:
 	ColourMenu(MainWindow& parent, std::string& initial) {
+		Glib::RefPtr<Gtk::AccelGroup> ag = Gtk::AccelGroup::create();
+		set_accel_group(ag);
+		parent.add_accel_group(ag);
+
 		_parent = &parent;
 		Gtk::RadioButtonGroup group;
 		bool got_init = false;
+		Gtk::MenuItem *i1;
 
-		Gtk::MenuItem *i1 = new Gtk::MenuItem("Discrete");
+		i1 = new Gtk::MenuItem("Previous");
+		append(*manage(i1));
+		i1->signal_activate().connect(sigc::mem_fun(*this, &ColourMenu::do_previous));
+		i1->add_accelerator("activate", ag, GDK_1, Gdk::ModifierType::CONTROL_MASK, Gtk::ACCEL_VISIBLE);
+
+		i1 = new Gtk::MenuItem("Next");
+		append(*manage(i1));
+		i1->signal_activate().connect(sigc::mem_fun(*this, &ColourMenu::do_next));
+		i1->add_accelerator("activate", ag, GDK_2, Gdk::ModifierType::CONTROL_MASK, Gtk::ACCEL_VISIBLE);
+
+		i1 = new Gtk::SeparatorMenuItem();
+		append(*manage(i1));
+		i1 = new Gtk::MenuItem("Discrete");
 		i1->set_sensitive(false);
 		append(*manage(i1));
 
@@ -312,6 +373,7 @@ public:
 		for (it = discretes.begin(); it != discretes.end(); it++) {
 			Gtk::RadioMenuItem *item = new Gtk::RadioMenuItem(group, it->c_str());
 			append(*manage(item));
+			all.push_back(item);
 
 			if (0==strcmp(initial.c_str(),it->c_str())) {
 				item->set_active(true);
@@ -323,7 +385,7 @@ public:
 						item));
 		}
 
-		i1 = new Gtk::MenuItem();
+		i1 = new Gtk::SeparatorMenuItem();
 		append(*manage(i1));
 		i1 = new Gtk::MenuItem("Smooth");
 		i1->set_sensitive(false);
@@ -334,6 +396,7 @@ public:
 		for (it = smooths.begin(); it != smooths.end(); it++) {
 			Gtk::RadioMenuItem *item = new Gtk::RadioMenuItem(group, it->c_str());
 			append(*manage(item));
+			all.push_back(item);
 
 			if (0==strcmp(initial.c_str(),it->c_str())) {
 				item->set_active(true);
@@ -360,6 +423,28 @@ public:
 			_parent->pal=sel;
 			_parent->recolour();
 		}
+	}
+	void do_next() {
+		std::list<Gtk::RadioMenuItem*>::iterator it;
+		for (it = all.begin(); it != all.end(); it++) {
+			if ((*it)->get_active()) break;
+		}
+		// So now it points to the CURRENT active item.
+		it++;
+		if (it == all.end())
+			it = all.begin();
+		(*it)->set_active(true);
+	}
+	void do_previous() {
+		std::list<Gtk::RadioMenuItem*>::iterator it;
+		for (it = all.begin(); it != all.end(); it++) {
+			if ((*it)->get_active()) break;
+		}
+		// So now it points to the CURRENT active item.
+		if (it == all.begin())
+			it = all.end();
+		it--;
+		(*it)->set_active(true);
 	}
 };
 

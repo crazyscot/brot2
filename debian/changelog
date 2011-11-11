@@ -15,8 +15,10 @@ brot2 (0.9~unreleased) oneiric; urgency=low
   * Create persistent Prefs mechanism.
   * LP#783074: Make the hard-wired plot-end settings preferences, editable
   and persistent via dialog; also add options for them to the CLI.
+  * LP#786106: Add Prev/Next items, with accelerators, to cycle through
+  Fractal and Colour menus.
 
- -- Ross Younger <0ryoungerk.launchpad@coriolis.greenend.org.uk>  Fri, 11 Nov 2011 15:49:08 +1300
+ -- Ross Younger <0ryoungerk.launchpad@coriolis.greenend.org.uk>  Fri, 11 Nov 2011 23:27:14 +1300
 
 brot2 (0.5) natty; urgency=low
 
