@@ -24,7 +24,7 @@ using namespace Fractal;
 // Abstract base class for common unoptimized code
 class Mandeldrop_Generic : public FractalImpl {
 public:
-	Mandeldrop_Generic(std::string name_, std::string desc_, Value xmin_=-1.5, Value xmax_=4.5, Value ymin_=-1.0, Value ymax_=1.0) : FractalImpl(name_, desc_, xmin_, xmax_, ymin_, ymax_, 30) {};
+	Mandeldrop_Generic(std::string name_, std::string desc_, Value xmin_=-3.0, Value xmax_=3.0, Value ymin_=-3.0, Value ymax_=3.0) : FractalImpl(name_, desc_, xmin_, xmax_, ymin_, ymax_, 30) {};
 	~Mandeldrop_Generic() {};
 
 	virtual void prepare_pixel(const Point coords, PointData& out) const {
@@ -39,7 +39,7 @@ public:
 
 class Mandeldrop : public Mandeldrop_Generic {
 public:
-	Mandeldrop(std::string name_, std::string desc_, Value xmin_=-3.0, Value xmax_=3.0, Value ymin_=-3.0, Value ymax_=3.0) : Mandeldrop_Generic(name_, desc_, xmin_, xmax_, ymin_, ymax_) {};
+	Mandeldrop(std::string name_, std::string desc_) : Mandeldrop_Generic(name_, desc_, -1.5, 4.5, -1.0, 1.0) {};
 	~Mandeldrop() {};
 
 	static inline void ITER2(Value& o_re, Value& o_im, Value& re2, Value& im2, Value& z_re, Value& z_im) {
