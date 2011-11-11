@@ -18,8 +18,7 @@
 
 #include "DragRectangle.h"
 #include "MainWindow.h"
-
-#include <assert.h>
+#include "Exception.h"
 
 const std::valarray<double> DragRectangle::dashes = { 5.0, 5.0 };
 
@@ -30,7 +29,7 @@ void DragRectangle::resized() {
 	if (surface)
 		surface->finish();
 	surface.clear();
-	assert (!surface);
+	ASSERT(!surface);
 }
 
 void DragRectangle::activate(int x, int y) {

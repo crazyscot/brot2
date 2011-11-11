@@ -24,8 +24,8 @@
 #include "misc.h"
 #include "config.h"
 #include "ControlsWindow.h"
+#include "Exception.h"
 
-#include <assert.h>
 #include <stdlib.h>
 #include <complex>
 #include <math.h>
@@ -259,7 +259,7 @@ void MainWindow::do_plot(bool is_same_plot)
 		gdk_threads_enter();
 	}
 
-	assert(!plot);
+	ASSERT(!plot);
 	unsigned pwidth = rwidth,
 			pheight = rheight;
 	if (antialias) {

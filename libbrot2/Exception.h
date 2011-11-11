@@ -45,8 +45,10 @@ struct Exception {
 };
 
 struct Assert : Exception {
-	Assert(const std::string& m) : Exception(m) { }
-	Assert(const std::string& m, const std::string& f, int l) : Exception(m,f,l) { }
+	Assert(const std::string& m) :
+		Exception("Assertion failed: "+m) { }
+	Assert(const std::string& m, const std::string& f, int l) :
+		Exception("Assertion failed: "+m,f,l) { }
 };
 
 inline std::ostream& operator<< (std::ostream& out, Exception val) {
@@ -55,5 +57,6 @@ inline std::ostream& operator<< (std::ostream& out, Exception val) {
 }
 
 #define THROW(type,msg) do { throw type(msg,__FILE__,__LINE__); } while(0)
+#define ASSERT(_expr) do { if (!(_expr)) THROW(Assert,#_expr); } while(0)
 
 #endif /* EXCEPTION_H_ */

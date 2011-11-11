@@ -17,7 +17,6 @@
 */
 
 #include "Fractal.h"
-#include <assert.h>
 
 using namespace std;
 using namespace Fractal;

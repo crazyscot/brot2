@@ -91,24 +91,24 @@ namespace PrefsDialogBits {
 			int tmpi=0;
 
 			if (!f_init_maxiter->read(tmpi))
-				throw Exception("Sorry, I don't understand your initial maxiter");
+				THROW(Exception,"Sorry, I don't understand your initial maxiter");
 			if ((tmpi < PREF(InitialMaxIter)._min) || (tmpi > PREF(InitialMaxIter)._max))
-				throw Exception("Initial maxiter must be at least 2");
+				THROW(Exception,"Initial maxiter must be at least 2");
 			tmpu = tmpi;
 			prefs.set(PREF(InitialMaxIter), tmpu);
 
 			if (!f_min_done_pct->read(tmpi))
-				throw Exception("Sorry, I don't understand your Minimum done %");
+				THROW(Exception,"Sorry, I don't understand your Minimum done %");
 			if ((tmpi<PREF(MinEscapeePct)._min)||(tmpi>PREF(MinEscapeePct)._max))
-				throw Exception("Minimum done % must be from 1 to 99");
+				THROW(Exception,"Minimum done % must be from 1 to 99");
 			tmpu = tmpi;
 			prefs.set(PREF(MinEscapeePct),tmpu);
 
 			double tmpf=0.0;
 			if (!f_live_threshold->read(tmpf))
-				throw Exception("Sorry, I don't understand your Live threshold");
+				THROW(Exception,"Sorry, I don't understand your Live threshold");
 			if ((tmpf<PREF(LiveThreshold)._min)||(tmpf>PREF(LiveThreshold)._max))
-				throw Exception("Live threshold must be between 0 and 1");
+				THROW(Exception,"Live threshold must be between 0 and 1");
 			prefs.set(PREF(LiveThreshold), tmpf);
 		}
 	};

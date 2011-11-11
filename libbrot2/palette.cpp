@@ -19,10 +19,10 @@
 #include "palette.h"
 #include "Fractal.h"
 #include "Registry.h"
+#include "Exception.h"
 #include <math.h>
 #include <stdio.h>
 #include <iostream>
-#include <assert.h>
 
 using namespace std;
 using namespace Fractal;
@@ -49,7 +49,7 @@ hsvf::operator rgb() {
 		return rgbf(v,v,v); // "undefined" case
 	}
 	if (isinf(h)) {
-		assert(false); // should never happen
+		ASSERT(false); // should never happen
 		return rgb(0,0,0); // eek, not a real number
 	}
 	float chroma = v * s, tmp;

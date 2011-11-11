@@ -20,7 +20,6 @@
 #define PREFS_H_
 
 #include <string>
-#include <assert.h>
 #include <Exception.h>
 #include <memory> //for unique_ptr
 #include "PrefsRegistry.h"
@@ -44,7 +43,7 @@ struct Action {
 	Action() { }
 
 	Action(int val) {
-		assert((val >= MIN) && (val <= MAX));
+		ASSERT((val >= MIN) && (val <= MAX));
 		value = val;
 	}
 
@@ -67,7 +66,7 @@ struct Action {
 	}
 
 	inline std::string name() const {
-		assert((value >= MIN) && (value <= MAX));
+		ASSERT((value >= MIN) && (value <= MAX));
 		return name(value);
 	}
 
@@ -94,8 +93,8 @@ template<int _MIN,int _MAX> struct ActionsList {
 	static const int MAX = _MAX;
 
 	Action a[MAX+1];
-	inline Action& operator[] (int i) { assert(i>=_MIN); assert(i<=_MAX); return a[i]; }
-	inline Action const& operator[] (int i) const { assert(i>=_MIN); assert(i<=_MAX); return a[i]; }
+	inline Action& operator[] (int i) { ASSERT(i>=_MIN); ASSERT(i<=_MAX); return a[i]; }
+	inline Action const& operator[] (int i) const { ASSERT(i>=_MIN); ASSERT(i<=_MAX); return a[i]; }
 
 	void set_to_default(); // Must be defined by each template user!
 	static inline ActionsList<_MIN,_MAX> get_default() {

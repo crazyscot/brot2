@@ -21,6 +21,7 @@
 #include "Fractal.h"
 #include "misc.h"
 #include "Prefs.h"
+#include "Exception.h"
 
 #include <gtkmm/dialog.h>
 #include <gtkmm/table.h>
@@ -65,7 +66,7 @@ public:
 	}
 
 	void set(Action a) {
-		assert(model_inited);
+		ASSERT(model_inited);
 		Gtk::TreeModel::Children entries = master_model->children();
 		Gtk::TreeModel::iterator it = entries.begin();
 		for ( ; it != entries.end(); it++) {

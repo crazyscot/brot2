@@ -85,7 +85,7 @@ int main(void)
 		}
 
 	} catch (Exception e) {
-		cerr << "Error! " << e << endl;
+		cerr << "Error! " << e.detail() << endl;
 		return 1;
 	} catch (Glib::KeyFileError e) {
 		cerr << "KeyFileError! " << e.what() << endl;

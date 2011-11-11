@@ -17,7 +17,6 @@
 */
 
 #include <glibmm.h>
-#include <assert.h>
 #include <unistd.h>
 #include <values.h>
 #include "Plot2.h"
@@ -145,7 +144,7 @@ string Plot2::info(bool verbose) const {
 	if (verbose) {
 		char buf[128];
 		unsigned rr = snprintf(buf, sizeof buf, "%g", zoom);
-		assert (rr < sizeof buf);
+		ASSERT(rr < sizeof buf);
 		rv << ", zoom=" << buf;
 		rv << " / axis length=" << size << " / pixel size=" << real(size)/width;
 	} else {
@@ -158,7 +157,7 @@ string Plot2::info(bool verbose) const {
 /* Starts a plot. A thread is spawned to do the actual work. */
 void Plot2::start(callback_t* c, bool is_resume) {
 	Glib::Mutex::Lock _lock(plot_lock);
-	assert(is_resume || !_done);
+	ASSERT(is_resume || !_done);
 	_done = _abort = false; // Must do this here, rather than in main_threadfunc, to kill a race (if user double-clicks i.e. we get two do_redraws in quick succession).
 	callback = c;
 	per_plot_thread_pool.get()->push(sigc::mem_fun(this, &Plot2::_per_plot_threadfunc));
@@ -180,8 +179,8 @@ class Plot2::worker_job {
 		maxiter = max;
 	}
 	void run() {
-		assert(this);
-		assert(plot);
+		ASSERT(this);
+		ASSERT(plot);
 		plot->_worker_threadfunc(this);
 	}
 };
@@ -225,7 +224,7 @@ void Plot2::_per_plot_threadfunc()
 	bool live = true;
 
 	const unsigned step = (height + NJOBS - 1) / NJOBS;
-	assert(step > 0);
+	ASSERT(step > 0);
 	// Must round up to avoid a gap.
 
 	if (!jobs) {
@@ -263,7 +262,7 @@ void Plot2::_per_plot_threadfunc()
 	}
 	while (live && !_abort && (passcount < passes_max) ) {
 		++passcount;
-		assert(_outstanding==0);
+		ASSERT(_outstanding==0);
 		_completed=0;
 
 		unsigned out_ptr = 0;
@@ -445,8 +444,8 @@ Point Plot2::pixel_to_set(int x, int y) const
 const Fractal::PointData& Plot2::get_pixel_point(int x, int y)
 {
 	Glib::Mutex::Lock _auto(plot_lock);
-	assert((unsigned)y < height);
-	assert((unsigned)x < width);
+	ASSERT((unsigned)y < height);
+	ASSERT((unsigned)x < width);
 	return _data[y * width + x];
 }
 
@@ -461,7 +460,7 @@ Plot2::~Plot2() {
 		Glib::Mutex::Lock _auto(plot_lock);
 		delete[] _data;
 		if (jobs) delete[] jobs;
-		assert(_done);
+		ASSERT(_done);
 		_data = 0; // Just in case concurrency runs awry.
 	}
 }

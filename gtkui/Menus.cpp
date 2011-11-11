@@ -20,6 +20,7 @@
 #include "Menus.h"
 #include "MainWindow.h"
 #include "PrefsDialog.h"
+#include "Exception.h"
 
 #include <gtkmm/main.h>
 #include <gtkmm/menu.h>
@@ -217,7 +218,7 @@ public:
 	void toggle_controls() {
 		MainWindow *mw = find_main(this);
 		bool state = showControls.get_active();
-		assert(mw);
+		ASSERT(mw);
 		{
 			std::unique_ptr<Prefs> p = mw->prefs().getWorkingCopy();
 			p->set(PREF(ShowControls),state);

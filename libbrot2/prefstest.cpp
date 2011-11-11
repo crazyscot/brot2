@@ -36,7 +36,7 @@ int main(void)
 
 		cout << "Initial maxiter is " << p->get(PREF(InitialMaxIter)) << ", live threshold proportion is " << p->get(PREF(LiveThreshold)) << ", min escapee proportion is " << p->get(PREF(MinEscapeePct)) << "%" << endl;
 	} catch (Exception e) {
-		cerr << "Error! " << e << endl;
+		cerr << "Error! " << e.detail() << endl;
 		return 1;
 	} catch (Glib::KeyFileError e) {
 		cerr << "KeyFileError! " << e.what() << endl;

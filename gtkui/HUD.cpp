@@ -19,10 +19,10 @@
 #include "HUD.h"
 #include "MainWindow.h"
 #include "Plot2.h"
+#include "Exception.h"
 #include <pangomm.h>
 #include <cairomm/cairomm.h>
 #include <string>
-#include <assert.h>
 
 HUD::HUD(MainWindow &window) : parent(window), w(0), h(0) {
 }
@@ -37,7 +37,7 @@ void HUD::draw(Plot2* plot, const int rwidth, const int rheight)
 		if (surface)
 			surface->finish();
 		surface.clear();
-		assert (!surface);
+		ASSERT(!surface);
 	}
 
 	if (!surface) {

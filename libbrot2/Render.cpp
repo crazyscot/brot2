@@ -16,7 +16,6 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <assert.h>
 #include <png.h>
 #include <stdlib.h>
 #include "Render.h"
@@ -46,8 +45,8 @@
  */
 bool Render::render_generic(unsigned char *buf, const int rowstride, const int local_inf, pixpack_format fmt, Plot2& plot, unsigned rwidth, unsigned rheight, unsigned /*antialias*/factor, const BasePalette& pal)
 {
-	assert(buf);
-	assert((unsigned)rowstride >= RGB_BYTES_PER_PIXEL * rwidth);
+	ASSERT(buf);
+	ASSERT((unsigned)rowstride >= RGB_BYTES_PER_PIXEL * rwidth);
 
 	const Fractal::PointData * data = plot.get_data();
 	if (!data) return false; // Oops, disappeared under our feet
