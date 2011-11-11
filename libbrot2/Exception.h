@@ -29,6 +29,10 @@ struct Exception {
 	virtual operator const std::string&() const { return msg; }
 };
 
+struct Assert : Exception {
+	Assert(const std::string m) : Exception(m) { }
+};
+
 inline std::ostream& operator<< (std::ostream& out, Exception val) {
 	out << val.msg;
 	return out;

@@ -142,7 +142,8 @@ class KeyfilePrefs : public Prefs {
 		virtual void commit() throw(Exception) {
 			// This is sneaky... We write to the backing store, and
 			// prod the parent to reread.
-			//assert(_parent!=NULL); // TODO XXX Enable this (actually, throw an Exception) when old semantics retired.
+			if (!_parent)
+				throw Assert("commit called on unparented KeyFilePrefs");
 			int rv;
 			std::string fn = filename(true); // write to foo.tmp
 			std::ofstream f;
@@ -197,8 +198,7 @@ class KeyfilePrefs : public Prefs {
 				throw Exception("Could not rename " + fn + " to " + newfn + ": " + strerror(errno));
 			}
 
-			if (_parent) // TODO XXX Make this unconditional when old semantics retired.
-				_parent->reread();
+			_parent->reread();
 		}
 
 		/* MOUSE ACTIONS:
