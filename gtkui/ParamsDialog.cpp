@@ -92,20 +92,29 @@ int ParamsDialog::run() {
 
 		if (result == Gtk::ResponseType::RESPONSE_OK) {
 			Fractal::Value res=0;
-			if (f_c_re->read(res))
+			if (f_c_re->read(res)) {
 				new_ctr.real(res);
-			else error = true;
-			if (f_c_im->read(res))
+			} else {
+				Util::alert(this, "Sorry, I could not parse that real centre.");
+				error=true;
+			}
+			if (f_c_im->read(res)) {
 				new_ctr.imag(res);
-			else error = true;
-			if (f_size_re->read(res))
+			} else {
+				if (!error) // don't flood too many messages
+					Util::alert(this, "Sorry, I could not parse that imaginary centre.");
+				error=true;
+			}
+			if (f_size_re->read(res)) {
 				new_size.real(res);
-			else error = true;
+			} else {
+				if (!error) // don't flood too many messages
+					Util::alert(this, "Sorry, I could not parse that axis length.");
+				error=true;
+			}
 			// imaginary axis length is implicit.
 
-			if (error)
-				Util::alert(this, "Sorry, I could not parse that; care to try again?");
-			else
+			if (!error)
 				mw->update_params(new_ctr, new_size);
 		}
 	} while (error && result == Gtk::ResponseType::RESPONSE_OK);
