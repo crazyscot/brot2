@@ -32,6 +32,7 @@ class PrefsDialog : public Gtk::Dialog {
 	protected:
 		MainWindow* mw;
 		PrefsDialogBits::ThresholdFrame* threshold;
+		static const int RESPONSE_DEFAULTS = 1;
 
 	public:
 		PrefsDialog(MainWindow *_mw);

@@ -80,6 +80,12 @@ namespace PrefsDialogBits {
 			f_live_threshold->update(prefs.get(PREF(LiveThreshold)), 4);
 		}
 
+		void defaults() {
+			f_init_maxiter->update(PREF(InitialMaxIter)._default);
+			f_min_done_pct->update(PREF(MinEscapeePct)._default);
+			f_live_threshold->update(PREF(LiveThreshold)._default, 4);
+		}
+
 		void readout(Prefs& prefs) throw(Exception) {
 			unsigned tmpu;
 			int tmpi=0;
@@ -111,9 +117,10 @@ namespace PrefsDialogBits {
 PrefsDialog::PrefsDialog(MainWindow *_mw) : Gtk::Dialog("Preferences", _mw, true),
 	mw(_mw)
 {
+	add_button("Defaults", RESPONSE_DEFAULTS);
 	add_button(Gtk::Stock::CANCEL, Gtk::ResponseType::RESPONSE_CANCEL);
-	add_button(Gtk::Stock::OK, Gtk::ResponseType::RESPONSE_ACCEPT);
-	set_default_response(Gtk::ResponseType::RESPONSE_ACCEPT);
+	add_button(Gtk::Stock::OK, Gtk::ResponseType::RESPONSE_OK);
+	set_default_response(Gtk::ResponseType::RESPONSE_OK);
 
 	Gtk::Box* box = get_vbox();
 	threshold = Gtk::manage(new PrefsDialogBits::ThresholdFrame());
@@ -131,7 +138,7 @@ int PrefsDialog::run() {
 		error = false;
 		result = Gtk::Dialog::run();
 
-		if (result == Gtk::ResponseType::RESPONSE_ACCEPT) {
+		if (result == Gtk::ResponseType::RESPONSE_OK) {
 			std::unique_ptr<Prefs> pp = p.getWorkingCopy();
 			try {
 				threshold->readout(*pp);
@@ -147,8 +154,11 @@ int PrefsDialog::run() {
 				pp->commit();
 				// Poke anything that might want to know.
 			}
+		} else if (result == RESPONSE_DEFAULTS) {
+			threshold->defaults();
 		}
-	} while (error && result == GTK_RESPONSE_ACCEPT);
+	} while ((result == RESPONSE_DEFAULTS) ||
+			 (error && result == Gtk::ResponseType::RESPONSE_OK));
 
 	return result;
 }
