@@ -82,6 +82,8 @@ class HandyEntry: public Gtk::Entry {
 			tmp >> rv;
 			if (tmp.fail())
 				return false;
+			if (!tmp.eof()) // i.e. there was extra stuff we couldn't parse
+				return false;
 			val_out = rv;
 			return true;
 		}
