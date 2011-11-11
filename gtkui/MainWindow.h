@@ -125,8 +125,8 @@ public:
 		return controlsWin;
 	}
 
-	Prefs& prefs() {
-		return Prefs::getDefaultInstance();
+	const Prefs& prefs() {
+		return Prefs::getMaster();
 	}
 
 	menus::AbstractOptionsMenu *optionsMenu() {

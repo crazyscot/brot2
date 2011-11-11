@@ -200,29 +200,33 @@ int main (int argc, char**argv)
 	}
 	if (fail) return 4;
 
-	Prefs& prefs = Prefs::getDefaultInstance();
+	const Prefs& mprefs = Prefs::getMaster();
+	std::unique_ptr<Prefs> prefs = mprefs.getWorkingCopy();
 
 	if (init_maxiter !=-1) {
 		if (init_maxiter < PREF(InitialMaxIter)._min) {
 			std::cerr << "Error: First pass maxiter (-I) must be at least 2" << std::endl;
 			fail=true;
+		} else {
+			prefs->set(PREF(InitialMaxIter), init_maxiter);
 		}
-		prefs.set(PREF(InitialMaxIter), init_maxiter);
 	}
 	if (min_escapee_pct!=-1) {
 		if ((min_escapee_pct<PREF(MinEscapeePct)._min) || (min_escapee_pct>PREF(MinEscapeePct)._max)) {
 			std::cerr << "Error: Minimum escapee percent (-E) must be from 0 to 100" << std::endl;
 			fail=true;
+		} else {
+			prefs->set(PREF(MinEscapeePct), min_escapee_pct);
 		}
-		prefs.set(PREF(MinEscapeePct), min_escapee_pct);
 	}
 	if (live_threshold_fract!=-1.0) {
 		if ((live_threshold_fract<PREF(LiveThreshold)._min) || (live_threshold_fract>PREF(LiveThreshold)._max)) {
 			std::cerr << "Error: Pixel escape maximum speed (-T) must be between 0.0 and 1.0" << std::endl;
 			fail=true;
-
 		}
-		prefs.set(PREF(LiveThreshold), live_threshold_fract);
+		else {
+			prefs->set(PREF(LiveThreshold), live_threshold_fract);
+		}
 	}
 	if (fail) return 4;
 
@@ -264,7 +268,7 @@ int main (int argc, char**argv)
 	}
 
 	Plot2 plot(selected_fractal, centre, size, plot_w, plot_h, max_passes);
-	plot.set_prefs(prefs);
+	plot.set_prefs(&*prefs);
 
 	Reporter reporter(0, quiet);
 	plot.start(&reporter);

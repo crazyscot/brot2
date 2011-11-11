@@ -118,11 +118,11 @@ Columns Combo::cols;
 class MouseButtonsPanel : NotifyTarget {
 	private:
 		Combo* actions[MouseActions::MAX+1];
-		Prefs& myprefs;
+		const Prefs& _prefs;
 		bool initialising;
 
 	public:
-		MouseButtonsPanel(Prefs& prefs) : myprefs(prefs) {
+		MouseButtonsPanel(const Prefs& prefs) : _prefs(prefs) {
 			initialising = true;
 			for (int i=MouseActions::MIN; i<=MouseActions::MAX; i++) {
 				actions[i] = Gtk::manage(new Combo(*this));
@@ -136,7 +136,9 @@ class MouseButtonsPanel : NotifyTarget {
 			for (int i=MouseActions::MIN; i<=MouseActions::MAX; i++) {
 				ma[i] = actions[i]->get();
 			}
-			myprefs.mouseActions(ma);
+			std::unique_ptr<Prefs> tmpprefs = _prefs.getWorkingCopy();
+			tmpprefs->mouseActions(ma);
+			tmpprefs->commit();
 		}
 
 		virtual void notify() {
@@ -145,16 +147,18 @@ class MouseButtonsPanel : NotifyTarget {
 		}
 
 		void defaults() {
-			MouseActions ma(myprefs.mouseActions());
+			std::unique_ptr<Prefs> tmpprefs = _prefs.getWorkingCopy();
+			MouseActions ma(_prefs.mouseActions());
 			ma.set_to_default();
-			myprefs.mouseActions(ma);
+			tmpprefs->mouseActions(ma);
+			tmpprefs->commit();
 			refresh();
 		}
 
 	protected:
 		void refresh(void) {
 			initialising = true;
-			const MouseActions& ma = myprefs.mouseActions();
+			const MouseActions& ma = _prefs.mouseActions();
 			for (int i=MouseActions::MIN; i<=MouseActions::MAX; i++) {
 				actions[i]->set(ma[i]);
 			}
@@ -200,11 +204,11 @@ class MouseButtonsPanel : NotifyTarget {
 class ScrollButtonsPanel : public NotifyTarget {
 	private:
 		Combo* actions[ScrollActions::MAX+1];
-		Prefs& myprefs;
+		const Prefs& _prefs;
 		bool initialising;
 
 	public:
-		ScrollButtonsPanel(Prefs& prefs) : myprefs(prefs) {
+		ScrollButtonsPanel(const Prefs& prefs) : _prefs(prefs) {
 			initialising = true;
 			for (int i=ScrollActions::MIN; i<=ScrollActions::MAX; i++) {
 				actions[i] = Gtk::manage(new Combo(*this));
@@ -214,11 +218,13 @@ class ScrollButtonsPanel : public NotifyTarget {
 		}
 
 		void saveToPrefs() {
+			std::unique_ptr<Prefs> tmpprefs = _prefs.getWorkingCopy();
 			ScrollActions ma;
 			for (int i=ScrollActions::MIN; i<=ScrollActions::MAX; i++) {
 				ma[i] = actions[i]->get();
 			}
-			myprefs.scrollActions(ma);
+			tmpprefs->scrollActions(ma);
+			tmpprefs->commit();
 		}
 
 		virtual void notify() {
@@ -227,16 +233,18 @@ class ScrollButtonsPanel : public NotifyTarget {
 		}
 
 		void defaults() {
-			ScrollActions sa(myprefs.scrollActions());
+			std::unique_ptr<Prefs> tmpprefs = _prefs.getWorkingCopy();
+			ScrollActions sa(_prefs.scrollActions());
 			sa.set_to_default();
-			myprefs.scrollActions(sa);
+			tmpprefs->scrollActions(sa);
+			tmpprefs->commit();
 			refresh();
 		}
 
 	protected:
 		void refresh(void) {
 			initialising = true;
-			const ScrollActions& sa = myprefs.scrollActions();
+			const ScrollActions& sa = _prefs.scrollActions();
 			for (int i=ScrollActions::MIN; i<=ScrollActions::MAX; i++) {
 				actions[i]->set(sa[i]);
 			}
@@ -284,7 +292,7 @@ class ScrollButtonsPanel : public NotifyTarget {
 
 }; // namespace Actions
 
-ControlsWindow::ControlsWindow(MainWindow& _mw, Prefs& _prefs) : mw(_mw), prefs(_prefs)
+ControlsWindow::ControlsWindow(MainWindow& _mw, const Prefs& prefs) : mw(_mw), _prefs(prefs)
 {
 	set_title("Controls");
 
@@ -294,12 +302,12 @@ ControlsWindow::ControlsWindow(MainWindow& _mw, Prefs& _prefs) : mw(_mw), prefs(
 
 	Gtk::Table *tbl = Gtk::manage(new Gtk::Table(3,3,false)); // rows,cols
 
-    mouse = new Actions::MouseButtonsPanel(Prefs::getDefaultInstance());
+    mouse = new Actions::MouseButtonsPanel(_prefs);
 	tbl->attach(*mouse->frame(), 0, 1, 0, 2); // left right top bottom
 
 	// scroll is shorter than mouse, don't let it expand (looks silly)
 	Gtk::Alignment *align = Gtk::manage(new Gtk::Alignment(0.5, 0.0, 0.0, 0.0));
-    scroll = new Actions::ScrollButtonsPanel(Prefs::getDefaultInstance());
+    scroll = new Actions::ScrollButtonsPanel(_prefs);
 	align->add(*scroll->frame());
 	tbl->attach(*align, 1, 2, 0, 1);
 

@@ -218,9 +218,11 @@ public:
 		MainWindow *mw = find_main(this);
 		bool state = showControls.get_active();
 		assert(mw);
-		Prefs& p = mw->prefs();
-		p.set(PREF(ShowControls),state);
-		p.commit();
+		{
+			std::unique_ptr<Prefs> p = mw->prefs().getWorkingCopy();
+			p->set(PREF(ShowControls),state);
+			p->commit();
+		}
 		if (state)
 			mw->controlsWindow().show();
 		else

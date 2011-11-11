@@ -110,8 +110,8 @@ public:
 		return _done;
 	}
 
-	// Overrides the default prefs.
-	void set_prefs(Prefs& newprefs);
+	// Provides a means to overrides the prefs.
+	void set_prefs(const Prefs* newprefs);
 
 protected:
 	/* Prepares a plot: creates the _data array and asks the fractal to
@@ -120,7 +120,7 @@ protected:
 	void prepare();
 
 	/* Plot completion detection: */
-	Prefs& prefs; // Where to get our global settings from. This is requeried on prepare().
+	const Prefs* prefs; // Where to get our global settings from. This is requeried on prepare().
 	unsigned initial_maxiter; // Iteration limit on first pass
 	double live_threshold; // Proportion of the pixels that must escape in a pass; if less, we consider stopping
 	unsigned minimum_escapee_percent; // Minimum %age of pixels that must be done in order to consider stopping

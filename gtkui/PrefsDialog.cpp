@@ -71,7 +71,7 @@ namespace PrefsDialogBits {
 			add(*tbl);
 		}
 
-		void prepare(Prefs& prefs) {
+		void prepare(const Prefs& prefs) {
 			f_init_maxiter->update(prefs.get(PREF(InitialMaxIter)));
 			f_min_done_pct->update(prefs.get(PREF(MinEscapeePct)));
 			f_live_threshold->update(prefs.get(PREF(LiveThreshold)), 4);
@@ -117,7 +117,7 @@ PrefsDialog::PrefsDialog(MainWindow *_mw) : Gtk::Dialog("Preferences", _mw, true
 }
 
 int PrefsDialog::run() {
-	Prefs& p = Prefs::getDefaultInstance();
+	const Prefs& p = Prefs::getMaster();
 	threshold->prepare(p);
 	show_all();
 
@@ -128,8 +128,9 @@ int PrefsDialog::run() {
 		result = Gtk::Dialog::run();
 
 		if (result == GTK_RESPONSE_ACCEPT) {
+			std::unique_ptr<Prefs> pp = p.getWorkingCopy();
 			try {
-				threshold->readout(p);
+				threshold->readout(*pp);
 			} catch (Exception e) {
 				Util::alert(this, e.msg);
 				error = true;
@@ -139,7 +140,7 @@ int PrefsDialog::run() {
 			if (error) {
 				// Any other error cases?
 			} else {
-				p.commit();
+				pp->commit();
 				// Poke anything that might want to know.
 			}
 		}

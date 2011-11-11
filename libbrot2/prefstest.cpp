@@ -24,16 +24,17 @@ int main(void)
 {
 	int i;
 	try {
-		Prefs& p = Prefs::getDefaultInstance();
-		MouseActions ma = p.mouseActions();
-		p.mouseActions(ma);
-		ScrollActions sa = p.scrollActions();
-		p.scrollActions(sa);
-		p.commit();
+		const Prefs& pm = Prefs::getMaster();
+		std::unique_ptr<Prefs> p = pm.getWorkingCopy();
+		MouseActions ma = p->mouseActions();
+		p->mouseActions(ma);
+		ScrollActions sa = p->scrollActions();
+		p->scrollActions(sa);
+		p->commit();
 		for (i=1; i<=ma.MAX; i++)
 			cout << "action "<<i<<" is " << (std::string) ma[i] << endl;
 
-		cout << "Initial maxiter is " << p.get(PREF(InitialMaxIter)) << ", live threshold proportion is " << p.get(PREF(LiveThreshold)) << ", min escapee proportion is " << p.get(PREF(MinEscapeePct)) << "%" << endl;
+		cout << "Initial maxiter is " << p->get(PREF(InitialMaxIter)) << ", live threshold proportion is " << p->get(PREF(LiveThreshold)) << ", min escapee proportion is " << p->get(PREF(MinEscapeePct)) << "%" << endl;
 	} catch (Exception e) {
 		cerr << "Error! " << e << endl;
 		return 1;

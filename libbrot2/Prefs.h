@@ -136,17 +136,9 @@ class Prefs {
 		Prefs(); // not directly instantiable.
 
 	public:
-		// Most of the time we expect accesses to Prefs will be via this method.
-		// If something went wrong (e.g. backing store I/O error), throws an
-		// Exception explaining what; it's up to the caller to inform the user.
-		// If you commit() this it will definitely be written to backing
-		// store, but don't rely on not calling commit() as a way to
-		// throw away any changes; that's what the working copy mechanism
-		// is for.
-		// XXX TODO This is defunct.
-		static Prefs& getDefaultInstance() throw(Exception);
-
 		// Source of a read-only instance of the main live Prefs object.
+		// Start with one of these, then (only if you need to) request a
+		// working copy for editing.
 		//
 		// If something went wrong (e.g. backing store I/O error), throws an
 		// Exception explaining what; it's up to the caller to inform the user.

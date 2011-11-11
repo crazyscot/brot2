@@ -110,7 +110,7 @@ Plot2::Plot2(FractalImpl* f, Point centre, Point size,
 		unsigned width, unsigned height, unsigned max_passes) :
 		fract(f), centre(centre), size(size),
 		width(width), height(height),
-		prefs(Prefs::getDefaultInstance()),
+		prefs(&Prefs::getMaster()),
 		plotted_maxiter(0), plotted_passes(0), passes_max(max_passes),
 		callback(0), _data(0), _abort(false), _done(false), _outstanding(0),
 		_completed(0), jobs(0)
@@ -211,9 +211,9 @@ void Plot2::prepare()
 		render_point += rowstep;
 	}
 
-	initial_maxiter = prefs.get(PREF(InitialMaxIter));
-	live_threshold = prefs.get(PREF(LiveThreshold));
-	minimum_escapee_percent = prefs.get(PREF(MinEscapeePct));
+	initial_maxiter = prefs->get(PREF(InitialMaxIter));
+	live_threshold = prefs->get(PREF(LiveThreshold));
+	minimum_escapee_percent = prefs->get(PREF(MinEscapeePct));
 }
 
 void Plot2::_per_plot_threadfunc()
@@ -450,7 +450,7 @@ const Fractal::PointData& Plot2::get_pixel_point(int x, int y)
 	return _data[y * width + x];
 }
 
-void Plot2::set_prefs(Prefs& newprefs) {
+void Plot2::set_prefs(const Prefs* newprefs) {
 	prefs = newprefs;
 }
 

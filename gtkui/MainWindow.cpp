@@ -40,7 +40,7 @@ const double MainWindow::ZOOM_FACTOR = 2.0f;
 
 MainWindow::MainWindow() : Gtk::Window(),
 			hud(*this),
-			controlsWin(*this, Prefs::getDefaultInstance()),
+			controlsWin(*this, prefs()),
 			imgbuf(0), plot(0), plot_prev(0),
 			rwidth(0), rheight(0),
 			draw_hud(true), antialias(false),
@@ -75,7 +75,7 @@ MainWindow::MainWindow() : Gtk::Window(),
 	// render_ctx.fractal set by setup_fractal_menu().
 
 	initializing = false;
-	menubar->optionsMenu->set_controls_status( Prefs::getDefaultInstance().get(PREF(ShowControls)) );
+	menubar->optionsMenu->set_controls_status( prefs().get(PREF(ShowControls)) );
 }
 
 MainWindow::~MainWindow() {
@@ -87,7 +87,6 @@ MainWindow::~MainWindow() {
 	delete plot;
 	delete plot_prev;
 	delete imgbuf;
-	Prefs::getDefaultInstance().commit();
 }
 
 void MainWindow::zoom_mechanics(enum Zoom type) {

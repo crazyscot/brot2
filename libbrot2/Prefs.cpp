@@ -329,13 +329,6 @@ namespace {
 };
 
 // Default accessor, singleton-like.
-Prefs& Prefs::getDefaultInstance() throw (Exception) {
-	// XXX DEFUNCT
-	if (gtkPrefs == NULL)
-		gtkPrefs = new KeyfilePrefs();
-	return *gtkPrefs;
-};
-
 const Prefs& Prefs::getMaster() throw(Exception) {
 	if (gtkPrefs == NULL)
 		gtkPrefs = new KeyfilePrefs();
