@@ -50,32 +50,58 @@ void HUD::draw(Plot2* plot, const int rwidth, const int rheight)
 
 	w = rwidth;
 	h = rheight;
+	// plausible modes are:
+	// TOP
+	// BOTTOM (i.e. offset = height minus textheight)
+	// LEFT (rotated) ?
+	// RIGHT (rotated) ?
+	// arbitrary offset (presumably relative - by sliders?)
+
+	int XOFFSET=0, BASE_YOFFSET=0;
+	if (true) {
+		BASE_YOFFSET = rheight; // <<< test mode: put HUD on the bottom.
+	}
 
 	Glib::RefPtr<Pango::Layout> lyt = Pango::Layout::create(cr);
-	Pango::FontDescription fontdesc("Luxi Sans 9");
+	Pango::FontDescription fontdesc("Luxi Sans 9"); // <<< Configurable!
 	lyt->set_font_description(fontdesc);
 	lyt->set_text(info);
-	lyt->set_width(Pango::SCALE * rwidth);
+	lyt->set_width(Pango::SCALE * (rwidth - XOFFSET));
 	lyt->set_wrap(Pango::WRAP_WORD_CHAR);
+
+	// add up the height, make sure we fit.
+	Pango::LayoutIter iter = lyt->get_iter();
+	int ytotal = 0;
+	do {
+		int yy = iter.get_line_logical_extents().get_height();
+		ytotal += yy;
+	} while (iter.next_line());
+	ytotal /= PANGO_SCALE;
+
+	int YOFFSET = BASE_YOFFSET;
+	if (ytotal + BASE_YOFFSET > rheight)
+		YOFFSET = rheight - ytotal;
 
 	//Pango::Rectangle rect = lyt->get_logical_extents();
 
-	Pango::LayoutIter iter = lyt->get_iter();
+	// Now iterate again for the text background.
+	iter = lyt->get_iter();
 	do {
 		Pango::Rectangle log = iter.get_line_logical_extents();
 		cr->save();
-		cr->set_source_rgb(0,0,0);
+		cr->set_source_rgb(0,0,0); // <<< Configurable!
 		// NB. there are PANGO_SCALE pango units to the device unit.
-		cr->rectangle(log.get_x() / PANGO_SCALE, log.get_y() / PANGO_SCALE,
+		cr->rectangle(XOFFSET + log.get_x() / PANGO_SCALE,
+				YOFFSET + log.get_y() / PANGO_SCALE,
 				log.get_width() / PANGO_SCALE, log.get_height() / PANGO_SCALE);
 		cr->clip();
 		cr->paint();
 		cr->restore();
 	} while (iter.next_line());
 
-	cr->move_to(0,0);
+	cr->move_to(XOFFSET,YOFFSET);
 	cr->set_operator(Cairo::Operator::OPERATOR_OVER);
-	cr->set_source_rgb(1.0,1.0,1.0);
+	cr->set_source_rgb(1.0,1.0,1.0); // <<<<< Configurable!
 	lyt->show_in_cairo_context(cr);
 }
 
