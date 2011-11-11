@@ -9,11 +9,13 @@ libbrot2_a_SOURCES= \
 					Mandeldrop.cpp \
 					Misc.cpp \
 					Render.h Render.cpp \
-					Prefs.h Prefs.cpp
+					Prefs.h Prefs.cpp PrefsRegistry.h PrefsRegistry.cpp
 
-noinst_PROGRAMS=prefstest
+noinst_PROGRAMS=prefstest prefstest2
 prefstest_SOURCES= prefstest.cpp
 prefstest_LDADD=libbrot2.a @libbrot2_LIBS@
+prefstest2_SOURCES= prefstest2.cpp
+prefstest2_LDADD=libbrot2.a @libbrot2_LIBS@
 
 AM_CFLAGS=@global_CFLAGS@
 AM_CXXFLAGS=@global_CXXFLAGS@ @libbrot2_CFLAGS@

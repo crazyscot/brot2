@@ -22,6 +22,8 @@
 #include <string>
 #include <assert.h>
 #include <Exception.h>
+#include <memory> //for unique_ptr
+#include "PrefsRegistry.h"
 
 // Second-order macro to easily define our constants and have their strings to hand.
 // ACTION macro takes three args: symbolic constant, numeric constant, friendly string.
@@ -110,6 +112,9 @@ typedef ActionsList<1,8> MouseActions;
 // Scroll actions:  GDK_SCROLL_{UP,DOWN,LEFT,RIGHT}
 typedef ActionsList<0,3> ScrollActions;
 
+///////////////////////////////////////////////////////////
+// Putting it all together ...
+
 class Prefs {
 	/* This class represents the entire set of preferences that we're
 	 * interested in. Implicitly it is connected to a backing store
@@ -128,16 +133,33 @@ class Prefs {
 	 */
 
 	protected:
-		Prefs();
-		virtual ~Prefs();
+		Prefs(); // not directly instantiable.
 
 	public:
-		// Most of the time we expect accesses to Prefs will be via this method.
+		// Source of a read-only instance of the main live Prefs object.
+		// Start with one of these, then (only if you need to) request a
+		// working copy for editing.
+		//
 		// If something went wrong (e.g. backing store I/O error), throws an
 		// Exception explaining what; it's up to the caller to inform the user.
-		static Prefs& getDefaultInstance() throw(Exception);
+		static const Prefs& getMaster() throw(Exception);
 
-		// Commits all outstanding writes to backing store. May be a no-op.
+		// Creates a working copy of a Prefs object.
+		// Call commit() causes it to update the object it was cloned
+		// from with its new contents.
+		//
+		// The unique_ptr mechanism means you don't have to worry about
+		// deleting this object when finished.
+		//
+		// WARNING: Don't simultaneously create two working copies of
+		// a Prefs and expect to be able to commit both of them.
+		// Commit (currently) overwrites the entire destination!
+		// Because of this it is an error (assert fail) to have more
+		// than one working copy outstanding.
+		virtual std::unique_ptr<Prefs> getWorkingCopy() const throw(Exception) = 0;
+
+		// Commits all outstanding writes of a working copy to the master
+		// instance, and thence to backing store.
 		// If something went wrong, throws an Exception explaining what; it's
 		// up to the caller to inform the user suitably.
 		virtual void commit() throw(Exception) = 0;
@@ -151,8 +173,16 @@ class Prefs {
 		virtual const ScrollActions& scrollActions() const = 0;
 		virtual void scrollActions(const ScrollActions& scroll) = 0;
 
-		virtual bool showControls() const = 0;
-		virtual void showControls(const bool& b) = 0;
+		// LP#783034:
+		virtual int get(const BrotPrefs::Numeric<int>& B) const = 0;
+		virtual void set(const BrotPrefs::Numeric<int>& B, int newval) = 0;
+		virtual double get(const BrotPrefs::Numeric<double>& B) const = 0;
+		virtual void set(const BrotPrefs::Numeric<double>& B, double newval) = 0;
+		virtual bool get(const BrotPrefs::Base<bool>& B) const = 0;
+		virtual void set(const BrotPrefs::Base<bool>& B, const bool newval) = 0;
+
+
+		virtual ~Prefs();
 };
 
 

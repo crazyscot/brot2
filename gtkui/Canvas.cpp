@@ -54,7 +54,7 @@ Fractal::Point Canvas::pixel_to_set_tlo(int x, int y) const
 bool Canvas::on_button_press_event(GdkEventButton *evt) {
 	if (!surface) return false;
 
-	MouseActions ma = Prefs::getDefaultInstance().mouseActions();
+	MouseActions ma = Prefs::getMaster().mouseActions();
 	if (evt->button <= (unsigned)ma.MAX) {
 		switch(ma[evt->button]) {
 			case Action::DRAG_TO_ZOOM:
@@ -73,7 +73,7 @@ bool Canvas::on_button_release_event(GdkEventButton *evt) {
 	if (!surface) return false;
 	Fractal::Point clickpos = pixel_to_set_tlo(evt->x, evt->y);
 
-	MouseActions ma = Prefs::getDefaultInstance().mouseActions();
+	MouseActions ma = Prefs::getMaster().mouseActions();
 	// TODO: Reading from the file every time may be too slow - possibly cache within the Canvas or MW.
 	if (evt->button <= (unsigned)ma.MAX) {
 		switch (ma[evt->button]) {
@@ -95,7 +95,7 @@ bool Canvas::on_button_release_event(GdkEventButton *evt) {
 
 bool Canvas::on_scroll_event(GdkEventScroll *evt) {
 	if (!surface) return false;
-	ScrollActions sa = Prefs::getDefaultInstance().scrollActions();
+	ScrollActions sa = Prefs::getMaster().scrollActions();
 	Fractal::Point clickpos = pixel_to_set_tlo(evt->x, evt->y);
 
 	if (evt->direction <= (unsigned)sa.MAX) {

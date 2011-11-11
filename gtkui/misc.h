@@ -21,6 +21,7 @@
 
 #include <sys/time.h>
 #include <gtkmm/window.h>
+#include <gtkmm/entry.h>
 #include <gtkmm/messagedialog.h>
 #include <string>
 
@@ -68,7 +69,40 @@ inline void alert(Gtk::Window *parent, const std::string& message, Gtk::MessageT
 	dialog.run();
 }
 
+/* A subclass of Gtk::Entry with convenient template-driven
+ * numeric reading and writing. */
+template<typename T>
+class HandyEntry: public Gtk::Entry {
+	public:
+		bool read(T& val_out) const {
+			Glib::ustring raw = this->get_text();
+			std::istringstream tmp(raw, std::istringstream::in);
+			// (LP#783087: Don't apply a precision limit to reading digits.)
+			T rv=0;
+			tmp >> rv;
+			if (tmp.fail())
+				return false;
+			if (!tmp.eof()) // i.e. there was extra stuff we couldn't parse
+				return false;
+			val_out = rv;
+			return true;
+		}
+		// Write with default precision
+		void update(const T val) {
+			std::ostringstream tmp;
+			tmp << val;
+			this->set_text(tmp.str().c_str());
+		}
+		// Write with explicit precision
+		void update(const T val, const int precision) {
+			std::ostringstream tmp;
+			tmp.precision(precision);
+			tmp << val;
+			this->set_text(tmp.str().c_str());
+		}
 };
+
+}; // namespace Util
 
 #endif // MISC_H_
 

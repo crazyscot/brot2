@@ -21,6 +21,7 @@
 
 #include "MainWindow.h"
 #include "Plot2.h"
+#include "misc.h"
 #include <gtkmm/dialog.h>
 #include <gtkmm/entry.h>
 
@@ -28,7 +29,7 @@ class ParamsDialog : public Gtk::Dialog {
 	protected:
 		MainWindow* mw;
 		// Dialog fields:
-		Gtk::Entry *f_c_re, *f_c_im, *f_size_re;
+		Util::HandyEntry<Fractal::Value> *f_c_re, *f_c_im, *f_size_re;
 
 	public:
 		ParamsDialog(MainWindow *_mw);

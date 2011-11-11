@@ -34,13 +34,17 @@ const char *copyright_string = "(c) 2010-2011 Ross Younger";
 #include "Fractal.h"
 #include "reporter.h"
 #include "Render.h"
+#include "Prefs.h"
+#include "PrefsRegistry.h"
 
 static bool do_version, do_list_fractals, do_list_palettes, quiet, do_antialias, do_info;
 static Glib::ustring c_re_x, c_im_y, length_x;
 static Glib::ustring entered_fractal = "Mandelbrot";
 static Glib::ustring entered_palette = "Linear rainbow";
 static Glib::ustring filename;
-static int output_h=300, output_w=300, max_passes=0;
+static int output_h=300, output_w=300, max_passes=0,
+		   init_maxiter=-1, min_escapee_pct=-1;
+static double live_threshold_fract=-1.0;
 
 #define OPTION(_SHRT, _LNG, _DESC, _VAR) do {	\
 	Glib::OptionEntry _t;						\
@@ -67,6 +71,12 @@ static void setup_options(Glib::OptionGroup& options)
 	OPTION('o', "output", "The filename to write to (or '-' for stdout)", filename);
 
 	OPTION('m', "max-passes", "Limits the number of passes of the plot", max_passes);
+	OPTION('I', "initial-maxiter",
+			PREFDESC(InitialMaxIter), init_maxiter);
+	OPTION('E', "minimum-escapee-percent",
+			PREFDESC(MinEscapeePct), min_escapee_pct);
+	OPTION('T', "live-threshold-proportion",
+			PREFDESC(LiveThreshold), live_threshold_fract);
 
 	OPTION('q', "quiet", "Inhibits progress reporting", quiet);
 	OPTION('a', "antialias", "Enables linear antialiasing", do_antialias);
@@ -190,6 +200,36 @@ int main (int argc, char**argv)
 	}
 	if (fail) return 4;
 
+	const Prefs& mprefs = Prefs::getMaster();
+	std::unique_ptr<Prefs> prefs = mprefs.getWorkingCopy();
+
+	if (init_maxiter !=-1) {
+		if (init_maxiter < PREF(InitialMaxIter)._min) {
+			std::cerr << "Error: First pass maxiter (-I) must be at least 2" << std::endl;
+			fail=true;
+		} else {
+			prefs->set(PREF(InitialMaxIter), init_maxiter);
+		}
+	}
+	if (min_escapee_pct!=-1) {
+		if ((min_escapee_pct<PREF(MinEscapeePct)._min) || (min_escapee_pct>PREF(MinEscapeePct)._max)) {
+			std::cerr << "Error: Minimum escapee percent (-E) must be from 0 to 100" << std::endl;
+			fail=true;
+		} else {
+			prefs->set(PREF(MinEscapeePct), min_escapee_pct);
+		}
+	}
+	if (live_threshold_fract!=-1.0) {
+		if ((live_threshold_fract<PREF(LiveThreshold)._min) || (live_threshold_fract>PREF(LiveThreshold)._max)) {
+			std::cerr << "Error: Pixel escape maximum speed (-T) must be between 0.0 and 1.0" << std::endl;
+			fail=true;
+		}
+		else {
+			prefs->set(PREF(LiveThreshold), live_threshold_fract);
+		}
+	}
+	if (fail) return 4;
+
 	Fractal::Point centre(CRe, CIm);
 	const unsigned antialias= do_antialias ? 2 : 1;
 	unsigned plot_h=output_h*antialias, plot_w=output_w*antialias;
@@ -228,6 +268,8 @@ int main (int argc, char**argv)
 	}
 
 	Plot2 plot(selected_fractal, centre, size, plot_w, plot_h, max_passes);
+	plot.set_prefs(&*prefs);
+
 	Reporter reporter(0, quiet);
 	plot.start(&reporter);
 	plot.wait();

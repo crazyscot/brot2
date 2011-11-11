@@ -1,5 +1,5 @@
 /*
-    Exception.h: Exception holding class
+    PrefsDialog: brot2 preferences dialog
     Copyright (C) 2011 Ross Younger
 
     This program is free software: you can redistribute it and/or modify
@@ -16,26 +16,28 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef EXCEPTION_H_
-#define EXCEPTION_H_
+#ifndef PREFS_DIALOG_H
+#define PREFS_DIALOG_H
 
-#include <string>
-#include <iostream>
+#include "MainWindow.h"
+#include "Plot2.h"
+#include <gtkmm/dialog.h>
+#include <gtkmm/entry.h>
 
-struct Exception {
-	const std::string msg;
-
-	Exception(const std::string m) : msg(m) { }
-	virtual operator const std::string&() const { return msg; }
+namespace PrefsDialogBits {
+	class ThresholdFrame;
 };
 
-struct Assert : Exception {
-	Assert(const std::string m) : Exception(m) { }
+class PrefsDialog : public Gtk::Dialog {
+	protected:
+		MainWindow* mw;
+		PrefsDialogBits::ThresholdFrame* threshold;
+		static const int RESPONSE_DEFAULTS = 1;
+
+	public:
+		PrefsDialog(MainWindow *_mw);
+		int run(); // Returns the Gtk::ResponseType::RESPONSE_* code selected. If ACCEPT, the MainWindow params have been directly updated.
 };
 
-inline std::ostream& operator<< (std::ostream& out, Exception val) {
-	out << val.msg;
-	return out;
-}
+#endif
 
-#endif /* EXCEPTION_H_ */
