@@ -51,19 +51,27 @@ struct Numeric : public Base<N> {
 typedef Numeric<int> Int;
 typedef Numeric<double> Float;
 
-//typedef Base<bool> Bool; // not legal C++, alas
+typedef Base<bool> Bool;
+typedef Base<std::string> String;
+
+// Second-order macro to provide an all-known-prefs function.
+#define ALL_PREFS(DO) \
+	DO(Bool,ShowControls) \
+	\
+	DO(Int,InitialMaxIter)\
+	DO(Float,LiveThreshold)\
+	DO(Int,MinEscapeePct)
 
 struct Registry {
-	Base<bool> ShowControls;
-
-	Int InitialMaxIter;
-	Float LiveThreshold;
-	Int MinEscapeePct;
+#define DO(type,name) type name;
+	ALL_PREFS(DO)
+#undef DO
 
 	static const Registry& get();
 	private:
 		static Registry _instance;
 		Registry();
+		int end; // unused, dummy var so that we're not forever adding and removing commas on the last item in the list
 };
 
 }; // namespace BrotPrefs

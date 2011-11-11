@@ -137,10 +137,8 @@ class KeyfilePrefs : public Prefs {
 			reread_mouse_actions();
 			reread_scroll_actions();
 
-			ensure(PREF(ShowControls));
-			ensure(PREF(InitialMaxIter));
-			ensure(PREF(LiveThreshold));
-			ensure(PREF(MinEscapeePct));
+#define DO(type,name) ensure(PREF(name));
+			ALL_PREFS(DO);
 		}
 
 		virtual void commit() throw(Exception) {
@@ -276,8 +274,10 @@ class KeyfilePrefs : public Prefs {
 		virtual void set(const BrotPrefs::Numeric<int>& B, int newval);
 		virtual double get(const BrotPrefs::Numeric<double>& B) const;
 		virtual void set(const BrotPrefs::Numeric<double>& B, double newval);
-		virtual bool get(const BrotPrefs::Base<bool>& B) const;
-		virtual void set(const BrotPrefs::Base<bool>& B, const bool newval);
+		virtual bool get(const BrotPrefs::Bool& B) const;
+		virtual void set(const BrotPrefs::Bool& B, const bool newval);
+		virtual std::string get(const BrotPrefs::String& B) const;
+		virtual void set(const BrotPrefs::String& B, const std::string& newval);
 
 		template<typename T> void ensure(const BrotPrefs::Base<T>& B) {
 			try {
@@ -286,6 +286,7 @@ class KeyfilePrefs : public Prefs {
 				set(B, B._default);
 			}
 		}
+
 		template<typename T> void ensure(const BrotPrefs::Numeric<T>& B) {
 			try {
 				(void)get(B);
@@ -303,7 +304,7 @@ int KeyfilePrefs::get(const BrotPrefs::Numeric<int>& B) const {
 }
 void KeyfilePrefs::set(const BrotPrefs::Numeric<int>& B, int newval) {
 	if ((newval < B._min) || (newval > B._max)) {
-		THROW(Exception,"Pref set out of range");
+		THROW(Exception,"Pref "+B._name+"set out of range");
 	}
 	kf.set_integer(B._group, B._key, newval);
 }
@@ -316,16 +317,23 @@ double KeyfilePrefs::get(const BrotPrefs::Numeric<double>& B) const {
 }
 void KeyfilePrefs::set(const BrotPrefs::Numeric<double>& B, double newval) {
 	if ((newval < B._min) || (newval > B._max)) {
-		THROW(Exception,"Pref set out of range");
+		THROW(Exception,"Pref "+B._name+"set out of range");
 	}
 	kf.set_double(B._group, B._key, newval);
 }
 
-bool KeyfilePrefs::get(const BrotPrefs::Base<bool>& B) const {
+bool KeyfilePrefs::get(const BrotPrefs::Bool& B) const {
 	return kf.get_boolean(B._group, B._key);
 }
-void KeyfilePrefs::set(const BrotPrefs::Base<bool>& B, const bool newval) {
+void KeyfilePrefs::set(const BrotPrefs::Bool& B, const bool newval) {
 	kf.set_boolean(B._group, B._key, newval);
+}
+
+std::string KeyfilePrefs::get(const BrotPrefs::String& B) const {
+	return kf.get_string(B._group, B._key);
+}
+void KeyfilePrefs::set(const BrotPrefs::String& B, const std::string& newval) {
+	kf.set_string(B._group, B._key, newval);
 }
 
 KeyfilePrefs KeyfilePrefs::_MASTER;

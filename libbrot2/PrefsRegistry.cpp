@@ -48,8 +48,9 @@ namespace BrotPrefs {
 				"Percentage of pixels required to have escaped before a plot "
 				"is considered finished",
 				0, 20, 100,
-				GROUP_PLOT_CONTROL, "minimum_done_percent")
+				GROUP_PLOT_CONTROL, "minimum_done_percent"),
 
+		end()
 	{ }
 
 }; // namespace BrotPrefs
