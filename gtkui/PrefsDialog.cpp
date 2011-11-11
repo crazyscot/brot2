@@ -43,8 +43,11 @@ namespace PrefsDialogBits {
 
 		ThresholdFrame() : Gtk::Frame("Plot finish threshold tuning") {
 			f_init_maxiter = Gtk::manage(new Util::HandyEntry<int>());
+			f_init_maxiter->set_activates_default(true);
 			f_min_done_pct = Gtk::manage(new Util::HandyEntry<int>());
+			f_min_done_pct->set_activates_default(true);
 			f_live_threshold = Gtk::manage(new Util::HandyEntry<double>());
+			f_live_threshold->set_activates_default(true);
 
 			set_border_width(10);
 			Gtk::Table *tbl = Gtk::manage(new Gtk::Table(3, 2, false));
@@ -110,6 +113,7 @@ PrefsDialog::PrefsDialog(MainWindow *_mw) : Gtk::Dialog("Preferences", _mw, true
 {
 	add_button(Gtk::Stock::CANCEL, Gtk::ResponseType::RESPONSE_CANCEL);
 	add_button(Gtk::Stock::OK, Gtk::ResponseType::RESPONSE_ACCEPT);
+	set_default_response(Gtk::ResponseType::RESPONSE_ACCEPT);
 
 	Gtk::Box* box = get_vbox();
 	threshold = Gtk::manage(new PrefsDialogBits::ThresholdFrame());
@@ -127,7 +131,7 @@ int PrefsDialog::run() {
 		error = false;
 		result = Gtk::Dialog::run();
 
-		if (result == GTK_RESPONSE_ACCEPT) {
+		if (result == Gtk::ResponseType::RESPONSE_ACCEPT) {
 			std::unique_ptr<Prefs> pp = p.getWorkingCopy();
 			try {
 				threshold->readout(*pp);
