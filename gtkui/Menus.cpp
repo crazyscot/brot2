@@ -257,12 +257,12 @@ public:
 		i1 = new Gtk::MenuItem("Previous");
 		append(*manage(i1));
 		i1->signal_activate().connect(sigc::mem_fun(*this, &FractalMenu::do_previous));
-		i1->add_accelerator("activate", ag, GDK_3, Gdk::ModifierType::CONTROL_MASK, Gtk::ACCEL_VISIBLE);
+		i1->add_accelerator("activate", ag, GDK_1, Gdk::ModifierType::CONTROL_MASK, Gtk::ACCEL_VISIBLE);
 
 		i1 = new Gtk::MenuItem("Next");
 		append(*manage(i1));
 		i1->signal_activate().connect(sigc::mem_fun(*this, &FractalMenu::do_next));
-		i1->add_accelerator("activate", ag, GDK_4, Gdk::ModifierType::CONTROL_MASK, Gtk::ACCEL_VISIBLE);
+		i1->add_accelerator("activate", ag, GDK_2, Gdk::ModifierType::CONTROL_MASK, Gtk::ACCEL_VISIBLE);
 
 		i1 = new Gtk::SeparatorMenuItem();
 		append(*manage(i1));
@@ -354,12 +354,12 @@ public:
 		i1 = new Gtk::MenuItem("Previous");
 		append(*manage(i1));
 		i1->signal_activate().connect(sigc::mem_fun(*this, &ColourMenu::do_previous));
-		i1->add_accelerator("activate", ag, GDK_1, Gdk::ModifierType::CONTROL_MASK, Gtk::ACCEL_VISIBLE);
+		i1->add_accelerator("activate", ag, GDK_3, Gdk::ModifierType::CONTROL_MASK, Gtk::ACCEL_VISIBLE);
 
 		i1 = new Gtk::MenuItem("Next");
 		append(*manage(i1));
 		i1->signal_activate().connect(sigc::mem_fun(*this, &ColourMenu::do_next));
-		i1->add_accelerator("activate", ag, GDK_2, Gdk::ModifierType::CONTROL_MASK, Gtk::ACCEL_VISIBLE);
+		i1->add_accelerator("activate", ag, GDK_4, Gdk::ModifierType::CONTROL_MASK, Gtk::ACCEL_VISIBLE);
 
 		i1 = new Gtk::SeparatorMenuItem();
 		append(*manage(i1));
