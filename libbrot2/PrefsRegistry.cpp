@@ -23,6 +23,7 @@ namespace BrotPrefs {
 
 	const std::string Groups::PLOT_CONTROL = "plot_control";
 	const std::string Groups::UI = "ui";
+	const std::string Groups::HUD = "hud";
 
 	Registry Registry::_instance;
 
@@ -50,6 +51,23 @@ namespace BrotPrefs {
 				0, 20, 100,
 				Groups::PLOT_CONTROL, "minimum_done_percent"),
 
+		HUDVerticalOffset("HUD Vertical offset %",
+				"HUD Vertical offset in % of window",
+				0, 1, 100,
+				Groups::HUD, "vertical_offset"),
+		HUDHorizontalOffset("HUD Horizontal offset %",
+				"HUD Horizontal offset in % of window",
+				0, 1, 100,
+				Groups::HUD, "horizontal_offset"),
+
+		HUDText("HUD text colour",
+				"HUD text colour (rrrrggggbbbb hex)",
+				"#ffffffffffff",
+				Groups::HUD, "text_colour"),
+		HUDBackground("HUD bg colour",
+				"HUD background colour (rrrrggggbbbb hex)",
+				"#000000000000",
+				Groups::HUD, "bg_colour"),
 
 		end()
 	{ }

@@ -60,7 +60,12 @@ typedef Base<std::string> String;
 	\
 	DO(Int,InitialMaxIter)\
 	DO(Float,LiveThreshold)\
-	DO(Int,MinEscapeePct)
+	DO(Int,MinEscapeePct) \
+	\
+	DO(Int,HUDVerticalOffset)\
+	DO(Int,HUDHorizontalOffset)\
+	DO(String,HUDText)\
+	DO(String,HUDBackground)\
 
 struct Registry {
 #define DO(type,name) BrotPrefs::type name;
@@ -79,6 +84,7 @@ struct Registry {
 struct Groups {
 	static const std::string PLOT_CONTROL;
 	static const std::string UI;
+	static const std::string HUD;
 };
 
 
