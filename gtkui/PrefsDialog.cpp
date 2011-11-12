@@ -225,8 +225,11 @@ namespace PrefsDialogBits {
 			horiz->set_value(prefs.get(PREF(HUDHorizontalOffset)));
 			vert->set_value(prefs.get(PREF(HUDVerticalOffset)));
 
-			Gdk::Color bg(prefs.get(PREF(HUDBackground)));
-			Gdk::Color fg(prefs.get(PREF(HUDText)));
+			Gdk::Color bg,fg;
+			if (!bg.set(prefs.get(PREF(HUDBackground))))
+				bg.set(PREF(HUDBackground)._default);
+			if (!fg.set(prefs.get(PREF(HUDText))))
+				fg.set(PREF(HUDText)._default);
 			bgcol->set_colour(bg);
 			fgcol->set_colour(fg);
 			sample->prod();

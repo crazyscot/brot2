@@ -47,8 +47,19 @@ void HUD::draw(Plot2* plot, const int rwidth, const int rheight)
 	const Prefs& prefs = parent.prefs();
 	const int ypos = prefs.get(PREF(HUDVerticalOffset)),
 		  xpos = prefs.get(PREF(HUDHorizontalOffset));
-	rgb_double fg(Gdk::Color(prefs.get(PREF(HUDText)))),
-		       bg(Gdk::Color(prefs.get(PREF(HUDBackground))));
+
+	rgb_double fg, bg;
+	{
+		Gdk::Color fgcol, bgcol;
+		const std::string fgtext = prefs.get(PREF(HUDText)),
+			  bgtext = prefs.get(PREF(HUDBackground));
+		if (!fgcol.set(fgtext))
+			fgcol.set(PREF(HUDText)._default);
+		if (!bgcol.set(bgtext))
+			bgcol.set(PREF(HUDBackground)._default);
+		fg = fgcol;
+		bg = bgcol;
+	}
 
 	if ((rwidth!=w) || (rheight!=h)) {
 		if (surface)
