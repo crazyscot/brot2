@@ -51,19 +51,19 @@ struct Numeric : public Base<N> {
 typedef Numeric<int> Int;
 typedef Numeric<double> Float;
 
-typedef Base<bool> Bool;
+typedef Base<bool> Boolean;
 typedef Base<std::string> String;
 
 // Second-order macro to provide an all-known-prefs function.
 #define ALL_PREFS(DO) \
-	DO(Bool,ShowControls) \
+	DO(Boolean,ShowControls) \
 	\
 	DO(Int,InitialMaxIter)\
 	DO(Float,LiveThreshold)\
 	DO(Int,MinEscapeePct)
 
 struct Registry {
-#define DO(type,name) type name;
+#define DO(type,name) BrotPrefs::type name;
 	ALL_PREFS(DO)
 #undef DO
 

@@ -177,8 +177,8 @@ class Prefs {
 		virtual void set(const BrotPrefs::Numeric<int>& B, int newval) = 0;
 		virtual double get(const BrotPrefs::Numeric<double>& B) const = 0;
 		virtual void set(const BrotPrefs::Numeric<double>& B, double newval) = 0;
-		virtual bool get(const BrotPrefs::Base<bool>& B) const = 0;
-		virtual void set(const BrotPrefs::Base<bool>& B, const bool newval) = 0;
+		virtual bool get(const BrotPrefs::Boolean& B) const = 0;
+		virtual void set(const BrotPrefs::Boolean& B, const bool newval) = 0;
 
 		virtual std::string get(const BrotPrefs::String& B) const = 0;
 		virtual void set(const BrotPrefs::String& B, const std::string& newval) = 0;

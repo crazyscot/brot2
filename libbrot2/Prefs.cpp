@@ -274,8 +274,8 @@ class KeyfilePrefs : public Prefs {
 		virtual void set(const BrotPrefs::Numeric<int>& B, int newval);
 		virtual double get(const BrotPrefs::Numeric<double>& B) const;
 		virtual void set(const BrotPrefs::Numeric<double>& B, double newval);
-		virtual bool get(const BrotPrefs::Bool& B) const;
-		virtual void set(const BrotPrefs::Bool& B, const bool newval);
+		virtual bool get(const BrotPrefs::Boolean& B) const;
+		virtual void set(const BrotPrefs::Boolean& B, const bool newval);
 		virtual std::string get(const BrotPrefs::String& B) const;
 		virtual void set(const BrotPrefs::String& B, const std::string& newval);
 
@@ -288,6 +288,14 @@ class KeyfilePrefs : public Prefs {
 		}
 
 		template<typename T> void ensure(const BrotPrefs::Numeric<T>& B) {
+			try {
+				(void)get(B);
+			} catch (Glib::KeyFileError e) {
+				set(B, B._default);
+			}
+		}
+
+		void ensure(const BrotPrefs::Boolean& B) {
 			try {
 				(void)get(B);
 			} catch (Glib::KeyFileError e) {
@@ -322,10 +330,10 @@ void KeyfilePrefs::set(const BrotPrefs::Numeric<double>& B, double newval) {
 	kf.set_double(B._group, B._key, newval);
 }
 
-bool KeyfilePrefs::get(const BrotPrefs::Bool& B) const {
+bool KeyfilePrefs::get(const BrotPrefs::Boolean& B) const {
 	return kf.get_boolean(B._group, B._key);
 }
-void KeyfilePrefs::set(const BrotPrefs::Bool& B, const bool newval) {
+void KeyfilePrefs::set(const BrotPrefs::Boolean& B, const bool newval) {
 	kf.set_boolean(B._group, B._key, newval);
 }
 
