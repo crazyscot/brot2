@@ -24,14 +24,43 @@
 #include <cairomm/cairomm.h>
 #include <string>
 
+struct rgb_double {
+	double r, g, b;
+	rgb_double() { }
+	rgb_double(Gdk::Color c) {
+		r = c.get_red()/65535.0;
+		g = c.get_green()/65535.0;
+		b = c.get_blue()/65535.0;
+	}
+};
+
 HUD::HUD(MainWindow &window) : parent(window), w(0), h(0) {
 }
+
+const std::string HUD::font_name = "Luxi Sans 9";
 
 void HUD::draw(Plot2* plot, const int rwidth, const int rheight)
 {
 	Glib::Mutex::Lock autolock(mux); // unwind unlocks
 	if (!plot) return; // race condition trap
 	std::string info = plot->info(true);
+	const Prefs& prefs = parent.prefs();
+	const int ypos = prefs.get(PREF(HUDVerticalOffset)),
+		  xpos = prefs.get(PREF(HUDHorizontalOffset));
+
+	rgb_double fg, bg;
+	{
+		Gdk::Color fgcol, bgcol;
+		const std::string fgtext = prefs.get(PREF(HUDText)),
+			  bgtext = prefs.get(PREF(HUDBackground));
+		if (!fgcol.set(fgtext))
+			fgcol.set(PREF(HUDText)._default);
+		if (!bgcol.set(bgtext))
+			bgcol.set(PREF(HUDBackground)._default);
+		fg = fgcol;
+		bg = bgcol;
+	}
+	const double alpha = prefs.get(PREF(HUDAlpha));
 
 	if ((rwidth!=w) || (rheight!=h)) {
 		if (surface)
@@ -51,31 +80,46 @@ void HUD::draw(Plot2* plot, const int rwidth, const int rheight)
 	w = rwidth;
 	h = rheight;
 
+	const int XOFFSET = xpos * rwidth / 100;
+
 	Glib::RefPtr<Pango::Layout> lyt = Pango::Layout::create(cr);
-	Pango::FontDescription fontdesc("Luxi Sans 9");
+	Pango::FontDescription fontdesc(font_name);
 	lyt->set_font_description(fontdesc);
 	lyt->set_text(info);
-	lyt->set_width(Pango::SCALE * rwidth);
+	lyt->set_width(Pango::SCALE * (rwidth - XOFFSET));
 	lyt->set_wrap(Pango::WRAP_WORD_CHAR);
+
+	// add up the height, make sure we fit.
+	Pango::LayoutIter iter = lyt->get_iter();
+	int ytotal = 0;
+	do {
+		int yy = iter.get_line_logical_extents().get_height();
+		ytotal += yy;
+	} while (iter.next_line());
+	ytotal /= PANGO_SCALE;
+
+	const int YOFFSET = ypos * (rheight - ytotal) / 100;
 
 	//Pango::Rectangle rect = lyt->get_logical_extents();
 
-	Pango::LayoutIter iter = lyt->get_iter();
+	// Now iterate again for the text background.
+	iter = lyt->get_iter();
 	do {
 		Pango::Rectangle log = iter.get_line_logical_extents();
 		cr->save();
-		cr->set_source_rgb(0,0,0);
+		cr->set_source_rgb(bg.r, bg.g, bg.b);
 		// NB. there are PANGO_SCALE pango units to the device unit.
-		cr->rectangle(log.get_x() / PANGO_SCALE, log.get_y() / PANGO_SCALE,
+		cr->rectangle(XOFFSET + log.get_x() / PANGO_SCALE,
+				YOFFSET + log.get_y() / PANGO_SCALE,
 				log.get_width() / PANGO_SCALE, log.get_height() / PANGO_SCALE);
 		cr->clip();
-		cr->paint();
+		cr->paint_with_alpha(alpha);
 		cr->restore();
 	} while (iter.next_line());
 
-	cr->move_to(0,0);
+	cr->move_to(XOFFSET,YOFFSET);
 	cr->set_operator(Cairo::Operator::OPERATOR_OVER);
-	cr->set_source_rgb(1.0,1.0,1.0);
+	cr->set_source_rgba(fg.r, fg.g, fg.b, alpha);
 	lyt->show_in_cairo_context(cr);
 }
 

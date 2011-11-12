@@ -41,6 +41,8 @@ public:
 
 	void draw(Plot2* plot, const int rwidth, const int rheight);
 	Cairo::RefPtr<Cairo::Surface> & get_surface() { return surface; }
+
+	static const std::string font_name;
 };
 
 #endif /* HUD_H_ */

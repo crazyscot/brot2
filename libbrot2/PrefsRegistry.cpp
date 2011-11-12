@@ -19,10 +19,11 @@
 #include <limits.h>
 #include "PrefsRegistry.h"
 
-static std::string GROUP_PLOT_CONTROL = "plot_control";
-static std::string GROUP_UI = "ui";
-
 namespace BrotPrefs {
+
+	const std::string Groups::PLOT_CONTROL = "plot_control";
+	const std::string Groups::UI = "ui";
+	const std::string Groups::HUD = "hud";
 
 	Registry Registry::_instance;
 
@@ -33,23 +34,46 @@ namespace BrotPrefs {
 	Registry::Registry() :
 		ShowControls("Show controls window",
 				"Shows the controls window", // sigh
-				true, GROUP_UI, "show_controls"),
+				true, Groups::UI, "show_controls"),
 
 		InitialMaxIter("Initial maxiter",
 				"First pass iteration limit (minimum 2)",
 				2, 256, INT_MAX,
-				GROUP_PLOT_CONTROL, "initial_maxiter"),
+				Groups::PLOT_CONTROL, "initial_maxiter"),
 		LiveThreshold("Live threshold",
 				"Minimal pixel escape rate in order to consider a plot "
 				"finished (0.0-1.0)",
 				0.0, 0.001, 1.0,
-				GROUP_PLOT_CONTROL, "live_threshold"),
+				Groups::PLOT_CONTROL, "live_threshold"),
 		MinEscapeePct("Minimum escapee %",
 				"Percentage of pixels required to have escaped before a plot "
 				"is considered finished",
 				0, 20, 100,
-				GROUP_PLOT_CONTROL, "minimum_done_percent")
+				Groups::PLOT_CONTROL, "minimum_done_percent"),
 
+		HUDVerticalOffset("HUD Vertical offset %",
+				"HUD Vertical offset in % of window",
+				0, 1, 100,
+				Groups::HUD, "vertical_offset"),
+		HUDHorizontalOffset("HUD Horizontal offset %",
+				"HUD Horizontal offset in % of window",
+				0, 1, 100,
+				Groups::HUD, "horizontal_offset"),
+
+		HUDText("HUD text colour",
+				"HUD text colour (rrrrggggbbbb hex)",
+				"#ffffffffffff",
+				Groups::HUD, "text_colour"),
+		HUDBackground("HUD bg colour",
+				"HUD background colour (rrrrggggbbbb hex)",
+				"#000000000000",
+				Groups::HUD, "bg_colour"),
+		HUDAlpha("HUD transparency",
+				"HUD transparency (0.0-1.0)",
+				0.0, 0.8, 1.0,
+				Groups::HUD, "alpha"),
+
+		end()
 	{ }
 
 }; // namespace BrotPrefs

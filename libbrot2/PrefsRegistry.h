@@ -51,20 +51,43 @@ struct Numeric : public Base<N> {
 typedef Numeric<int> Int;
 typedef Numeric<double> Float;
 
-//typedef Base<bool> Bool; // not legal C++, alas
+typedef Base<bool> Boolean;
+typedef Base<std::string> String;
+
+// Second-order macro to provide an all-known-prefs function.
+#define ALL_PREFS(DO) \
+	DO(Boolean,ShowControls) \
+	\
+	DO(Int,InitialMaxIter)\
+	DO(Float,LiveThreshold)\
+	DO(Int,MinEscapeePct) \
+	\
+	DO(Int,HUDVerticalOffset)\
+	DO(Int,HUDHorizontalOffset)\
+	DO(String,HUDText)\
+	DO(String,HUDBackground)\
+	DO(Float,HUDAlpha)\
 
 struct Registry {
-	Base<bool> ShowControls;
-
-	Int InitialMaxIter;
-	Float LiveThreshold;
-	Int MinEscapeePct;
+#define DO(type,name) BrotPrefs::type name;
+	ALL_PREFS(DO)
+#undef DO
 
 	static const Registry& get();
 	private:
 		static Registry _instance;
 		Registry();
+		int end; // unused, dummy var so that we're not forever adding and removing commas on the last item in the list
 };
+
+
+// Group names are visible too, in case we want to add helper comments to the keyfile or suchlike.
+struct Groups {
+	static const std::string PLOT_CONTROL;
+	static const std::string UI;
+	static const std::string HUD;
+};
+
 
 }; // namespace BrotPrefs
 

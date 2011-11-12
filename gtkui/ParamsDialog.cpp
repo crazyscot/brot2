@@ -29,7 +29,7 @@
 
 // TODO Make this non-modal ???
 
-ParamsDialog::ParamsDialog(MainWindow *_mw) : Gtk::Dialog("Parameters", _mw, true),
+ParamsDialog::ParamsDialog(MainWindow *_mw) : Gtk::Dialog("Parameters", *_mw, true),
 	mw(_mw)
 {
 	add_button(Gtk::Stock::CANCEL, Gtk::ResponseType::RESPONSE_CANCEL);
