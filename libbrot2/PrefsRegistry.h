@@ -74,6 +74,14 @@ struct Registry {
 		int end; // unused, dummy var so that we're not forever adding and removing commas on the last item in the list
 };
 
+
+// Group names are visible too, in case we want to add helper comments to the keyfile or suchlike.
+struct Groups {
+	static const std::string PLOT_CONTROL;
+	static const std::string UI;
+};
+
+
 }; // namespace BrotPrefs
 
 // And a set of syntactic sugar macros...
