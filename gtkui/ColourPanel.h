@@ -22,14 +22,23 @@
 
 #include <gtkmm/drawingarea.h>
 #include <gtkmm/frame.h>
+#include <gtkmm/label.h>
 #include <cairomm/cairomm.h>
+
+class ProddableLabel : public Gtk::Label {
+	public:
+		ProddableLabel();
+		ProddableLabel(const Glib::ustring& label);
+		virtual void prod() = 0;
+};
 
 class ColourPanel: public Gtk::DrawingArea {
 	Gtk::Frame *_parent;
 	Gdk::Color colour;
+	ProddableLabel *pokeme;
 
 public:
-	ColourPanel(Gtk::Frame *parent);
+	ColourPanel(Gtk::Frame *parent, ProddableLabel *pokeit);
 	virtual ~ColourPanel();
 
 	void set_colour(const Gdk::Color& c);

@@ -20,7 +20,12 @@
 #include <iostream>
 #include <gtkmm/colorselection.h>
 
-ColourPanel::ColourPanel(Gtk::Frame *parent) : Gtk::DrawingArea(), _parent(parent) {
+ProddableLabel::ProddableLabel() : Gtk::Label() { }
+ProddableLabel::ProddableLabel(const Glib::ustring& label) : Gtk::Label(label) { }
+
+
+ColourPanel::ColourPanel(Gtk::Frame *parent, ProddableLabel *pokeit)
+		: _parent(parent), pokeme(pokeit) {
 	set_size_request(50,50); // bare minimum, parent should FILL.
 	add_events(Gdk::EXPOSURE_MASK | Gdk::BUTTON_RELEASE_MASK | Gdk::BUTTON_PRESS_MASK);
 }
@@ -46,7 +51,7 @@ bool ColourPanel::on_button_release_event(GdkEventButton * evt)
 		//std::cerr << "new colour is " << colour.to_string() << std::endl; //TEST
 		on_expose_event(0);
 	}
-	// ... AND prod parent.
+	pokeme->prod();
 	return true;
 }
 
@@ -55,9 +60,16 @@ bool ColourPanel::on_expose_event(GdkEventExpose * evt)
 	(void) evt;
 	Glib::RefPtr<Gdk::Window> window = get_window();
 	Cairo::RefPtr<Cairo::Context> cr = window->create_cairo_context();
-	cr->set_source_rgb(colour.get_red()/255.0,
-			colour.get_green()/255.0,
-			colour.get_blue()/255.0);
+	cr->set_source_rgb((double)colour.get_red()/65535.0,
+			(double)colour.get_green()/65535.0,
+			(double)colour.get_blue()/65535.0);
+	/*
+	std::cerr << "expose r= "
+		<< colour.get_red() << "/" << (colour.get_red()/65535.0)
+		<< " g=" << colour.get_green() << "/" << (colour.get_green()/65535.0)
+		<< " b=" << colour.get_blue() << "/" << (colour.get_blue()/65535.0)
+		<< std::endl;
+	*/
 	cr->paint();
 	// An outer frame makes things seem more tidy:
 	cr->set_source_rgb(0.0, 0.0, 0.0);
