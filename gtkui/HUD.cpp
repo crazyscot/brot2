@@ -32,6 +32,9 @@ void HUD::draw(Plot2* plot, const int rwidth, const int rheight)
 	Glib::Mutex::Lock autolock(mux); // unwind unlocks
 	if (!plot) return; // race condition trap
 	std::string info = plot->info(true);
+	const Prefs& prefs = parent.prefs();
+	const int ypos = prefs.get(PREF(HUDVerticalOffset)),
+		  xpos = prefs.get(PREF(HUDHorizontalOffset));
 
 	if ((rwidth!=w) || (rheight!=h)) {
 		if (surface)
@@ -57,13 +60,10 @@ void HUD::draw(Plot2* plot, const int rwidth, const int rheight)
 	// RIGHT (rotated) ?
 	// arbitrary offset (presumably relative - by sliders?)
 
-	int XOFFSET=0, BASE_YOFFSET=0;
-	if (true) {
-		BASE_YOFFSET = rheight; // <<< test mode: put HUD on the bottom.
-	}
+	const int XOFFSET = xpos * rwidth / 100;
 
 	Glib::RefPtr<Pango::Layout> lyt = Pango::Layout::create(cr);
-	Pango::FontDescription fontdesc("Luxi Sans 9"); // <<< Configurable!
+	Pango::FontDescription fontdesc("Luxi Sans 9"); // <<< Configurable! XXX
 	lyt->set_font_description(fontdesc);
 	lyt->set_text(info);
 	lyt->set_width(Pango::SCALE * (rwidth - XOFFSET));
@@ -78,9 +78,12 @@ void HUD::draw(Plot2* plot, const int rwidth, const int rheight)
 	} while (iter.next_line());
 	ytotal /= PANGO_SCALE;
 
-	int YOFFSET = BASE_YOFFSET;
-	if (ytotal + BASE_YOFFSET > rheight)
-		YOFFSET = rheight - ytotal;
+#if 0
+	const int BASE_YOFFSET = ypos * rheight / 100;
+	const int YOFFSET = (ytotal + BASE_YOFFSET > rheight) ?
+		rheight - ytotal : BASE_YOFFSET;
+#endif
+	const int YOFFSET = ypos * (rheight - ytotal) / 100;
 
 	//Pango::Rectangle rect = lyt->get_logical_extents();
 
