@@ -31,6 +31,7 @@
 #include <gtkmm/combobox.h>
 #include <gtkmm/liststore.h>
 #include <gtkmm/enums.h>
+#include <gtkmm/scale.h>
 
 #include <sstream>
 
@@ -112,6 +113,63 @@ namespace PrefsDialogBits {
 			prefs.set(PREF(LiveThreshold), tmpf);
 		}
 	};
+
+	class HUDFrame : public Gtk::Frame {
+		public:
+			Gtk::VScale *vert;
+			Gtk::HScale *horiz;
+			// XXX colour picker/s
+
+		HUDFrame() : Gtk::Frame("Heads-Up Display") {
+			set_border_width(10);
+			Gtk::Table* tbl = Gtk::manage(new Gtk::Table(4,3,false));
+			Gtk::Label *lbl;
+
+			lbl = Gtk::manage(new Gtk::Label("Vertical position"));
+			lbl->set_tooltip_text(PREFDESC(HUDVerticalOffset));
+			lbl->set_angle(90);
+			tbl->attach(*lbl, 0, 1, 0, 4);
+
+			lbl = Gtk::manage(new Gtk::Label("Horizontal position"));
+			lbl->set_tooltip_text(PREFDESC(HUDHorizontalOffset));
+			tbl->attach(*lbl, 2, 3, 3, 4);
+
+			vert = Gtk::manage(new Gtk::VScale(0.0, 105.0, 5.0));
+			vert->set_digits(0);
+			tbl->attach(*vert, 1, 2, 0, 4);
+
+			horiz = Gtk::manage(new Gtk::HScale(0.0, 80.0, 5.0));
+			horiz->set_digits(0);
+			tbl->attach(*horiz, 2, 3, 2, 3);
+
+			//lbl = Gtk::manage(new Gtk::Label("HUD colour"));
+			//tbl->attach(*lbl, 2, 3, 0, 1);
+
+			lbl = Gtk::manage(new Gtk::Label("COLOUR PICKER GOES HERE"));
+			tbl->attach(*lbl, 2, 3, 0, 2);
+			// XXX.
+
+			add(*tbl);
+		}
+
+		void prepare(const Prefs& prefs) {
+			horiz->set_value(prefs.get(PREF(HUDHorizontalOffset)));
+			vert->set_value(prefs.get(PREF(HUDVerticalOffset)));
+			// XXX colours
+		}
+
+		void defaults() {
+			horiz->set_value(PREF(HUDHorizontalOffset)._default);
+			vert->set_value(PREF(HUDVerticalOffset)._default);
+			// XXX colours
+		}
+
+		void readout(Prefs& prefs) throw(Exception) {
+			prefs.set(PREF(HUDHorizontalOffset), horiz->get_value());
+			prefs.set(PREF(HUDVerticalOffset), vert->get_value());
+			// XXX colours
+		}
+	};
 };
 
 PrefsDialog::PrefsDialog(MainWindow *_mw) : Gtk::Dialog("Preferences", *_mw, true),
@@ -125,11 +183,14 @@ PrefsDialog::PrefsDialog(MainWindow *_mw) : Gtk::Dialog("Preferences", *_mw, tru
 	Gtk::Box* box = get_vbox();
 	threshold = Gtk::manage(new PrefsDialogBits::ThresholdFrame());
 	box->pack_start(*threshold);
+	hud = Gtk::manage(new PrefsDialogBits::HUDFrame());
+	box->pack_start(*hud);
 }
 
 int PrefsDialog::run() {
 	const Prefs& p = Prefs::getMaster();
 	threshold->prepare(p);
+	hud->prepare(p);
 	show_all();
 
 	bool error;
@@ -142,6 +203,7 @@ int PrefsDialog::run() {
 			std::unique_ptr<Prefs> pp = p.getWorkingCopy();
 			try {
 				threshold->readout(*pp);
+				hud->readout(*pp);
 			} catch (Exception e) {
 				Util::alert(this, e.msg);
 				error = true;
@@ -156,6 +218,7 @@ int PrefsDialog::run() {
 			}
 		} else if (result == RESPONSE_DEFAULTS) {
 			threshold->defaults();
+			hud->defaults();
 		}
 	} while ((result == RESPONSE_DEFAULTS) ||
 			 (error && result == Gtk::ResponseType::RESPONSE_OK));

@@ -26,12 +26,14 @@
 
 namespace PrefsDialogBits {
 	class ThresholdFrame;
+	class HUDFrame;
 };
 
 class PrefsDialog : public Gtk::Dialog {
 	protected:
 		MainWindow* mw;
 		PrefsDialogBits::ThresholdFrame* threshold;
+		PrefsDialogBits::HUDFrame* hud;
 		static const int RESPONSE_DEFAULTS = 1;
 
 	public:
