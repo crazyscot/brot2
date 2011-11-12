@@ -37,6 +37,8 @@ struct rgb_double {
 HUD::HUD(MainWindow &window) : parent(window), w(0), h(0) {
 }
 
+const std::string HUD::font_name = "Luxi Sans 9";
+
 void HUD::draw(Plot2* plot, const int rwidth, const int rheight)
 {
 	Glib::Mutex::Lock autolock(mux); // unwind unlocks
@@ -65,17 +67,11 @@ void HUD::draw(Plot2* plot, const int rwidth, const int rheight)
 
 	w = rwidth;
 	h = rheight;
-	// plausible modes are:
-	// TOP
-	// BOTTOM (i.e. offset = height minus textheight)
-	// LEFT (rotated) ?
-	// RIGHT (rotated) ?
-	// arbitrary offset (presumably relative - by sliders?)
 
 	const int XOFFSET = xpos * rwidth / 100;
 
 	Glib::RefPtr<Pango::Layout> lyt = Pango::Layout::create(cr);
-	Pango::FontDescription fontdesc("Luxi Sans 9"); // <<< Configurable! XXX
+	Pango::FontDescription fontdesc(font_name);
 	lyt->set_font_description(fontdesc);
 	lyt->set_text(info);
 	lyt->set_width(Pango::SCALE * (rwidth - XOFFSET));

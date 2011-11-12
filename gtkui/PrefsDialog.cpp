@@ -75,7 +75,11 @@ namespace PrefsDialogBits {
 			// cout << "BG is " << BG << " for " << back.to_string() << endl; // TEST
 			str.seekp(0);
 
-			str << "<span foreground=\"#" << FG << "\" background=\"#" << BG << "\">Sample Text</span>";
+			str << "<span" <<
+				" foreground=\"#" << FG << "\"" <<
+				" background=\"#" << BG << "\"" <<
+				" font_desc=\"" << HUD::font_name << "\""<<
+				"> Sample text 01234.567e89</span>";
 			// cout << "Markup is: " << str.str() << endl; // TEST
 			set_markup(str.str());
 		}
