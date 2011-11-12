@@ -235,7 +235,10 @@ namespace PrefsDialogBits {
 			Gdk::Color bg(PREF(HUDBackground)._default);
 			Gdk::Color fg(PREF(HUDText)._default);
 			bgcol->set_colour(bg);
+			bgcol->on_expose_event(0); // Force update
 			fgcol->set_colour(fg);
+			fgcol->on_expose_event(0); // Force update
+			sample->prod();
 		}
 
 		void readout(Prefs& prefs) throw(Exception) {

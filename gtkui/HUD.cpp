@@ -24,6 +24,16 @@
 #include <cairomm/cairomm.h>
 #include <string>
 
+struct rgb_double {
+	double r, g, b;
+	rgb_double() { }
+	rgb_double(Gdk::Color c) {
+		r = c.get_red()/65535.0;
+		g = c.get_green()/65535.0;
+		b = c.get_blue()/65535.0;
+	}
+};
+
 HUD::HUD(MainWindow &window) : parent(window), w(0), h(0) {
 }
 
@@ -35,6 +45,8 @@ void HUD::draw(Plot2* plot, const int rwidth, const int rheight)
 	const Prefs& prefs = parent.prefs();
 	const int ypos = prefs.get(PREF(HUDVerticalOffset)),
 		  xpos = prefs.get(PREF(HUDHorizontalOffset));
+	rgb_double fg(Gdk::Color(prefs.get(PREF(HUDText)))),
+		       bg(Gdk::Color(prefs.get(PREF(HUDBackground))));
 
 	if ((rwidth!=w) || (rheight!=h)) {
 		if (surface)
@@ -78,11 +90,6 @@ void HUD::draw(Plot2* plot, const int rwidth, const int rheight)
 	} while (iter.next_line());
 	ytotal /= PANGO_SCALE;
 
-#if 0
-	const int BASE_YOFFSET = ypos * rheight / 100;
-	const int YOFFSET = (ytotal + BASE_YOFFSET > rheight) ?
-		rheight - ytotal : BASE_YOFFSET;
-#endif
 	const int YOFFSET = ypos * (rheight - ytotal) / 100;
 
 	//Pango::Rectangle rect = lyt->get_logical_extents();
@@ -92,7 +99,7 @@ void HUD::draw(Plot2* plot, const int rwidth, const int rheight)
 	do {
 		Pango::Rectangle log = iter.get_line_logical_extents();
 		cr->save();
-		cr->set_source_rgb(0,0,0); // <<< Configurable!
+		cr->set_source_rgb(bg.r, bg.g, bg.b);
 		// NB. there are PANGO_SCALE pango units to the device unit.
 		cr->rectangle(XOFFSET + log.get_x() / PANGO_SCALE,
 				YOFFSET + log.get_y() / PANGO_SCALE,
@@ -104,7 +111,7 @@ void HUD::draw(Plot2* plot, const int rwidth, const int rheight)
 
 	cr->move_to(XOFFSET,YOFFSET);
 	cr->set_operator(Cairo::Operator::OPERATOR_OVER);
-	cr->set_source_rgb(1.0,1.0,1.0); // <<<<< Configurable!
+	cr->set_source_rgb(fg.r, fg.g, fg.b);
 	lyt->show_in_cairo_context(cr);
 }
 
