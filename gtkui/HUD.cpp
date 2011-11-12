@@ -60,7 +60,7 @@ void HUD::draw(Plot2* plot, const int rwidth, const int rheight)
 		fg = fgcol;
 		bg = bgcol;
 	}
-	const double alpha = prefs.get(PREF(HUDAlpha));
+	const double alpha = 1.0 - prefs.get(PREF(HUDTransparency));
 
 	if ((rwidth!=w) || (rheight!=h)) {
 		if (surface)

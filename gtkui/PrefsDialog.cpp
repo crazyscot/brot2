@@ -172,7 +172,7 @@ namespace PrefsDialogBits {
 	public:
 		Gtk::VScale *vert;
 		Gtk::HScale *horiz;
-		Gtk::HScale *alpha;
+		Gtk::HScale *nalpha; // transparency 0.0-0.5, so alpha is 1.0 - nalpha.
 		ColourPanel *bgcol, *fgcol;
 		SampleTextLabel *sample;
 
@@ -203,14 +203,14 @@ namespace PrefsDialogBits {
 			tbl->attach(*horiz, 0, 3, 3, 4);
 
 			lbl = Gtk::manage(new Gtk::Label("Transparency"));
-			lbl->set_tooltip_text(PREFDESC(HUDAlpha));
+			lbl->set_tooltip_text(PREFDESC(HUDTransparency));
 			tbl->attach(*lbl, 2, 3, 1, 2);
 
-			alpha = Gtk::manage(new Gtk::HScale(0.0, 1.1, 0.10));
-			alpha->set_digits(2);
-			alpha->set_value_pos(Gtk::PositionType::POS_BOTTOM);
-			alpha->set_tooltip_text(PREFDESC(HUDAlpha));
-			tbl->attach(*alpha, 2, 3, 2, 3);
+			nalpha = Gtk::manage(new Gtk::HScale(0.0, 0.6, 0.10));
+			nalpha->set_digits(2);
+			nalpha->set_value_pos(Gtk::PositionType::POS_BOTTOM);
+			nalpha->set_tooltip_text(PREFDESC(HUDTransparency));
+			tbl->attach(*nalpha, 2, 3, 2, 3);
 
 			Gtk::Table* inner = Gtk::manage(new Gtk::Table(2,3,false));
 			tbl->attach(*inner, 2, 3, 0, 1);
@@ -236,7 +236,7 @@ namespace PrefsDialogBits {
 		void prepare(const Prefs& prefs) {
 			horiz->set_value(prefs.get(PREF(HUDHorizontalOffset)));
 			vert->set_value(prefs.get(PREF(HUDVerticalOffset)));
-			alpha->set_value(prefs.get(PREF(HUDAlpha)));
+			nalpha->set_value(prefs.get(PREF(HUDTransparency)));
 
 			Gdk::Color bg,fg;
 			if (!bg.set(prefs.get(PREF(HUDBackground))))
@@ -251,7 +251,7 @@ namespace PrefsDialogBits {
 		void defaults() {
 			horiz->set_value(PREF(HUDHorizontalOffset)._default);
 			vert->set_value(PREF(HUDVerticalOffset)._default);
-			alpha->set_value(PREF(HUDAlpha)._default);
+			nalpha->set_value(PREF(HUDTransparency)._default);
 
 			Gdk::Color bg(PREF(HUDBackground)._default);
 			Gdk::Color fg(PREF(HUDText)._default);
@@ -265,7 +265,7 @@ namespace PrefsDialogBits {
 		void readout(Prefs& prefs) throw(Exception) {
 			prefs.set(PREF(HUDHorizontalOffset), horiz->get_value());
 			prefs.set(PREF(HUDVerticalOffset), vert->get_value());
-			prefs.set(PREF(HUDAlpha), alpha->get_value());
+			prefs.set(PREF(HUDTransparency), nalpha->get_value());
 
 			prefs.set(PREF(HUDBackground), bgcol->get_colour().to_string());
 			prefs.set(PREF(HUDText), fgcol->get_colour().to_string());

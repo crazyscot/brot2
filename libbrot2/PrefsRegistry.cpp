@@ -68,9 +68,9 @@ namespace BrotPrefs {
 				"HUD background colour (rrrrggggbbbb hex)",
 				"#000000000000",
 				Groups::HUD, "bg_colour"),
-		HUDAlpha("HUD transparency",
-				"HUD transparency (0.0-1.0)",
-				0.0, 0.8, 1.0,
+		HUDTransparency("HUD transparency",
+				"HUD transparency (0.0-0.5)",
+				0.0, 0.2, 0.5,
 				Groups::HUD, "alpha"),
 
 		end()
