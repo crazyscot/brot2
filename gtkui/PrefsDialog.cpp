@@ -75,6 +75,10 @@ namespace PrefsDialogBits {
 			// cout << "BG is " << BG << " for " << back.to_string() << endl; // TEST
 			str.seekp(0);
 
+			// But alas, neither pango nor gtk (currently) allow us to have
+			// a text string with alpha colouring.
+			// TODO: Another day, refactor this to use a DrawingArea and
+			// invoke cairo directly to achieve an alphaful preview.
 			str << "<span" <<
 				" foreground=\"#" << FG << "\"" <<
 				" background=\"#" << BG << "\"" <<
@@ -168,40 +172,48 @@ namespace PrefsDialogBits {
 	public:
 		Gtk::VScale *vert;
 		Gtk::HScale *horiz;
+		Gtk::HScale *alpha;
 		ColourPanel *bgcol, *fgcol;
 		SampleTextLabel *sample;
 
 		HUDFrame() : Gtk::Frame("Heads-Up Display") {
 			set_border_width(10);
-			Gtk::Table* tbl = Gtk::manage(new Gtk::Table(4,3,false));
+			Gtk::Table* tbl = Gtk::manage(new Gtk::Table(3,5,false));
 			Gtk::Label *lbl;
 
 			lbl = Gtk::manage(new Gtk::Label("Vertical position"));
 			lbl->set_tooltip_text(PREFDESC(HUDVerticalOffset));
 			lbl->set_angle(90);
-			tbl->attach(*lbl, 0, 1, 0, 4);
+			tbl->attach(*lbl, 0, 1, 0, 3);
 
 			lbl = Gtk::manage(new Gtk::Label("Horizontal position"));
 			lbl->set_tooltip_text(PREFDESC(HUDHorizontalOffset));
-			tbl->attach(*lbl, 2, 3, 3, 4);
+			tbl->attach(*lbl, 0, 3, 4, 5);
 
 			vert = Gtk::manage(new Gtk::VScale(0.0, 105.0, 5.0));
 			vert->set_digits(0);
 			vert->set_value_pos(Gtk::PositionType::POS_TOP);
 			vert->set_tooltip_text(PREFDESC(HUDVerticalOffset));
-			tbl->attach(*vert, 1, 2, 0, 4);
+			tbl->attach(*vert, 1, 2, 0, 3);
 
 			horiz = Gtk::manage(new Gtk::HScale(0.0, 80.0, 5.0));
 			horiz->set_digits(0);
 			horiz->set_value_pos(Gtk::PositionType::POS_RIGHT);
 			horiz->set_tooltip_text(PREFDESC(HUDHorizontalOffset));
-			tbl->attach(*horiz, 2, 3, 2, 3);
+			tbl->attach(*horiz, 0, 3, 3, 4);
 
-			//lbl = Gtk::manage(new Gtk::Label("HUD colour"));
-			//tbl->attach(*lbl, 2, 3, 0, 1);
+			lbl = Gtk::manage(new Gtk::Label("Transparency"));
+			lbl->set_tooltip_text(PREFDESC(HUDAlpha));
+			tbl->attach(*lbl, 2, 3, 1, 2);
+
+			alpha = Gtk::manage(new Gtk::HScale(0.0, 1.1, 0.10));
+			alpha->set_digits(2);
+			alpha->set_value_pos(Gtk::PositionType::POS_BOTTOM);
+			alpha->set_tooltip_text(PREFDESC(HUDAlpha));
+			tbl->attach(*alpha, 2, 3, 2, 3);
 
 			Gtk::Table* inner = Gtk::manage(new Gtk::Table(2,3,false));
-			tbl->attach(*inner, 2, 3, 0, 2);
+			tbl->attach(*inner, 2, 3, 0, 1);
 
 			sample = Gtk::manage(new SampleTextLabel());
 			inner->attach(*sample, 0, 2, 2, 3);
@@ -224,6 +236,7 @@ namespace PrefsDialogBits {
 		void prepare(const Prefs& prefs) {
 			horiz->set_value(prefs.get(PREF(HUDHorizontalOffset)));
 			vert->set_value(prefs.get(PREF(HUDVerticalOffset)));
+			alpha->set_value(prefs.get(PREF(HUDAlpha)));
 
 			Gdk::Color bg,fg;
 			if (!bg.set(prefs.get(PREF(HUDBackground))))
@@ -238,6 +251,7 @@ namespace PrefsDialogBits {
 		void defaults() {
 			horiz->set_value(PREF(HUDHorizontalOffset)._default);
 			vert->set_value(PREF(HUDVerticalOffset)._default);
+			alpha->set_value(PREF(HUDAlpha)._default);
 
 			Gdk::Color bg(PREF(HUDBackground)._default);
 			Gdk::Color fg(PREF(HUDText)._default);
@@ -251,6 +265,7 @@ namespace PrefsDialogBits {
 		void readout(Prefs& prefs) throw(Exception) {
 			prefs.set(PREF(HUDHorizontalOffset), horiz->get_value());
 			prefs.set(PREF(HUDVerticalOffset), vert->get_value());
+			prefs.set(PREF(HUDAlpha), alpha->get_value());
 
 			prefs.set(PREF(HUDBackground), bgcol->get_colour().to_string());
 			prefs.set(PREF(HUDText), fgcol->get_colour().to_string());
