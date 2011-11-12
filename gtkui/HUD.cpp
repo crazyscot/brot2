@@ -60,6 +60,7 @@ void HUD::draw(Plot2* plot, const int rwidth, const int rheight)
 		fg = fgcol;
 		bg = bgcol;
 	}
+	const double alpha = prefs.get(PREF(HUDAlpha));
 
 	if ((rwidth!=w) || (rheight!=h)) {
 		if (surface)
@@ -112,13 +113,13 @@ void HUD::draw(Plot2* plot, const int rwidth, const int rheight)
 				YOFFSET + log.get_y() / PANGO_SCALE,
 				log.get_width() / PANGO_SCALE, log.get_height() / PANGO_SCALE);
 		cr->clip();
-		cr->paint();
+		cr->paint_with_alpha(alpha);
 		cr->restore();
 	} while (iter.next_line());
 
 	cr->move_to(XOFFSET,YOFFSET);
 	cr->set_operator(Cairo::Operator::OPERATOR_OVER);
-	cr->set_source_rgb(fg.r, fg.g, fg.b);
+	cr->set_source_rgba(fg.r, fg.g, fg.b, alpha);
 	lyt->show_in_cairo_context(cr);
 }
 
