@@ -114,7 +114,7 @@ namespace PrefsDialogBits {
 	};
 };
 
-PrefsDialog::PrefsDialog(MainWindow *_mw) : Gtk::Dialog("Preferences", _mw, true),
+PrefsDialog::PrefsDialog(MainWindow *_mw) : Gtk::Dialog("Preferences", *_mw, true),
 	mw(_mw)
 {
 	add_button("Defaults", RESPONSE_DEFAULTS);
