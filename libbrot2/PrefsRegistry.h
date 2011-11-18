@@ -66,8 +66,8 @@ typedef Base<std::string> String;
 	\
 	DO(Int,HUDVerticalOffset)\
 	DO(Int,HUDHorizontalOffset)\
-	DO(String,HUDText)\
-	DO(String,HUDBackground)\
+	DO(String,HUDTextColour)\
+	DO(String,HUDBackgroundColour)\
 	DO(Float,HUDTransparency)\
 
 struct Registry {

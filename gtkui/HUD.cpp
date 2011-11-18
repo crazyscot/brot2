@@ -51,12 +51,12 @@ void HUD::draw(Plot2* plot, const int rwidth, const int rheight)
 	rgb_double fg, bg;
 	{
 		Gdk::Color fgcol, bgcol;
-		const std::string fgtext = prefs.get(PREF(HUDText)),
-			  bgtext = prefs.get(PREF(HUDBackground));
+		const std::string fgtext = prefs.get(PREF(HUDTextColour)),
+			  bgtext = prefs.get(PREF(HUDBackgroundColour));
 		if (!fgcol.set(fgtext))
-			fgcol.set(PREF(HUDText)._default);
+			fgcol.set(PREF(HUDTextColour)._default);
 		if (!bgcol.set(bgtext))
-			bgcol.set(PREF(HUDBackground)._default);
+			bgcol.set(PREF(HUDBackgroundColour)._default);
 		fg = fgcol;
 		bg = bgcol;
 	}

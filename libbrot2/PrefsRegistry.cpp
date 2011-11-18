@@ -66,11 +66,11 @@ namespace BrotPrefs {
 				0, 1, 100,
 				Groups::HUD, "horizontal_offset"),
 
-		HUDText("HUD text colour",
+		HUDTextColour("HUD text colour",
 				"HUD text colour (rrrrggggbbbb hex)",
 				"#ffffffffffff",
 				Groups::HUD, "text_colour"),
-		HUDBackground("HUD bg colour",
+		HUDBackgroundColour("HUD bg colour",
 				"HUD background colour (rrrrggggbbbb hex)",
 				"#000000000000",
 				Groups::HUD, "bg_colour"),

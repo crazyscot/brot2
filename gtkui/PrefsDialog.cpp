@@ -282,10 +282,10 @@ namespace PrefsDialogBits {
 			nalpha->set_value(prefs.get(PREF(HUDTransparency)));
 
 			Gdk::Color bg,fg;
-			if (!bg.set(prefs.get(PREF(HUDBackground))))
-				bg.set(PREF(HUDBackground)._default);
-			if (!fg.set(prefs.get(PREF(HUDText))))
-				fg.set(PREF(HUDText)._default);
+			if (!bg.set(prefs.get(PREF(HUDBackgroundColour))))
+				bg.set(PREF(HUDBackgroundColour)._default);
+			if (!fg.set(prefs.get(PREF(HUDTextColour))))
+				fg.set(PREF(HUDTextColour)._default);
 			bgcol->set_colour(bg);
 			fgcol->set_colour(fg);
 			sample->prod();
@@ -296,8 +296,8 @@ namespace PrefsDialogBits {
 			vert->set_value(PREF(HUDVerticalOffset)._default);
 			nalpha->set_value(PREF(HUDTransparency)._default);
 
-			Gdk::Color bg(PREF(HUDBackground)._default);
-			Gdk::Color fg(PREF(HUDText)._default);
+			Gdk::Color bg(PREF(HUDBackgroundColour)._default);
+			Gdk::Color fg(PREF(HUDTextColour)._default);
 			bgcol->set_colour(bg);
 			bgcol->on_expose_event(0); // Force update
 			fgcol->set_colour(fg);
@@ -310,8 +310,8 @@ namespace PrefsDialogBits {
 			prefs.set(PREF(HUDVerticalOffset), vert->get_value());
 			prefs.set(PREF(HUDTransparency), nalpha->get_value());
 
-			prefs.set(PREF(HUDBackground), bgcol->get_colour().to_string());
-			prefs.set(PREF(HUDText), fgcol->get_colour().to_string());
+			prefs.set(PREF(HUDBackgroundColour), bgcol->get_colour().to_string());
+			prefs.set(PREF(HUDTextColour), fgcol->get_colour().to_string());
 		}
 
 	};

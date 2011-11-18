@@ -188,8 +188,8 @@ class KeyfilePrefs : public Prefs {
 			kf.set_comment(GROUP_SCROLL, "Scroll wheel actions. Supported actions are: " + acts.str());
 			// (However we won't enforce its absence, we'll just ignore it if it turns up.)
 
-			kf.set_comment(Groups::HUD, PREF(HUDText)._key, "hex format: #rrrrggggbbbb");
-			kf.set_comment(Groups::HUD, PREF(HUDBackground)._key, "hex format: #rrrrggggbbbb");
+			kf.set_comment(Groups::HUD, PREF(HUDTextColour)._key, "hex format: #rrrrggggbbbb");
+			kf.set_comment(Groups::HUD, PREF(HUDBackgroundColour)._key, "hex format: #rrrrggggbbbb");
 
 			f.open(fn);
 			f << kf.to_data();
