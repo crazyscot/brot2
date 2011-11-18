@@ -18,10 +18,10 @@ brot2 (0.9~unreleased) oneiric; urgency=low
   * LP#786106: Add Prev/Next items, with accelerators, to cycle through
   Fractal and Colour menus.
   * Fractal setup cosmetic fixes
-  * LP#786549: Add prefs for HUD placement and colouring.
+  * LP#786549, LP#891954: Add prefs for HUD placement and colouring.
   * LP#783086: Add pref for max number of plotting threads.
 
- -- Ross Younger <0ryoungerk.launchpad@coriolis.greenend.org.uk>  Fri, 18 Nov 2011 22:23:01 +1300
+ -- Ross Younger <0ryoungerk.launchpad@coriolis.greenend.org.uk>  Sat, 19 Nov 2011 11:21:59 +1300
 
 brot2 (0.5) natty; urgency=low
 

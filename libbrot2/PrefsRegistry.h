@@ -66,6 +66,7 @@ typedef Base<std::string> String;
 	\
 	DO(Int,HUDVerticalOffset)\
 	DO(Int,HUDHorizontalOffset)\
+	DO(Int,HUDRightMargin)\
 	DO(String,HUDTextColour)\
 	DO(String,HUDBackgroundColour)\
 	DO(Float,HUDTransparency)\

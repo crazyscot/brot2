@@ -46,7 +46,9 @@ void HUD::draw(Plot2* plot, const int rwidth, const int rheight)
 	std::string info = plot->info(true);
 	const Prefs& prefs = parent.prefs();
 	const int ypos = prefs.get(PREF(HUDVerticalOffset)),
-		  xpos = prefs.get(PREF(HUDHorizontalOffset));
+		  xpos = prefs.get(PREF(HUDHorizontalOffset)),
+		  xright = prefs.get(PREF(HUDRightMargin));
+	const int hudwidthpct = MAX(xright - xpos, 1);
 
 	rgb_double fg, bg;
 	{
@@ -81,12 +83,13 @@ void HUD::draw(Plot2* plot, const int rwidth, const int rheight)
 	h = rheight;
 
 	const int XOFFSET = xpos * rwidth / 100;
+	const int WIDTH_PIXELS = hudwidthpct * rwidth / 100;
 
 	Glib::RefPtr<Pango::Layout> lyt = Pango::Layout::create(cr);
 	Pango::FontDescription fontdesc(font_name);
 	lyt->set_font_description(fontdesc);
 	lyt->set_text(info);
-	lyt->set_width(Pango::SCALE * (rwidth - XOFFSET));
+	lyt->set_width(Pango::SCALE * WIDTH_PIXELS);
 	lyt->set_wrap(Pango::WRAP_WORD_CHAR);
 
 	// add up the height, make sure we fit.

@@ -63,8 +63,12 @@ namespace BrotPrefs {
 				Groups::HUD, "vertical_offset"),
 		HUDHorizontalOffset("HUD Horizontal offset %",
 				"HUD Horizontal offset in % of window",
-				0, 1, 100,
+				0, 1, 99,
 				Groups::HUD, "horizontal_offset"),
+		HUDRightMargin("HUD Right Margin %",
+				"Right margin for the HUD, in % of window",
+				1, 99, 100,
+				Groups::HUD, "right_margin"),
 
 		HUDTextColour("HUD text colour",
 				"HUD text colour (rrrrggggbbbb hex)",

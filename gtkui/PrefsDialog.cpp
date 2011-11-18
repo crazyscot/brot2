@@ -90,6 +90,21 @@ namespace PrefsDialogBits {
 
 	};
 
+	/* An HScale which "constrains" another.
+	 * In this case, other must always be at least 1 larger than this one. */
+	class ConstrainingHScale : public Gtk::HScale {
+		Gtk::HScale *other;
+		public:
+			ConstrainingHScale(Gtk::HScale *p) : other(p) { }
+			ConstrainingHScale(Gtk::HScale *p,
+					double min, double max, double step) :
+				Gtk::HScale(min,max,step), other(p) { }
+
+			virtual void on_value_changed() {
+				other->get_adjustment()->set_lower(get_value()+1);
+			}
+	};
+
 	class ThresholdFrame : public Gtk::Frame {
 		public:
 		// Editable fields:
@@ -214,52 +229,64 @@ namespace PrefsDialogBits {
 	class HUDFrame : public Gtk::Frame {
 	public:
 		Gtk::VScale *vert;
-		Gtk::HScale *horiz;
+		Gtk::HScale *horiz, *rightmarg;
 		Gtk::HScale *nalpha; // transparency 0.0-0.5, so alpha is 1.0 - nalpha.
+		Gtk::Adjustment *hadjust, *radjust;
 		ColourPanel *bgcol, *fgcol;
 		SampleTextLabel *sample;
 
 		HUDFrame() : Gtk::Frame("Heads-Up Display") {
 			set_border_width(10);
-			Gtk::Table* tbl = Gtk::manage(new Gtk::Table(3,5,false));
+			Gtk::Table* tbl = Gtk::manage(new Gtk::Table(3,7,false));
 			Gtk::Label *lbl;
 
-			lbl = Gtk::manage(new Gtk::Label("Vertical position"));
+			lbl = Gtk::manage(new Gtk::Label("Vertical position (%)"));
 			lbl->set_tooltip_text(PREFDESC(HUDVerticalOffset));
 			lbl->set_angle(90);
 			tbl->attach(*lbl, 0, 1, 0, 3);
 
-			lbl = Gtk::manage(new Gtk::Label("Horizontal position"));
+			lbl = Gtk::manage(new Gtk::Label("Horizontal position (%)"));
 			lbl->set_tooltip_text(PREFDESC(HUDHorizontalOffset));
 			tbl->attach(*lbl, 0, 3, 4, 5);
 
+			lbl = Gtk::manage(new Gtk::Label("Right margin (%)"));
+			lbl->set_tooltip_text(PREFDESC(HUDRightMargin));
+			tbl->attach(*lbl, 0, 3, 6, 7);
+
 			vert = Gtk::manage(new Gtk::VScale(0.0, 105.0, 5.0));
 			vert->set_digits(0);
-			vert->set_value_pos(Gtk::PositionType::POS_TOP);
+			vert->set_value_pos(Gtk::PositionType::POS_LEFT);
 			vert->set_tooltip_text(PREFDESC(HUDVerticalOffset));
 			tbl->attach(*vert, 1, 2, 0, 3);
 
-			horiz = Gtk::manage(new Gtk::HScale(0.0, 80.0, 5.0));
+			rightmarg = Gtk::manage(new Gtk::HScale(1.0, 105.0, 5.0));
+			horiz = Gtk::manage(new ConstrainingHScale(rightmarg, 0.0, 104.0, 5.0));
 			horiz->set_digits(0);
-			horiz->set_value_pos(Gtk::PositionType::POS_RIGHT);
+			horiz->set_value_pos(Gtk::PositionType::POS_TOP);
 			horiz->set_tooltip_text(PREFDESC(HUDHorizontalOffset));
 			tbl->attach(*horiz, 0, 3, 3, 4);
 
+			// done above so we've got the pointer to hand // rightmarg = Gtk::manage(new Gtk::HScale(0.0, 104.0, 5.0));
+			rightmarg->set_digits(0);
+			rightmarg->set_value_pos(Gtk::PositionType::POS_TOP);
+			rightmarg->set_tooltip_text(PREFDESC(HUDRightMargin));
+			tbl->attach(*rightmarg, 0, 3, 5, 6);
+
 			lbl = Gtk::manage(new Gtk::Label("Transparency"));
 			lbl->set_tooltip_text(PREFDESC(HUDTransparency));
-			tbl->attach(*lbl, 2, 3, 1, 2);
+			tbl->attach(*lbl, 2, 3, 2, 3);
 
 			nalpha = Gtk::manage(new Gtk::HScale(0.0, 0.6, 0.10));
-			nalpha->set_digits(2);
-			nalpha->set_value_pos(Gtk::PositionType::POS_BOTTOM);
+			nalpha->set_digits(1);
+			nalpha->set_value_pos(Gtk::PositionType::POS_RIGHT);
 			nalpha->set_tooltip_text(PREFDESC(HUDTransparency));
-			tbl->attach(*nalpha, 2, 3, 2, 3);
+			tbl->attach(*nalpha, 2, 3, 1, 2);
 
 			Gtk::Table* inner = Gtk::manage(new Gtk::Table(2,3,false));
 			tbl->attach(*inner, 2, 3, 0, 1);
 
 			sample = Gtk::manage(new SampleTextLabel());
-			inner->attach(*sample, 0, 2, 2, 3);
+			inner->attach(*sample, 0, 2, 1, 2);
 
 			fgcol = Gtk::manage(new ColourPanel(this, sample));
 			fgcol->set_tooltip_text("HUD text colour");
@@ -271,7 +298,7 @@ namespace PrefsDialogBits {
 			sample->set_panels(fgcol, bgcol);
 
 			lbl = Gtk::manage(new Gtk::Label()); // empty, for spacing
-			inner->attach(*lbl, 0, 2, 1, 2);
+			inner->attach(*lbl, 0, 2, 2, 3);
 
 			add(*tbl);
 		}
@@ -280,6 +307,7 @@ namespace PrefsDialogBits {
 			horiz->set_value(prefs.get(PREF(HUDHorizontalOffset)));
 			vert->set_value(prefs.get(PREF(HUDVerticalOffset)));
 			nalpha->set_value(prefs.get(PREF(HUDTransparency)));
+			rightmarg->set_value(prefs.get(PREF(HUDRightMargin)));
 
 			Gdk::Color bg,fg;
 			if (!bg.set(prefs.get(PREF(HUDBackgroundColour))))
@@ -295,6 +323,7 @@ namespace PrefsDialogBits {
 			horiz->set_value(PREF(HUDHorizontalOffset)._default);
 			vert->set_value(PREF(HUDVerticalOffset)._default);
 			nalpha->set_value(PREF(HUDTransparency)._default);
+			rightmarg->set_value(PREF(HUDRightMargin)._default);
 
 			Gdk::Color bg(PREF(HUDBackgroundColour)._default);
 			Gdk::Color fg(PREF(HUDTextColour)._default);
@@ -309,6 +338,7 @@ namespace PrefsDialogBits {
 			prefs.set(PREF(HUDHorizontalOffset), horiz->get_value());
 			prefs.set(PREF(HUDVerticalOffset), vert->get_value());
 			prefs.set(PREF(HUDTransparency), nalpha->get_value());
+			prefs.set(PREF(HUDRightMargin), rightmarg->get_value());
 
 			prefs.set(PREF(HUDBackgroundColour), bgcol->get_colour().to_string());
 			prefs.set(PREF(HUDTextColour), fgcol->get_colour().to_string());
