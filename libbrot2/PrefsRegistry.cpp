@@ -51,6 +51,12 @@ namespace BrotPrefs {
 				0, 20, 100,
 				Groups::PLOT_CONTROL, "minimum_done_percent"),
 
+		MaxPlotThreads("Max plot threads",
+				"The number of plotting threads to run at once, "
+				"or 0 to autodetect",
+				0, 0, 1000,
+				Groups::PLOT_CONTROL, "max_plot_threads"),
+
 		HUDVerticalOffset("HUD Vertical offset %",
 				"HUD Vertical offset in % of window",
 				0, 1, 100,

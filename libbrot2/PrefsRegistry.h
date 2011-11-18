@@ -62,6 +62,8 @@ typedef Base<std::string> String;
 	DO(Float,LiveThreshold)\
 	DO(Int,MinEscapeePct) \
 	\
+	DO(Int,MaxPlotThreads) \
+	\
 	DO(Int,HUDVerticalOffset)\
 	DO(Int,HUDHorizontalOffset)\
 	DO(String,HUDText)\

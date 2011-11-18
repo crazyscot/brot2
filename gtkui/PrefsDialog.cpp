@@ -168,6 +168,49 @@ namespace PrefsDialogBits {
 		}
 	};
 
+	class MiscFrame : public Gtk::Frame {
+		public:
+		// Editable fields:
+		Util::HandyEntry<int> *f_max_threads;
+
+		MiscFrame() : Gtk::Frame("Miscellaneous") {
+			f_max_threads = Gtk::manage(new Util::HandyEntry<int>());
+			f_max_threads->set_activates_default(true);
+
+			set_border_width(10);
+			Gtk::Table *tbl = Gtk::manage(new Gtk::Table(1/*r*/, 2/*c*/, false));
+			Gtk::Label *lbl;
+
+			lbl = Gtk::manage(new Gtk::Label(PREFNAME(MaxPlotThreads)));
+			lbl->set_tooltip_text(PREFDESC(MaxPlotThreads));
+			f_max_threads->set_tooltip_text(PREFDESC(MaxPlotThreads));
+			tbl->attach(*lbl, 0, 1, 0, 1);
+			tbl->attach(*f_max_threads, 1, 2, 0, 1);
+
+			add(*tbl);
+		}
+
+		void prepare(const Prefs& prefs) {
+			f_max_threads->update(prefs.get(PREF(MaxPlotThreads)));
+		}
+
+		void defaults() {
+			f_max_threads->update(PREF(MaxPlotThreads)._default);
+		}
+
+		void readout(Prefs& prefs) throw(Exception) {
+			unsigned tmpu;
+			int tmpi=0;
+
+			if (!f_max_threads->read(tmpi))
+				THROW(Exception,"Sorry, I don't understand your max CPU threads");
+			if ((tmpi < PREF(MaxPlotThreads)._min) || (tmpi > PREF(MaxPlotThreads)._max))
+				THROW(Exception,"Max CPU threads must be at least 0");
+			tmpu = tmpi;
+			prefs.set(PREF(MaxPlotThreads), tmpu);
+		}
+	};
+
 	class HUDFrame : public Gtk::Frame {
 	public:
 		Gtk::VScale *vert;
@@ -287,12 +330,15 @@ PrefsDialog::PrefsDialog(MainWindow *_mw) : Gtk::Dialog("Preferences", *_mw, tru
 	box->pack_start(*threshold);
 	hud = Gtk::manage(new PrefsDialogBits::HUDFrame());
 	box->pack_start(*hud);
+	miscbits = Gtk::manage(new PrefsDialogBits::MiscFrame());
+	box->pack_start(*miscbits);
 }
 
 int PrefsDialog::run() {
 	const Prefs& p = Prefs::getMaster();
 	threshold->prepare(p);
 	hud->prepare(p);
+	miscbits->prepare(p);
 	show_all();
 
 	bool error;
@@ -306,6 +352,7 @@ int PrefsDialog::run() {
 			try {
 				threshold->readout(*pp);
 				hud->readout(*pp);
+				miscbits->readout(*pp);
 			} catch (Exception e) {
 				Util::alert(this, e.msg);
 				error = true;
@@ -321,6 +368,7 @@ int PrefsDialog::run() {
 		} else if (result == RESPONSE_DEFAULTS) {
 			threshold->defaults();
 			hud->defaults();
+			miscbits->defaults();
 		}
 	} while ((result == RESPONSE_DEFAULTS) ||
 			 (error && result == Gtk::ResponseType::RESPONSE_OK));

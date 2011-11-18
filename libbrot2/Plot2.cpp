@@ -50,34 +50,32 @@ class SingletonThreadPool {
 	Glib::ThreadPool * pool;
 public:
 	// excl and max_idle are passed straight to Glib threadpool.
-	// maxthreads may be an explicit count >0, -1 for unlimited, or
-	// 0 to attempt to autodetect the number of CPUs on the system.
+	// maxthreads may be an explicit count >0, -1 for unlimited
+	// (Danger! Fork-bomb! Use with caution!) or 0 to attempt to
+	// autodetect the number of CPUs on the system.
 	SingletonThreadPool(bool excl, int maxthreads=0, int max_idle=1) : is_excl(excl) {
 		reset_threadcounts(maxthreads, max_idle);
 	};
 	inline void reset_threadcounts(int max, int max_idle) {
-		mux.lock();
-		if (max==0)
-			max = sysconf(_SC_NPROCESSORS_ONLN);
-		if (max==0) 
-			max=1; // Last-ditch default
-		n_threads = max;
+		Glib::Mutex::Lock _auto (mux);
+		n_workers_locked(max);
 
 		max_unused = max_idle;
-		if (pool) {
-			pool->set_max_threads(n_threads);
+		if (pool)
 			pool->set_max_unused_threads(max_unused);
-		}
-		mux.unlock();
 	}
 	inline int n_workers() const {
 		return n_threads;
+	}
+	inline void n_workers(int n) {
+		Glib::Mutex::Lock _auto (mux);
+		n_workers_locked(n);
 	}
 	inline Glib::ThreadPool * get() {
 		/* I would love to instantiate the pool in the constructor, but
 		 * it explodes if the glib thread subsystem isn't up yet...
 		 */
-		mux.lock();
+		Glib::Mutex::Lock _auto (mux);
 		if (!pool) {
 			pool = new Glib::ThreadPool(n_threads, is_excl);
 			pool->set_max_unused_threads(max_unused);
@@ -92,6 +90,21 @@ public:
 			pool=0;
 		}
 	};
+private:
+	inline void n_workers_locked(int max) {
+		if (max==-1)
+			max = INT_MAX;
+		if (max==0) {
+			max = sysconf(_SC_NPROCESSORS_ONLN);
+			// N.B. Ports to other OSes need different code.
+			// See http://stackoverflow.com/questions/150355/programmatically-find-the-number-of-cores-on-a-machine
+			if (max==-1) // i.e. sysconf failed somehow
+				max=1; // Last-ditch default
+		}
+		n_threads = max;
+		if (pool)
+			pool->set_max_threads(n_threads);
+	}
 };
 
 // Pool for the main per-plot threads - these aren't so busy and
@@ -243,8 +256,10 @@ void Plot2::_per_plot_threadfunc()
 
 	int this_pass_maxiter = initial_maxiter, last_pass_maxiter = plotted_maxiter, maxiter_scale = 0;
 
-	int _t_maxo = worker_thread_pool.n_workers();
-	if (_t_maxo==-1) _t_maxo = MAXINT;
+
+	int _t_maxo = prefs->get(PREF(MaxPlotThreads));
+	worker_thread_pool.n_workers(_t_maxo);
+	_t_maxo = worker_thread_pool.n_workers(); // this does the 0/-1 handling
 	const unsigned max_outstanding = _t_maxo;
 
 	if (last_pass_maxiter) {
@@ -257,7 +272,6 @@ void Plot2::_per_plot_threadfunc()
 
 		if (this_pass_maxiter >= (INT_MAX/2)) {
 			live=false;
-			// TODO Explain to the user why we're not doing any more.
 		}
 	}
 	while (live && !_abort && (passcount < passes_max) ) {
