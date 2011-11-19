@@ -21,14 +21,40 @@
 
 class MainWindow;
 
+#include "Plot2.h"
+#include "palette.h"
 #include <string>
 
+class PNGProgressWindow;
+
 class SaveAsPNG {
-protected:
-	static void to_png(MainWindow *mw, std::string& filename);
+	friend class MainWindow;
+
+	// Interface for MainWindow to trigger save actions.
+	// An instance of this class is an outstanding PNG-save job.
+private:
+	static void to_png(MainWindow *mw, unsigned rwidth, unsigned rheight,
+			Plot2* plot, BasePalette* pal, int aafactor,
+			std::string& filename);
+
+	// Delete on destruct:
+	Plot2 *plot;
+	PNGProgressWindow *reporter;
+
+	// do NOT delete:
+	BasePalette *pal;
+	int antialias;
+	std::string filename;
+
 public:
+	void to_png(); // when the plot has finished.
+
 	static std::string last_saved_dirname;
+
+	// main entrypoint: runs the save dialog and DTRTs
 	static void do_save(MainWindow *mw);
+
+	~SaveAsPNG();
 };
 
 #endif /* SAVEASPNG_H_ */

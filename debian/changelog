@@ -20,8 +20,10 @@ brot2 (0.9~unreleased) oneiric; urgency=low
   * Fractal setup cosmetic fixes
   * LP#786549, LP#891954: Add prefs for HUD placement and colouring.
   * LP#783086: Add pref for max number of plotting threads.
+  * LP#783085: Allow saving a different size of plot to that currently
+  displayed.
 
- -- Ross Younger <0ryoungerk.launchpad@coriolis.greenend.org.uk>  Sat, 19 Nov 2011 11:21:59 +1300
+ -- Ross Younger <0ryoungerk.launchpad@coriolis.greenend.org.uk>  Sun, 20 Nov 2011 22:36:24 +1300
 
 brot2 (0.5) natty; urgency=low
 

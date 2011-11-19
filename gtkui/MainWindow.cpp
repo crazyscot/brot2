@@ -20,6 +20,7 @@
 #include "Menus.h"
 #include "Canvas.h"
 #include "HUD.h"
+#include "SaveAsPNG.h"
 #include "Render.h"
 #include "misc.h"
 #include "config.h"
@@ -30,6 +31,7 @@
 #include <complex>
 #include <math.h>
 #include <iostream>
+#include <queue>
 
 #include <gtkmm/main.h>
 #include <gdk/gdkkeysyms.h>
@@ -76,6 +78,9 @@ MainWindow::MainWindow() : Gtk::Window(),
 
 	initializing = false;
 	menubar->optionsMenu->set_controls_status( prefs().get(PREF(ShowControls)) );
+
+	// Cleanup event(currently only used for SaveAsPNG jobs).
+	Glib::signal_timeout().connect( sigc::mem_fun(*this, &MainWindow::on_timer), 500 );
 }
 
 MainWindow::~MainWindow() {
@@ -440,4 +445,41 @@ void MainWindow::toggle_antialias()
 	safe_stop_plot();
 	antialias = !antialias;
 	do_plot(false);
+}
+
+struct pngq_entry {
+	SaveAsPNG *png;
+	pngq_entry(SaveAsPNG *p) : png(p) {}
+};
+
+static std::queue<pngq_entry> png_q; // protected by gdk threads lock.
+
+void MainWindow::queue_png(SaveAsPNG* png)
+{
+	pngq_entry e(png);
+	gdk_threads_enter();
+	png_q.push(e);
+	gdk_threads_leave();
+}
+
+void MainWindow::png_save_completion()
+{
+	// must have the gdk threads lock.
+	if (!png_q.empty()) {
+		pngq_entry e(png_q.front());
+		png_q.pop();
+		//gdk_threads_leave(); // Don't do this, it deadlocks.
+		e.png->plot->wait();
+		Plot2 *plot = e.png->plot;
+		SaveAsPNG::to_png(this, plot->width/e.png->antialias, plot->height/e.png->antialias, plot, e.png->pal, e.png->antialias, e.png->filename);
+		delete e.png;
+		//gdk_threads_enter();
+	} else {
+	}
+}
+
+bool MainWindow::on_timer()
+{
+	png_save_completion();
+	return true;
 }

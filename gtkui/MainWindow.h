@@ -40,6 +40,7 @@
 
 class HUD;
 class ControlsWindow;
+class SaveAsPNG;
 
 class MainWindow : public Gtk::Window, Plot2::callback_t {
 	Gtk::VBox *vbox; // Main layout widget
@@ -133,6 +134,8 @@ public:
 		return menubar->optionsMenu;
 	}
 
+	void queue_png(SaveAsPNG* png);
+
     // Plot2::callback_t:
 	virtual void plot_progress_minor(Plot2& plot, float workdone);
 	virtual void plot_progress_major(Plot2& plot, unsigned current_maxiter, std::string& commentary);
@@ -140,6 +143,8 @@ public:
 
 private:
     void zoom_mechanics(enum Zoom z);
+	bool on_timer();
+	void png_save_completion();
 
 };
 
