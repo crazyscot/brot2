@@ -22,8 +22,9 @@ brot2 (0.9~unreleased) oneiric; urgency=low
   * LP#783086: Add pref for max number of plotting threads.
   * LP#783085: Allow saving a different size of plot to that currently
   displayed.
+  * Add "Optical Illusion" discrete palette.
 
- -- Ross Younger <0ryoungerk.launchpad@coriolis.greenend.org.uk>  Sun, 20 Nov 2011 22:36:24 +1300
+ -- Ross Younger <0ryoungerk.launchpad@coriolis.greenend.org.uk>  Mon, 21 Nov 2011 19:13:08 +1300
 
 brot2 (0.5) natty; urgency=low
 

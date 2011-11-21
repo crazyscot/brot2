@@ -156,6 +156,22 @@ public:
 //SAWTOOTH(saw_blue_purple, Gradient blue-purple, 16, rgbf(0.5,0,0.5), rgbf(0,0.5,1));
 //SAWTOOTH(saw_org_green, Gradient orange-green, 16, rgbf(1,0.56,0), rgbf(0,0.56,0));
 
+// This one is visually disturbing. Find a nice swirly fractal plot, put it on full-screen in anti-aliased mode, and watch it appear to breathe before your eyes...
+class OpticalIllusion: public DiscretePalette {
+	rgb pal[4];
+public:
+	OpticalIllusion() : DiscretePalette(4) {
+		pal[0].r = pal[0].g = pal[0].b = 0;
+		pal[1].r = 150; pal[1].g = 2; pal[1].b = 198; // purple
+		pal[2].r = pal[2].g = pal[2].b = 255;
+		pal[3].r = 150; pal[3].g = 216; pal[3].b = 2; // lime green
+
+	};
+	virtual rgb get(const PointData &pt) const {
+		return pal[pt.iter%4];
+	};
+};
+
 SimpleRegistry<DiscretePalette> DiscretePalette::all;
 int DiscretePalette::base_registered=0;
 
@@ -165,6 +181,7 @@ void DiscretePalette::register_base() {
 	all.reg("Rainbow", new Rainbow(32));
 	all.reg("Pastel Salad", new PastelSalad(32));
 	all.reg("Red-cyan sawtooth", new SawtoothGradient(16, rgbf(0,1,1), rgbf(1,0,0)));
+	all.reg("Optical illusion", new OpticalIllusion());
 	base_registered = 1;
 }
 
