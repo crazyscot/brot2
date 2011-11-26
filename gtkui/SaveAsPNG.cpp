@@ -104,7 +104,7 @@ struct PNGProgressWindow: public Gtk::Window, Plot2::callback_t {
 
 class FileChooserExtra : public Gtk::VBox {
 	public:
-		Gtk::CheckButton *resize;
+		Gtk::CheckButton *resize, *antialias;
 		Gtk::HBox *inner;
 		Util::HandyEntry<int> *f_x, *f_y;
 
@@ -129,6 +129,10 @@ class FileChooserExtra : public Gtk::VBox {
 			f_y = Gtk::manage(new Util::HandyEntry<int>());
 			f_y->set_activates_default(true);
 			inner->pack_start(*f_y);
+
+			antialias = Gtk::manage(new Gtk::CheckButton("Antialias"));
+			antialias->set_active(false);
+			inner->pack_start(*antialias);
 
 			f_x->update(init_x);
 			f_y->update(init_y);
@@ -158,7 +162,7 @@ void SaveAsPNG::do_save(MainWindow *mw)
 {
 	std::string filename;
 	int newx=0, newy=0;
-	bool do_extra = false;
+	bool do_extra = false, do_antialias = false;
 
 	{
 		Gtk::FileChooserDialog dialog(*mw, "Save File", Gtk::FileChooserAction::FILE_CHOOSER_ACTION_SAVE);
@@ -195,6 +199,7 @@ void SaveAsPNG::do_save(MainWindow *mw)
 					Util::alert(&dialog, str.str());
 					continue;
 				}
+				do_antialias = extra->antialias->get_active();
 			}
 			filename = dialog.get_filename();
 		} while(0);
@@ -211,7 +216,7 @@ void SaveAsPNG::do_save(MainWindow *mw)
 		SaveAsPNG *job = new SaveAsPNG();
 
 		const Plot2& oldplot(mw->get_plot());
-		const int aafactor = mw->get_antialias();
+		const int aafactor = do_antialias ? 2 : 1;
 		job->plot = new Plot2(mw->fractal, oldplot.centre, oldplot.size,
 				newx * aafactor, newy * aafactor);
 		job->plot->set_prefs(&mw->prefs());
