@@ -23,8 +23,11 @@ brot2 (0.9~unreleased) oneiric; urgency=low
   * LP#783085: Allow saving a different size of plot to that currently
   displayed.
   * Add "Optical Illusion" discrete palette.
+  * LP#783081: Improve parameters dialog to allow zoom to be specified
+  as any of real axis, imag axis, real pixel size, imag pixel size, or
+  good old fashioned zoom.
 
- -- Ross Younger <0ryoungerk.launchpad@coriolis.greenend.org.uk>  Mon, 21 Nov 2011 19:13:08 +1300
+ -- Ross Younger <0ryoungerk.launchpad@coriolis.greenend.org.uk>  Wed, 14 Dec 2011 23:25:37 +1300
 
 brot2 (0.5) natty; urgency=low
 

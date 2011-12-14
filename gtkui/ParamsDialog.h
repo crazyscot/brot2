@@ -25,11 +25,14 @@
 #include <gtkmm/dialog.h>
 #include <gtkmm/entry.h>
 
+class ZoomControl;
+
 class ParamsDialog : public Gtk::Dialog {
 	protected:
 		MainWindow* mw;
 		// Dialog fields:
-		Util::HandyEntry<Fractal::Value> *f_c_re, *f_c_im, *f_size_re;
+		Util::HandyEntry<Fractal::Value> *f_c_re, *f_c_im;
+		ZoomControl *zc;
 
 	public:
 		ParamsDialog(MainWindow *_mw);
