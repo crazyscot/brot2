@@ -13,7 +13,7 @@ brot2_SOURCES=$(AUTOGEN_SOURCES) gtkmain.cpp gtkmain.h misc.h \
 brot2_LDADD= ../libbrot2/libbrot2.a @brot2gui_LIBS@ -lm
 brot2_DEPENDENCIES= ../libbrot2/libbrot2.a
 
-AM_CPPFLAGS= -I.. -I../libbrot2 @brot2gui_CFLAGS@
+AM_CPPFLAGS= -I$(top_srcdir) -I$(top_srcdir)/libbrot2 @brot2gui_CFLAGS@
 
 AM_CFLAGS=@global_CFLAGS@
 AM_CXXFLAGS=@global_CXXFLAGS@
