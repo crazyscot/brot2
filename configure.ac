@@ -1,4 +1,4 @@
-AC_INIT([brot2], [0.9.wip])
+AC_INIT([brot2], [1.0])
 AC_CONFIG_AUX_DIR([config.aux])
 AM_INIT_AUTOMAKE([no-define silent-rules])
 AC_CONFIG_SRCDIR([libbrot2/Plot2.cpp])
