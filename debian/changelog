@@ -1,4 +1,4 @@
-brot2 (0.9~unreleased) oneiric; urgency=low
+brot2 (1.0) oneiric; urgency=low
 
   * Gamma release series.
   * LP#783040: Create preferences mechanism, make mouse button and scroll
