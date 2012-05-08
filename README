@@ -18,41 +18,60 @@
 
 A GTK-based interactive fractal explorer.
 
-You can interact with the plot as follows:
+Features
+--------
 
-* left-click to zoom in around the spot clicked on. Press '+' to zoom
-  in around the centre of the plot.
-* right-click to zoom out around the spot clicked on. Press '-' to zoom
-  out around the centre.
-* middle-click to recentre around wherever it was you clicked.
-* Button 8 (the 4th button on my Kensington Expert Mouse) allows you to
-  drag out a rectangle requesting a zoom to a particular area. (It will
-  be adjusted to fit the aspect ratio of the window's current size.)
+* mouse-driven navigation (click to zoom in/out and recentre);
+* specific zooming by dragging out a rectangle;
+* multiple extensible palettes;
+* linear antialiasing (optional);
+* save image as PNG;
+* draws the original Mandelbrot set and a number of related fractals;
+  can be relatively easily extended to add more.
 
-These bindings are fixed at the moment but I have plans to make them
-user-definable.
+Interacting with the plot
+-------------------------
+
+The default controls are:
+
+* Left-click to recentre around the spot clicked on.
+* Drag with the right button to mark out a rectangle to zoom in to.
+  (It may be adjusted to fit the window.)
+* Middle-click to zoom out around the spot clicked on.
+* Button 8 (the 4th button on my Kensington Expert Mouse) to zoom in,
+  centred on the spot clicked on.
+* Scroll wheel up and down zoom in and out, centring around the pointer's
+  current location.
+* Keyboard '+' and '-' zoom in and out around the current centre of the plot.
+
+You can change these via the Controls window (hide/show via the Options menu).
 
 There is a simple single-step undo mechanism. This is designed to let you
 recover from the "oh dear I accidentally clicked somewhere silly,
 where was I?" scenario.
 
+The current fractal position is shown in the heads-up display overlaid
+onto the window. You can change its size, colour, transparency and
+positioning via the Preferences dialog.
+
+If you want to specify your plot numerically, you can do this via the
+Parameters dialog.
+
 The plot and window sizes are always the same; if you resize the window,
 the plot is redrawn to fit.
+
+You can save the current plot as a PNG file, with the option to save at
+a different size. (Changing size may take a while as the image has to
+be re-plotted.) The HUD is not drawn onto a saved image.
 
 For better image quality, activate the antialiasing mode (Ctrl-A). This
 takes longer to draw as it has to plot four times as many points and
 average across them. (This is a pretty naive linear antialiasing; better
 ways remain to be found and implemented.)
 
-brot2 has a (currently hard-wired) notion of what makes a plot "good
-enough": i.e. what fraction of the pixels should have escaped (or be
-provably within the set) in order for it to stop drawing. This is a
-tricky compromise between drawing enough detail and not taking forever,
-and it doesn't always get it right; you can stop a plot with Ctrl-. or
-ask for another pass ("More iterations") with Ctrl-M.
+brot2 has the notion of a plot being "good enough" to stop computing. This is expressed as a fraction (percentage) of the pixels which should have escaped (or be provably within the set), and a proportion of pixels continuing to escape in each pass. This is a tricky compromise between drawing enough detail and not taking forever, and it doesn't always get it right; you can tune it via the Preferences dialog. You can always stop a plot with Ctrl-. or ask it to make another pass ("More iterations") with Ctrl-M.
 
-The result of the maths is cached, so changing colour scheme is a quick
-and cheap operation.
+There are multiple colour palettes. At the moment these are hard-coded. Changing colour scheme is a quick and cheap operation; you can even cycle through them with Ctrl-3 and Ctrl-4.
 
 
 Getting and Building
@@ -70,9 +89,9 @@ The live source code can be obtained from the main git site:
 or the backup git site:
 	git://github.com/crazyscot/brot2.git
 
-In order to build, you will need libgtk2.0-dev, libglib2.0-dev,
-libgtkmm-2.4-dev, libglibmm-2.4-dev, libpng12-dev and libgdk-pixbuf2.0-dev.
-This should be taken care of for you if you use the Debian package.
+In order to build, you will need to have various gtk and gtkmm developer
+libraries installed. They are listed in the debian/control file, so will
+be taken care of if you use the standard package building tools.
 
 
 Reporting bugs
@@ -80,6 +99,30 @@ Reporting bugs
 
 Undoubtedly there are some. Please report them, along with suggestions,
 via LaunchPad: https://bugs.launchpad.net/brot2
+
+
+Hacking
+-------
+
+Fractals and palettes are defined in libbrot2.
+
+To add a new fractal engine, extend class Fractal::FractalImpl or
+one of its subclasses. Be sure to add a line to register the class in
+Fractal::FractalCommon::load_base() or a function called from it.
+
+For best speed, a little source-level optimisation helps; while we
+compile with -O3 you can still help the compiler out with careful tuning.
+See Mandelbrots.cpp for examples.
+
+The plotter handles fractional escape counts, where the fractal engine
+provides that information and a smooth palette is selected.
+
+
+To add a new palette, extend one of DiscretePalette or SmoothPalette
+(or even BasePalette if you want to do something more exotic). Again,
+be sure to register it in one of the register_base() functions.
+You will find a few RGB and HSV utility classes defined in palette.h.
+At the moment all the implementations are in palette.cpp.
 
 
 What's in a name? 
@@ -94,5 +137,7 @@ line and output as a TIFF, ASCII art or to a terminal which understood
 ANSI graphics codes. (I claim this as a dubiously legitimate reason for
 setting xterm to 'unreadable' :-) )
 
-This one is a bit better featured, but to me it's logically the heir to its
-now-departed ancestor, hence the name.
+When Benoit Mandelbrot passed away in 2010, I was inspired to revisit
+his work (as, it turns out, were some of my friends).
+This application is a bit better featured, but to me it's logically the
+heir to its now-departed ancestor, hence the name.
