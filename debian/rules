@@ -1,13 +1,10 @@
 #! /usr/bin/make -f
 #export DH_VERBOSE=1
+
 %:
 	if test ! -e configure; then \
-		echo ./bootstrap.sh;\
-		./bootstrap.sh;\
-		fi
-	if test ! -e config.status; then \
-		echo ./configure ${CONFIGURE} ${CONFIGURE_EXTRA} ;\
-		./configure ${CONFIGURE} ${CONFIGURE_EXTRA} ;\
+		echo autoreconf -i;\
+		autoreconf -i;\
 		fi
 	dh $@ --with autotools_dev --parallel
 
