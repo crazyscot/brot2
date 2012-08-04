@@ -1,6 +1,4 @@
 if GTEST
-all: check
-
 TESTS=b2test
 
 noinst_PROGRAMS=b2test
