@@ -86,6 +86,8 @@ TEST(prefs,ReadOutAllItems) {
 
 #define DO(type,name) p->get(PREF(name));
 	ALL_PREFS(DO);
+
+	delete pm;
 }
 
 TEST(prefs,ThereCanBeOnlyOne) {
