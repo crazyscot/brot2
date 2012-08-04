@@ -3,7 +3,7 @@ TESTS=b2test.valgrind
 check_PROGRAMS=b2test
 endif
 
-EXTRA_DIST=b2test.valgrind
+EXTRA_DIST=b2test.valgrind b2test.vgsupp
 
 b2test_SOURCES=b2test.cpp PrefsT.cpp PrefsT.h
 

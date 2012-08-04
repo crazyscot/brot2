@@ -1,0 +1,25 @@
+{
+   <g_key_file_set_comment.1.direct>
+   Memcheck:Leak
+   fun:malloc
+   fun:g_malloc
+   fun:g_slice_alloc
+   obj:/lib/x86_64-linux-gnu/libglib-2.0.so.0.2800.6
+   fun:g_key_file_set_comment
+   fun:_ZN4Glib7KeyFile11set_commentERKNS_7ustringES3_
+   fun:_ZN12KeyfilePrefs6commitEv
+}
+{
+   <g_key_file_set_comment.2.indirect>
+   Memcheck:Leak
+   fun:malloc
+   fun:realloc
+   fun:g_realloc
+   obj:/lib/x86_64-linux-gnu/libglib-2.0.so.0.2800.6
+   fun:g_string_sized_new
+   obj:/lib/x86_64-linux-gnu/libglib-2.0.so.0.2800.6
+   obj:/lib/x86_64-linux-gnu/libglib-2.0.so.0.2800.6
+   fun:g_key_file_set_comment
+   fun:_ZN4Glib7KeyFile11set_commentERKNS_7ustringES3_
+   fun:_ZN12KeyfilePrefs6commitEv
+}
