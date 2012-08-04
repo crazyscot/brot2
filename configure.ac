@@ -29,6 +29,6 @@ PKG_CHECK_MODULES([brot2gui],[glibmm-2.4 gtkmm-2.4 gdkmm-2.4 pangocairo cairo pa
 
 GTEST_SRC_CHECK
 
-AC_CONFIG_FILES([Makefile libbrot2/Makefile cli/Makefile gtkui/Makefile test/Makefile])
+AC_CONFIG_FILES([Makefile libbrot2/Makefile cli/Makefile gtkui/Makefile gtest/Makefile test/Makefile])
 AC_OUTPUT
 
