@@ -1,6 +1,7 @@
 brot2 (1.0+unreleased) UNRELEASED; urgency=low
 
   * Fix automake machinery so that make dist works again. (Oops!)
+  * LP#882411: Create unit test framework.
 
  -- Ross Younger <0ryoungerk.launchpad@coriolis.greenend.org.uk>  Thu, 15 Dec 2011 21:42:59 +1300
 
