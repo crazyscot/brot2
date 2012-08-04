@@ -59,252 +59,200 @@ void ScrollActions::set_to_default() {
 	a[3] = Action::NO_ACTION; // GDK_SCROLL_RIGHT
 }
 
-class KeyfilePrefs : public Prefs {
-	friend class Prefs;
+KeyfilePrefs::KeyfilePrefs() throw(Exception) : _parent(NULL) {
+	initialise();
+}
 
-	private:
-		// Don't forget to add any new fields to the copy constructor if appropriate!
-		Glib::KeyFile kf;
-		MouseActions mouse_cache;
-		ScrollActions scroll_cache;
+KeyfilePrefs::KeyfilePrefs(const KeyfilePrefs& src, KeyfilePrefs* parent) : _parent(parent) {
+	// Because we're cloning from a read-only instance this is
+	// actually the same as reading from scratch.
+	initialise();
+	mouse_cache = src.mouse_cache;
+	scroll_cache = src.scroll_cache;
+	++_childCount;
+}
 
-		KeyfilePrefs* _parent; // NULL if this is the master instance
+KeyfilePrefs::~KeyfilePrefs() {
+	--_childCount;
+	// Do NOT commit here.
+}
 
-		static int _childCount; // number of working copies
+void KeyfilePrefs::reread() throw (Exception) {
+	initialise();
+}
 
-		static KeyfilePrefs _MASTER;
+void KeyfilePrefs::initialise() throw(Exception) {
+	kf.set_integer(META_GROUP, KEY_VERSION, CURRENT_VERSION);
 
-	private:
-		KeyfilePrefs(const KeyfilePrefs& src, KeyfilePrefs* parent) : _parent(parent) {
-			// Because we're cloning from a read-only instance this is
-			// actually the same as reading from scratch.
-			initialise();
-			mouse_cache = src.mouse_cache;
-			scroll_cache = src.scroll_cache;
-			++_childCount;
+	std::string fn = filename();
+	try {
+		kf.load_from_file(fn);
+	} catch (Glib::FileError e) {
+		switch (e.code()) {
+			case Glib::FileError::Code::NO_SUCH_ENTITY:
+				break; // ignore, use defaults only
+			default:
+				THROW(Exception,"reading prefs from " + fn + ": " + e.what());
 		}
-
-	protected:
-		~KeyfilePrefs() {
-			--_childCount;
-			// Do NOT commit here.
+	} catch (Glib::KeyFileError e) {
+		switch (e.code()) {
+			case Glib::KeyFileError::Code::PARSE:
+				// may mean an empty file
+				std::cerr << "Warning: KeyFileError reading prefs from " + fn + ": " + e.what()+": will overwrite when saving" << std::endl;
+				break;
+			default:
+				THROW(Exception,"KeyFileError reading prefs from " + fn + ": " + e.what());
 		}
+	}
 
-		std::string filename(bool temp=false) {
-			std::string rv("");
-			char *home = getenv("HOME");
-			if (home != NULL)
-				rv = rv + home + '/';
-			rv = rv + ".brot2";
-			if (temp)
-				rv = rv + ".tmp";
-			return rv;
-		}
-
-	public:
-		KeyfilePrefs() throw(Exception) : _parent(NULL) {
-			initialise();
-		}
-	private:
-		void reread() throw (Exception) {
-			initialise();
-		}
-
-		void initialise() throw(Exception) {
-			kf.set_integer(META_GROUP, KEY_VERSION, CURRENT_VERSION);
-
-			std::string fn = filename();
-			try {
-				kf.load_from_file(fn);
-			} catch (Glib::FileError e) {
-				switch (e.code()) {
-					case Glib::FileError::Code::NO_SUCH_ENTITY:
-						break; // ignore, use defaults only
-					default:
-						THROW(Exception,"reading prefs from " + fn + ": " + e.what());
-				}
-			} catch (Glib::KeyFileError e) {
-				switch (e.code()) {
-					case Glib::KeyFileError::Code::PARSE:
-						// may mean an empty file
-						std::cerr << "Warning: KeyFileError reading prefs from " + fn + ": " + e.what()+": will overwrite when saving" << std::endl;
-						break;
-					default:
-						THROW(Exception,"KeyFileError reading prefs from " + fn + ": " + e.what());
-				}
-			}
-
-			// Pre-populate our caches and defaults for any new prefs.
-			reread_mouse_actions();
-			reread_scroll_actions();
+	// Pre-populate our caches and defaults for any new prefs.
+	reread_mouse_actions();
+	reread_scroll_actions();
 
 #define DO(type,name) ensure(PREF(name));
-			ALL_PREFS(DO);
+	ALL_PREFS(DO);
+}
+
+std::string KeyfilePrefs::filename(bool temp) {
+	std::string rv("");
+	char *home = getenv("HOME");
+	if (home != NULL)
+		rv = rv + home + '/';
+	rv = rv + ".brot2";
+	if (temp)
+		rv = rv + ".tmp";
+	return rv;
+}
+
+void KeyfilePrefs::commit() throw(Exception) {
+	// This is sneaky... We write to the backing store, and
+	// prod the parent to reread.
+	if (!_parent)
+		THROW(Assert,"commit called on unparented KeyFilePrefs");
+	int rv;
+	std::string fn = filename(true); // write to foo.tmp
+	std::ofstream f;
+
+	rv = unlink(fn.c_str());
+	if (rv==-1) {
+		switch(errno) {
+			case ENOENT:
+				break; //ignore
+			default:
+				THROW(Exception,"Could not unlink " + fn + ": " + strerror(errno));
 		}
+	}
+	kf.set_comment("written by brot2");
 
-		virtual void commit() throw(Exception) {
-			// This is sneaky... We write to the backing store, and
-			// prod the parent to reread.
-			if (!_parent)
-				THROW(Assert,"commit called on unparented KeyFilePrefs");
-			int rv;
-			std::string fn = filename(true); // write to foo.tmp
-			std::ofstream f;
+	std::ostringstream acts;
+	acts << Action::name(Action::MIN);
+	for (int i=Action::MIN+1; i<=Action::MAX; i++)
+		acts << ", " << Action::name(i);
 
-			rv = unlink(fn.c_str());
-			if (rv==-1) {
-				switch(errno) {
-					case ENOENT: 
-						break; //ignore
-					default:
-						THROW(Exception,"Could not unlink " + fn + ": " + strerror(errno));
-				}
-			}
-			kf.set_comment("written by brot2");
+	if (!kf.has_group(GROUP_MOUSE))
+		mouseActions(mouse_cache);
+	kf.set_comment(GROUP_MOUSE, "Mouse button actions. Supported actions are: " + acts.str());
 
-			std::ostringstream acts;
-			acts << Action::name(Action::MIN);
-			for (int i=Action::MIN+1; i<=Action::MAX; i++)
-				acts << ", " << Action::name(i);
-
-			if (!kf.has_group(GROUP_MOUSE))
-				mouseActions(mouse_cache);
-			kf.set_comment(GROUP_MOUSE, "Mouse button actions. Supported actions are: " + acts.str());
-
-			acts.str("");
-			acts.clear();
-			bool seenone = false;
-			for (int i=Action::MIN; i<=Action::MAX; i++) {
-				// We don't know how to handle drag-to-zoom on a scroll event.
-				if (i != Action::DRAG_TO_ZOOM) {
-					if (seenone)
-						acts << ", ";
-					acts << Action::name(i);
-					seenone = true;
-				}
-			}
-			if (!kf.has_group(GROUP_SCROLL))
-				scrollActions(ScrollActions());
-			kf.set_comment(GROUP_SCROLL, "Scroll wheel actions. Supported actions are: " + acts.str());
-			// (However we won't enforce its absence, we'll just ignore it if it turns up.)
-
-			kf.set_comment(Groups::HUD, PREF(HUDTextColour)._key, "hex format: #rrrrggggbbbb");
-			kf.set_comment(Groups::HUD, PREF(HUDBackgroundColour)._key, "hex format: #rrrrggggbbbb");
-
-			f.open(fn);
-			f << kf.to_data();
-			f.close();
-
-			// And rename new on top of old.
-			std::string newfn = filename();
-			rv = rename(fn.c_str(), newfn.c_str());
-			if (rv==-1) {
-				THROW(Exception,"Could not rename " + fn + " to " + newfn + ": " + strerror(errno));
-			}
-
-			_parent->reread();
+	acts.str("");
+	acts.clear();
+	bool seenone = false;
+	for (int i=Action::MIN; i<=Action::MAX; i++) {
+		// We don't know how to handle drag-to-zoom on a scroll event.
+		if (i != Action::DRAG_TO_ZOOM) {
+			if (seenone)
+				acts << ", ";
+			acts << Action::name(i);
+			seenone = true;
 		}
+	}
+	if (!kf.has_group(GROUP_SCROLL))
+		scrollActions(ScrollActions());
+	kf.set_comment(GROUP_SCROLL, "Scroll wheel actions. Supported actions are: " + acts.str());
+	// (However we won't enforce its absence, we'll just ignore it if it turns up.)
 
-		/* MOUSE ACTIONS:
-		 * Store as a group of a suitable name.
-		 * Keys are named act_N with values from the Action enum. */
-		virtual void mouseActions(const MouseActions& mouse) {
-			mouse_cache=mouse;
-			for (int i=mouse.MIN; i<=mouse.MAX; i++) {
-				char buf[32];
-				snprintf(buf, sizeof buf, "action_%d", i);
-				kf.set_string(GROUP_MOUSE, buf, mouse[i].name());
-			}
-		}
-		virtual const MouseActions& mouseActions() const {
-			return mouse_cache;
-		}
+	kf.set_comment(Groups::HUD, PREF(HUDTextColour)._key, "hex format: #rrrrggggbbbb");
+	kf.set_comment(Groups::HUD, PREF(HUDBackgroundColour)._key, "hex format: #rrrrggggbbbb");
 
-		void reread_mouse_actions() {
-			MouseActions rv; // Constructor sets to defaults
-			for (int i=rv.MIN; i<=rv.MAX; i++) {
-				char buf[32];
-				snprintf(buf, sizeof buf, "action_%d", i);
-				try {
-					Glib::ustring val = kf.get_string(GROUP_MOUSE, buf);
-					rv[i] = val;
-				} catch (Glib::KeyFileError e) {
-					// ignore - use default for that action
-				} catch (Exception e) {
-					std::cerr << "Warning: " << e << " in " GROUP_MOUSE <<":" << buf << ": defaulting" << std::endl;
-				}
-			}
-			mouse_cache = rv;
-		}
+	f.open(fn);
+	f << kf.to_data();
+	f.close();
 
-		// FIXME: Figure out a way to template my way out of this clone and hack:
-		/* SCROLL ACTIONS:
-		 * Store as a group of a suitable name.
-		 * Keys are named act_N with values from the Action enum. */
-		virtual void scrollActions(const ScrollActions& scroll) {
-			scroll_cache = scroll;
-			for (int i=scroll.MIN; i<=scroll.MAX; i++) {
-				char buf[32];
-				snprintf(buf, sizeof buf, "action_%d", i);
-				kf.set_string(GROUP_SCROLL, buf, scroll[i].name());
-			}
-		}
-		virtual const ScrollActions& scrollActions() const {
-			return scroll_cache;
-		}
-		void reread_scroll_actions() {
-			ScrollActions rv; // Constructor sets to defaults
-			for (int i=rv.MIN; i<=rv.MAX; i++) {
-				char buf[32];
-				snprintf(buf, sizeof buf, "action_%d", i);
-				try {
-					Glib::ustring val = kf.get_string(GROUP_SCROLL, buf);
-					rv[i] = val;
-				} catch (Glib::KeyFileError e) {
-					// ignore - use default for that action
-				} catch (Exception e) {
-					std::cerr << "Warning: " << e << " in " GROUP_SCROLL <<":" << buf << ": defaulting" << std::endl;
-				}
-			}
-			scroll_cache=rv;
-		}
+	// And rename new on top of old.
+	std::string newfn = filename();
+	rv = rename(fn.c_str(), newfn.c_str());
+	if (rv==-1) {
+		THROW(Exception,"Could not rename " + fn + " to " + newfn + ": " + strerror(errno));
+	}
 
-		virtual std::unique_ptr<Prefs> getWorkingCopy() const throw(Exception);
+	_parent->reread();
+}
 
-		// LP#783034:
-		virtual int get(const BrotPrefs::Numeric<int>& B) const;
-		virtual void set(const BrotPrefs::Numeric<int>& B, int newval);
-		virtual double get(const BrotPrefs::Numeric<double>& B) const;
-		virtual void set(const BrotPrefs::Numeric<double>& B, double newval);
-		virtual bool get(const BrotPrefs::Boolean& B) const;
-		virtual void set(const BrotPrefs::Boolean& B, const bool newval);
-		virtual std::string get(const BrotPrefs::String& B) const;
-		virtual void set(const BrotPrefs::String& B, const std::string& newval);
 
-		template<typename T> void ensure(const BrotPrefs::Base<T>& B) {
-			try {
-				(void)get(B);
-			} catch (Glib::KeyFileError e) {
-				set(B, B._default);
-			}
+/* MOUSE ACTIONS:
+ * Store as a group of a suitable name.
+ * Keys are named act_N with values from the Action enum. */
+void KeyfilePrefs::mouseActions(const MouseActions& mouse) {
+	mouse_cache=mouse;
+	for (int i=mouse.MIN; i<=mouse.MAX; i++) {
+		char buf[32];
+		snprintf(buf, sizeof buf, "action_%d", i);
+		kf.set_string(GROUP_MOUSE, buf, mouse[i].name());
+	}
+}
+const MouseActions& KeyfilePrefs::mouseActions() const {
+	return mouse_cache;
+}
+
+void KeyfilePrefs::reread_mouse_actions() {
+	MouseActions rv; // Constructor sets to defaults
+	for (int i=rv.MIN; i<=rv.MAX; i++) {
+		char buf[32];
+		snprintf(buf, sizeof buf, "action_%d", i);
+		try {
+			Glib::ustring val = kf.get_string(GROUP_MOUSE, buf);
+			rv[i] = val;
+		} catch (Glib::KeyFileError e) {
+			// ignore - use default for that action
+		} catch (Exception e) {
+			std::cerr << "Warning: " << e << " in " GROUP_MOUSE <<":" << buf << ": defaulting" << std::endl;
 		}
+	}
+	mouse_cache = rv;
+}
 
-		template<typename T> void ensure(const BrotPrefs::Numeric<T>& B) {
-			try {
-				(void)get(B);
-			} catch (Glib::KeyFileError e) {
-				set(B, B._default);
-			}
-		}
+// FIXME: Figure out a way to template my way out of this clone and hack:
+/* SCROLL ACTIONS:
+ * Store as a group of a suitable name.
+ * Keys are named act_N with values from the Action enum. */
+void KeyfilePrefs::scrollActions(const ScrollActions& scroll) {
+	scroll_cache = scroll;
+	for (int i=scroll.MIN; i<=scroll.MAX; i++) {
+		char buf[32];
+		snprintf(buf, sizeof buf, "action_%d", i);
+		kf.set_string(GROUP_SCROLL, buf, scroll[i].name());
+	}
+}
 
-		void ensure(const BrotPrefs::Boolean& B) {
-			try {
-				(void)get(B);
-			} catch (Glib::KeyFileError e) {
-				set(B, B._default);
-			}
+const ScrollActions& KeyfilePrefs::scrollActions() const {
+	return scroll_cache;
+}
+
+void KeyfilePrefs::reread_scroll_actions() {
+	ScrollActions rv; // Constructor sets to defaults
+	for (int i=rv.MIN; i<=rv.MAX; i++) {
+		char buf[32];
+		snprintf(buf, sizeof buf, "action_%d", i);
+		try {
+			Glib::ustring val = kf.get_string(GROUP_SCROLL, buf);
+			rv[i] = val;
+		} catch (Glib::KeyFileError e) {
+			// ignore - use default for that action
+		} catch (Exception e) {
+			std::cerr << "Warning: " << e << " in " GROUP_SCROLL <<":" << buf << ": defaulting" << std::endl;
 		}
-};
+	}
+	scroll_cache=rv;
+}
 
 int KeyfilePrefs::get(const BrotPrefs::Numeric<int>& B) const {
 	int rv = kf.get_integer(B._group, B._key);
@@ -350,6 +298,10 @@ KeyfilePrefs KeyfilePrefs::_MASTER;
 
 // Default accessor, singleton-like.
 const Prefs& Prefs::getMaster() throw(Exception) {
+	return DefaultPrefs::getMaster();
+}
+
+const Prefs& DefaultPrefs::getMaster() throw(Exception) {
 	return KeyfilePrefs::_MASTER;
 }
 

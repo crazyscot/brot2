@@ -22,6 +22,7 @@
 #include <string>
 #include <Exception.h>
 #include <memory> //for unique_ptr
+#include <glibmm/keyfile.h>
 #include "PrefsRegistry.h"
 
 // Second-order macro to easily define our constants and have their strings to hand.
@@ -186,5 +187,90 @@ class Prefs {
 		virtual ~Prefs();
 };
 
+class KeyfilePrefs : public Prefs {
+	friend class DefaultPrefs; // So it can access _MASTER
+
+public:
+	KeyfilePrefs() throw(Exception);
+	virtual void commit() throw(Exception);
+
+	virtual std::unique_ptr<Prefs> getWorkingCopy() const throw(Exception);
+
+	virtual const MouseActions& mouseActions() const;
+	virtual void mouseActions(const MouseActions& mouse);
+
+	virtual const ScrollActions& scrollActions() const;
+	virtual void scrollActions(const ScrollActions& scroll);
+
+	// LP#783034:
+	virtual int get(const BrotPrefs::Numeric<int>& B) const;
+	virtual void set(const BrotPrefs::Numeric<int>& B, int newval);
+	virtual double get(const BrotPrefs::Numeric<double>& B) const;
+	virtual void set(const BrotPrefs::Numeric<double>& B, double newval);
+	virtual bool get(const BrotPrefs::Boolean& B) const;
+	virtual void set(const BrotPrefs::Boolean& B, const bool newval);
+	virtual std::string get(const BrotPrefs::String& B) const;
+	virtual void set(const BrotPrefs::String& B, const std::string& newval);
+
+
+protected:
+	// Don't forget to add any new fields to the copy constructor if appropriate!
+	Glib::KeyFile kf;
+	MouseActions mouse_cache;
+	ScrollActions scroll_cache;
+
+	KeyfilePrefs* _parent; // NULL if this is the master instance
+
+	static int _childCount; // number of working copies
+
+	static KeyfilePrefs _MASTER;
+
+	KeyfilePrefs(const KeyfilePrefs& src, KeyfilePrefs* parent);
+	virtual ~KeyfilePrefs();
+
+	void reread() throw (Exception);
+	void initialise() throw(Exception);
+	std::string filename(bool temp=false);
+	void reread_scroll_actions();
+	void reread_mouse_actions();
+
+	template<typename T> void ensure(const BrotPrefs::Base<T>& B) {
+		try {
+			(void)get(B);
+		} catch (Glib::KeyFileError e) {
+			set(B, B._default);
+		}
+	}
+
+	template<typename T> void ensure(const BrotPrefs::Numeric<T>& B) {
+		try {
+			(void)get(B);
+		} catch (Glib::KeyFileError e) {
+			set(B, B._default);
+		}
+	}
+
+	void ensure(const BrotPrefs::Boolean& B) {
+		try {
+			(void)get(B);
+		} catch (Glib::KeyFileError e) {
+			set(B, B._default);
+		}
+	}
+};
+
+class DefaultPrefs {
+public:
+	// Source of a read-only instance of the main live Prefs object.
+	// Start with one of these, then (only if you need to) request a
+	// working copy for editing.
+	//
+	// If something went wrong (e.g. backing store I/O error), throws an
+	// Exception explaining what; it's up to the caller to inform the user.
+	static const Prefs& getMaster() throw(Exception);
+
+private:
+	DefaultPrefs(){}; // Not instantiable
+};
 
 #endif /* PREFS_H_ */
