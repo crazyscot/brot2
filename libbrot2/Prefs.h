@@ -212,6 +212,7 @@ public:
 	virtual std::string get(const BrotPrefs::String& B) const;
 	virtual void set(const BrotPrefs::String& B, const std::string& newval);
 
+	virtual std::string filename(bool temp=false);
 
 protected:
 	// Don't forget to add any new fields to the copy constructor if appropriate!
@@ -230,7 +231,6 @@ protected:
 
 	void reread() throw (Exception);
 	void initialise() throw(Exception);
-	std::string filename(bool temp=false);
 	void reread_scroll_actions();
 	void reread_mouse_actions();
 

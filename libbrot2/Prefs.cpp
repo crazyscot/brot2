@@ -73,7 +73,8 @@ KeyfilePrefs::KeyfilePrefs(const KeyfilePrefs& src, KeyfilePrefs* parent) : _par
 }
 
 KeyfilePrefs::~KeyfilePrefs() {
-	--_childCount;
+	if (_parent != NULL)
+		--_childCount;
 	// Do NOT commit here.
 }
 
