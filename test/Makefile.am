@@ -1,7 +1,8 @@
 if GTEST
-TESTS=b2test
+TESTS=b2test.valgrind
 
 noinst_PROGRAMS=b2test
+EXTRA_DIST=b2test.valgrind
 
 b2test_SOURCES=b2test.cpp PrefsT.cpp
 
