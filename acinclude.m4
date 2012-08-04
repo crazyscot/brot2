@@ -1,6 +1,8 @@
 dnl GTEST_SRC_CHECK
 dnl Looks for the Google Test source, defaulting to on.
 dnl Users can --disable-gtest or provide GTEST_SRC dir.
+dnl They may also need to provide GTEST_INC if the headers are in a
+dnl different location that's not on the default search path.
 AC_DEFUN([GTEST_SRC_CHECK],
 [
 AC_ARG_ENABLE([gtest],
