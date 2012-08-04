@@ -22,7 +22,7 @@
 #include <string>
 #include <iostream>
 
-#include "TestPrefs.h"
+#include "PrefsT.h"
 #include "PrefsRegistry.h"
 
 TestingKeyfilePrefs::TestingKeyfilePrefs() throw(Exception) : KeyfilePrefs() {

@@ -3,7 +3,7 @@ TESTS=b2test
 
 noinst_PROGRAMS=b2test
 
-b2test_SOURCES=b2test.cpp TestPrefs.cpp
+b2test_SOURCES=b2test.cpp PrefsT.cpp
 
 b2test_LDADD= ../libbrot2/libbrot2.a ../gtest/libgtest.a @libbrot2_LIBS@ -lm
 b2test_DEPENDENCIES= ../libbrot2/libbrot2.a ../gtest/libgtest.a
