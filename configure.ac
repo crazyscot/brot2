@@ -21,13 +21,19 @@ if test "x$GCC" = xyes; then
 	CC="$CC -Wall -Wextra -Werror -Wpointer-arith -Wwrite-strings"
 fi
 
-AC_SUBST([global_CFLAGS], ["-O3"])
-AC_SUBST([global_CXXFLAGS], ["-O3 -std=c++0x"])
-
 PKG_CHECK_MODULES([libbrot2],[glibmm-2.4 libpng12])
 PKG_CHECK_MODULES([brot2gui],[glibmm-2.4 gtkmm-2.4 gdkmm-2.4 pangocairo cairo pango libpng12])
 
 GTEST_SRC_CHECK
+
+AC_ARG_ENABLE([debug],
+		  [AS_HELP_STRING([--enable-debug],
+						  [Sets debug compile flags. (Default is disabled, for speed.)])],
+		  [AC_SUBST([global_CFLAGS], ["-O0 -g"])
+		   AC_SUBST([global_CXXFLAGS], ["-O0 -g -std=c++0x"])],
+		  [AC_SUBST([global_CFLAGS], ["-O3"])
+		   AC_SUBST([global_CXXFLAGS], ["-O3 -std=c++0x"])]
+		  )
 
 AC_CONFIG_FILES([Makefile libbrot2/Makefile cli/Makefile gtkui/Makefile gtest/Makefile test/Makefile])
 AC_OUTPUT
