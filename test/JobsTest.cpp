@@ -48,7 +48,7 @@ class Unblocker {
 	unsigned _time; // ms
 	Glib::Thread *_thread;
 public:
-	Unblocker(LockstepJob& j, unsigned millis) : _j(j), _time(millis) {}
+	Unblocker(LockstepJob& j, unsigned millis) : _j(j), _time(millis), _thread(NULL) {}
 	void unblockSynch() {
 		Glib::usleep(1000*_time);
 		_j.unblock();
@@ -57,8 +57,10 @@ public:
 		_thread = Glib::Thread::create(sigc::mem_fun(*this, &Unblocker::unblockSynch), true);
 	}
 	virtual ~Unblocker() {
-		if (_thread)
+		if (_thread != NULL) {
 			_thread->join();
+			_thread = NULL;
+		}
 	}
 };
 
@@ -144,22 +146,38 @@ TEST_F(JobsRun, Async) {
 	engine.wait();
 }
 
-TEST(jobs,stopWorks) {
+class JobsStop: public ::testing::Test {
+protected:
 	std::list<IJob*> list;
 	LockstepJob jlock;
 	TestingJob jord;
-	TestCallback cb(1);
-	Unblocker unblocker(jlock,100);
+	TestCallback* cb;
+	Unblocker* unblocker;
+	virtual void SetUp() {
+		cb = new TestCallback(1);
+		unblocker = new Unblocker(jlock,100);
+		list.push_back(&jlock);
+		list.push_back(&jord);
+		EXPECT_FALSE(jord.beenCalled());
+	}
+	virtual void TearDown() {
+		EXPECT_FALSE(jord.beenCalled());
+		cb->checkStopped();
+		delete cb;
+		delete unblocker;
+	}
+};
 
-	list.push_back(&jlock);
-	list.push_back(&jord);
-	EXPECT_FALSE(jord.beenCalled());
-
-	SimpleJobEngine engine(cb, list);
-	unblocker.unblockAsynch();
+TEST_F(JobsStop,Simple) {
+	SimpleJobEngine engine(*cb, list);
+	unblocker->unblockAsynch();
 	engine.stop(); // A bit horrible, but current behaviour is to set the _halt flag
 	engine.start(); // synchronous, so won't return until it's done
+}
 
-	EXPECT_FALSE(jord.beenCalled());
-	cb.checkStopped();
+TEST_F(JobsStop,Async) {
+	SimpleAsyncJobEngine engine(*cb, list);
+	engine.start(); // synchronous, so won't return until it's done
+	engine.stop();
+	unblocker->unblockSynch();
 }

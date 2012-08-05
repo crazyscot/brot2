@@ -32,8 +32,10 @@ void SimpleAsyncJobEngine::start()
 SimpleAsyncJobEngine::~SimpleAsyncJobEngine()
 {
 	Glib::Mutex::Lock _auto(_lock);
-	if (_thread != NULL)
+	if (_thread != NULL) {
 		_thread->join();
+		_thread = NULL;
+	}
 }
 
 void SimpleAsyncJobEngine::wait()
