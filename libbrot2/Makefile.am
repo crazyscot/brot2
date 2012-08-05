@@ -4,6 +4,7 @@ libbrot2_a_SOURCES= \
 					Exception.h \
 					IJob.h IJobEngine.h \
 					SimpleJobEngine.h SimpleJobEngine.cpp \
+					SimpleAsyncJobEngine.h SimpleAsyncJobEngine.cpp \
 					logo.h logo_auto.c Registry.h \
 					Fractal.cpp Fractal.h palette.cpp palette.h \
 					Plot2.cpp Plot2.h \

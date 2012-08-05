@@ -7,6 +7,7 @@
 
 #include "gtest/gtest.h"
 #include "SimpleJobEngine.h"
+#include "SimpleAsyncJobEngine.h"
 #include <list>
 #include <glibmm/thread.h>
 #include <glibmm/timer.h>
@@ -126,6 +127,7 @@ protected:
 		}
 	}
 	virtual void TearDown() {
+		cb->checkAllDone();
 		delete[] jobs;
 		delete cb;
 	}
@@ -134,8 +136,12 @@ protected:
 TEST_F(JobsRun, Simple) {
 	SimpleJobEngine engine(*cb, list);
 	engine.start(); // synchronous, so won't return until it's done
-	cb->checkAllDone();
+}
 
+TEST_F(JobsRun, Async) {
+	SimpleAsyncJobEngine engine(*cb, list);
+	engine.start();
+	engine.wait();
 }
 
 TEST(jobs,stopWorks) {
