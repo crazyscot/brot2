@@ -18,10 +18,11 @@
 
 #include "SimpleJobEngine.h"
 
-
-SimpleJobEngine::SimpleJobEngine(IJobEngineCallback & callback, std::list<IJob*>& jobs) : _callback(callback)
+SimpleJobEngine::SimpleJobEngine(IJobEngineCallback & callback,
+		std::list<IJob*>& jobs) : _callback(callback)
 {
 	_jobs.assign(jobs.begin(), jobs.end());
+	_halt = false;
 }
 
 void SimpleJobEngine::start()
@@ -33,11 +34,17 @@ void SimpleJobEngine::start()
 void SimpleJobEngine::run()
 {
 	std::list<IJob*>::iterator it;
-	for (it=_jobs.begin(); it != _jobs.end(); it++) {
+	for (it=_jobs.begin(); it != _jobs.end() && !_halt; it++) {
 		(*it)->run(*this);
 		_callback.JobComplete(*it, *this);
+		Glib::Mutex::Lock _auto (_lock);
+		if (_halt) break;
 	}
-	_callback.JobEngineFinished(*this);
+	Glib::Mutex::Lock _auto (_lock);
+	if (_halt)
+		_callback.JobEngineStopped(*this);
+	else
+		_callback.JobEngineFinished(*this);
 }
 
 SimpleJobEngine::~SimpleJobEngine()
@@ -46,6 +53,6 @@ SimpleJobEngine::~SimpleJobEngine()
 
 void SimpleJobEngine::stop()
 {
-	// Not supported as this is synchronous.
+	Glib::Mutex::Lock _auto (_lock);
+	_halt = true;
 }
-

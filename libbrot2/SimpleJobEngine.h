@@ -20,10 +20,11 @@
 #define SIMPLEJOBENGINE_H_
 
 #include <list>
+#include <atomic>
+#include <glibmm/thread.h>
 #include "IJobEngine.h"
 
 /* The simplest possible synchronous JobEngine.
- * Does not support stop().
  * Does not allow jobs to be added later. */
 
 class SimpleJobEngine: public virtual IJobEngine {
@@ -32,11 +33,14 @@ public:
 	virtual ~SimpleJobEngine();
 
 	virtual void start();
-	virtual void stop(); // Ignored.
+	virtual void stop(); // Of limited use as this class is synchronous, but ought to work nevertheless.
 
 protected:
 	IJobEngineCallback& _callback;
 	std::list<IJob*> _jobs;
+
+	Glib::Mutex _lock;
+	std::atomic<bool> _halt; // Protect by _lock
 
 	virtual void run(); // Does the actual work of iterating through the jobs.
 };

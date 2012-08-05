@@ -18,10 +18,22 @@
 #include "gtest/gtest.h"
 #include <iostream>
 #include <glibmm/keyfile.h>
+#include <glibmm/init.h>
 
 using namespace std;
+
+class Brot2TestEnv : public ::testing::Environment {
+public:
+	virtual void SetUp() {
+		Glib::init();
+	}
+};
 
 TEST(brot2,link) {
 }
 
-// gtest_main provides a main function.
+int main(int argc, char **argv) {
+	::testing::AddGlobalTestEnvironment(new Brot2TestEnv);
+	::testing::InitGoogleTest(&argc, argv);
+	return RUN_ALL_TESTS();
+}
