@@ -5,7 +5,7 @@ endif
 
 EXTRA_DIST=b2test.valgrind b2test.vgsupp
 
-b2test_SOURCES=b2test.cpp PrefsT.cpp PrefsT.h
+b2test_SOURCES=b2test.cpp PrefsT.cpp PrefsT.h JobsTest.cpp
 
 b2test_LDADD= ../libbrot2/libbrot2.a ../gtest/libgtest.a @libbrot2_LIBS@ -lm
 b2test_DEPENDENCIES= ../libbrot2/libbrot2.a ../gtest/libgtest.a
