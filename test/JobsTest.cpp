@@ -108,22 +108,34 @@ public:
 	}
 };
 
-TEST(jobs, allJobsRunAndCallback) {
-	const int N=10;
-	TestingJob* jobs = new TestingJob[N];
-	TestCallback cb(N);
+class JobsRun: public ::testing::Test {
+protected:
+	const int N;
+	JobsRun() : N(10) {}
+	TestingJob* jobs;
+	TestCallback* cb;
 	std::list<IJob*> list;
 
-	for (int i=0; i<N; i++) {
-		jobs[i].serial(i);
-		list.push_back(&jobs[i]);
+	virtual void SetUp() {
+		jobs = new TestingJob[N];
+		cb = new TestCallback(N);
+
+		for (int i=0; i<N; i++) {
+			jobs[i].serial(i);
+			list.push_back(&jobs[i]);
+		}
 	}
+	virtual void TearDown() {
+		delete[] jobs;
+		delete cb;
+	}
+};
 
-	SimpleJobEngine engine(cb, list);
+TEST_F(JobsRun, Simple) {
+	SimpleJobEngine engine(*cb, list);
 	engine.start(); // synchronous, so won't return until it's done
+	cb->checkAllDone();
 
-	cb.checkAllDone();
-	delete[] jobs;
 }
 
 TEST(jobs,stopWorks) {
