@@ -200,8 +200,8 @@ int main (int argc, char**argv)
 	}
 	if (fail) return 4;
 
-	const Prefs& mprefs = Prefs::getMaster();
-	std::unique_ptr<Prefs> prefs = mprefs.getWorkingCopy();
+	std::shared_ptr<const Prefs> mprefs = Prefs::getMaster();
+	std::shared_ptr<Prefs> prefs = mprefs->getWorkingCopy();
 
 	if (init_maxiter !=-1) {
 		if (init_maxiter < PREF(InitialMaxIter)._min) {
@@ -268,7 +268,7 @@ int main (int argc, char**argv)
 	}
 
 	Plot2 plot(selected_fractal, centre, size, plot_w, plot_h, max_passes);
-	plot.set_prefs(&*prefs);
+	plot.set_prefs(prefs);
 
 	Reporter reporter(0, quiet);
 	plot.start(&reporter);

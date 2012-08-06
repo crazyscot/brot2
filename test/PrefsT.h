@@ -27,7 +27,7 @@ public:
 	static TestingKeyfilePrefs* getInstance(const KeyfilePrefs& src, KeyfilePrefs* parent) throw(Exception);
 	virtual ~TestingKeyfilePrefs();
 
-	virtual std::unique_ptr<Prefs> getWorkingCopy() const throw();
+	virtual std::shared_ptr<Prefs> getWorkingCopy() const throw();
 	virtual std::string filename(bool temp=false);
 
 protected:

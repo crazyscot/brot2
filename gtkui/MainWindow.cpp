@@ -77,7 +77,7 @@ MainWindow::MainWindow() : Gtk::Window(),
 	// render_ctx.fractal set by setup_fractal_menu().
 
 	initializing = false;
-	menubar->optionsMenu->set_controls_status( prefs().get(PREF(ShowControls)) );
+	menubar->optionsMenu->set_controls_status( prefs()->get(PREF(ShowControls)) );
 
 	// Cleanup event(currently only used for SaveAsPNG jobs).
 	Glib::signal_timeout().connect( sigc::mem_fun(*this, &MainWindow::on_timer), 500 );

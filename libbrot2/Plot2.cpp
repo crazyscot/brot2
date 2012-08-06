@@ -122,7 +122,7 @@ Plot2::Plot2(FractalImpl* f, Point centre, Point size,
 		unsigned width, unsigned height, unsigned max_passes) :
 		fract(f), centre(centre), size(size),
 		width(width), height(height),
-		prefs(&Prefs::getMaster()),
+		prefs(Prefs::getMaster()),
 		plotted_maxiter(0), plotted_passes(0), passes_max(max_passes),
 		callback(0), _data(0), _abort(false), _done(false), _outstanding(0),
 		_completed(0), jobs(0)
@@ -463,8 +463,14 @@ const Fractal::PointData& Plot2::get_pixel_point(int x, int y)
 	return _data[y * width + x];
 }
 
-void Plot2::set_prefs(const Prefs* newprefs) {
+void Plot2::set_prefs(std::shared_ptr<const Prefs>& newprefs) {
 	prefs = newprefs;
+}
+
+void Plot2::set_prefs(std::shared_ptr<Prefs>& newprefs) {
+	// We don't need to write to it...
+	std::shared_ptr<const Prefs> p2(newprefs);
+	prefs = p2;
 }
 
 Plot2::~Plot2() {

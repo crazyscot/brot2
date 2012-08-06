@@ -219,7 +219,8 @@ void SaveAsPNG::do_save(MainWindow *mw)
 		const int aafactor = do_antialias ? 2 : 1;
 		job->plot = new Plot2(mw->fractal, oldplot.centre, oldplot.size,
 				newx * aafactor, newy * aafactor);
-		job->plot->set_prefs(&mw->prefs());
+		std::shared_ptr<const Prefs> pp = mw->prefs();
+		job->plot->set_prefs(pp);
 		job->reporter = new PNGProgressWindow(mw, job);
 		job->pal = mw->pal;
 		job->antialias = aafactor;

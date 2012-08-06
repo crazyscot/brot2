@@ -365,10 +365,10 @@ PrefsDialog::PrefsDialog(MainWindow *_mw) : Gtk::Dialog("Preferences", *_mw, tru
 }
 
 int PrefsDialog::run() {
-	const Prefs& p = Prefs::getMaster();
-	threshold->prepare(p);
-	hud->prepare(p);
-	miscbits->prepare(p);
+	std::shared_ptr<const Prefs> p = Prefs::getMaster();
+	threshold->prepare(*p);
+	hud->prepare(*p);
+	miscbits->prepare(*p);
 	show_all();
 
 	bool error;
@@ -378,7 +378,7 @@ int PrefsDialog::run() {
 		result = Gtk::Dialog::run();
 
 		if (result == Gtk::ResponseType::RESPONSE_OK) {
-			std::unique_ptr<Prefs> pp = p.getWorkingCopy();
+			std::shared_ptr<Prefs> pp = p->getWorkingCopy();
 			try {
 				threshold->readout(*pp);
 				hud->readout(*pp);

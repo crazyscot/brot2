@@ -126,7 +126,7 @@ public:
 		return controlsWin;
 	}
 
-	const Prefs& prefs() {
+	std::shared_ptr<const Prefs> prefs() {
 		return Prefs::getMaster();
 	}
 

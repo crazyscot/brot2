@@ -220,7 +220,7 @@ public:
 		bool state = showControls.get_active();
 		ASSERT(mw);
 		{
-			std::unique_ptr<Prefs> p = mw->prefs().getWorkingCopy();
+			std::shared_ptr<Prefs> p = mw->prefs()->getWorkingCopy();
 			p->set(PREF(ShowControls),state);
 			p->commit();
 		}

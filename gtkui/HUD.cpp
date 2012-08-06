@@ -44,17 +44,17 @@ void HUD::draw(Plot2* plot, const int rwidth, const int rheight)
 	Glib::Mutex::Lock autolock(mux); // unwind unlocks
 	if (!plot) return; // race condition trap
 	std::string info = plot->info(true);
-	const Prefs& prefs = parent.prefs();
-	const int ypos = prefs.get(PREF(HUDVerticalOffset)),
-		  xpos = prefs.get(PREF(HUDHorizontalOffset)),
-		  xright = prefs.get(PREF(HUDRightMargin));
+	std::shared_ptr<const Prefs> prefs = parent.prefs();
+	const int ypos = prefs->get(PREF(HUDVerticalOffset)),
+		  xpos = prefs->get(PREF(HUDHorizontalOffset)),
+		  xright = prefs->get(PREF(HUDRightMargin));
 	const int hudwidthpct = MAX(xright - xpos, 1);
 
 	rgb_double fg, bg;
 	{
 		Gdk::Color fgcol, bgcol;
-		const std::string fgtext = prefs.get(PREF(HUDTextColour)),
-			  bgtext = prefs.get(PREF(HUDBackgroundColour));
+		const std::string fgtext = prefs->get(PREF(HUDTextColour)),
+			  bgtext = prefs->get(PREF(HUDBackgroundColour));
 		if (!fgcol.set(fgtext))
 			fgcol.set(PREF(HUDTextColour)._default);
 		if (!bgcol.set(bgtext))
@@ -62,7 +62,7 @@ void HUD::draw(Plot2* plot, const int rwidth, const int rheight)
 		fg = fgcol;
 		bg = bgcol;
 	}
-	const double alpha = 1.0 - prefs.get(PREF(HUDTransparency));
+	const double alpha = 1.0 - prefs->get(PREF(HUDTransparency));
 
 	if ((rwidth!=w) || (rheight!=h)) {
 		if (surface)

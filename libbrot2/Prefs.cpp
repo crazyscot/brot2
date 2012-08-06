@@ -21,6 +21,7 @@
 #include <string>
 #include <iostream>
 #include <fstream>
+#include <memory>
 #include <stdlib.h>
 #include <errno.h>
 #include <string.h>
@@ -295,25 +296,27 @@ void KeyfilePrefs::set(const BrotPrefs::String& B, const std::string& newval) {
 	kf.set_string(B._group, B._key, newval);
 }
 
-KeyfilePrefs KeyfilePrefs::_MASTER;
+std::shared_ptr<Prefs> KeyfilePrefs::_MASTER;
 
 // Default accessor, singleton-like.
-const Prefs& Prefs::getMaster() throw(Exception) {
+std::shared_ptr<const Prefs> Prefs::getMaster() throw(Exception) {
 	return DefaultPrefs::getMaster();
 }
 
-const Prefs& DefaultPrefs::getMaster() throw(Exception) {
-	return KeyfilePrefs::_MASTER;
+std::shared_ptr<const Prefs> DefaultPrefs::getMaster() throw(Exception) {
+	if (!_MASTER) {
+		_MASTER = std::shared_ptr<Prefs>(new KeyfilePrefs());
+	}
+	return _MASTER;
 }
 
-std::unique_ptr<Prefs> KeyfilePrefs::getWorkingCopy() const throw(Exception) {
+std::shared_ptr<Prefs> KeyfilePrefs::getWorkingCopy() const throw(Exception) {
 	if (_parent != NULL)
 		THROW(Exception,"Prefs: Cannot make a working copy of a working copy!");
 	if (_childCount)
 		THROW(Exception,"Prefs: cannot make a working copy when there's one outstanding");
 
-	Prefs *rv = new KeyfilePrefs(*this, const_cast<KeyfilePrefs*>(this));
-	std::unique_ptr<Prefs> prv(rv);
+	std::shared_ptr<Prefs> prv(new KeyfilePrefs(*this, const_cast<KeyfilePrefs*>(this)));
 	return prv;
 }
 

@@ -119,11 +119,11 @@ Columns Combo::cols;
 class MouseButtonsPanel : NotifyTarget {
 	private:
 		Combo* actions[MouseActions::MAX+1];
-		const Prefs& _prefs;
+		std::shared_ptr<const Prefs> _prefs;
 		bool initialising;
 
 	public:
-		MouseButtonsPanel(const Prefs& prefs) : _prefs(prefs) {
+		MouseButtonsPanel(std::shared_ptr<const Prefs> prefs) : _prefs(prefs) {
 			initialising = true;
 			for (int i=MouseActions::MIN; i<=MouseActions::MAX; i++) {
 				actions[i] = Gtk::manage(new Combo(*this));
@@ -137,7 +137,7 @@ class MouseButtonsPanel : NotifyTarget {
 			for (int i=MouseActions::MIN; i<=MouseActions::MAX; i++) {
 				ma[i] = actions[i]->get();
 			}
-			std::unique_ptr<Prefs> tmpprefs = _prefs.getWorkingCopy();
+			std::shared_ptr<Prefs> tmpprefs = _prefs->getWorkingCopy();
 			tmpprefs->mouseActions(ma);
 			tmpprefs->commit();
 		}
@@ -148,8 +148,8 @@ class MouseButtonsPanel : NotifyTarget {
 		}
 
 		void defaults() {
-			std::unique_ptr<Prefs> tmpprefs = _prefs.getWorkingCopy();
-			MouseActions ma(_prefs.mouseActions());
+			std::shared_ptr<Prefs> tmpprefs = _prefs->getWorkingCopy();
+			MouseActions ma(_prefs->mouseActions());
 			ma.set_to_default();
 			tmpprefs->mouseActions(ma);
 			tmpprefs->commit();
@@ -159,7 +159,7 @@ class MouseButtonsPanel : NotifyTarget {
 	protected:
 		void refresh(void) {
 			initialising = true;
-			const MouseActions& ma = _prefs.mouseActions();
+			const MouseActions& ma = _prefs->mouseActions();
 			for (int i=MouseActions::MIN; i<=MouseActions::MAX; i++) {
 				actions[i]->set(ma[i]);
 			}
@@ -205,11 +205,11 @@ class MouseButtonsPanel : NotifyTarget {
 class ScrollButtonsPanel : public NotifyTarget {
 	private:
 		Combo* actions[ScrollActions::MAX+1];
-		const Prefs& _prefs;
+		std::shared_ptr<const Prefs> _prefs;
 		bool initialising;
 
 	public:
-		ScrollButtonsPanel(const Prefs& prefs) : _prefs(prefs) {
+		ScrollButtonsPanel(std::shared_ptr<const Prefs> prefs) : _prefs(prefs) {
 			initialising = true;
 			for (int i=ScrollActions::MIN; i<=ScrollActions::MAX; i++) {
 				actions[i] = Gtk::manage(new Combo(*this));
@@ -219,7 +219,7 @@ class ScrollButtonsPanel : public NotifyTarget {
 		}
 
 		void saveToPrefs() {
-			std::unique_ptr<Prefs> tmpprefs = _prefs.getWorkingCopy();
+			std::shared_ptr<Prefs> tmpprefs = _prefs->getWorkingCopy();
 			ScrollActions ma;
 			for (int i=ScrollActions::MIN; i<=ScrollActions::MAX; i++) {
 				ma[i] = actions[i]->get();
@@ -234,8 +234,8 @@ class ScrollButtonsPanel : public NotifyTarget {
 		}
 
 		void defaults() {
-			std::unique_ptr<Prefs> tmpprefs = _prefs.getWorkingCopy();
-			ScrollActions sa(_prefs.scrollActions());
+			std::shared_ptr<Prefs> tmpprefs = _prefs->getWorkingCopy();
+			ScrollActions sa(_prefs->scrollActions());
 			sa.set_to_default();
 			tmpprefs->scrollActions(sa);
 			tmpprefs->commit();
@@ -245,7 +245,7 @@ class ScrollButtonsPanel : public NotifyTarget {
 	protected:
 		void refresh(void) {
 			initialising = true;
-			const ScrollActions& sa = _prefs.scrollActions();
+			const ScrollActions& sa = _prefs->scrollActions();
 			for (int i=ScrollActions::MIN; i<=ScrollActions::MAX; i++) {
 				actions[i]->set(sa[i]);
 			}
@@ -293,7 +293,7 @@ class ScrollButtonsPanel : public NotifyTarget {
 
 }; // namespace Actions
 
-ControlsWindow::ControlsWindow(MainWindow& _mw, const Prefs& prefs) : mw(_mw), _prefs(prefs)
+ControlsWindow::ControlsWindow(MainWindow& _mw, std::shared_ptr<const Prefs> prefs) : mw(_mw), _prefs(prefs)
 {
 	set_title("Controls");
 

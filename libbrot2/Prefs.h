@@ -142,7 +142,7 @@ class Prefs {
 		//
 		// If something went wrong (e.g. backing store I/O error), throws an
 		// Exception explaining what; it's up to the caller to inform the user.
-		static const Prefs& getMaster() throw(Exception);
+		static std::shared_ptr<const Prefs> getMaster() throw(Exception);
 
 		// Creates a working copy of a Prefs object.
 		// Call commit() causes it to update the object it was cloned
@@ -156,7 +156,7 @@ class Prefs {
 		// Commit (currently) overwrites the entire destination!
 		// Because of this it is an error (assert fail) to have more
 		// than one working copy outstanding.
-		virtual std::unique_ptr<Prefs> getWorkingCopy() const throw(Exception) = 0;
+		virtual std::shared_ptr<Prefs> getWorkingCopy() const throw(Exception) = 0;
 
 		// Commits all outstanding writes of a working copy to the master
 		// instance, and thence to backing store.
@@ -188,13 +188,12 @@ class Prefs {
 };
 
 class KeyfilePrefs : public Prefs {
-	friend class DefaultPrefs; // So it can access _MASTER
 
 public:
 	KeyfilePrefs() throw(Exception);
 	virtual void commit() throw(Exception);
 
-	virtual std::unique_ptr<Prefs> getWorkingCopy() const throw(Exception);
+	virtual std::shared_ptr<Prefs> getWorkingCopy() const throw(Exception);
 
 	virtual const MouseActions& mouseActions() const;
 	virtual void mouseActions(const MouseActions& mouse);
@@ -213,6 +212,7 @@ public:
 	virtual void set(const BrotPrefs::String& B, const std::string& newval);
 
 	virtual std::string filename(bool temp=false);
+	virtual ~KeyfilePrefs();
 
 protected:
 	// Don't forget to add any new fields to the copy constructor if appropriate!
@@ -224,10 +224,9 @@ protected:
 
 	static int _childCount; // number of working copies
 
-	static KeyfilePrefs _MASTER;
+	static std::shared_ptr<Prefs> _MASTER;
 
 	KeyfilePrefs(const KeyfilePrefs& src, KeyfilePrefs* parent);
-	virtual ~KeyfilePrefs();
 
 	void reread() throw (Exception);
 	void initialise() throw(Exception);
@@ -259,7 +258,7 @@ protected:
 	}
 };
 
-class DefaultPrefs {
+class DefaultPrefs : KeyfilePrefs {
 public:
 	// Source of a read-only instance of the main live Prefs object.
 	// Start with one of these, then (only if you need to) request a
@@ -267,7 +266,7 @@ public:
 	//
 	// If something went wrong (e.g. backing store I/O error), throws an
 	// Exception explaining what; it's up to the caller to inform the user.
-	static const Prefs& getMaster() throw(Exception);
+	static std::shared_ptr<const Prefs> getMaster() throw(Exception);
 
 private:
 	DefaultPrefs(){}; // Not instantiable

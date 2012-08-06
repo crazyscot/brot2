@@ -19,6 +19,7 @@
 #ifndef PLOT2_H_
 #define PLOT2_H_
 
+#include <memory>
 #include <glibmm.h>
 #include "Fractal.h"
 
@@ -110,8 +111,9 @@ public:
 		return _done;
 	}
 
-	// Provides a means to overrides the prefs.
-	void set_prefs(const Prefs* newprefs);
+	// Provides a means to override the prefs.
+	void set_prefs(std::shared_ptr<Prefs>& newprefs);
+	void set_prefs(std::shared_ptr<const Prefs>& newprefs);
 
 protected:
 	/* Prepares a plot: creates the _data array and asks the fractal to
@@ -120,7 +122,7 @@ protected:
 	void prepare();
 
 	/* Plot completion detection: */
-	const Prefs* prefs; // Where to get our global settings from. This is requeried on prepare().
+	std::shared_ptr<const Prefs> prefs; // Where to get our global settings from. This is requeried on prepare().
 	unsigned initial_maxiter; // Iteration limit on first pass
 	double live_threshold; // Proportion of the pixels that must escape in a pass; if less, we consider stopping
 	unsigned minimum_escapee_percent; // Minimum %age of pixels that must be done in order to consider stopping
