@@ -224,8 +224,6 @@ protected:
 
 	static int _childCount; // number of working copies
 
-	static std::shared_ptr<Prefs> _MASTER;
-
 	KeyfilePrefs(const KeyfilePrefs& src, KeyfilePrefs* parent);
 
 	void reread() throw (Exception);
@@ -270,6 +268,7 @@ public:
 
 private:
 	DefaultPrefs(){}; // Not instantiable
+	static std::shared_ptr<Prefs> _MASTER;
 };
 
 #endif /* PREFS_H_ */

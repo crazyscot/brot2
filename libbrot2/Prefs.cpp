@@ -296,7 +296,7 @@ void KeyfilePrefs::set(const BrotPrefs::String& B, const std::string& newval) {
 	kf.set_string(B._group, B._key, newval);
 }
 
-std::shared_ptr<Prefs> KeyfilePrefs::_MASTER;
+std::shared_ptr<Prefs> DefaultPrefs::_MASTER;
 
 // Default accessor, singleton-like.
 std::shared_ptr<const Prefs> Prefs::getMaster() throw(Exception) {
