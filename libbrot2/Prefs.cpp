@@ -297,6 +297,7 @@ void KeyfilePrefs::set(const BrotPrefs::String& B, const std::string& newval) {
 }
 
 std::shared_ptr<Prefs> DefaultPrefs::_MASTER;
+Glib::StaticMutex DefaultPrefs::_MASTER_lock;
 
 // Default accessor, singleton-like.
 std::shared_ptr<const Prefs> Prefs::getMaster() throw(Exception) {
@@ -304,6 +305,7 @@ std::shared_ptr<const Prefs> Prefs::getMaster() throw(Exception) {
 }
 
 std::shared_ptr<const Prefs> DefaultPrefs::getMaster() throw(Exception) {
+	Glib::Mutex::Lock _auto (_MASTER_lock);
 	if (!_MASTER) {
 		_MASTER = std::shared_ptr<Prefs>(new KeyfilePrefs());
 	}

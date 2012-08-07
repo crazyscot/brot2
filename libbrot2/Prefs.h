@@ -23,6 +23,7 @@
 #include <Exception.h>
 #include <memory> //for unique_ptr
 #include <glibmm/keyfile.h>
+#include <glibmm/thread.h>
 #include "PrefsRegistry.h"
 
 // Second-order macro to easily define our constants and have their strings to hand.
@@ -269,6 +270,7 @@ public:
 private:
 	DefaultPrefs(){}; // Not instantiable
 	static std::shared_ptr<Prefs> _MASTER;
+	static Glib::StaticMutex _MASTER_lock;
 };
 
 #endif /* PREFS_H_ */
