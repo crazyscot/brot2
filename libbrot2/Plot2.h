@@ -51,6 +51,9 @@ public:
 		/* Notification that plotting is really finished.
 		 * Note that this does NOT get called if the plot run has been aborted! */
 		virtual void plot_progress_complete(Plot2& plot) = 0;
+
+	protected:
+		~callback_t() {}
 	};
 
 	/* What is this plot about? */
@@ -133,6 +136,9 @@ protected:
 	unsigned passes_max; // Do we have an absolute limit on the number of passes?
 
 private:
+	Plot2(const Plot2&) : width(0), height(0) {} // disallowed
+	Plot2& operator=(const Plot2&) { return *this; } // disallowed
+
 	Glib::Mutex plot_lock;
 	Glib::Cond _worker_signal; // For individual worker threads to signal completion
 	Glib::Cond _plot_complete; // For the per-plot "main" thread to signal completion, also protected by plot_lock

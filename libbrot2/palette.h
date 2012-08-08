@@ -62,10 +62,7 @@ protected:
 public:
 	float r,g,b; // 0..1
 	rgbf (const rgbf& i) : r(i.r), g(i.g), b(i.b) {};
-	rgbf (rgb i) {
-		r = i.r/255.0;
-		g = i.g/255.0;
-		b = i.b/255.0;
+	rgbf (rgb i) : r(i.r/255.0), g(i.g/255.0), b(i.b/255.0) {
 		clip();
 	};
 	rgbf() : r(0),g(0),b(0) {};
@@ -100,6 +97,7 @@ std::ostream& operator<<(std::ostream &stream, rgbf o);
 class BasePalette {
 public:
 	virtual rgb get(const Fractal::PointData &pt) const = 0;
+	virtual ~BasePalette() {}
 };
 
 

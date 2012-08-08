@@ -60,11 +60,11 @@ void ScrollActions::set_to_default() {
 	a[3] = Action::NO_ACTION; // GDK_SCROLL_RIGHT
 }
 
-KeyfilePrefs::KeyfilePrefs() throw(Exception) : _parent(NULL) {
+KeyfilePrefs::KeyfilePrefs() throw(Exception) : kf(), mouse_cache(), scroll_cache(), _parent(NULL) {
 	initialise();
 }
 
-KeyfilePrefs::KeyfilePrefs(const KeyfilePrefs& src, KeyfilePrefs* parent) : _parent(parent) {
+KeyfilePrefs::KeyfilePrefs(const KeyfilePrefs& src, KeyfilePrefs* parent) : kf(), mouse_cache(), scroll_cache(), _parent(parent) {
 	// Because we're cloning from a read-only instance this is
 	// actually the same as reading from scratch.
 	initialise();

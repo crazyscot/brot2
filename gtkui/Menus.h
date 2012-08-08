@@ -42,6 +42,10 @@ public:
 	Gtk::MenuItem colour;
 
 	AbstractOptionsMenu* optionsMenu;
+
+private:
+	// Menus(const Menus&) {} // TODO should be disallowed
+	Menus& operator=(const Menus&) { return *this; } // disallowed
 };
 
 }

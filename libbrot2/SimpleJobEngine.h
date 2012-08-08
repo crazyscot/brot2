@@ -29,7 +29,7 @@
 
 class SimpleJobEngine: public virtual IJobEngine {
 public:
-	SimpleJobEngine(IJobEngineCallback& callback, std::list<IJob*>& jobs);
+	SimpleJobEngine(IJobEngineCallback& callback, const std::list<IJob*>& jobs);
 	virtual ~SimpleJobEngine();
 
 	virtual void start();

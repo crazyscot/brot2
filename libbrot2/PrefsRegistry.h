@@ -34,6 +34,8 @@ struct Base {
 			const std::string grp, const std::string key) :
 		_default(def), _name(name), _description(desc),
 		_group(grp), _key(key) { }
+
+	virtual ~Base() {}
 };
 
 template<typename N>

@@ -29,6 +29,8 @@ class SimpleRegistry
 	protected:
 		std::map<std::string, T*> instances;
 	public:
+		SimpleRegistry() : instances() {}
+
 		// Register an instance and its description
 		void reg(const std::string& name, T* it) {
 			instances[name] = it;

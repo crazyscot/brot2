@@ -46,6 +46,8 @@ public:
 
 	// Somebody told us to stop. Called when all running Jobs have finished.
 	virtual void JobEngineStopped(IJobEngine&) = 0;
+
+	virtual ~IJobEngineCallback() {}
 };
 
 class IJobEngine {
@@ -62,6 +64,8 @@ public:
 	/* Stops the queue. Will result in a JobEngineStopped callback when
 	 * all running Jobs have stopped. */
 	virtual void stop() = 0;
+
+	virtual ~IJobEngine() {}
 };
 
 #endif /* IJOBENGINE_H_ */

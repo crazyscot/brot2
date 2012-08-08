@@ -42,6 +42,7 @@ struct Exception {
 	virtual operator const std::string() const {
 		return detail();
 	}
+	virtual ~Exception() {}
 };
 
 struct Assert : Exception {
@@ -49,6 +50,7 @@ struct Assert : Exception {
 		Exception("Assertion failed: "+m) { }
 	Assert(const std::string& m, const std::string& f, int l) :
 		Exception("Assertion failed: "+m,f,l) { }
+	virtual ~Assert() {}
 };
 
 inline std::ostream& operator<< (std::ostream& out, Exception val) {

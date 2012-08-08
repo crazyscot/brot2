@@ -19,7 +19,7 @@
 #include "SimpleJobEngine.h"
 
 SimpleJobEngine::SimpleJobEngine(IJobEngineCallback & callback,
-		std::list<IJob*>& jobs) : _callback(callback)
+		const std::list<IJob*>& jobs) : _callback(callback), _jobs(), _lock(), _halt()
 {
 	_jobs.assign(jobs.begin(), jobs.end());
 	_halt = false;

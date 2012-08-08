@@ -30,6 +30,9 @@ public:
 	virtual void start();
 	virtual ~SimpleAsyncJobEngine();
 	virtual void wait(); // Waits until all jobs completed
+private:
+	SimpleAsyncJobEngine(const SimpleAsyncJobEngine& o) : SimpleJobEngine(o._callback,o._jobs), _thread(0) {}
+	SimpleAsyncJobEngine& operator=(const SimpleAsyncJobEngine&) {return *this;}
 };
 
 #endif /* SIMPLEASYNCJOBENGINE_H_ */

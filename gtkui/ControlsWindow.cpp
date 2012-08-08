@@ -52,6 +52,8 @@ public:
 class NotifyTarget {
 	public:
 		virtual void notify() = 0;
+	protected:
+		~NotifyTarget() {}
 };
 
 class Combo : public Gtk::ComboBox {
@@ -131,6 +133,8 @@ class MouseButtonsPanel : NotifyTarget {
 			refresh(); // itself sets/clears initialising
 			initialising = false;
 		}
+
+		virtual ~MouseButtonsPanel() {}
 
 		void saveToPrefs() {
 			MouseActions ma;
@@ -217,6 +221,8 @@ class ScrollButtonsPanel : public NotifyTarget {
 			refresh(); // itself sets/clears initialising
 			initialising = false;
 		}
+
+		virtual ~ScrollButtonsPanel() {}
 
 		void saveToPrefs() {
 			std::shared_ptr<Prefs> tmpprefs = _prefs->getWorkingCopy();

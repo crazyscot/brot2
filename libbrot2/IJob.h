@@ -31,6 +31,8 @@ class IJob {
 public:
 	/* Called by the IJobEngine to run this job */
 	virtual void run(IJobEngine& engine) = 0;
+
+	virtual ~IJob() {}
 };
 
 #endif /* IJOB_H_ */

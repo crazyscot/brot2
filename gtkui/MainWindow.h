@@ -146,6 +146,8 @@ private:
 	bool on_timer();
 	void png_save_completion();
 
+	// MainWindow(const MainWindow&) : Gtk::Window() // TODO - would be disallowed if it wasn't such a twisty mess
+	MainWindow& operator=(const MainWindow&) {return *this;} // disallowed
 };
 
 #endif /* MAINWINDOW_H_ */

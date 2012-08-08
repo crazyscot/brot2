@@ -42,11 +42,10 @@ struct Action {
 #define CONSTDEF(_name,_num,_x) static const int _name = _num;
 	ALL_ACTIONS(CONSTDEF);
 
-	Action() { }
+	Action() : value(0) { }
 
-	Action(int val) {
+	Action(int val) : value(val) {
 		ASSERT((val >= MIN) && (val <= MAX));
-		value = val;
 	}
 
 	static const int MIN = FIRST_ACTION;
@@ -72,18 +71,20 @@ struct Action {
 		return name(value);
 	}
 
-	inline void operator=(int newval) throw(Exception) {
+	inline Action& operator=(int newval) throw(Exception) {
 		if ((newval < MIN) || (newval > MAX) )
 			THROW(Exception,"Illegal enum value");
 		value = newval;
+		return *this;
 	}
 	inline operator int() const { return value; }
 	inline operator std::string() const { return name(); }
 
-	inline void operator=(std::string newname) throw(Exception) {
+	inline Action& operator=(std::string newname) throw(Exception) {
 		int newval = lookup(newname);
 		if (newval==-1) THROW(Exception,"Unrecognised enum string");
 		value = newval;
+		return *this;
 	}
 
 	private:
@@ -255,6 +256,11 @@ protected:
 			set(B, B._default);
 		}
 	}
+
+private:
+	// Disallow!
+	KeyfilePrefs(const KeyfilePrefs&): kf(), mouse_cache(), scroll_cache(), _parent() {}
+	KeyfilePrefs& operator= (const KeyfilePrefs&) { return *this; }
 };
 
 class DefaultPrefs : KeyfilePrefs {

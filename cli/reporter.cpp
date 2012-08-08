@@ -29,12 +29,10 @@
 # define UNUSED(x) x
 #endif
 
-Reporter::Reporter(int columns, bool silent)
+Reporter::Reporter(int columns, bool silent) : ncolumns(columns), quiet(silent)
 {
-	ncolumns = columns;
 	if (!ncolumns)
 		ncolumns = 80;
-	quiet = silent;
 }
 
 void Reporter::plot_progress_minor(Plot2& UNUSED(plot), float workdone)
