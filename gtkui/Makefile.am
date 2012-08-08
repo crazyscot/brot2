@@ -15,6 +15,6 @@ brot2_DEPENDENCIES= ../libbrot2/libbrot2.a
 
 AM_CPPFLAGS= -I$(top_srcdir) -I$(top_srcdir)/libbrot2 @brot2gui_CFLAGS@
 
-AM_CFLAGS=@global_CFLAGS@
-AM_CXXFLAGS=@global_CXXFLAGS@
+AM_CFLAGS=@BROT2_CFLAGS@
+AM_CXXFLAGS=@BROT2_CXXFLAGS@
 

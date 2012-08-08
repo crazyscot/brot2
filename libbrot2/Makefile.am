@@ -14,8 +14,9 @@ libbrot2_a_SOURCES= \
 					Render.h Render.cpp \
 					Prefs.h Prefs.cpp PrefsRegistry.h PrefsRegistry.cpp
 
-AM_CFLAGS=@global_CFLAGS@
-AM_CXXFLAGS=@global_CXXFLAGS@ @libbrot2_CFLAGS@
+AM_CPPFLAGS=@libbrot2_CFLAGS@
+AM_CFLAGS=@BROT2_CFLAGS@
+AM_CXXFLAGS=@BROT2_CXXFLAGS@
 
 AUTOGEN=logo_auto.c
 
