@@ -28,6 +28,7 @@
 #include "ControlsWindow.h"
 #include "Prefs.h"
 #include "Menus.h"
+#include "noncopyable.hpp"
 
 #include <iostream>
 #include <gtkmm/window.h>
@@ -42,7 +43,7 @@ class HUD;
 class ControlsWindow;
 class SaveAsPNG;
 
-class MainWindow : public Gtk::Window, Plot2::callback_t {
+class MainWindow : public Gtk::Window, Plot2::callback_t, boost::noncopyable {
 	Gtk::VBox *vbox; // Main layout widget
 	menus::Menus *menubar;
 	Canvas *canvas;
@@ -145,9 +146,6 @@ private:
     void zoom_mechanics(enum Zoom z);
 	bool on_timer();
 	void png_save_completion();
-
-	// MainWindow(const MainWindow&) : Gtk::Window() // TODO - would be disallowed if it wasn't such a twisty mess
-	MainWindow& operator=(const MainWindow&) {return *this;} // disallowed
 };
 
 #endif /* MAINWINDOW_H_ */

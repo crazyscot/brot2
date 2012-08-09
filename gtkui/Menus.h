@@ -19,6 +19,7 @@
 #ifndef MENUS_H_
 #define MENUS_H_
 
+#include "noncopyable.hpp"
 #include <gtkmm/menubar.h>
 #include <gtkmm/menu.h>
 
@@ -31,7 +32,7 @@ class AbstractOptionsMenu : public Gtk::Menu {
 		virtual void set_controls_status(bool active) = 0;
 };
 
-class Menus: public Gtk::MenuBar {
+class Menus: public Gtk::MenuBar, boost::noncopyable {
 public:
 	Menus(MainWindow& parent, std::string& init_fractal, std::string& init_colour);
 

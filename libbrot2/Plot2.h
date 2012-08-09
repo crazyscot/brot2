@@ -21,11 +21,12 @@
 
 #include <memory>
 #include <glibmm.h>
+#include "noncopyable.hpp"
 #include "Fractal.h"
 
 class Prefs;
 
-class Plot2 {
+class Plot2 : boost::noncopyable {
 public:
 	/* Callback type. */
 	class callback_t {
@@ -136,9 +137,6 @@ protected:
 	unsigned passes_max; // Do we have an absolute limit on the number of passes?
 
 private:
-	Plot2(const Plot2&) : width(0), height(0) {} // disallowed
-	Plot2& operator=(const Plot2&) { return *this; } // disallowed
-
 	Glib::Mutex plot_lock;
 	Glib::Cond _worker_signal; // For individual worker threads to signal completion
 	Glib::Cond _plot_complete; // For the per-plot "main" thread to signal completion, also protected by plot_lock

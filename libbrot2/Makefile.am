@@ -2,6 +2,7 @@ noinst_LIBRARIES=libbrot2.a
 
 libbrot2_a_SOURCES= \
 					Exception.h \
+					noncopyable.hpp \
 					IJob.h IJobEngine.h \
 					SimpleJobEngine.h SimpleJobEngine.cpp \
 					SimpleAsyncJobEngine.h SimpleAsyncJobEngine.cpp \
