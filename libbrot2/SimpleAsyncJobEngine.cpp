@@ -18,19 +18,19 @@
 
 #include "SimpleAsyncJobEngine.h"
 
-SimpleAsyncJobEngine::SimpleAsyncJobEngine(IJobEngineCallback& callback,
+job::SimpleAsyncJobEngine::SimpleAsyncJobEngine(IJobEngineCallback& callback,
 		std::list<IJob*>& jobs) : SimpleJobEngine(callback,jobs),
 		_thread(0), _lock()
 {
 }
 
-void SimpleAsyncJobEngine::start()
+void job::SimpleAsyncJobEngine::start()
 {
 	Glib::Mutex::Lock _auto(_lock);
 	_thread = Glib::Thread::create(sigc::mem_fun(*this, &SimpleAsyncJobEngine::run), true);
 }
 
-SimpleAsyncJobEngine::~SimpleAsyncJobEngine()
+job::SimpleAsyncJobEngine::~SimpleAsyncJobEngine()
 {
 	Glib::Mutex::Lock _auto(_lock);
 	if (_thread != NULL) {
@@ -39,7 +39,7 @@ SimpleAsyncJobEngine::~SimpleAsyncJobEngine()
 	}
 }
 
-void SimpleAsyncJobEngine::wait()
+void job::SimpleAsyncJobEngine::wait()
 {
 	Glib::Mutex::Lock _auto(_lock);
 	if (_thread != NULL) {

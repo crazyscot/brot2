@@ -18,20 +18,20 @@
 
 #include "SimpleJobEngine.h"
 
-SimpleJobEngine::SimpleJobEngine(IJobEngineCallback & callback,
+job::SimpleJobEngine::SimpleJobEngine(IJobEngineCallback & callback,
 		const std::list<IJob*>& jobs) : _callback(callback), _jobs(), _lock(), _halt()
 {
 	_jobs.assign(jobs.begin(), jobs.end());
 	_halt = false;
 }
 
-void SimpleJobEngine::start()
+void job::SimpleJobEngine::start()
 {
 	// Will be overridden in a more complicated subclass...
 	run();
 }
 
-void SimpleJobEngine::run()
+void job::SimpleJobEngine::run()
 {
 	std::list<IJob*>::iterator it;
 	for (it=_jobs.begin(); it != _jobs.end() && !_halt; it++) {
@@ -47,11 +47,11 @@ void SimpleJobEngine::run()
 		_callback.JobEngineFinished(*this);
 }
 
-SimpleJobEngine::~SimpleJobEngine()
+job::SimpleJobEngine::~SimpleJobEngine()
 {
 }
 
-void SimpleJobEngine::stop()
+void job::SimpleJobEngine::stop()
 {
 	Glib::Mutex::Lock _auto (_lock);
 	_halt = true;

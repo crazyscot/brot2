@@ -34,6 +34,8 @@
 #include <vector>
 #include "IJob.h"
 
+namespace job {
+
 class IJobEngine;
 
 class IJobEngineCallback {
@@ -67,5 +69,7 @@ public:
 
 	virtual ~IJobEngine() {}
 };
+
+}; // ::job
 
 #endif /* IJOBENGINE_H_ */

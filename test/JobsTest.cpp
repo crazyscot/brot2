@@ -12,6 +12,8 @@
 #include <glibmm/thread.h>
 #include <glibmm/timer.h>
 
+using namespace job;
+
 class TestingJob: public IJob {
 	bool _hasrun;
 	int _serial;

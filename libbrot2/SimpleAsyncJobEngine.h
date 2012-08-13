@@ -22,6 +22,8 @@
 #include <glibmm/thread.h>
 #include "SimpleJobEngine.h"
 
+namespace job {
+
 class SimpleAsyncJobEngine: public SimpleJobEngine {
 	Glib::Thread* _thread;
 	Glib::Mutex _lock; // Protects _thread
@@ -34,5 +36,7 @@ private:
 	SimpleAsyncJobEngine(const SimpleAsyncJobEngine& o) : SimpleJobEngine(o._callback,o._jobs), _thread(0) {}
 	SimpleAsyncJobEngine& operator=(const SimpleAsyncJobEngine&) {return *this;}
 };
+
+}; // ::job
 
 #endif /* SIMPLEASYNCJOBENGINE_H_ */

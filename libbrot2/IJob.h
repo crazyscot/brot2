@@ -25,6 +25,8 @@
 #ifndef IJOB_H_
 #define IJOB_H_
 
+namespace job {
+
 class IJobEngine;
 
 class IJob {
@@ -34,5 +36,7 @@ public:
 
 	virtual ~IJob() {}
 };
+
+}; // ::job
 
 #endif /* IJOB_H_ */

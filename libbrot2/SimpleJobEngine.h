@@ -24,6 +24,8 @@
 #include <glibmm/thread.h>
 #include "IJobEngine.h"
 
+namespace job {
+
 /* The simplest possible synchronous JobEngine.
  * Does not allow jobs to be added later. */
 
@@ -44,5 +46,7 @@ protected:
 
 	virtual void run(); // Does the actual work of iterating through the jobs.
 };
+
+}; // ::job
 
 #endif /* SIMPLEJOBENGINE_H_ */
