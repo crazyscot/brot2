@@ -142,8 +142,17 @@ TEST_F(JobsRun, Simple) {
 	engine.start(); // synchronous, so won't return until it's done
 }
 
-TEST_F(JobsRun, Async) {
-	SimpleAsyncJobEngine engine(*cb, list);
+template<class T>
+class JobsRun2: public JobsRun {
+public:
+	JobsRun2(): JobsRun() {};
+};
+
+typedef testing::Types<SimpleAsyncJobEngine> asyncEngines;
+TYPED_TEST_CASE(JobsRun2, asyncEngines);
+
+TYPED_TEST(JobsRun2, asyncEngines) {
+	TypeParam engine(*(this->cb), this->list);
 	engine.start();
 	engine.wait();
 }
@@ -177,9 +186,18 @@ TEST_F(JobsStop,Simple) {
 	engine.start(); // synchronous, so won't return until it's done
 }
 
-TEST_F(JobsStop,Async) {
-	SimpleAsyncJobEngine engine(*cb, list);
-	engine.start(); // synchronous, so won't return until it's done
+template<class T>
+class JobsStop2: public JobsStop {
+public:
+	JobsStop2(): JobsStop() {};
+};
+
+typedef testing::Types<SimpleAsyncJobEngine> asyncEngines;
+TYPED_TEST_CASE(JobsStop2, asyncEngines);
+
+TYPED_TEST(JobsStop2, asyncEngines) {
+	TypeParam engine(*(this->cb), this->list);
+	engine.start();
 	engine.stop();
-	unblocker->unblockSynch();
+	this->unblocker->unblockSynch();
 }
