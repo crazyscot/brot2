@@ -3,9 +3,9 @@ noinst_LIBRARIES=libbrot2.a
 libbrot2_a_SOURCES= \
 					Exception.h \
 					noncopyable.hpp \
-					IJob.h IJobEngine.h \
-					SimpleJobEngine.h SimpleJobEngine.cpp \
-					SimpleAsyncJobEngine.h SimpleAsyncJobEngine.cpp \
+					job/IJob.h job/IJobEngine.h \
+					job/SimpleJobEngine.h job/SimpleJobEngine.cpp \
+					job/SimpleAsyncJobEngine.h job/SimpleAsyncJobEngine.cpp \
 					logo.h logo_auto.c Registry.h \
 					Fractal.cpp Fractal.h palette.cpp palette.h \
 					Plot2.cpp Plot2.h \

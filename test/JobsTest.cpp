@@ -6,8 +6,8 @@
  */
 
 #include "gtest/gtest.h"
-#include "SimpleJobEngine.h"
-#include "SimpleAsyncJobEngine.h"
+#include "job/SimpleJobEngine.h"
+#include "job/SimpleAsyncJobEngine.h"
 #include <list>
 #include <glibmm/thread.h>
 #include <glibmm/timer.h>
