@@ -8,13 +8,14 @@
 #include "gtest/gtest.h"
 #include "job/SimpleJobEngine.h"
 #include "job/SimpleAsyncJobEngine.h"
+#include "job/MultiThreadJobEngine.h"
 #include <list>
 #include <glibmm/thread.h>
 #include <glibmm/timer.h>
 
 using namespace job;
 
-typedef testing::Types<SimpleAsyncJobEngine> asyncEngines;
+typedef testing::Types<SimpleAsyncJobEngine, MultiThreadJobEngine> asyncEngines;
 typedef testing::Types<SimpleJobEngine, SimpleAsyncJobEngine> allEngines;
 
 class TestingJob: public IJob {
@@ -198,14 +199,14 @@ protected:
 	CompletionListener listener;
 	Unblocker unblocker;
 
-	JobsStop() : unblocker(jlock,100) {}
+	JobsStop() : unblocker(jlock,200) {}
 	virtual void SetUp() {
 		list.push_back(&jlock);
 		list.push_back(&jord);
 		jord.checkHasNotRun();
 	}
 	virtual void TearDown() {
-		jord.checkHasNotRun();
+		//jord.checkHasNotRun(); // Actually, we don't know (or care) whether or not jord has run. A parallelising engine may very well run it.
 		listener.checkStopped();
 	}
 };
@@ -230,8 +231,8 @@ TYPED_TEST(JobsStop2, asyncEngines) {
 	TypeParam engine(this->list);
 	this->listener.attachTo(engine);
 	engine.start();
+	this->unblocker.unblockAsynch();
 	engine.stop();
-	this->unblocker.unblockSynch();
 }
 
 ///////////////////////////////////////////////////////////////////////////
@@ -275,3 +276,6 @@ TYPED_TEST(ExceptionsCaught, allEngines) {
 	engine.start();
 	this->listener.WaitUntilTermination();
 }
+
+///////////////////////////////////////////////////////////////////////////
+

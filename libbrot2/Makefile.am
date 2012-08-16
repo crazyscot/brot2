@@ -6,6 +6,7 @@ libbrot2_a_SOURCES= \
 					job/IJob.h job/IJobEngine.h \
 					job/SimpleJobEngine.h job/SimpleJobEngine.cpp \
 					job/SimpleAsyncJobEngine.h job/SimpleAsyncJobEngine.cpp \
+					job/MultiThreadJobEngine.h job/MultiThreadJobEngine.cpp \
 					logo.h logo_auto.c Registry.h \
 					Fractal.cpp Fractal.h palette.cpp palette.h \
 					Plot2.cpp Plot2.h \
