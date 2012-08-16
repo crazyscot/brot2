@@ -35,8 +35,12 @@ void job::SimpleJobEngine::run()
 {
 	std::list<IJob*>::iterator it;
 	for (it=_jobs.begin(); it != _jobs.end() && !_halt; it++) {
-		(*it)->run(*this);
-		_callback.JobComplete(*it, *this);
+		try {
+			(*it)->run(*this);
+			_callback.JobComplete(*it, *this);
+		} catch (...) {
+			_callback.JobFailed(*it, *this);
+		}
 		Glib::Mutex::Lock _auto (_lock);
 		if (_halt) break;
 	}

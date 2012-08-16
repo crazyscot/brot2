@@ -43,6 +43,10 @@ public:
 	// A single Job has completed.
 	virtual void JobComplete(IJob*, IJobEngine&) = 0;
 
+	/* Something went badly wrong with a job; it threw an uncaught exception.
+	 * NOTE that other jobs WILL CONTINUE TO RUN unless you tell the engine to stop. */
+	virtual void JobFailed(IJob*, IJobEngine&) = 0;
+
 	// Normal termination. All Jobs have finished.
 	virtual void JobEngineFinished(IJobEngine&) = 0;
 

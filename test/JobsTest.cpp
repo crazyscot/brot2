@@ -14,6 +14,9 @@
 
 using namespace job;
 
+typedef testing::Types<SimpleAsyncJobEngine> asyncEngines;
+typedef testing::Types<SimpleJobEngine, SimpleAsyncJobEngine> allEngines;
+
 class TestingJob: public IJob {
 	bool _hasrun;
 	int _serial;
@@ -66,19 +69,40 @@ public:
 	}
 };
 
+// A job that fails
+class FailingJob: public TestingJob {
+	bool _failcaught;
+public:
+	virtual void run(IJobEngine&) {
+		throw 42;
+	}
+	bool wasCaught() const { return _failcaught; }
+};
+
+///////////////////////////////////////////////////////////////////////////
+
 /* Simple checking callback */
 class TestCallback: public IJobEngineCallback {
 	bool _finished, _stopped;
 	int _N;
 	bool* _jobsfinished;
+	bool* _jobsfailed;
+
+	Glib::Mutex _mux;
+	Glib::Cond _cond; // Protected by mux
 
 public:
 	TestCallback(int N) : _finished(false), _stopped(false), _N(N) {
 		_jobsfinished = new bool[N];
-		for (int i=0; i<N; i++) _jobsfinished[i]=false;
+		_jobsfailed = new bool[N];
+		for (int i=0; i<N; i++) {
+			_jobsfinished[i]=false;
+			_jobsfailed[i]=false;
+		}
 	}
 	virtual ~TestCallback() {
 		delete[] _jobsfinished;
+		delete[] _jobsfailed;
 	}
 
 	void JobComplete(IJob* j, IJobEngine&) {
@@ -91,16 +115,49 @@ public:
 				_jobsfinished[tj->serial()] = true;
 		}
 	};
+	void JobFailed(IJob* j, IJobEngine&) {
+		FailingJob* tj = dynamic_cast<FailingJob*>(j);
+		ASSERT_TRUE(tj);
+		if (tj == NULL) {
+			FAIL(); // Unexpected exception
+		} else {
+			ASSERT_LT(tj->serial(), _N);
+			if (tj->serial() >= 0)
+				_jobsfailed[tj->serial()] = true;
+		}
+	}
 	void JobEngineFinished(IJobEngine&) {
 		_finished = true;
+		Glib::Mutex::Lock lock(_mux);
+		_cond.broadcast();
 	};
 	void JobEngineStopped(IJobEngine&) {
 		_stopped = true;
+		Glib::Mutex::Lock lock(_mux);
+		_cond.broadcast();
 	};
+
+	void WaitUntilTermination() {
+		Glib::Mutex::Lock lock(_mux);
+		while (!_finished && !_stopped)
+			_cond.wait(_mux);
+	}
 
 	void checkAllDone() {
 		checkFinished();
 		for (int i=0; i<_N; i++) EXPECT_TRUE(_jobsfinished[i]);
+	}
+	void checkAllDoneExcept(int failedOne) {
+		checkFinished();
+		for (int i=0; i<_N; i++) {
+			if (i==failedOne) {
+				EXPECT_FALSE(_jobsfinished[i]);
+				EXPECT_TRUE(_jobsfailed[i]);
+			} else {
+				EXPECT_TRUE(_jobsfinished[i]);
+				EXPECT_FALSE(_jobsfailed[i]);
+			}
+		}
 	}
 
 	void checkFinished() {
@@ -112,6 +169,8 @@ public:
 		EXPECT_TRUE(_stopped);
 	}
 };
+
+///////////////////////////////////////////////////////////////////////////
 
 class JobsRun: public ::testing::Test {
 protected:
@@ -148,7 +207,6 @@ public:
 	JobsRun2(): JobsRun() {};
 };
 
-typedef testing::Types<SimpleAsyncJobEngine> asyncEngines;
 TYPED_TEST_CASE(JobsRun2, asyncEngines);
 
 TYPED_TEST(JobsRun2, asyncEngines) {
@@ -156,6 +214,8 @@ TYPED_TEST(JobsRun2, asyncEngines) {
 	engine.start();
 	engine.wait();
 }
+
+///////////////////////////////////////////////////////////////////////////
 
 class JobsStop: public ::testing::Test {
 protected:
@@ -192,7 +252,6 @@ public:
 	JobsStop2(): JobsStop() {};
 };
 
-typedef testing::Types<SimpleAsyncJobEngine> asyncEngines;
 TYPED_TEST_CASE(JobsStop2, asyncEngines);
 
 TYPED_TEST(JobsStop2, asyncEngines) {
@@ -200,4 +259,47 @@ TYPED_TEST(JobsStop2, asyncEngines) {
 	engine.start();
 	engine.stop();
 	this->unblocker->unblockSynch();
+}
+
+///////////////////////////////////////////////////////////////////////////
+
+template<class T>
+class ExceptionsCaught: public ::testing::Test {
+protected:
+	const int N;
+	ExceptionsCaught() : N(10) {}
+	TestingJob* jobs;
+	TestCallback* cb;
+	FailingJob* fj;
+	std::list<IJob*> list;
+
+	virtual void SetUp() {
+		jobs = new TestingJob[N];
+		cb = new TestCallback(N);
+		fj = new FailingJob();
+		fj->serial(5);
+
+		for (int i=0; i<N; i++) {
+			if (i == 5) {
+				list.push_back(fj);
+			} else {
+				jobs[i].serial(i);
+				list.push_back(&jobs[i]);
+			}
+		}
+	}
+	virtual void TearDown() {
+		cb->checkAllDoneExcept(5);
+		delete[] jobs;
+		delete cb;
+		delete fj;
+	}
+};
+
+
+TYPED_TEST_CASE(ExceptionsCaught, allEngines);
+TYPED_TEST(ExceptionsCaught, allEngines) {
+	TypeParam engine(*(this->cb), this->list);
+	engine.start();
+	this->cb->WaitUntilTermination();
 }
