@@ -30,9 +30,33 @@ namespace job {
 class IJobEngine;
 
 class IJob {
+private:
+	sigc::signal0<void> _signalDone;
+	sigc::signal0<void> _signalFailed;
+
 public:
-	/* Called by the IJobEngine to run this job */
+	/* Called by the IJobEngine to run this job.
+	 * Obviously, this is the bit that concrete implementations need
+	 * to provide. */
 	virtual void run(IJobEngine& engine) = 0;
+
+	/* The subclass should call connect_* as appropriate at initialisation
+	 * time. */
+	void connect_Done(const sigc::slot<void>& slot) {
+		_signalDone.connect(slot);
+	}
+	void connect_Failed(const sigc::slot<void>& slot) {
+		_signalFailed.connect(slot);
+	}
+
+	/* One of these two will be called by the IJobEngine on return from run,
+	 * so you don't need to worry too much about uncaught exceptions */
+	void emit_Done() {
+		_signalDone.emit();
+	}
+	void emit_Failed() {
+		_signalFailed.emit();
+	}
 
 	virtual ~IJob() {}
 };

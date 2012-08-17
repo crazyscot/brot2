@@ -18,8 +18,8 @@
 
 #include "SimpleAsyncJobEngine.h"
 
-job::SimpleAsyncJobEngine::SimpleAsyncJobEngine(IJobEngineCallback& callback,
-		std::list<IJob*>& jobs) : SimpleJobEngine(callback,jobs),
+job::SimpleAsyncJobEngine::SimpleAsyncJobEngine(std::list<IJob*>& jobs) :
+	SimpleJobEngine(jobs),
 		_thread(0), _lock()
 {
 }

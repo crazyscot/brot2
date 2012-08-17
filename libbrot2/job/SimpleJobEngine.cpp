@@ -18,8 +18,8 @@
 
 #include "SimpleJobEngine.h"
 
-job::SimpleJobEngine::SimpleJobEngine(IJobEngineCallback & callback,
-		const std::list<IJob*>& jobs) : _callback(callback), _jobs(), _lock(), _halt()
+job::SimpleJobEngine::SimpleJobEngine(const std::list<IJob*>& jobs) :
+	_jobs(), _lock(), _halt()
 {
 	_jobs.assign(jobs.begin(), jobs.end());
 	_halt = false;
@@ -37,18 +37,18 @@ void job::SimpleJobEngine::run()
 	for (it=_jobs.begin(); it != _jobs.end() && !_halt; it++) {
 		try {
 			(*it)->run(*this);
-			_callback.JobComplete(*it, *this);
+			(*it)->emit_Done();
 		} catch (...) {
-			_callback.JobFailed(*it, *this);
+			(*it)->emit_Failed();
 		}
 		Glib::Mutex::Lock _auto (_lock);
 		if (_halt) break;
 	}
 	Glib::Mutex::Lock _auto (_lock);
 	if (_halt)
-		_callback.JobEngineStopped(*this);
+		emit_Stopped();
 	else
-		_callback.JobEngineFinished(*this);
+		emit_Finished();
 }
 
 job::SimpleJobEngine::~SimpleJobEngine()

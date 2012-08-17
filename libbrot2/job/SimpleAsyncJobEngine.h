@@ -28,12 +28,12 @@ class SimpleAsyncJobEngine: public SimpleJobEngine {
 	Glib::Thread* _thread;
 	Glib::Mutex _lock; // Protects _thread
 public:
-	SimpleAsyncJobEngine(IJobEngineCallback& callback, std::list<IJob*>& jobs);
+	SimpleAsyncJobEngine(std::list<IJob*>& jobs);
 	virtual void start();
 	virtual ~SimpleAsyncJobEngine();
 	virtual void wait(); // Waits until all jobs completed
 private:
-	SimpleAsyncJobEngine(const SimpleAsyncJobEngine& o) : SimpleJobEngine(o._callback,o._jobs), _thread(0) {}
+	SimpleAsyncJobEngine(const SimpleAsyncJobEngine& o) : SimpleJobEngine(o._jobs), _thread(0) {}
 	SimpleAsyncJobEngine& operator=(const SimpleAsyncJobEngine&) {return *this;}
 };
 

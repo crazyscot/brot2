@@ -31,14 +31,13 @@ namespace job {
 
 class SimpleJobEngine: public virtual IJobEngine {
 public:
-	SimpleJobEngine(IJobEngineCallback& callback, const std::list<IJob*>& jobs);
+	SimpleJobEngine(const std::list<IJob*>& jobs);
 	virtual ~SimpleJobEngine();
 
 	virtual void start();
 	virtual void stop(); // Of limited use as this class is synchronous, but ought to work nevertheless.
 
 protected:
-	IJobEngineCallback& _callback;
 	std::list<IJob*> _jobs;
 
 	Glib::Mutex _lock;

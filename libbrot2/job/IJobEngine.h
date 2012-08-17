@@ -32,35 +32,16 @@
 #define IJOBENGINE_H_
 
 #include <vector>
+#include <sigc++/sigc++.h>
 #include "IJob.h"
 
 namespace job {
 
-class IJobEngine;
-
-class IJobEngineCallback {
-public:
-	// A single Job has completed.
-	virtual void JobComplete(IJob*, IJobEngine&) = 0;
-
-	/* Something went badly wrong with a job; it threw an uncaught exception.
-	 * NOTE that other jobs WILL CONTINUE TO RUN unless you tell the engine to stop. */
-	virtual void JobFailed(IJob*, IJobEngine&) = 0;
-
-	// Normal termination. All Jobs have finished.
-	virtual void JobEngineFinished(IJobEngine&) = 0;
-
-	// Somebody told us to stop. Called when all running Jobs have finished.
-	virtual void JobEngineStopped(IJobEngine&) = 0;
-
-	virtual ~IJobEngineCallback() {}
-};
-
 class IJobEngine {
+private:
+	sigc::signal0<void> _signalFinished;
+	sigc::signal0<void> _signalStopped;
 public:
-	/* NOTE: Implementations are expected to be passed an IJobEngineCallback
-	 * and call it suitably. */
-
 	/* Kicks off the engine.
 	 * Most implementations will do this asynchronously i.e. return
 	 * immediately from this call.
@@ -71,7 +52,28 @@ public:
 	 * all running Jobs have stopped. */
 	virtual void stop() = 0;
 
+	/* Who should we tell when all jobs are complete? */
+	void connect_Finished(const sigc::slot<void>& slot) {
+		_signalFinished.connect(slot);
+	};
+	/* Who should we tell when we've stopped? */
+	void connect_Stopped(const sigc::slot<void>& slot) {
+		_signalStopped.connect(slot);
+	};
+
+	/* NOTE: The engine will also emit individual jobs' signals as appropriate. */
+
+
 	virtual ~IJobEngine() {}
+
+protected:
+	/* To be called by implementations when finished or stopped, as appropriate */
+	void emit_Finished() {
+		_signalFinished.emit();
+	}
+	void emit_Stopped() {
+		_signalStopped.emit();
+	}
 };
 
 }; // ::job
