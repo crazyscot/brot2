@@ -18,6 +18,7 @@ typedef testing::Types<SimpleAsyncJobEngine> asyncEngines;
 typedef testing::Types<SimpleJobEngine, SimpleAsyncJobEngine> allEngines;
 
 class TestingJob: public IJob {
+	friend class CompletionListener;
 	bool _hasrun;
 	int _serial;
 	bool _done, _failed;
@@ -25,10 +26,7 @@ class TestingJob: public IJob {
 	void done(void) { _done = true; }
 	void failed(void) { _failed = true; }
 public:
-	TestingJob() : _hasrun (false), _done(false), _failed(false) {
-		connect_Done(sigc::mem_fun(this, &TestingJob::done));
-		connect_Failed(sigc::mem_fun(this, &TestingJob::failed));
-	}
+	TestingJob() : _hasrun (false), _done(false), _failed(false) { }
 
 	virtual void run(IJobEngine&) {
 		_hasrun = true;
@@ -103,6 +101,19 @@ class CompletionListener {
 		_cond.broadcast();
 	}
 
+	void jobDone(IJob* job) {
+		TestingJob* tj = dynamic_cast<TestingJob*>(job);
+		if (tj != NULL) {
+			tj->done();
+		}
+	}
+	void jobFailed(IJob* job) {
+		TestingJob* tj = dynamic_cast<TestingJob*>(job);
+		if (tj != NULL) {
+			tj->failed();
+		}
+	}
+
 public:
 	CompletionListener() : _done(false), _stopped(false) {}
 
@@ -118,6 +129,8 @@ public:
 	void attachTo(IJobEngine& engine) {
 		engine.connect_Finished(sigc::mem_fun(this, &CompletionListener::sigDone));
 		engine.connect_Stopped(sigc::mem_fun(this, &CompletionListener::sigStopped));
+		engine.connect_JobDone(sigc::mem_fun(this, &CompletionListener::jobDone));
+		engine.connect_JobFailed(sigc::mem_fun(this, &CompletionListener::jobFailed));
 	}
 
 	void WaitUntilTermination() {

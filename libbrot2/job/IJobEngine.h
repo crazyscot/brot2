@@ -31,7 +31,6 @@
 #ifndef IJOBENGINE_H_
 #define IJOBENGINE_H_
 
-#include <vector>
 #include <sigc++/sigc++.h>
 #include "IJob.h"
 
@@ -39,8 +38,10 @@ namespace job {
 
 class IJobEngine {
 private:
-	sigc::signal0<void> _signalFinished;
-	sigc::signal0<void> _signalStopped;
+	sigc::signal<void, IJob*> _signalJobDone;
+	sigc::signal<void, IJob*> _signalJobFailed;
+	sigc::signal<void> _signalFinished;
+	sigc::signal<void> _signalStopped;
 public:
 	/* Kicks off the engine.
 	 * Most implementations will do this asynchronously i.e. return
@@ -52,13 +53,27 @@ public:
 	 * all running Jobs have stopped. */
 	virtual void stop() = 0;
 
+	/* Note: The connect_*() methods return a connection, "which you can
+	 * later use to disconnect your method. If the type of your object
+	 * inherits from sigc::trackable the method is disconnected
+	 * automatically when your object is destroyed."
+	 */
+
+	/* Who should we tell when a job is done? */
+	sigc::connection connect_JobDone(const sigc::slot<void,IJob*>& slot) {
+		return _signalJobDone.connect(slot);
+	};
+	/* Who should we tell when a job fails? */
+	sigc::connection connect_JobFailed(const sigc::slot<void,IJob*>& slot) {
+		return _signalJobFailed.connect(slot);
+	};
 	/* Who should we tell when all jobs are complete? */
-	void connect_Finished(const sigc::slot<void>& slot) {
-		_signalFinished.connect(slot);
+	sigc::connection connect_Finished(const sigc::slot<void>& slot) {
+		return _signalFinished.connect(slot);
 	};
 	/* Who should we tell when we've stopped? */
-	void connect_Stopped(const sigc::slot<void>& slot) {
-		_signalStopped.connect(slot);
+	sigc::connection connect_Stopped(const sigc::slot<void>& slot) {
+		return _signalStopped.connect(slot);
 	};
 
 	/* NOTE: The engine will also emit individual jobs' signals as appropriate. */
@@ -67,6 +82,13 @@ public:
 	virtual ~IJobEngine() {}
 
 protected:
+	/* To be called by implementations when jobs complete or fail, as appropriate */
+	void emit_JobDone(IJob* job) {
+		_signalJobDone(job);
+	}
+	void emit_JobFailed(IJob* job) {
+		_signalJobFailed(job);
+	}
 	/* To be called by implementations when finished or stopped, as appropriate */
 	void emit_Finished() {
 		_signalFinished.emit();

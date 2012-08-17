@@ -37,9 +37,9 @@ void job::SimpleJobEngine::run()
 	for (it=_jobs.begin(); it != _jobs.end() && !_halt; it++) {
 		try {
 			(*it)->run(*this);
-			(*it)->emit_Done();
+			emit_JobDone(*it);
 		} catch (...) {
-			(*it)->emit_Failed();
+			emit_JobFailed(*it);
 		}
 		Glib::Mutex::Lock _auto (_lock);
 		if (_halt) break;
