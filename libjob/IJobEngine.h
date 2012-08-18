@@ -55,9 +55,10 @@ private:
 	 * sigc::connection object. Only that thread should call
 	 * sigc::connection methods on the object.
 	 *
-	 * Also beware that signals are emitted WITH THE ENGINE LOCK HELD, which
-	 * might lead to all manner of interesting deadlocks if the signals do
-	 * anything nontrivial.
+	 *
+	 * Also beware that signals are emitted WITH THE ENGINE LOCK HELD!
+	 * This might lead to all manner of interesting deadlocks if the signals
+	 * do anything nontrivial.
 	 *
 	 * In a complex multi-threaded environment it would be a good idea to use
 	 * a Glib::Dispatcher or similar method to asynchronously pass these signal
@@ -83,27 +84,30 @@ public:
 	 * later use to disconnect your method. If the type of your object
 	 * inherits from sigc::trackable the method is disconnected
 	 * automatically when your object is destroyed."
+	 *
+	 * If we should find we want to disconnect these slots, we'll need to
+	 * implement a way to do so with the engine lock held.
 	 */
 
 	/* Who should we tell when a job is done? */
-	sigc::connection connect_JobDone(const sigc::slot<void,IJob*>& slot) {
+	void connect_JobDone(const sigc::slot<void,IJob*>& slot) {
 		Glib::Mutex::Lock _auto(_sigLock);
-		return _signalJobDone.connect(slot);
+		_signalJobDone.connect(slot);
 	};
 	/* Who should we tell when a job fails? */
-	sigc::connection connect_JobFailed(const sigc::slot<void,IJob*>& slot) {
+	void connect_JobFailed(const sigc::slot<void,IJob*>& slot) {
 		Glib::Mutex::Lock _auto(_sigLock);
-		return _signalJobFailed.connect(slot);
+		_signalJobFailed.connect(slot);
 	};
 	/* Who should we tell when all jobs are complete? */
-	sigc::connection connect_Finished(const sigc::slot<void>& slot) {
+	void connect_Finished(const sigc::slot<void>& slot) {
 		Glib::Mutex::Lock _auto(_sigLock);
-		return _signalFinished.connect(slot);
+		_signalFinished.connect(slot);
 	};
 	/* Who should we tell when we've stopped? */
-	sigc::connection connect_Stopped(const sigc::slot<void>& slot) {
+	void connect_Stopped(const sigc::slot<void>& slot) {
 		Glib::Mutex::Lock _auto(_sigLock);
-		return _signalStopped.connect(slot);
+		_signalStopped.connect(slot);
 	};
 
 	/* NOTE: The engine will also emit individual jobs' signals as appropriate. */
