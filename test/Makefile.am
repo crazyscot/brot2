@@ -1,6 +1,6 @@
 if GTEST
-TESTS=b2test.valgrind
 check_PROGRAMS=b2test
+TESTS=b2test b2test.valgrind
 endif
 
 EXTRA_DIST=b2test.valgrind b2test.vgsupp

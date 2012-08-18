@@ -1,5 +1,4 @@
 #!/bin/sh -ex
 
-./b2test
-G_SLICE=always-malloc G_DEBUG=gc-friendly valgrind --suppressions=b2test.vgsupp ./b2test
+G_SLICE=always-malloc G_DEBUG=gc-friendly valgrind --suppressions=${srcdir}/b2test.vgsupp ./b2test
 
