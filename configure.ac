@@ -41,6 +41,6 @@ AC_ARG_ENABLE([debug],
 AC_SUBST([BROT2_CFLAGS], [${pkg_cflags}])
 AC_SUBST([BROT2_CXXFLAGS], [${pkg_cxxflags}])
 
-AC_CONFIG_FILES([Makefile libbrot2/Makefile libjob/Makefile libfractal/Makefile cli/Makefile gtkui/Makefile gtest/Makefile test/Makefile])
+AC_CONFIG_FILES([Makefile])
 AC_OUTPUT
 
