@@ -132,7 +132,7 @@ test_b2test_CPPFLAGS=$(AM_CPPFLAGS) -I$(GTEST_INC)
 if GTEST
 check : $(check_PROGRAMS)
 	$(top_builddir)/test/b2test
-	G_SLICE=always-malloc G_DEBUG=gc-friendly valgrind --suppressions=$(top_srcdir)/test/b2test.vgsupp $(top_builddir)/test/b2test
+	G_SLICE=always-malloc G_DEBUG=gc-friendly valgrind --error-exitcode=99 --suppressions=$(top_srcdir)/test/b2test.vgsupp $(top_builddir)/test/b2test
 	@echo
 	@echo "All tests passed."
 	@echo
