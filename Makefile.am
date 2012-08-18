@@ -119,7 +119,7 @@ check_PROGRAMS+=test/b2test
 #TESTS+=test/b2test test/b2test.valgrind
 endif
 
-EXTRA_DIST+=test/b2test.valgrind test/b2test.vgsupp
+EXTRA_DIST+=test/b2test.valgrind test/b2test.vgsupp test/thrash
 
 test_b2test_SOURCES=test/b2test.cpp \
 					test/PrefsT.cpp test/PrefsT.h \
