@@ -28,7 +28,8 @@
 using namespace job;
 
 typedef testing::Types<SimpleAsyncJobEngine, MultiThreadJobEngine> asyncEngines;
-typedef testing::Types<SimpleJobEngine, SimpleAsyncJobEngine> allEngines;
+typedef testing::Types<SimpleJobEngine, SimpleAsyncJobEngine, MultiThreadJobEngine> allEngines;
+
 
 // A simple job
 class TestingJob: public IJob {
