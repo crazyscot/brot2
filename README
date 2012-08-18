@@ -104,15 +104,25 @@ via LaunchPad: https://bugs.launchpad.net/brot2
 Hacking
 -------
 
+To build for debug, configure with a line along the lines of:
+	./configure --disable-silent-rules CXXFLAGS='-g -O0' CFLAGS='-g -O0'
+
+To build for performance, configure with:
+	./configure CXXFLAGS='-O3' CFLAGS='-O3'
+
+If you don't specify CXXFLAGS and CFLAGS, your system default optimisation
+level (usually -O2) will obtain.
+
+For best speed, a little source-level optimisation helps; while we
+compile with -O3 you can still help the compiler out with careful tuning.
+See Mandelbrots.cpp for examples.
+
+
 Fractals and palettes are defined in libbrot2.
 
 To add a new fractal engine, extend class Fractal::FractalImpl or
 one of its subclasses. Be sure to add a line to register the class in
 Fractal::FractalCommon::load_base() or a function called from it.
-
-For best speed, a little source-level optimisation helps; while we
-compile with -O3 you can still help the compiler out with careful tuning.
-See Mandelbrots.cpp for examples.
 
 The plotter handles fractional escape counts, where the fractal engine
 provides that information and a smooth palette is selected.
