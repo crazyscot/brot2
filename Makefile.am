@@ -60,6 +60,7 @@ CLEANFILES+=$(AUTOGEN)
 LOGO_IN=$(top_srcdir)/misc/brot2.png
 
 $(top_builddir)/libbrot2/logo_auto.c: $(LOGO_IN)
+	@mkdir -p $(@D)
 	$(AM_V_at) echo '#include "logo.h"' > $@.new
 	$(AM_V_GEN) gdk-pixbuf-csource --raw --extern --name=brot2_logo $(LOGO_IN) >> $@.new
 	$(AM_V_at) mv -f $@.new $@
