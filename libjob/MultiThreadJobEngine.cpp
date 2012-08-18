@@ -23,14 +23,15 @@ namespace job {
 
 MultiThreadJobEngine::MultiThreadJobEngine(std::list<IJob*>& jobs) :
 		job::SimpleJobEngine(jobs), _livecount(0),
-		_haveSignalledCompletion(false), _asyncCompletionThread(0)
+		_haveSignalledCompletion(false), _asyncCompletionThread(0),
+		_haveShutDown(false)
 
 {
 	threadpool.set_max_threads(0);
 }
 
 MultiThreadJobEngine::~MultiThreadJobEngine() {
-	stop();
+	stop(false);
 	if (_asyncCompletionThread) {
 		_asyncCompletionThread->join();
 		_asyncCompletionThread = NULL;
@@ -92,13 +93,23 @@ void MultiThreadJobEngine::done_runner()
 
 void MultiThreadJobEngine::wait()
 {
-	threadpool.shutdown(false);
+	do_shutdown(false);
+	// This will call run done_runner twice. That's OK.
 }
 
-void MultiThreadJobEngine::do_shutdown()
+void MultiThreadJobEngine::do_shutdown(bool asap)
 {
-	threadpool.shutdown(true);
-	done_runner();
+	bool doit = false;
+	{
+		Glib::Mutex::Lock _auto (_lock);
+		if (!_haveShutDown) {
+			doit = _haveShutDown = true;
+		}
+	}
+	if (doit) {
+		threadpool.shutdown(asap);
+		done_runner();
+	}
 }
 
 void MultiThreadJobEngine::stop(bool async)
@@ -108,11 +119,13 @@ void MultiThreadJobEngine::stop(bool async)
 		_halt = true;
 	}
 	if (async) {
+		Glib::Mutex::Lock _auto (_lock);
 		if (!_asyncCompletionThread)
-			_asyncCompletionThread = Glib::Thread::create(sigc::mem_fun(this, &MultiThreadJobEngine::do_shutdown), true);
+			// Run this->do_shutdown(true) asynchronously in a new thread.
+			_asyncCompletionThread = Glib::Thread::create(sigc::bind<bool>(sigc::mem_fun(this, &MultiThreadJobEngine::do_shutdown),true), true);
 		// else already shutting down, ignore
 	} else {
-		do_shutdown();
+		do_shutdown(true);
 	}
 }
 

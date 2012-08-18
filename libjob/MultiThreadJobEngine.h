@@ -47,13 +47,14 @@ protected:
 	// std::list<IJob*> _jobs; // Protect by _lock
 	// std::atomic<bool> _halt; // Protect by _lock
 	Glib::Cond _completion_beacon; // Protect by _lock
-	std::atomic<int> _livecount; // Protect by _lock
-	std::atomic<bool> _haveSignalledCompletion; // Protect by _lock
+	int _livecount; // Protect by _lock
+	bool _haveSignalledCompletion; // Protect by _lock
 	Glib::Thread *_asyncCompletionThread;
+	bool _haveShutDown; // Protect by _lock
 
 	virtual void job_runner();
 	virtual void done_runner();
-	virtual void do_shutdown();
+	virtual void do_shutdown(bool asap);
 
 };
 
