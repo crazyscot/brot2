@@ -29,9 +29,6 @@ public:
 	}
 };
 
-TEST(brot2,link) {
-}
-
 int main(int argc, char **argv) {
 	::testing::AddGlobalTestEnvironment(new Brot2TestEnv);
 	::testing::InitGoogleTest(&argc, argv);
