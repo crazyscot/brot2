@@ -30,6 +30,7 @@ MultiThreadJobEngine::MultiThreadJobEngine(std::list<IJob*>& jobs) :
 }
 
 MultiThreadJobEngine::~MultiThreadJobEngine() {
+	stop();
 	if (_asyncCompletionThread) {
 		_asyncCompletionThread->join();
 		_asyncCompletionThread = NULL;
@@ -107,7 +108,9 @@ void MultiThreadJobEngine::stop(bool async)
 		_halt = true;
 	}
 	if (async) {
-		_asyncCompletionThread = Glib::Thread::create(sigc::mem_fun(this, &MultiThreadJobEngine::do_shutdown), true);
+		if (!_asyncCompletionThread)
+			_asyncCompletionThread = Glib::Thread::create(sigc::mem_fun(this, &MultiThreadJobEngine::do_shutdown), true);
+		// else already shutting down, ignore
 	} else {
 		do_shutdown();
 	}
