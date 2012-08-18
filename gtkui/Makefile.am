@@ -10,10 +10,15 @@ brot2_SOURCES=$(AUTOGEN_SOURCES) gtkmain.cpp gtkmain.h misc.h \
 			  ColourPanel.cpp ColourPanel.h \
 			  SaveAsPNG.cpp SaveAsPNG.h
 
-brot2_LDADD= ../libbrot2/libbrot2.a @brot2gui_LIBS@ -lm
-brot2_DEPENDENCIES= ../libbrot2/libbrot2.a
+brot2_LDADD= $(top_srcdir)/libbrot2/libbrot2.a \
+			 $(top_srcdir)/libfractal/libfractal.a \
+			 @brot2gui_LIBS@ -lm
 
-AM_CPPFLAGS= -I$(top_srcdir) -I$(top_srcdir)/libbrot2 @brot2gui_CFLAGS@
+brot2_DEPENDENCIES= $(top_srcdir)/libbrot2/libbrot2.a \
+					$(top_srcdir)/libfractal/libfractal.a
+
+AM_CPPFLAGS= -I$(top_srcdir) -I$(top_srcdir)/libbrot2 \
+			 -I$(top_srcdir)/libfractal @brot2gui_CFLAGS@
 
 AM_CFLAGS=@BROT2_CFLAGS@
 AM_CXXFLAGS=@BROT2_CXXFLAGS@

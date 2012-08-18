@@ -3,16 +3,13 @@ noinst_LIBRARIES=libbrot2.a
 libbrot2_a_SOURCES= \
 					Exception.h \
 					noncopyable.hpp \
-					logo.h logo_auto.c Registry.h \
-					Fractal.cpp Fractal.h palette.cpp palette.h \
+					logo.h logo_auto.c \
+					palette.cpp palette.h \
 					Plot2.cpp Plot2.h \
-					Mandelbar.cpp Mandelbrots.cpp \
-					Mandeldrop.cpp \
-					Misc.cpp \
 					Render.h Render.cpp \
 					Prefs.h Prefs.cpp PrefsRegistry.h PrefsRegistry.cpp
 
-AM_CPPFLAGS=@libbrot2_CFLAGS@
+AM_CPPFLAGS=@libbrot2_CFLAGS@ -I$(top_srcdir)/libfractal -I$(top_srcdir)/libjob
 AM_CFLAGS=@BROT2_CFLAGS@
 AM_CXXFLAGS=@BROT2_CXXFLAGS@
 
