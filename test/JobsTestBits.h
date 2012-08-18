@@ -27,6 +27,7 @@
 
 using namespace job;
 
+typedef testing::Types<SimpleJobEngine> syncEngines;
 typedef testing::Types<SimpleAsyncJobEngine, MultiThreadJobEngine> asyncEngines;
 typedef testing::Types<SimpleJobEngine, SimpleAsyncJobEngine, MultiThreadJobEngine> allEngines;
 

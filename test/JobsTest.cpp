@@ -74,6 +74,7 @@ TYPED_TEST(JobsRun2, asyncEngines) {
 
 ///////////////////////////////////////////////////////////////////////////
 
+template<class T>
 class JobsStop: public ::testing::Test {
 protected:
 	std::list<IJob*> list;
@@ -94,19 +95,18 @@ protected:
 	}
 };
 
-TEST_F(JobsStop,Simple) {
-	SimpleJobEngine engine(list);
-	listener.attachTo(engine);
-	unblocker.unblockAsynch();
+TYPED_TEST_CASE(JobsStop, syncEngines);
+
+TYPED_TEST(JobsStop, syncEngines) {
+	TypeParam engine(this->list);
+	this->listener.attachTo(engine);
+	this->unblocker.unblockAsynch();
 	engine.stop(); // A bit horrible, but current behaviour is to set the _halt flag
 	engine.start(); // synchronous, so won't return until it's done
 }
 
 template<class T>
-class JobsStop2: public JobsStop {
-public:
-	JobsStop2(): JobsStop() {};
-};
+class JobsStop2: public JobsStop<T> {};
 
 TYPED_TEST_CASE(JobsStop2, asyncEngines);
 
