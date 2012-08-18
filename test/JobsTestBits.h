@@ -21,9 +21,9 @@
 #define JOBSTESTBITS_H_
 
 #include "gtest/gtest.h"
-#include "job/SimpleJobEngine.h"
-#include "job/SimpleAsyncJobEngine.h"
-#include "job/MultiThreadJobEngine.h"
+#include "SimpleJobEngine.h"
+#include "SimpleAsyncJobEngine.h"
+#include "MultiThreadJobEngine.h"
 
 using namespace job;
 

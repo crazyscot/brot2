@@ -16,7 +16,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "job/MultiThreadJobEngine.h"
+#include "MultiThreadJobEngine.h"
 #include <unistd.h>
 
 namespace job {

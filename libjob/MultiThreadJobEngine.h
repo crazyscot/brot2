@@ -21,7 +21,7 @@
 
 #include <list>
 #include <glibmm/threadpool.h>
-#include "job/SimpleJobEngine.h"
+#include "SimpleJobEngine.h"
 
 namespace job {
 

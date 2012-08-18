@@ -17,9 +17,9 @@
 */
 
 #include "gtest/gtest.h"
-#include "job/SimpleJobEngine.h"
-#include "job/SimpleAsyncJobEngine.h"
-#include "job/MultiThreadJobEngine.h"
+#include "SimpleJobEngine.h"
+#include "SimpleAsyncJobEngine.h"
+#include "MultiThreadJobEngine.h"
 #include <list>
 #include <glibmm/thread.h>
 #include <glibmm/timer.h>
