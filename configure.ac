@@ -29,16 +29,6 @@ PKG_CHECK_MODULES([brot2gui],[glibmm-2.4 gtkmm-2.4 gdkmm-2.4 pangocairo cairo pa
 
 GTEST_SRC_CHECK
 
-AC_ARG_ENABLE([debug],
-		  [AS_HELP_STRING([--enable-debug],
-						  [Sets debug compile flags. (Default is disabled, for speed.)])],
-		  [pkg_cflags="${pkg_cflags} -O0 -g"
-		   pkg_cxxflags="${pkg_cxxflags} -O0 -g"],
-		  [pkg_cflags="${pkg_cflags} -O3"
-		   pkg_cxxflags="${pkg_cxxflags} -O3"]
-		  )
-
-
 AC_SUBST([BROT2_CFLAGS], [${pkg_cflags}])
 AC_SUBST([BROT2_CXXFLAGS], [${pkg_cxxflags}])
 
