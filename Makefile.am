@@ -36,23 +36,23 @@ libjob_libjob_a_SOURCES= \
 noinst_LIBRARIES+=libfractal/libfractal.a
 
 libfractal_libfractal_a_SOURCES= \
-						libfractal/Fractal.h libfractal/Fractal.cpp libfractal/Registry.h \
-						libfractal/Mandelbar.cpp libfractal/Mandelbrots.cpp \
-						libfractal/Mandeldrop.cpp libfractal/Misc.cpp
+	libfractal/Fractal.h libfractal/Fractal.cpp libfractal/Registry.h \
+	libfractal/Mandelbar.cpp libfractal/Mandelbrots.cpp \
+	libfractal/Mandeldrop.cpp libfractal/Misc.cpp
 
 ################################################################
 
 noinst_LIBRARIES+=libbrot2/libbrot2.a
 
 libbrot2_libbrot2_a_SOURCES= \
-					libbrot2/Exception.h \
-					libbrot2/noncopyable.hpp \
-					libbrot2/logo.h $(top_builddir)/libbrot2/logo_auto.c \
-					libbrot2/palette.cpp libbrot2/palette.h \
-					libbrot2/Plot2.cpp libbrot2/Plot2.h \
-					libbrot2/Render.h libbrot2/Render.cpp \
-					libbrot2/Prefs.h libbrot2/Prefs.cpp \
-					libbrot2/PrefsRegistry.h libbrot2/PrefsRegistry.cpp
+	libbrot2/Exception.h \
+	libbrot2/noncopyable.hpp \
+	libbrot2/logo.h $(top_builddir)/libbrot2/logo_auto.c \
+	libbrot2/palette.cpp libbrot2/palette.h \
+	libbrot2/Plot2.cpp libbrot2/Plot2.h \
+	libbrot2/Render.h libbrot2/Render.cpp \
+	libbrot2/Prefs.h libbrot2/Prefs.cpp \
+	libbrot2/PrefsRegistry.h libbrot2/PrefsRegistry.cpp
 
 AUTOGEN+=$(top_builddir)/libbrot2/logo_auto.c
 CLEANFILES+=$(AUTOGEN)
@@ -79,16 +79,16 @@ cli_brot2cli_LDADD= $(all_ldadd)
 bin_PROGRAMS+=gtkui/brot2
 
 gtkui_brot2_SOURCES= \
-			gtkui/gtkmain.cpp gtkui/gtkmain.h gtkui/misc.h \
-			gtkui/MainWindow.cpp gtkui/MainWindow.h \
-			gtkui/Menus.cpp gtkui/Menus.h \
-			gtkui/ParamsDialog.cpp gtkui/ParamsDialog.h \
-			gtkui/PrefsDialog.cpp gtkui/PrefsDialog.h \
-			gtkui/ControlsWindow.cpp gtkui/ControlsWindow.h \
-			gtkui/Canvas.cpp gtkui/Canvas.h gtkui/HUD.cpp gtkui/HUD.h \
-			gtkui/DragRectangle.cpp gtkui/DragRectangle.h \
-			gtkui/ColourPanel.cpp gtkui/ColourPanel.h \
-			gtkui/SaveAsPNG.cpp gtkui/SaveAsPNG.h
+	gtkui/gtkmain.cpp gtkui/gtkmain.h gtkui/misc.h \
+	gtkui/MainWindow.cpp gtkui/MainWindow.h \
+	gtkui/Menus.cpp gtkui/Menus.h \
+	gtkui/ParamsDialog.cpp gtkui/ParamsDialog.h \
+	gtkui/PrefsDialog.cpp gtkui/PrefsDialog.h \
+	gtkui/ControlsWindow.cpp gtkui/ControlsWindow.h \
+	gtkui/Canvas.cpp gtkui/Canvas.h gtkui/HUD.cpp gtkui/HUD.h \
+	gtkui/DragRectangle.cpp gtkui/DragRectangle.h \
+	gtkui/ColourPanel.cpp gtkui/ColourPanel.h \
+	gtkui/SaveAsPNG.cpp gtkui/SaveAsPNG.h
 
 gtkui_brot2_CPPFLAGS=$(AM_CPPFLAGS) @brot2gui_CFLAGS@
 gtkui_brot2_LDADD=$(all_ldadd) @brot2gui_LIBS@
