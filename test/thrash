@@ -1,9 +1,14 @@
 #!/bin/bash -e
 # Quick 'n' dirty thrash test script for reproducing infrequent failures.
-# For best effects do "ulimit -c unlimited" first, then meditate on the core file when it stops.
+# For best effects do "ulimit -c unlimited" first, then meditate on the
+# core file if/when it stops.
 
 PROG=./b2test
-#PROG=b2test.valgrind
+
+if [ "x$1" == "x--valgrind" ]; then
+	export srcdir=../../brot2/test
+	PROG=./../../brot2/test/b2test.valgrind
+fi
 
 TMP=`tempfile -d . -p TEMP`
 
@@ -12,7 +17,7 @@ trap "echo ; echo" exit
 
 for x in `seq 1 100`; do
 	echo -ne "running $x \r"
-	$PROG 2>&1 > $TMP
+	$PROG > $TMP 2>&1
 done
 
 rm $TMP
