@@ -24,38 +24,35 @@ CLEANFILES=
 ################################################################
 
 noinst_LIBRARIES+=libjob/libjob.a
-VPATH+=$(top_srcdir)/libjob
 
 libjob_libjob_a_SOURCES= \
-	 IJob.h IJobEngine.h \
-	 SimpleJobEngine.h SimpleJobEngine.cpp \
-	 SimpleAsyncJobEngine.h SimpleAsyncJobEngine.cpp \
-	 MultiThreadJobEngine.h MultiThreadJobEngine.cpp
+	 libjob/IJob.h libjob/IJobEngine.h \
+	 libjob/SimpleJobEngine.h libjob/SimpleJobEngine.cpp \
+	 libjob/SimpleAsyncJobEngine.h libjob/SimpleAsyncJobEngine.cpp \
+	 libjob/MultiThreadJobEngine.h libjob/MultiThreadJobEngine.cpp
 
 ################################################################
 
 noinst_LIBRARIES+=libfractal/libfractal.a
-VPATH+=$(top_srcdir)/libfractal
 
 libfractal_libfractal_a_SOURCES= \
-						Fractal.h Fractal.cpp Registry.h \
-						Mandelbar.cpp Mandelbrots.cpp \
-						Mandeldrop.cpp Misc.cpp
+						libfractal/Fractal.h libfractal/Fractal.cpp libfractal/Registry.h \
+						libfractal/Mandelbar.cpp libfractal/Mandelbrots.cpp \
+						libfractal/Mandeldrop.cpp libfractal/Misc.cpp
 
 ################################################################
 
 noinst_LIBRARIES+=libbrot2/libbrot2.a
-VPATH+=$(top_srcdir)/libbrot2
 
 libbrot2_libbrot2_a_SOURCES= \
-					Exception.h \
-					noncopyable.hpp \
-					logo.h $(top_builddir)/libbrot2/logo_auto.c \
-					palette.cpp palette.h \
-					Plot2.cpp Plot2.h \
-					Render.h Render.cpp \
-					Prefs.h Prefs.cpp \
-					PrefsRegistry.h PrefsRegistry.cpp
+					libbrot2/Exception.h \
+					libbrot2/noncopyable.hpp \
+					libbrot2/logo.h $(top_builddir)/libbrot2/logo_auto.c \
+					libbrot2/palette.cpp libbrot2/palette.h \
+					libbrot2/Plot2.cpp libbrot2/Plot2.h \
+					libbrot2/Render.h libbrot2/Render.cpp \
+					libbrot2/Prefs.h libbrot2/Prefs.cpp \
+					libbrot2/PrefsRegistry.h libbrot2/PrefsRegistry.cpp
 
 AUTOGEN+=$(top_builddir)/libbrot2/logo_auto.c
 CLEANFILES+=$(AUTOGEN)
@@ -70,18 +67,16 @@ $(top_builddir)/libbrot2/logo_auto.c: $(LOGO_IN)
 
 ################################################################
 
-bin_PROGRAMS+=brot2cli
-VPATH+=$(top_srcdir)/cli
+bin_PROGRAMS+=cli/brot2cli
 
-brot2cli_SOURCES=climain.cpp climain.h \
-				 reporter.cpp reporter.h
+cli_brot2cli_SOURCES=cli/climain.cpp cli/climain.h \
+				 cli/reporter.cpp cli/reporter.h
 
-brot2cli_LDADD= $(all_ldadd)
+cli_brot2cli_LDADD= $(all_ldadd)
 
 ################################################################
 
 bin_PROGRAMS+=gtkui/brot2
-#TODO figure out why this doesn't like vpaths.
 
 gtkui_brot2_SOURCES= \
 			gtkui/gtkmain.cpp gtkui/gtkmain.h gtkui/misc.h \
