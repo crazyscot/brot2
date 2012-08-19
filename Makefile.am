@@ -8,10 +8,11 @@ AM_CPPFLAGS=@libbrot2_CFLAGS@ \
 AM_CFLAGS=@BROT2_CFLAGS@
 AM_CXXFLAGS=@BROT2_CXXFLAGS@
 
-all_ldadd=$(top_builddir)/libjob/libjob.a \
+all_libs= $(top_builddir)/libjob/libjob.a \
 		  $(top_builddir)/libfractal/libfractal.a \
-		  $(top_builddir)/libbrot2/libbrot2.a \
-		  @libbrot2_LIBS@ -lm
+		  $(top_builddir)/libbrot2/libbrot2.a
+
+all_ldadd=$(all_libs) @libbrot2_LIBS@ -lm
 
 noinst_LIBRARIES=
 bin_PROGRAMS=
@@ -121,7 +122,7 @@ test_b2test_SOURCES=test/b2test.cpp \
 					test/JobsTest.cpp test/JobsTestBits.h
 
 test_b2test_LDADD= gtest/libgtest.a $(all_ldadd)
-test_b2test_DEPENDENCIES= gtest/libgtest.a
+test_b2test_DEPENDENCIES= gtest/libgtest.a $(all_libs)
 
 test_b2test_CPPFLAGS=$(AM_CPPFLAGS) -I$(GTEST_INC)
 
