@@ -112,7 +112,13 @@ endif
 
 if GTEST
 check_PROGRAMS+=test/b2test
-#TESTS+=test/b2test test/b2test.valgrind
+export builddir
+TESTS+=test/b2test test/b2test.valgrind
+else
+check :
+	@echo
+	@echo Make check requires GTEST
+	@false
 endif
 
 EXTRA_DIST+=test/b2test.valgrind test/b2test.vgsupp test/thrash
@@ -126,17 +132,3 @@ test_b2test_DEPENDENCIES= gtest/libgtest.a $(all_libs)
 
 test_b2test_CPPFLAGS=$(AM_CPPFLAGS) -I$(GTEST_INC)
 
-if GTEST
-check : $(check_PROGRAMS)
-	$(top_builddir)/test/b2test
-	G_SLICE=always-malloc G_DEBUG=gc-friendly valgrind --error-exitcode=99 --suppressions=$(top_srcdir)/test/b2test.vgsupp $(top_builddir)/test/b2test
-	@echo
-	@echo "All tests passed."
-	@echo
-else
-check :
-	@echo
-	@echo Make check requires GTEST
-	@false
-
-endif

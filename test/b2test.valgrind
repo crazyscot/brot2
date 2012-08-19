@@ -1,4 +1,4 @@
 #!/bin/sh -ex
 
-G_SLICE=always-malloc G_DEBUG=gc-friendly valgrind --suppressions=${srcdir}/b2test.vgsupp ./b2test
+G_SLICE=always-malloc G_DEBUG=gc-friendly valgrind --error-exitcode=99 --suppressions=${srcdir}/test/b2test.vgsupp ${builddir}/test/b2test
 
