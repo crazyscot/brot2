@@ -28,6 +28,7 @@ PKG_CHECK_MODULES([libbrot2],[glibmm-2.4 libpng12 sigc++-2.0])
 PKG_CHECK_MODULES([brot2gui],[glibmm-2.4 gtkmm-2.4 gdkmm-2.4 pangocairo cairo pango libpng12 sigc++-2.0])
 
 GTEST_SRC_CHECK
+VALGRIND_CHECK
 
 AC_SUBST([BROT2_CFLAGS], [${pkg_cflags}])
 AC_SUBST([BROT2_CXXFLAGS], [${pkg_cxxflags}])

@@ -64,3 +64,35 @@ AC_SUBST([GTEST_SRC])
 AC_SUBST([GTEST_INC])
 ])
 
+dnl VALGRIND_CHECK
+dnl Looks for valgrind, defaulting to on.
+dnl Users can --enable-valgrind or --disable-valgrind as they please.
+dnl If enabled, valgrind must be on the PATH.
+dnl If left at default, and valgrind is not found, it will be disabled.
+dnl The result is the USE_VALGRIND conditional.
+AC_DEFUN([VALGRIND_CHECK],
+[
+AC_CHECK_PROG(HAVE_VALGRIND, valgrind, yes, no)
+use_valgrind=not_set
+AC_ARG_ENABLE(valgrind,
+	[  --enable-valgrind       Use valgrind when running unit tests. ],
+	[ use_valgrind=true ])
+
+if [[ "$use_valgrind" = "true" ]]; then
+	if [[ "$HAVE_VALGRIND" = "no" ]]; then
+		AC_MSG_ERROR([Valgrind not found in PATH.])
+	fi
+fi
+
+if [[ "$use_valgrind" = "not_set" ]]; then
+    # Default: autodetect
+	if [[ "$HAVE_VALGRIND" = "yes" ]]; then
+		use_valgrind=true
+	else
+		use_valgrind=false
+	fi
+fi
+
+AM_CONDITIONAL(USE_VALGRIND, $use_valgrind)
+])
+
