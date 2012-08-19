@@ -121,6 +121,7 @@ test_b2test_SOURCES=test/b2test.cpp \
 					test/JobsTest.cpp test/JobsTestBits.h
 
 test_b2test_LDADD= gtest/libgtest.a $(all_ldadd)
+test_b2test_DEPENDENCIES= gtest/libgtest.a
 
 test_b2test_CPPFLAGS=$(AM_CPPFLAGS) -I$(GTEST_INC)
 
