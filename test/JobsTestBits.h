@@ -142,6 +142,10 @@ public:
 		EXPECT_FALSE(_done);
 		EXPECT_TRUE(_stopped);
 	}
+	void checkLive(void) const {
+		EXPECT_FALSE(_done);
+		EXPECT_FALSE(_stopped);
+	}
 
 	void attachTo(IJobEngine& engine) {
 		engine.connect_Finished(sigc::mem_fun(this, &CompletionListener::sigDone));

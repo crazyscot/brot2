@@ -74,7 +74,6 @@ TYPED_TEST(JobsRun2, asyncEngines) {
 
 ///////////////////////////////////////////////////////////////////////////
 
-template<class T>
 class JobsStop: public ::testing::Test {
 protected:
 	std::list<IJob*> list;
@@ -83,7 +82,7 @@ protected:
 	CompletionListener listener;
 	Unblocker unblocker;
 
-	JobsStop() : unblocker(jlock,200) {}
+	JobsStop() : unblocker(jlock,50) {}
 	virtual void SetUp() {
 		list.push_back(&jlock);
 		list.push_back(&jord);
@@ -95,9 +94,12 @@ protected:
 	}
 };
 
-TYPED_TEST_CASE(JobsStop, syncEngines);
+template<class T>
+class JobsStop1: public JobsStop {};
 
-TYPED_TEST(JobsStop, syncEngines) {
+TYPED_TEST_CASE(JobsStop1, syncEngines);
+
+TYPED_TEST(JobsStop1, syncEngines) {
 	TypeParam engine(this->list);
 	this->listener.attachTo(engine);
 	this->unblocker.unblockAsynch();
@@ -106,7 +108,7 @@ TYPED_TEST(JobsStop, syncEngines) {
 }
 
 template<class T>
-class JobsStop2: public JobsStop<T> {};
+class JobsStop2: public JobsStop {};
 
 TYPED_TEST_CASE(JobsStop2, asyncEngines);
 
@@ -116,6 +118,18 @@ TYPED_TEST(JobsStop2, asyncEngines) {
 	engine.start();
 	this->unblocker.unblockAsynch();
 	engine.stop();
+}
+
+TEST_F(JobsStop, MTJE_Async) {
+	MultiThreadJobEngine engine(list);
+	listener.attachTo(engine);
+	engine.start();
+	engine.stop(true);
+	// We could optionally wait a bit here to demonstrate that it's not finishing in any short time.
+	listener.checkLive();
+	unblocker.unblockSynch();
+	listener.WaitUntilTermination(); // Without this we sometimes fail, showing the asynch is indeed happening asynchly
+	listener.checkStopped();
 }
 
 ///////////////////////////////////////////////////////////////////////////
