@@ -40,9 +40,9 @@ public:
 	virtual void stop() { stop(false); };
 	virtual void stop(bool async);
 
+protected:
 	Glib::ThreadPool threadpool;
 
-protected:
 	// Glib::Mutex _lock;
 	// std::list<IJob*> _jobs; // Protect by _lock
 	// std::atomic<bool> _halt; // Protect by _lock
