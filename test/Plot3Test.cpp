@@ -30,7 +30,8 @@ public:
 #define MAXITER 5
 
 	TestPlot3Chunk (unsigned width, unsigned height) :
-		Plot3Chunk(_sink, _fract, _origin, _size, width, height, MAXITER) {}
+		Plot3Chunk(_sink, _fract, _origin, _size, width, height, MAXITER), _calledDone(false) {}
+	TestPlot3Chunk (const TestPlot3Chunk& other) : Plot3Chunk(other), _calledDone(false) {}
 };
 
 class TestSink : public IPlot3DataSink {
@@ -65,7 +66,7 @@ Fractal::Point TestPlot3Chunk::_size;
 
 class ChunkTest : public ::testing::Test {
 protected:
-	Plot3Chunk *chunk;
+	TestPlot3Chunk *chunk;
 	TestSink sink;
 
 	virtual void SetUp() {
@@ -99,4 +100,24 @@ TEST_F(ChunkTest, _10x1) {
 }
 TEST_F(ChunkTest, _10x10) {
 	test(10,10);
+}
+
+TEST_F(ChunkTest, AssignUnusedChunk) {
+	TestPlot3Chunk chunk1(1,1);
+	TestPlot3Chunk *chunk2 = new TestPlot3Chunk(chunk1);
+	TestPlot3Chunk chunk3(chunk1);
+	chunk1.run();
+	chunk2->run();
+	chunk3.run();
+	// Sanity checks are provided by the sink.
+	delete chunk2;
+}
+TEST_F(ChunkTest, AssignUsedChunk) {
+	test(1,1);
+	TestPlot3Chunk chunk4(*chunk);
+	TestPlot3Chunk *chunk5 = new TestPlot3Chunk(*chunk);
+	chunk4.run();
+	chunk5->run();
+	// Sanity checks are provided by the sink.
+	delete chunk5;
 }
