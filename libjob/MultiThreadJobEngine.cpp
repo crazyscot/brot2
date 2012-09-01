@@ -65,7 +65,6 @@ void MultiThreadJobEngine::job_runner()
 	}
 	try {
 		job->run(*this);
-		emit_JobDone(job);
 	} catch (...) {
 		emit_JobFailed(job);
 	}

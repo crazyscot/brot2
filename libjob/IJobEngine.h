@@ -65,7 +65,6 @@ private:
 	 * over to another thread to actually act on them.
 	 */
 	Glib::Mutex _sigLock; // Protects all signal slots
-	sigc::signal<void, IJob*> _signalJobDone;
 	sigc::signal<void, IJob*> _signalJobFailed;
 	sigc::signal<void> _signalFinished;
 	sigc::signal<void> _signalStopped;
@@ -89,11 +88,6 @@ public:
 	 * implement a way to do so with the engine lock held.
 	 */
 
-	/* Who should we tell when a job is done? */
-	void connect_JobDone(const sigc::slot<void,IJob*>& slot) {
-		Glib::Mutex::Lock _auto(_sigLock);
-		_signalJobDone.connect(slot);
-	};
 	/* Who should we tell when a job fails? */
 	void connect_JobFailed(const sigc::slot<void,IJob*>& slot) {
 		Glib::Mutex::Lock _auto(_sigLock);
@@ -116,16 +110,11 @@ public:
 	virtual ~IJobEngine() {}
 
 protected:
-	/* To be called by implementations when jobs complete or fail, as appropriate */
-	void emit_JobDone(IJob* job) {
-		Glib::Mutex::Lock _auto(_sigLock);
-		_signalJobDone(job);
-	}
+	/* To be called by implementations */
 	void emit_JobFailed(IJob* job) {
 		Glib::Mutex::Lock _auto(_sigLock);
 		_signalJobFailed(job);
 	}
-	/* To be called by implementations when finished or stopped, as appropriate */
 	void emit_Finished() {
 		Glib::Mutex::Lock _auto(_sigLock);
 		_signalFinished.emit();

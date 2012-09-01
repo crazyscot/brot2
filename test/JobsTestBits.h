@@ -46,6 +46,7 @@ public:
 
 	virtual void run(IJobEngine&) {
 		_hasrun = true;
+		done();
 	}
 
 	void checkHasRun() const { EXPECT_TRUE(_hasrun); }
@@ -118,12 +119,6 @@ class CompletionListener {
 		_cond.broadcast();
 	}
 
-	void jobDone(IJob* job) {
-		TestingJob* tj = dynamic_cast<TestingJob*>(job);
-		if (tj != NULL) {
-			tj->done();
-		}
-	}
 	void jobFailed(IJob* job) {
 		TestingJob* tj = dynamic_cast<TestingJob*>(job);
 		if (tj != NULL) {
@@ -150,7 +145,6 @@ public:
 	void attachTo(IJobEngine& engine) {
 		engine.connect_Finished(sigc::mem_fun(this, &CompletionListener::sigDone));
 		engine.connect_Stopped(sigc::mem_fun(this, &CompletionListener::sigStopped));
-		engine.connect_JobDone(sigc::mem_fun(this, &CompletionListener::jobDone));
 		engine.connect_JobFailed(sigc::mem_fun(this, &CompletionListener::jobFailed));
 	}
 

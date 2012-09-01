@@ -37,7 +37,6 @@ void job::SimpleJobEngine::run()
 	for (it=_jobs.begin(); it != _jobs.end() && !_halt; it++) {
 		try {
 			(*it)->run(*this);
-			emit_JobDone(*it);
 		} catch (...) {
 			emit_JobFailed(*it);
 		}
