@@ -19,10 +19,9 @@
 #include "SimpleJobEngine.h"
 
 job::SimpleJobEngine::SimpleJobEngine(const std::list<IJob*>& jobs) :
-	_jobs(), _lock(), _halt()
+	_jobs(), _lock(), _halt(false)
 {
 	_jobs.assign(jobs.begin(), jobs.end());
-	_halt = false;
 }
 
 void job::SimpleJobEngine::start()

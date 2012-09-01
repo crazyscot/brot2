@@ -22,14 +22,14 @@
 #include <list>
 #include <atomic>
 #include <glibmm/thread.h>
-#include "IJobEngine.h"
+#include "IGlibSlottedJobEngine.h"
 
 namespace job {
 
 /* The simplest possible synchronous JobEngine.
  * Does not allow jobs to be added later. */
 
-class SimpleJobEngine: public virtual IJobEngine {
+class SimpleJobEngine: public virtual IGlibSlottedJobEngine {
 public:
 	SimpleJobEngine(const std::list<IJob*>& jobs);
 	virtual ~SimpleJobEngine();

@@ -142,7 +142,7 @@ public:
 		EXPECT_FALSE(_stopped);
 	}
 
-	void attachTo(IJobEngine& engine) {
+	void attachTo(IGlibSlottedJobEngine& engine) {
 		engine.connect_Finished(sigc::mem_fun(this, &CompletionListener::sigDone));
 		engine.connect_Stopped(sigc::mem_fun(this, &CompletionListener::sigStopped));
 		engine.connect_JobFailed(sigc::mem_fun(this, &CompletionListener::jobFailed));

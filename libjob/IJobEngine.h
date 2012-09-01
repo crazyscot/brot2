@@ -31,43 +31,11 @@
 #ifndef IJOBENGINE_H_
 #define IJOBENGINE_H_
 
-#include <sigc++/sigc++.h>
-#include <glibmm/thread.h>
 #include "IJob.h"
 
 namespace job {
 
 class IJobEngine {
-private:
-	/*
-	 * Beware!
-	 * http://answerpot.com/showthread.php?2326750-Threads+and+gtkmm says:
-	 *
-	 * 2. Unless special additional synchronization is employed, any
-	 * particular sigc::signal object should be regarded as 'owned' by the
-	 * thread which created it. Only that thread should connect slots with
-	 * respect to the signal object, and only that thread should emit() or
-	 * call operator()() on it.
-	 *
-	 * 3. Unless special additional synchronization is employed, any
-	 * sigc::connection object should be regarded as 'owned' by the thread
-	 * which created the slot and called the method which provided the
-	 * sigc::connection object. Only that thread should call
-	 * sigc::connection methods on the object.
-	 *
-	 *
-	 * Also beware that signals are emitted WITH THE ENGINE LOCK HELD!
-	 * This might lead to all manner of interesting deadlocks if the signals
-	 * do anything nontrivial.
-	 *
-	 * In a complex multi-threaded environment it would be a good idea to use
-	 * a Glib::Dispatcher or similar method to asynchronously pass these signal
-	 * over to another thread to actually act on them.
-	 */
-	Glib::Mutex _sigLock; // Protects all signal slots
-	sigc::signal<void, IJob*> _signalJobFailed;
-	sigc::signal<void> _signalFinished;
-	sigc::signal<void> _signalStopped;
 public:
 	/* Kicks off the engine.
 	 * Most implementations will do this asynchronously i.e. return
@@ -79,50 +47,7 @@ public:
 	 * all running Jobs have stopped. */
 	virtual void stop() = 0;
 
-	/* Note: The connect_*() methods return a connection, "which you can
-	 * later use to disconnect your method. If the type of your object
-	 * inherits from sigc::trackable the method is disconnected
-	 * automatically when your object is destroyed."
-	 *
-	 * If we should find we want to disconnect these slots, we'll need to
-	 * implement a way to do so with the engine lock held.
-	 */
-
-	/* Who should we tell when a job fails? */
-	void connect_JobFailed(const sigc::slot<void,IJob*>& slot) {
-		Glib::Mutex::Lock _auto(_sigLock);
-		_signalJobFailed.connect(slot);
-	};
-	/* Who should we tell when all jobs are complete? */
-	void connect_Finished(const sigc::slot<void>& slot) {
-		Glib::Mutex::Lock _auto(_sigLock);
-		_signalFinished.connect(slot);
-	};
-	/* Who should we tell when we've stopped? */
-	void connect_Stopped(const sigc::slot<void>& slot) {
-		Glib::Mutex::Lock _auto(_sigLock);
-		_signalStopped.connect(slot);
-	};
-
-	/* NOTE: The engine will also emit individual jobs' signals as appropriate. */
-
-
 	virtual ~IJobEngine() {}
-
-protected:
-	/* To be called by implementations */
-	void emit_JobFailed(IJob* job) {
-		Glib::Mutex::Lock _auto(_sigLock);
-		_signalJobFailed(job);
-	}
-	void emit_Finished() {
-		Glib::Mutex::Lock _auto(_sigLock);
-		_signalFinished.emit();
-	}
-	void emit_Stopped() {
-		Glib::Mutex::Lock _auto(_sigLock);
-		_signalStopped.emit();
-	}
 };
 
 }; // ::job
