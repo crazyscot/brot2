@@ -51,6 +51,8 @@ libbrot2_libbrot2_a_SOURCES= \
 	libbrot2/logo.h $(top_builddir)/libbrot2/logo_auto.c \
 	libbrot2/palette.cpp libbrot2/palette.h \
 	libbrot2/Plot2.cpp libbrot2/Plot2.h \
+	libbrot2/Plot3Chunk.cpp libbrot2/Plot3Chunk.h \
+	libbrot2/IPlot3DataSink.h \
 	libbrot2/Render.h libbrot2/Render.cpp \
 	libbrot2/Prefs.h libbrot2/Prefs.cpp \
 	libbrot2/PrefsRegistry.h libbrot2/PrefsRegistry.cpp
@@ -130,7 +132,8 @@ EXTRA_DIST+=test/b2test.valgrind test/b2test.vgsupp test/thrash
 
 test_b2test_SOURCES=test/b2test.cpp \
 					test/PrefsT.cpp test/PrefsT.h \
-					test/JobsTest.cpp test/JobsTestBits.h
+					test/JobsTest.cpp test/JobsTestBits.h \
+					test/Plot3Test.cpp
 
 test_b2test_LDADD= gtest/libgtest.a $(all_ldadd)
 test_b2test_DEPENDENCIES= gtest/libgtest.a $(all_libs)
