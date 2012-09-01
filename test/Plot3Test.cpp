@@ -119,3 +119,8 @@ TEST_F(ChunkTest, AssignUsedChunk) {
 	// Sanity checks are provided by the sink.
 	delete chunk5;
 }
+
+TEST_F(ChunkTest, ReuseChunk) {
+	test(1,1);
+	chunk->run();
+}
