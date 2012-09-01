@@ -37,7 +37,6 @@
    fun:g_type_init_with_debug_flags
    fun:_ZN4Glib18wrap_register_initEv
    fun:_ZN4Glib4initEv
-   fun:_ZN7testing8internal12UnitTestImpl11RunAllTestsEv
 }
 {
    <glib_init.realloc.2.possible>
@@ -53,7 +52,6 @@
    fun:g_type_init_with_debug_flags
    fun:_ZN4Glib18wrap_register_initEv
    fun:_ZN4Glib4initEv
-   fun:_ZN7testing8internal12UnitTestImpl11RunAllTestsEv
 }
 {
    <glib_init.realloc.3.possible>
@@ -66,10 +64,6 @@
    fun:g_type_init_with_debug_flags
    fun:_ZN4Glib18wrap_register_initEv
    fun:_ZN4Glib4initEv
-   fun:_ZN7testing8internal12UnitTestImpl11RunAllTestsEv
-   fun:_ZN7testing8internal35HandleExceptionsInMethodIfSupportedINS0_12UnitTestImplEbEET0_PT_MS4_FS3_vEPKc
-   fun:_ZN7testing8UnitTest3RunEv
-   fun:main
 }
 {
    <glib_init.realloc.4.possible>
@@ -83,9 +77,6 @@
 	fun:g_type_init_with_debug_flags
 	fun:_ZN4Glib18wrap_register_initEv
 	fun:_ZN4Glib4initEv
-	fun:_ZN7testing8internal12UnitTestImpl11RunAllTestsEv
-	fun:_ZN7testing8internal35HandleExceptionsInMethodIfSupportedINS0_12UnitTestImplEbEET0_PT_MS4_FS3_vEPKc
-	fun:_ZN7testing8UnitTest3RunEv
 }
 {
     <glib_init.realloc.5.possible>
@@ -100,8 +91,6 @@
 	fun:g_type_init_with_debug_flags
 	fun:_ZN4Glib18wrap_register_initEv
 	fun:_ZN4Glib4initEv
-	fun:_ZN7testing8internal12UnitTestImpl11RunAllTestsEv
-	fun:_ZN7testing8internal35HandleExceptionsInMethodIfSupportedINS0_12UnitTestImplEbEET0_PT_MS4_FS3_vEPKc
 }
 {
     <glib_init.realloc.6.possible>
@@ -115,9 +104,6 @@
 	fun:g_type_init_with_debug_flags
 	fun:_ZN4Glib18wrap_register_initEv
 	fun:_ZN4Glib4initEv
-	fun:_ZN7testing8internal12UnitTestImpl11RunAllTestsEv
-	fun:_ZN7testing8internal35HandleExceptionsInMethodIfSupportedINS0_12UnitTestImplEbEET0_PT_MS4_FS3_vEPKc
-	fun:_ZN7testing8UnitTest3RunEv
 }
 {
     <glib_init.realloc.7.possible>
@@ -129,10 +115,6 @@
 	fun:g_type_init_with_debug_flags
 	fun:_ZN4Glib18wrap_register_initEv
 	fun:_ZN4Glib4initEv
-	fun:_ZN7testing8internal12UnitTestImpl11RunAllTestsEv
-	fun:_ZN7testing8internal35HandleExceptionsInMethodIfSupportedINS0_12UnitTestImplEbEET0_PT_MS4_FS3_vEPKc
-	fun:_ZN7testing8UnitTest3RunEv
-	fun:main
 }
 {
     <glib_init.realloc.8.possible>
@@ -144,10 +126,6 @@
 	fun:g_type_init_with_debug_flags
 	fun:_ZN4Glib18wrap_register_initEv
 	fun:_ZN4Glib4initEv
-	fun:_ZN7testing8internal12UnitTestImpl11RunAllTestsEv
-	fun:_ZN7testing8internal35HandleExceptionsInMethodIfSupportedINS0_12UnitTestImplEbEET0_PT_MS4_FS3_vEPKc
-	fun:_ZN7testing8UnitTest3RunEv
-	fun:main
 }
 {
     <glib_init.realloc.9.possible>
@@ -161,9 +139,6 @@
 	fun:g_type_init_with_debug_flags
 	fun:_ZN4Glib18wrap_register_initEv
 	fun:_ZN4Glib4initEv
-	fun:_ZN7testing8internal12UnitTestImpl11RunAllTestsEv
-	fun:_ZN7testing8internal35HandleExceptionsInMethodIfSupportedINS0_12UnitTestImplEbEET0_PT_MS4_FS3_vEPKc
-	fun:_ZN7testing8UnitTest3RunEv
 }
 {
     <glib_init.realloc.10.possible>
@@ -174,10 +149,6 @@
 	fun:g_type_init_with_debug_flags
 	fun:_ZN4Glib18wrap_register_initEv
 	fun:_ZN4Glib4initEv
-	fun:_ZN7testing8internal12UnitTestImpl11RunAllTestsEv
-	fun:_ZN7testing8internal35HandleExceptionsInMethodIfSupportedINS0_12UnitTestImplEbEET0_PT_MS4_FS3_vEPKc
-	fun:_ZN7testing8UnitTest3RunEv
-	fun:main
 }
 {
     <glib_init.realloc.11.possible>
@@ -191,9 +162,6 @@
 	fun:g_type_init_with_debug_flags
 	fun:_ZN4Glib18wrap_register_initEv
 	fun:_ZN4Glib4initEv
-	fun:_ZN7testing8internal12UnitTestImpl11RunAllTestsEv
-	fun:_ZN7testing8internal35HandleExceptionsInMethodIfSupportedINS0_12UnitTestImplEbEET0_PT_MS4_FS3_vEPKc
-	fun:_ZN7testing8UnitTest3RunEv
 }
 
 {
@@ -207,8 +175,4 @@
    fun:g_type_init_with_debug_flags
    fun:_ZN4Glib18wrap_register_initEv
    fun:_ZN4Glib4initEv
-   fun:_ZN7testing8internal12UnitTestImpl11RunAllTestsEv
-   fun:_ZN7testing8internal35HandleExceptionsInMethodIfSupportedINS0_12UnitTestImplEbEET0_PT_MS4_FS3_vEPKc
-   fun:_ZN7testing8UnitTest3RunEv
-   fun:main
 }
