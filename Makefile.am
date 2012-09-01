@@ -133,6 +133,7 @@ EXTRA_DIST+=test/b2test.valgrind test/b2test.vgsupp test/thrash
 test_b2test_SOURCES=test/b2test.cpp \
 					test/PrefsT.cpp test/PrefsT.h \
 					test/JobsTest.cpp test/JobsTestBits.h \
+					test/MockFractal.h test/MockFractal.cpp \
 					test/Plot3Test.cpp
 
 test_b2test_LDADD= gtest/libgtest.a $(all_ldadd)

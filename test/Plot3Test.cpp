@@ -18,7 +18,7 @@
 #include "gtest/gtest.h"
 #include "libbrot2/Plot3Chunk.h"
 #include "libbrot2/IPlot3DataSink.h"
-#include "Fractal.h"
+#include "MockFractal.h"
 
 class TestPlot3Chunk : public Plot3Chunk {
 public:
@@ -43,7 +43,7 @@ class TestSink : public IPlot3DataSink {
 		 * That successive origins differ i.e. are stepping correctly. (p.origin != o_prev)
 		 */
 		static Fractal::Point o_prev(0,0);
-		EXPECT_FALSE(p.nomore);
+		EXPECT_TRUE(p.nomore);
 		EXPECT_NE(p.point, p.origin); // Assumes origin != 0,0.
 		EXPECT_EQ(p.iter, MAXITER);
 		EXPECT_NE(p.origin, o_prev);
@@ -68,16 +68,14 @@ class ChunkTest : public ::testing::Test {
 protected:
 	TestPlot3Chunk *chunk;
 	TestSink sink;
+	MockFractal fract;
 
 	virtual void SetUp() {
 		chunk = 0;
 		TestPlot3Chunk::_sink = &sink;
-		Fractal::load_Mandelbrot();
-		TestPlot3Chunk::_fract = Fractal::FractalCommon::registry.get("Mandelbrot");
-		ASSERT_TRUE(TestPlot3Chunk::_fract != 0);
-		// _origin and _size are carefully chosen to give some infinitely-iterating points but which are NOT in the cardioid.
-		TestPlot3Chunk::_origin = Fractal::Point(-0.13031,0.73594);
-		TestPlot3Chunk::_size = Fractal::Point(0.00001,0.00001);
+		TestPlot3Chunk::_fract = &fract;
+		TestPlot3Chunk::_origin = Fractal::Point(0.1,0.1);
+		TestPlot3Chunk::_size = Fractal::Point(0.001,0.001);
 	}
 	virtual void TearDown() {
 		delete chunk;
