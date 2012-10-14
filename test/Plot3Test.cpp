@@ -18,11 +18,12 @@
 #include "gtest/gtest.h"
 #include "libbrot2/Plot3Chunk.h"
 #include "libbrot2/IPlot3DataSink.h"
+#include "libbrot2/Plot3.h"
 #include "MockFractal.h"
+#include "libjob/SimpleJobEngine.h"
 
 class TestPlot3Chunk : public Plot3Chunk {
 public:
-	bool _calledDone;
 	static IPlot3DataSink* _sink;
 	static Fractal::FractalImpl* _fract;
 	static Fractal::Point _origin;
@@ -30,12 +31,21 @@ public:
 #define MAXITER 5
 
 	TestPlot3Chunk (unsigned width, unsigned height) :
-		Plot3Chunk(_sink, _fract, _origin, _size, width, height, MAXITER), _calledDone(false) {}
-	TestPlot3Chunk (const TestPlot3Chunk& other) : Plot3Chunk(other), _calledDone(false) {}
+		Plot3Chunk(_sink, _fract, _origin, _size, width, height, MAXITER) {}
+	TestPlot3Chunk (const TestPlot3Chunk& other) : Plot3Chunk(other) {}
+#undef MAXITER
 };
 
 class TestSink : public IPlot3DataSink {
-	void pointCheck(const Fractal::PointData& p) {
+	std::atomic<unsigned> _chunks_count;
+	std::atomic<unsigned> _points_count;
+
+public:
+	TestSink() : _chunks_count(0), _points_count(0) {}
+	int chunks_count() const { return _chunks_count; }
+	int points_count() const { return _points_count; }
+
+	void pointCheck(Plot3Chunk* job, const Fractal::PointData& p) {
 		/* Sanity checks:
 		 * That all the points have suitable data (valgrind checks this for us)
 		 * That all the points have been touched (point != origin) (assumes point != 0.0)
@@ -45,18 +55,19 @@ class TestSink : public IPlot3DataSink {
 		static Fractal::Point o_prev(0,0);
 		EXPECT_TRUE(p.nomore);
 		EXPECT_NE(p.point, p.origin); // Assumes origin != 0,0.
-		EXPECT_EQ(p.iter, MAXITER);
+		EXPECT_EQ(p.iter, job->maxiter());
 		EXPECT_NE(p.origin, o_prev);
 		o_prev = p.origin;
 	}
 	virtual void chunk_done(Plot3Chunk* job) {
-		TestPlot3Chunk* tc = dynamic_cast<TestPlot3Chunk*>(job);
-		ASSERT_TRUE(tc!=0);
-		tc->_calledDone = true;
-		const Fractal::PointData* pp = tc->get_data();
-		for (unsigned i=0; i<tc->pixel_count()-1; i++)
-			pointCheck(pp[i]);
+		const Fractal::PointData* pp = job->get_data();
+		for (unsigned i=0; i<job->pixel_count()-1; i++)
+			pointCheck(job, pp[i]);
+
+		_chunks_count += 1;
+		_points_count += job->pixel_count();
 	}
+
 };
 
 IPlot3DataSink* TestPlot3Chunk::_sink;
@@ -123,4 +134,31 @@ TEST_F(ChunkTest, AssignUsedChunk) {
 TEST_F(ChunkTest, ReuseChunk) {
 	test(1,1);
 	chunk->run();
+}
+
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+class Plot3Test: public ::testing::Test {
+protected:
+	MockFractal fract;
+	TestSink sink;
+	Plot3 *p3;
+
+	virtual void SetUp() {
+		p3 = new Plot3(&sink, &fract,
+				Fractal::Point(-0.4,-0.4),
+				Fractal::Point(0.01,0.01),
+				100, 100, 10);
+	}
+	virtual void TearDown() {
+		delete p3;
+	}
+};
+
+TEST_F(Plot3Test, Basics) {
+	p3->start();
+	p3->wait();
+	// EXPECT_EQ(1, sink.chunks_count()); // Does not hold in general.
+	EXPECT_EQ(100*100, sink.points_count());
 }
