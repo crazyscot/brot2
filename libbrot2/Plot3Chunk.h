@@ -27,7 +27,7 @@ class IPlot3DataSink;
 
 class Plot3Chunk : job::IJob {
 public:
-	// If not null, we will pass our result data onto sink when complete.
+	// If sink is not null, we will pass our result data to it when complete.
 	Plot3Chunk(IPlot3DataSink* sink, const Fractal::FractalImpl* f, const Fractal::Point centre, const Fractal::Point size, unsigned width, unsigned height, unsigned max_passes=0);
 	Plot3Chunk(const Plot3Chunk& other);
 	virtual ~Plot3Chunk();
@@ -46,7 +46,6 @@ private:
 	Fractal::PointData* _data; // We own this data. Allocated when needed.
 	bool _running, _prepared;
 	/* Plot statistics: */
-	unsigned _plotted_maxiter; // How far did we get before bailing?
 	unsigned _plotted_passes; // How many passes before bailing?
 	unsigned _live_pixels; // How many pixels are still live? Initialised by prepare().
 	unsigned _max_passes; // Do we have an absolute limit on the number of passes?
@@ -69,11 +68,6 @@ public:
 	 * NB that the pixel co-ords are relative to this chunk only.
 	 * Call this before completion at your peril... */
 	const Fractal::PointData& get_pixel_point(int x, int y) const;
-
-	/* What iteration count did we bail out at? */
-	int get_maxiter() const { return _plotted_maxiter; }
-	/* How many passes before we bailed out? */
-	int get_passes() const { return _plotted_passes; }
 
 	void reset_max_passes(unsigned max);
 };
