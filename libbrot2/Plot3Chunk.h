@@ -25,7 +25,7 @@
 
 class IPlot3DataSink;
 
-class Plot3Chunk : job::IJob {
+class Plot3Chunk : public job::IJob {
 public:
 	// If sink is not null, we will pass our result data to it when complete.
 	Plot3Chunk(IPlot3DataSink* sink, const Fractal::FractalImpl* f, const Fractal::Point centre, const Fractal::Point size, unsigned width, unsigned height, unsigned max_passes=0);
@@ -57,6 +57,7 @@ public:
 	const unsigned _width, _height; // plot size in pixels, starting from 0
 	unsigned pixel_count() const { return _width * _height; }
 	const Fractal::Point centre() const { return _origin + _size/(Fractal::Value)2.0; }
+	unsigned maxiter() const { return _max_passes; }
 
 	/* Read-only access to the plot data. There are pixel_count() pixels. */
 	const Fractal::PointData * get_data() const { if (!this) return 0; return _data; }
