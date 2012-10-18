@@ -139,6 +139,7 @@ TEST_F(ChunkTest, ReuseChunk) {
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+using namespace ChunkDivider;
 
 class Plot3Test: public ::testing::Test {
 protected:
@@ -161,6 +162,36 @@ TEST_F(Plot3Test, Basics) {
 	ChunkDivider::OneChunk divider;
 	p3->start(divider);
 	p3->wait();
-	// EXPECT_EQ(1, sink.chunks_count()); // Does not hold in general.
+	EXPECT_EQ(1, sink.chunks_count()); // Does not hold in general.
 	EXPECT_EQ(101*199, sink.points_count());
+}
+
+template<typename T>
+class ChunkDividerTest : public ::testing::Test {
+	public:
+		T divider;
+	protected:
+		MockFractal fract;
+		TestSink sink;
+		Plot3 *p3;
+
+		virtual void SetUp() {
+			p3 = new Plot3(&sink, &fract,
+					Fractal::Point(-0.4,-0.4),
+					Fractal::Point(0.01,0.01),
+					101, 199, 10);
+		}
+		virtual void TearDown() {
+			delete p3;
+		}
+};
+
+typedef ::testing::Types<OneChunk> ChunkTypes;
+TYPED_TEST_CASE(ChunkDividerTest, ChunkTypes);
+
+TYPED_TEST(ChunkDividerTest, SanityCheck) {
+	this->p3->start(this->divider);
+	this->p3->wait();
+	EXPECT_EQ(101*199, this->sink.points_count());
+	// XXX anything else? That the edges seam nicely??
 }
