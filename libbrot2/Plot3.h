@@ -24,6 +24,7 @@
 #include "noncopyable.hpp"
 #include "Fractal.h"
 #include "Plot3Chunk.h"
+#include "ChunkDivider.h"
 #include "MultiThreadJobEngine.h"
 
 class Prefs;
@@ -48,8 +49,9 @@ public:
 	virtual ~Plot3();
 
 	/* Starts a plot. An IJobEngine is created to do the actual work.
+	 * `divider' is a factory to turn the plot into a load of chunks.
 	 * Throws an exception (from Glib::Thread) if something went wrong. */
-	void start();
+	void start(ChunkDivider::Base& divider);
 	// TODO: Resume ?
 
 	/* Blocks, waiting for all work to finish. It may be some time! */
@@ -158,4 +160,4 @@ private:
 };
 
 
-#endif /* PLOT2_H_ */
+#endif /* PLOT3_H_ */

@@ -17,6 +17,7 @@
 
 #include "gtest/gtest.h"
 #include "libbrot2/Plot3Chunk.h"
+#include "libbrot2/ChunkDivider.h"
 #include "libbrot2/IPlot3DataSink.h"
 #include "libbrot2/Plot3.h"
 #include "MockFractal.h"
@@ -149,7 +150,7 @@ protected:
 		p3 = new Plot3(&sink, &fract,
 				Fractal::Point(-0.4,-0.4),
 				Fractal::Point(0.01,0.01),
-				100, 100, 10);
+				101, 199, 10);
 	}
 	virtual void TearDown() {
 		delete p3;
@@ -157,8 +158,9 @@ protected:
 };
 
 TEST_F(Plot3Test, Basics) {
-	p3->start();
+	ChunkDivider::OneChunk divider;
+	p3->start(divider);
 	p3->wait();
 	// EXPECT_EQ(1, sink.chunks_count()); // Does not hold in general.
-	EXPECT_EQ(100*100, sink.points_count());
+	EXPECT_EQ(101*199, sink.points_count());
 }

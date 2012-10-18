@@ -21,6 +21,7 @@
 #include <values.h>
 #include "Plot3.h"
 #include "Prefs.h"
+#include "ChunkDivider.h"
 
 using namespace std;
 using namespace Fractal;
@@ -97,14 +98,15 @@ string Plot3::info(bool verbose) const {
 }
 
 /* Starts a plot. An IJobEngine is created to do the actual work. */
-void Plot3::start() {
+void Plot3::start(ChunkDivider::Base& factory) {
  	ASSERT(!_engine); // May not be null if a resume. Possibly need to delete first?
 
-	// HERE XXX TODO make this division mech parameterisable
-	// e.g. 10x vertical slices, 10x horizontal, some awkward one that doesn't divide cleanly, square superpixels...
-	Plot3Chunk * chunk = new Plot3Chunk(sink, fract, centre, size, width, height, passes_max);
-	_chunks.push_back(chunk);
-	_jobs.push_back(chunk);
+	factory.dividePlot(_chunks, sink, fract, centre, size, width, height, passes_max);
+
+	std::list<Plot3Chunk*>::iterator it;
+	for (it=_chunks.begin(); it != _chunks.end(); it++) {
+		_jobs.push_back(*it);
+	}
 
 	_engine = new job::MultiThreadJobEngine(_jobs);
 	_engine->start();
