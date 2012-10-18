@@ -16,6 +16,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#define _CHUNKDIVIDER_INTERNAL
 #include "ChunkDivider.h"
 
 #include <memory>
@@ -23,11 +24,7 @@
 #include "Fractal.h"
 
 namespace ChunkDivider {
-	void OneChunk::dividePlot(std::list<Plot3Chunk*>& list_o,
-			IPlot3DataSink* s, const Fractal::FractalImpl* f,
-			Fractal::Point centre, Fractal::Point size,
-			unsigned width, unsigned height, unsigned max_passes) {
-
+	_CD__BODY(OneChunk) {
 		Plot3Chunk * chunk = new Plot3Chunk(s, f, centre, size, width, height, max_passes);
 		list_o.push_back(chunk);
 	}

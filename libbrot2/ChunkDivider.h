@@ -38,13 +38,32 @@ namespace ChunkDivider {
 		virtual ~Base() {}
 	};
 
-	class OneChunk : public Base {
-		public:
-		virtual void dividePlot(std::list<Plot3Chunk*>& list_o,
-				IPlot3DataSink* s, const Fractal::FractalImpl* f,
-				Fractal::Point centre, Fractal::Point size,
-				unsigned width, unsigned height, unsigned max_passes);
-	};
+#define _CD_INSTANCE(_NAME)  	\
+	class _NAME: public Base {	\
+		public:					\
+		virtual void dividePlot(std::list<Plot3Chunk*>& list_o,			\
+				IPlot3DataSink* s, const Fractal::FractalImpl* f,		\
+				Fractal::Point centre, Fractal::Point size,				\
+				unsigned width, unsigned height, unsigned max_passes);	\
+	}
+
+	_CD_INSTANCE(OneChunk);
+
+#undef _CD_INSTANCE
 };
+
+#ifdef _CHUNKDIVIDER_INTERNAL
+#define _CD__BODY(_NAME)		\
+	void _NAME::dividePlot(std::list<Plot3Chunk*>& list_o,			\
+			IPlot3DataSink* s, const Fractal::FractalImpl* f,		\
+			Fractal::Point centre, Fractal::Point size,				\
+			unsigned width, unsigned height, unsigned max_passes)
+	/*
+	 * e.g.
+	 * _CD__BODY(foo) {
+	 * 		... do stuff ...
+	 * }
+	 */
+#endif // _CHUNKDIVIDER_INTERNAL
 
 #endif // CHUNKDIVIDER_H_
