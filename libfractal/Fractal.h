@@ -43,14 +43,6 @@ typedef std::complex<Value> Point; // "complex fractal point"
 
 #define AXIS_LENGTH_PRECISION 4 // For decimal output.
 
-inline Point divide(const Fractal::Point& a, const Fractal::Value& b) {
-	Fractal::Point rv(a);
-	rv.real(real(rv)/b);
-	rv.imag(imag(rv)/b);
-	return rv;
-}
-
-
 class Consts {
 public:
 	static const Value log2;
@@ -141,5 +133,12 @@ private:
 };
 
 }; // namespace Fractal
+
+inline Fractal::Point operator/(const Fractal::Point& a, Fractal::Value b) {
+	Fractal::Point rv(a);
+	rv.real(real(rv)/b);
+	rv.imag(imag(rv)/b);
+	return rv;
+}
 
 #endif /* FRACTAL_H_ */

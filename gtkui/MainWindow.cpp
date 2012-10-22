@@ -393,7 +393,7 @@ void MainWindow::update_params(Fractal::Point& ncentre, Fractal::Point& nsize)
 void MainWindow::new_centre_checked(const Fractal::Point& ncentre)
 {
 	centre = ncentre;
-	Fractal::Point halfsize = Fractal::divide(size,2.0);
+	Fractal::Point halfsize = size/2.0;
 	Fractal::Point TR = centre + halfsize,
 				   BL = centre - halfsize;
 	bool clipped = false;
@@ -428,7 +428,7 @@ void MainWindow::new_centre_checked(const Fractal::Point& ncentre)
 	if (clipped) {
 		// need to recompute size and centre.
 		size = TR - BL;
-		centre = TR - Fractal::divide(size,2.0);
+		centre = TR - size/2.0;
 	}
 }
 

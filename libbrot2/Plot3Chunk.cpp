@@ -28,7 +28,7 @@ Plot3Chunk::Plot3Chunk(IPlot3DataSink* sink, const Fractal::FractalImpl* f, cons
 		_sink(sink), _data(NULL), _running(false), _prepared(false),
 		_live_pixels(0), _max_passes(max_passes),
 		_fract(f),
-		_origin(real(centre) - real(size)/2.0, imag(centre) - imag(size)/2.0),
+		_origin(centre - size / 2.0),
 		_size(size),
 		_width(width), _height(height)
 {
