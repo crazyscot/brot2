@@ -29,4 +29,25 @@ namespace ChunkDivider {
 		list_o.push_back(chunk);
 	}
 
+	_CD__BODY(Horizontal10px) {
+		unsigned nWhole = height / 10;
+		unsigned lastPx = height % 10;
+		unsigned i;
+		const Fractal::Point step(real(size), imag(size)/10.0);
+		Fractal::Point xcentre(centre);
+		const Fractal::Point lastSize(real(size), (Fractal::Value)lastPx/height);
+
+		for (i=0; i<nWhole; i++) {
+			// create and push
+			Plot3Chunk * chunk = new Plot3Chunk(s, f,
+					xcentre, step, width, 10, max_passes);
+			list_o.push_back(chunk);
+			xcentre += step;
+		}
+		{
+			Plot3Chunk * chunk = new Plot3Chunk(s, f,
+					xcentre, lastSize, width, lastPx, max_passes);
+			list_o.push_back(chunk);
+		}
+	}
 };

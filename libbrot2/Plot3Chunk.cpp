@@ -19,14 +19,17 @@
 #include "Plot3Chunk.h"
 #include "IPlot3DataSink.h"
 #include "Exception.h"
+#include <complex.h>
 
 using namespace Fractal;
 
-Plot3Chunk::Plot3Chunk(IPlot3DataSink* sink, const Fractal::FractalImpl* f, const Fractal::Point origin,
+Plot3Chunk::Plot3Chunk(IPlot3DataSink* sink, const Fractal::FractalImpl* f, const Fractal::Point centre,
 		const Fractal::Point size, unsigned width, unsigned height, unsigned max_passes) :
 		_sink(sink), _data(NULL), _running(false), _prepared(false),
 		_live_pixels(0), _max_passes(max_passes),
-		_fract(f), _origin(origin), _size(size),
+		_fract(f),
+		_origin(real(centre) - real(size)/2.0, imag(centre) - imag(size)/2.0),
+		_size(size),
 		_width(width), _height(height)
 {
 	ASSERT(width != 0);

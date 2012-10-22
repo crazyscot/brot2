@@ -15,6 +15,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#define _ISOC99_SOURCE
+#include <math.h>
+
 #include "gtest/gtest.h"
 #include "libbrot2/Plot3Chunk.h"
 #include "libbrot2/ChunkDivider.h"
@@ -40,9 +43,11 @@ public:
 class TestSink : public IPlot3DataSink {
 	std::atomic<unsigned> _chunks_count;
 	std::atomic<unsigned> _points_count;
-
 public:
-	TestSink() : _chunks_count(0), _points_count(0) {}
+	Fractal::Value _T,_B,_L,_R; // XXX CONCURRENCY XXX
+
+	TestSink() : _chunks_count(0), _points_count(0),
+		_T(HUGE_VAL), _B(-HUGE_VAL), _L(-HUGE_VAL), _R(HUGE_VAL) {}
 	int chunks_count() const { return _chunks_count; }
 	int points_count() const { return _points_count; }
 
@@ -52,6 +57,8 @@ public:
 		 * That all the points have been touched (point != origin) (assumes point != 0.0)
 		 * That all the points have had their fill of iterations (p.iter == MAXITER) (assumes point iterates infinitely AND is not in the cardioid)
 		 * That successive origins differ i.e. are stepping correctly. (p.origin != o_prev)
+		 *
+		 * We also gather the top/left/bottom/right pixel points seen so the caller can check those out.
 		 */
 		static Fractal::Point o_prev(0,0);
 		EXPECT_TRUE(p.nomore);
@@ -62,8 +69,16 @@ public:
 	}
 	virtual void chunk_done(Plot3Chunk* job) {
 		const Fractal::PointData* pp = job->get_data();
-		for (unsigned i=0; i<job->pixel_count()-1; i++)
+		for (unsigned i=0; i<job->pixel_count()-1; i++) {
 			pointCheck(job, pp[i]);
+
+			Fractal::Point TL = job->_origin;
+			Fractal::Point BR = job->_origin+job->_size;
+			if (real(BR) < _R) _R = real(BR);
+			if (real(TL) > _L) _L = real(TL);
+			if (imag(BR) > _B) _B = imag(BR);
+			if (imag(TL) < _T) _T = imag(TL);
+		}
 
 		_chunks_count += 1;
 		_points_count += job->pixel_count();
@@ -174,19 +189,26 @@ class ChunkDividerTest : public ::testing::Test {
 		MockFractal fract;
 		TestSink sink;
 		Plot3 *p3;
+		Fractal::Point centre, size;
+
+		ChunkDividerTest() : p3(0),
+			centre(-0.4,-0.4), size(0.01,0.01) {}
 
 		virtual void SetUp() {
 			p3 = new Plot3(&sink, &fract,
-					Fractal::Point(-0.4,-0.4),
-					Fractal::Point(0.01,0.01),
+					centre, size,
 					101, 199, 10);
 		}
 		virtual void TearDown() {
+			EXPECT_EQ(imag(centre)-imag(size)/2.0, sink._T);
+			EXPECT_EQ(real(centre)-real(size)/2.0, sink._L);
+			EXPECT_EQ(imag(centre)+imag(size)/2.0, sink._B);
+			EXPECT_EQ(real(centre)+real(size)/2.0, sink._R);
 			delete p3;
 		}
 };
 
-typedef ::testing::Types<OneChunk> ChunkTypes;
+typedef ::testing::Types<OneChunk, Horizontal10px> ChunkTypes;
 TYPED_TEST_CASE(ChunkDividerTest, ChunkTypes);
 
 TYPED_TEST(ChunkDividerTest, SanityCheck) {

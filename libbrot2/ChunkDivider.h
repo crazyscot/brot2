@@ -48,6 +48,7 @@ namespace ChunkDivider {
 	}
 
 	_CD_INSTANCE(OneChunk);
+	_CD_INSTANCE(Horizontal10px);
 
 #undef _CD_INSTANCE
 };
