@@ -34,8 +34,8 @@ public:
 	static Fractal::Point _size;
 #define MAXITER 5
 
-	TestPlot3Chunk (unsigned width, unsigned height) :
-		Plot3Chunk(_sink, _fract, width, height, _origin, _size, MAXITER) {}
+	TestPlot3Chunk (unsigned width, unsigned height, unsigned offX, unsigned offY) :
+		Plot3Chunk(_sink, _fract, width, height, offX, offY,_origin, _size, MAXITER) {}
 	TestPlot3Chunk (const TestPlot3Chunk& other) : Plot3Chunk(other) {}
 #undef MAXITER
 };
@@ -44,19 +44,48 @@ class TestSink : public IPlot3DataSink {
 	std::atomic<unsigned> _chunks_count;
 	std::atomic<unsigned> _points_count;
 	Fractal::Point origin_prev;
+	bool* pixels_touched;
+	unsigned _height, _width, _double_touched;
 public:
 	Fractal::Value _T,_B,_L,_R; // XXX CONCURRENCY XXX
 
-	TestSink() : _chunks_count(0), _points_count(0), origin_prev(666,666),
-		_T(HUGE_VAL), _B(-HUGE_VAL), _L(-HUGE_VAL), _R(HUGE_VAL) {}
+	TestSink(unsigned width, unsigned height) :
+			_chunks_count(0), _points_count(0),
+			origin_prev(666,666), pixels_touched(0),
+			_height(height), _width(width), _double_touched(0),
+			_T(HUGE_VAL), _B(-HUGE_VAL), _L(-HUGE_VAL), _R(HUGE_VAL)
+	{
+		if (height*width!=0)
+			pixels_touched = new bool[height*width]();
+	}
+	~TestSink() {
+		final_check();
+	}
+
 	int chunks_count() const { return _chunks_count; }
 	int points_count() const { return _points_count; }
 
 	void reset() {
+		reset(_width, _height);
+	}
+	void reset(unsigned width, unsigned height) {
 		/* Needed in some 1x1 corner cases if you expect the same chunk
 		 * origin to come back through the same sink again */
+		/* Needed if you send more than one set of chunks through
+		 * a sink with overlapping pixel addresses. */
 		origin_prev.real(HUGE_VAL);
 		origin_prev.imag(HUGE_VAL);
+		_chunks_count = 0;
+		_points_count = 0;
+		_height = height;
+		_width = width;
+		delete[] pixels_touched;
+		if (height*width != 0)
+			pixels_touched = new bool[height*width]();
+		else
+			pixels_touched = 0; // Lets us catch an improperly set up run quickly
+
+		_double_touched = 0;
 	}
 
 	void pointCheck(Plot3Chunk* job, const Fractal::PointData& p) {
@@ -89,8 +118,35 @@ public:
 
 		_chunks_count += 1;
 		_points_count += job->pixel_count();
+		/*
+		 * When testing the divider, also need to check that the chunks
+		 * seam correctly i.e. every output pixel is touched precisely once.
+		 */
+		int nfailed = false;
+		for (unsigned j=0; j<job->_height; j++) {
+			for (unsigned i=0; i<job->_width; i++) {
+				int addr = ( (job->_offY + j) * job->_width ) + job->_offX + i;
+				if (pixels_touched[addr]) {
+					_double_touched++;
+					nfailed++;
+				}
+				pixels_touched[addr] = true;
+			}
+		}
+		EXPECT_EQ(0,nfailed) << " double-touches in job " << std::hex << (void*)(job);
 	}
 
+	virtual void final_check() {
+		EXPECT_EQ(0,_double_touched) << _double_touched << " pixel(s) were multiply-touched";
+		int untouched = 0;
+		for (unsigned j=0; j<_height; j++) {
+			for (unsigned i=0; i<_width; i++) {
+				if (!pixels_touched[_width*j + i])
+					untouched++;
+			}
+		}
+		EXPECT_EQ(0,untouched) << untouched << " pixel(s) were not touched";
+	}
 };
 
 IPlot3DataSink* TestPlot3Chunk::_sink;
@@ -104,6 +160,8 @@ protected:
 	TestSink sink;
 	MockFractal fract;
 
+	ChunkTest(): sink(0,0) {}
+
 	virtual void SetUp() {
 		chunk = 0;
 		TestPlot3Chunk::_sink = &sink;
@@ -116,7 +174,8 @@ protected:
 	}
 
 	void test(int x, int y) {
-		chunk = new TestPlot3Chunk(x, y);
+		sink.reset(x,y);
+		chunk = new TestPlot3Chunk(x, y, 0, 0);
 		chunk->run();
 	}
 };
@@ -135,9 +194,10 @@ TEST_F(ChunkTest, _10x10) {
 }
 
 TEST_F(ChunkTest, AssignUnusedChunk) {
-	TestPlot3Chunk chunk1(1,1);
+	TestPlot3Chunk chunk1(1,1,0,0);
 	TestPlot3Chunk *chunk2 = new TestPlot3Chunk(chunk1);
 	TestPlot3Chunk chunk3(chunk1);
+	sink.reset(1,1);
 	chunk1.run();
 	sink.reset();
 	chunk2->run();
@@ -173,6 +233,8 @@ protected:
 	MockFractal fract;
 	TestSink sink;
 	Plot3 *p3;
+
+	Plot3Test() : sink(101,199) {}
 
 	virtual void SetUp() {
 		p3 = new Plot3(&sink, &fract,
@@ -216,7 +278,7 @@ class ChunkDividerTest : public ::testing::Test {
 		Plot3 *p3;
 		Fractal::Point centre, size;
 
-		ChunkDividerTest() : p3(0),
+		ChunkDividerTest() : sink(0,0)/*update later*/, p3(0),
 			centre(-0.4,-0.3), size(0.01,0.02) {}
 
 		virtual void SetUp() {
@@ -229,6 +291,7 @@ class ChunkDividerTest : public ::testing::Test {
 			delete p3;
 		}
 		void test(int _x, int _y) {
+			this->sink.reset(_x,_y);
 			this->p3 = new Plot3(&this->sink, &this->fract,
 					this->centre, this->size, _x, _y, 10);
 			this->p3->start(this->divider);

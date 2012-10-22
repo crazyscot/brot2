@@ -26,7 +26,7 @@
 namespace ChunkDivider {
 	_CD__BODY(OneChunk) {
 		Fractal::Point origin(centre - size / 2.0);
-		Plot3Chunk * chunk = new Plot3Chunk(s, f, width, height, origin, size, max_passes);
+		Plot3Chunk * chunk = new Plot3Chunk(s, f, width, height, 0, 0, origin, size, max_passes);
 		list_o.push_back(chunk);
 	}
 
@@ -44,6 +44,7 @@ namespace ChunkDivider {
 			// create and push
 			Plot3Chunk * chunk = new Plot3Chunk(s, f,
 					width, 10,
+					0, 10*i,
 					origin, sliceSize,
 					max_passes);
 			list_o.push_back(chunk);
@@ -66,6 +67,7 @@ namespace ChunkDivider {
 		{
 			Plot3Chunk * chunk = new Plot3Chunk(s, f,
 					width, lastPx,
+					0, 10*nWhole,
 					origin, lastSize,
 					max_passes);
 			list_o.push_back(chunk);

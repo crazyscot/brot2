@@ -62,6 +62,7 @@ public:
 	 * If this is a problem, call wait() as well. */
 	void stop();
 
+	/* Snapshot count of the current state of play */
 	unsigned chunks_outstanding() const;
 	unsigned chunks_total() const;
 

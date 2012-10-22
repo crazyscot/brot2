@@ -24,7 +24,7 @@
 using namespace Fractal;
 
 Plot3Chunk::Plot3Chunk(IPlot3DataSink* sink, const Fractal::FractalImpl* f,
-		unsigned width, unsigned height,
+		unsigned width, unsigned height, unsigned offX, unsigned offY,
 		const Fractal::Point origin, const Fractal::Point size,
 		unsigned max_passes) :
 		_sink(sink), _data(NULL), _running(false), _prepared(false),
@@ -32,7 +32,7 @@ Plot3Chunk::Plot3Chunk(IPlot3DataSink* sink, const Fractal::FractalImpl* f,
 		_fract(f),
 		_origin(origin),
 		_size(size),
-		_width(width), _height(height)
+		_width(width), _height(height), _offX(offX), _offY(offY)
 {
 	ASSERT(width != 0);
 	ASSERT(height != 0);
@@ -44,7 +44,7 @@ Plot3Chunk::Plot3Chunk(const Plot3Chunk& other) :
 		_sink(other._sink), _data(NULL), _running(false), _prepared(false),
 		_live_pixels(0), _max_passes(other._max_passes),
 		_fract(other._fract), _origin(other._origin), _size(other._size),
-		_width(other._width), _height(other._height)
+		_width(other._width), _height(other._height), _offX(other._offX), _offY(other._offY)
 {
 }
 
