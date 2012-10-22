@@ -217,7 +217,6 @@ class ChunkDividerTest : public ::testing::Test {
 			EXPECT_FVAL_EQ(real(centre)-real(size)/2.0, sink._L);
 			EXPECT_FVAL_EQ(imag(centre)+imag(size)/2.0, sink._B);
 			EXPECT_FVAL_EQ(real(centre)+real(size)/2.0, sink._R);
-			std::cout << "B diff is " << (imag(centre)+imag(size)/2.0 - sink._B) << std::endl;//XXX
 			delete p3;
 		}
 };
