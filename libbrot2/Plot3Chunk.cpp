@@ -23,12 +23,14 @@
 
 using namespace Fractal;
 
-Plot3Chunk::Plot3Chunk(IPlot3DataSink* sink, const Fractal::FractalImpl* f, const Fractal::Point centre,
-		const Fractal::Point size, unsigned width, unsigned height, unsigned max_passes) :
+Plot3Chunk::Plot3Chunk(IPlot3DataSink* sink, const Fractal::FractalImpl* f,
+		unsigned width, unsigned height,
+		const Fractal::Point origin, const Fractal::Point size,
+		unsigned max_passes) :
 		_sink(sink), _data(NULL), _running(false), _prepared(false),
 		_live_pixels(0), _max_passes(max_passes),
 		_fract(f),
-		_origin(centre - size / 2.0),
+		_origin(origin),
 		_size(size),
 		_width(width), _height(height)
 {

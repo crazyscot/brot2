@@ -35,7 +35,7 @@ public:
 #define MAXITER 5
 
 	TestPlot3Chunk (unsigned width, unsigned height) :
-		Plot3Chunk(_sink, _fract, _origin, _size, width, height, MAXITER) {}
+		Plot3Chunk(_sink, _fract, width, height, _origin, _size, MAXITER) {}
 	TestPlot3Chunk (const TestPlot3Chunk& other) : Plot3Chunk(other) {}
 #undef MAXITER
 };

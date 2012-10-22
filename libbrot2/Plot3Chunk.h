@@ -28,7 +28,10 @@ class IPlot3DataSink;
 class Plot3Chunk : public job::IJob {
 public:
 	// If sink is not null, we will pass our result data to it when complete.
-	Plot3Chunk(IPlot3DataSink* sink, const Fractal::FractalImpl* f, const Fractal::Point centre, const Fractal::Point size, unsigned width, unsigned height, unsigned max_passes=0);
+	Plot3Chunk(IPlot3DataSink* sink, const Fractal::FractalImpl* f,
+			unsigned width, unsigned height,
+			const Fractal::Point origin, const Fractal::Point size,
+			unsigned max_passes=0);
 	Plot3Chunk(const Plot3Chunk& other);
 	virtual ~Plot3Chunk();
 
