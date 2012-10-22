@@ -62,6 +62,9 @@ public:
 	 * If this is a problem, call wait() as well. */
 	void stop();
 
+	unsigned chunks_outstanding() const;
+	unsigned chunks_total() const;
+
 #if 0
 	/* Read-only access to the plot data. */
 	const Fractal::PointData * get_data() { if (!this) return 0; return _data; }
