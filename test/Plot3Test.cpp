@@ -76,7 +76,7 @@ public:
 	}
 	virtual void chunk_done(Plot3Chunk* job) {
 		const Fractal::PointData* pp = job->get_data();
-		for (unsigned i=0; i<job->pixel_count()-1; i++) {
+		for (unsigned i=0; i<job->pixel_count(); i++) {
 			pointCheck(job, pp[i]);
 
 			Fractal::Point TL = job->_origin;
