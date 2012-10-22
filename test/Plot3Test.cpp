@@ -43,29 +43,36 @@ public:
 class TestSink : public IPlot3DataSink {
 	std::atomic<unsigned> _chunks_count;
 	std::atomic<unsigned> _points_count;
+	Fractal::Point origin_prev;
 public:
 	Fractal::Value _T,_B,_L,_R; // XXX CONCURRENCY XXX
 
-	TestSink() : _chunks_count(0), _points_count(0),
+	TestSink() : _chunks_count(0), _points_count(0), origin_prev(666,666),
 		_T(HUGE_VAL), _B(-HUGE_VAL), _L(-HUGE_VAL), _R(HUGE_VAL) {}
 	int chunks_count() const { return _chunks_count; }
 	int points_count() const { return _points_count; }
+
+	void reset() {
+		/* Needed in some 1x1 corner cases if you expect the same chunk
+		 * origin to come back through the same sink again */
+		origin_prev.real(HUGE_VAL);
+		origin_prev.imag(HUGE_VAL);
+	}
 
 	void pointCheck(Plot3Chunk* job, const Fractal::PointData& p) {
 		/* Sanity checks:
 		 * That all the points have suitable data (valgrind checks this for us)
 		 * That all the points have been touched (point != origin) (assumes point != 0.0)
 		 * That all the points have had their fill of iterations (p.iter == MAXITER) (assumes point iterates infinitely AND is not in the cardioid)
-		 * That successive origins differ i.e. are stepping correctly. (p.origin != o_prev)
+		 * That successive origins differ i.e. are stepping correctly. (p.origin != origin_prev)
 		 *
 		 * We also gather the top/left/bottom/right pixel points seen so the caller can check those out.
 		 */
-		static Fractal::Point o_prev(0,0);
 		EXPECT_TRUE(p.nomore);
 		EXPECT_NE(p.point, p.origin); // Assumes origin != 0,0.
 		EXPECT_EQ(p.iter, job->maxiter());
-		EXPECT_NE(p.origin, o_prev);
-		o_prev = p.origin;
+		EXPECT_NE(p.origin, origin_prev);
+		origin_prev = p.origin;
 	}
 	virtual void chunk_done(Plot3Chunk* job) {
 		const Fractal::PointData* pp = job->get_data();
@@ -132,7 +139,9 @@ TEST_F(ChunkTest, AssignUnusedChunk) {
 	TestPlot3Chunk *chunk2 = new TestPlot3Chunk(chunk1);
 	TestPlot3Chunk chunk3(chunk1);
 	chunk1.run();
+	sink.reset();
 	chunk2->run();
+	sink.reset();
 	chunk3.run();
 	// Sanity checks are provided by the sink.
 	delete chunk2;
@@ -141,7 +150,9 @@ TEST_F(ChunkTest, AssignUsedChunk) {
 	test(1,1);
 	TestPlot3Chunk chunk4(*chunk);
 	TestPlot3Chunk *chunk5 = new TestPlot3Chunk(*chunk);
+	sink.reset();
 	chunk4.run();
+	sink.reset();
 	chunk5->run();
 	// Sanity checks are provided by the sink.
 	delete chunk5;
@@ -149,6 +160,7 @@ TEST_F(ChunkTest, AssignUsedChunk) {
 
 TEST_F(ChunkTest, ReuseChunk) {
 	test(1,1);
+	sink.reset();
 	chunk->run();
 }
 
@@ -208,9 +220,6 @@ class ChunkDividerTest : public ::testing::Test {
 			centre(-0.4,-0.3), size(0.01,0.02) {}
 
 		virtual void SetUp() {
-			p3 = new Plot3(&sink, &fract,
-					centre, size,
-					101, 199, 10);
 		}
 		virtual void TearDown() {
 			EXPECT_FVAL_EQ(imag(centre)-imag(size)/2.0, sink._T);
@@ -225,8 +234,14 @@ typedef ::testing::Types<OneChunk, Horizontal10px> ChunkTypes;
 TYPED_TEST_CASE(ChunkDividerTest, ChunkTypes);
 
 TYPED_TEST(ChunkDividerTest, SanityCheck) {
+	this->p3 = new Plot3(&this->sink, &this->fract,
+			this->centre, this->size,
+			101, 199, 10);
 	this->p3->start(this->divider);
 	this->p3->wait();
 	EXPECT_EQ(101*199, this->sink.points_count());
-	// XXX anything else? That the edges seam nicely??
+	// XXX anything else? That the edges seam nicely? That they add up?
 }
+
+// EDGE CASES: 1xN, Nx1 plot3 ?
+
