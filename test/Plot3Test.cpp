@@ -181,6 +181,19 @@ TEST_F(Plot3Test, Basics) {
 	EXPECT_EQ(101*199, sink.points_count());
 }
 
+// Plug our long-double floating point into gtest's floating point comparator:
+#define EXPECT_FVAL_EQ(expected,actual) \
+	EXPECT_DOUBLE_EQ(expected,actual)
+#if 0
+// Can't seem to figure out how to do this, so close-enough-for-double
+// will have to do for now.
+typedef FloatingPoint<Fractal::Value> FractalValue;
+#define EXPECT_FVAL_EQ(expected,actual) \
+	EXPECT_PRED_FORMAT2( \
+			::testing::internal::CmpHelperFloatingPointEQ<Fractal::Value>, \
+			expected, actual)
+#endif
+
 template<typename T>
 class ChunkDividerTest : public ::testing::Test {
 	public:
@@ -192,7 +205,7 @@ class ChunkDividerTest : public ::testing::Test {
 		Fractal::Point centre, size;
 
 		ChunkDividerTest() : p3(0),
-			centre(-0.4,-0.4), size(0.01,0.01) {}
+			centre(-0.4,-0.3), size(0.01,0.02) {}
 
 		virtual void SetUp() {
 			p3 = new Plot3(&sink, &fract,
@@ -200,10 +213,11 @@ class ChunkDividerTest : public ::testing::Test {
 					101, 199, 10);
 		}
 		virtual void TearDown() {
-			EXPECT_EQ(imag(centre)-imag(size)/2.0, sink._T);
-			EXPECT_EQ(real(centre)-real(size)/2.0, sink._L);
-			EXPECT_EQ(imag(centre)+imag(size)/2.0, sink._B);
-			EXPECT_EQ(real(centre)+real(size)/2.0, sink._R);
+			EXPECT_FVAL_EQ(imag(centre)-imag(size)/2.0, sink._T);
+			EXPECT_FVAL_EQ(real(centre)-real(size)/2.0, sink._L);
+			EXPECT_FVAL_EQ(imag(centre)+imag(size)/2.0, sink._B);
+			EXPECT_FVAL_EQ(real(centre)+real(size)/2.0, sink._R);
+			std::cout << "B diff is " << (imag(centre)+imag(size)/2.0 - sink._B) << std::endl;//XXX
 			delete p3;
 		}
 };
