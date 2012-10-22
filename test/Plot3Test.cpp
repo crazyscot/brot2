@@ -228,20 +228,23 @@ class ChunkDividerTest : public ::testing::Test {
 			EXPECT_FVAL_EQ(real(centre)+real(size)/2.0, sink._R);
 			delete p3;
 		}
+		void test(int _x, int _y) {
+			this->p3 = new Plot3(&this->sink, &this->fract,
+					this->centre, this->size, _x, _y, 10);
+			this->p3->start(this->divider);
+			this->p3->wait();
+			EXPECT_EQ(_x*_y, this->sink.points_count());
+		}
 };
 
 typedef ::testing::Types<OneChunk, Horizontal10px> ChunkTypes;
 TYPED_TEST_CASE(ChunkDividerTest, ChunkTypes);
 
-TYPED_TEST(ChunkDividerTest, SanityCheck) {
-	this->p3 = new Plot3(&this->sink, &this->fract,
-			this->centre, this->size,
-			101, 199, 10);
-	this->p3->start(this->divider);
-	this->p3->wait();
-	EXPECT_EQ(101*199, this->sink.points_count());
-	// XXX anything else? That the edges seam nicely? That they add up?
-}
+#define CHUNK_DIVIDER_TEST(xx,yy) \
+TYPED_TEST(ChunkDividerTest, Check_##xx##_##yy) { this->test(xx,yy); }
 
-// EDGE CASES: 1xN, Nx1 plot3 ?
-
+CHUNK_DIVIDER_TEST(101,199);
+// edge cases:
+CHUNK_DIVIDER_TEST(1,101)
+CHUNK_DIVIDER_TEST(199,1)
+CHUNK_DIVIDER_TEST(1,1)
