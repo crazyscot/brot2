@@ -1,5 +1,5 @@
 /*
-    Plot3Chunk.h: Data sink interface for Plot3Cjunk.
+    Plot3Chunk.h: Data sink interface for Plot3Chunk.
     Copyright (C) 2012 Ross Younger
 
     This program is free software: you can redistribute it and/or modify
