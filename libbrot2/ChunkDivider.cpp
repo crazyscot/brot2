@@ -16,8 +16,19 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#define _CHUNKDIVIDER_INTERNAL
 #include "ChunkDivider.h"
+
+#define _CD__BODY(_NAME)		\
+	void _NAME::dividePlot(std::list<Plot3Chunk*>& list_o,			\
+			IPlot3DataSink* s, const Fractal::FractalImpl* f,		\
+			Fractal::Point centre, Fractal::Point size,				\
+			unsigned width, unsigned height, unsigned max_passes)
+	/*
+	 * e.g.
+	 * _CD__BODY(foo) {
+	 * 		... do stuff ...
+	 * }
+	 */
 
 #include <memory>
 #include "Plot3Chunk.h"
