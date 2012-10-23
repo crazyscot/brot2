@@ -67,9 +67,8 @@ protected:
 		/* Our MockPalette returns RGB (255,255,255) triplets, so we expect the
 		 * buffer to be all-0xff. This may have to be changed if we later add
 		 * a pixel format that behaves differently. */
-		int sum=0, fail=0;
+		int fail=0;
 		for (unsigned i=0; i<_bufz; i++) {
-			sum += _buf[i];
 			if (_buf[i] != 0xff) ++fail;
 		}
 		FinalExpectation(fail);
@@ -146,14 +145,50 @@ protected:
 			_origin(0.6,0.7), _size(0.001, 0.01),
 			_png(_TestW, _TestH, _palette, -1) {};
 
+	virtual void TearDown() {
+		std::ostringstream pngout("");
+		_png.write(pngout);
+		std::istringstream pngin(pngout.str());
+		png::image< png::rgb_pixel > png2(pngin);
+		// And now apply (broadly) the same pixel-is-touched check as above.
+		int fails=0;
+		for (unsigned j=0; j<_TestH; j++) {
+			for (unsigned i=0; i<_TestW; i++) {
+				if (png2[j][i].red != 0xFF) ++fails;
+				if (png2[j][i].green != 0xFF) ++fails;
+				if (png2[j][i].blue != 0xFF) ++fails;
+			}
+		}
+		EXPECT_EQ(0, fails) << "non-FF rgb bytes in the assembled PNG";
+	}
 };
 
 TEST_F(Render2PNG, Works) {
 	Plot3Chunk chunk(NULL, &_fract, _TestW, _TestH, 0, 0, _origin, _size, 10);
 	chunk.run();
 	_png.process(chunk);
-	std::ostringstream pngout("");
-	_png.write(pngout);
-	std::istringstream pngin(pngout.str());
-	png::image< png::rgb_pixel > png2(pngin);
+}
+
+TEST_F(Render2PNG, ChunkOffsetsWork) {
+	ASSERT_GT(_TestW, 10);
+	ASSERT_GT(_TestH, 15);
+	/* +------------------+------------------+
+	 * | 0,0 -> W-10,H-15 | W-10,0 -> W,H-15 |
+	 * |------------------+------------------|
+	 * | 0,H-15 -> W-10,H | W-10,H-15 -> W,H |
+	 * +------------------+------------------+
+	 */
+	std::list<Plot3Chunk> chunks;
+	std::list<Plot3Chunk>::iterator it;
+#define CHUNK(X,Y,W,H) chunks.push_back(Plot3Chunk(NULL, &_fract, W,H, X,Y, _origin, _size, 10))
+	CHUNK(0,0,                 _TestW-10, _TestH-15);
+	CHUNK(_TestW-10,0,         10, _TestH-15);
+
+	CHUNK(0,_TestH-15,         _TestW-10, 15);
+	CHUNK(_TestW-10,_TestH-15, 10, 15);
+
+	for (it=chunks.begin(); it!=chunks.end(); it++) {
+		(*it).run();
+		_png.process(*it);
+	}
 }

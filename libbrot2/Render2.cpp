@@ -130,7 +130,7 @@ void PNG::process(const Plot3Chunk& chunk)
 
 		for (i=0; i<chunk._width; i++) {
 			rgb pix = render_pixel(src[i], _local_inf, &_pal);
-			_png[j][i] = png::rgb_pixel(pix.r, pix.g, pix.b);
+			_png[j+chunk._offY][i+chunk._offX] = png::rgb_pixel(pix.r, pix.g, pix.b);
 		}
 	}
 }
