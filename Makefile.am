@@ -56,6 +56,7 @@ libbrot2_libbrot2_a_SOURCES= \
 	libbrot2/Plot3.h libbrot2/Plot3.cpp \
 	libbrot2/ChunkDivider.h libbrot2/ChunkDivider.cpp \
 	libbrot2/Render.h libbrot2/Render.cpp \
+	libbrot2/Render2.h libbrot2/Render2.cpp \
 	libbrot2/Prefs.h libbrot2/Prefs.cpp \
 	libbrot2/PrefsRegistry.h libbrot2/PrefsRegistry.cpp
 
@@ -136,7 +137,7 @@ test_b2test_SOURCES=test/b2test.cpp \
 					test/PrefsT.cpp test/PrefsT.h \
 					test/JobsTest.cpp test/JobsTestBits.h \
 					test/MockFractal.h test/MockFractal.cpp \
-					test/Plot3Test.cpp
+					test/Plot3Test.cpp test/Render2Test.cpp
 
 test_b2test_LDADD= gtest/libgtest.a $(all_ldadd)
 test_b2test_DEPENDENCIES= gtest/libgtest.a $(all_libs)
