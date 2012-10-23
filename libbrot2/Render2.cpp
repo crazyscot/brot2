@@ -62,6 +62,10 @@ void Generic::process(const Plot3Chunk& chunk)
 
 	unsigned i,j;
 
+	// Sanity checks
+	ASSERT( chunk._offX + chunk._width <= _width );
+	ASSERT( chunk._offY + chunk._height <= _height );
+
 	for (j=0; j<chunk._height; j++) {
 		unsigned char *dst = &_buf[ (chunk._offY + j) * _rowstride
 		                            + chunk._offX * _pixelstep];
