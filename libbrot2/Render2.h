@@ -56,7 +56,7 @@ public:
 	virtual ~Base() {}
 };
 
-class Generic : public Base {
+class MemoryBuffer : public Base {
 	/*
 	 * Generic rendering to a memory buffer.
 	 * Workflow:
@@ -86,12 +86,12 @@ public:
 	 * fmt: The byte format to use. This may be a CAIRO_FORMAT_* or our
 	 * internal PACKED_RGB_24 (used for png output).
 	 */
-	Generic(unsigned char *buf, const int rowstride, unsigned width, unsigned height,
+	MemoryBuffer(unsigned char *buf, const int rowstride, unsigned width, unsigned height,
 			const int local_inf, pixpack_format fmt, const BasePalette& pal);
 
 	// TODO ANTIALIAS
 
-	virtual ~Generic();
+	virtual ~MemoryBuffer();
 
 	using Base::process;
 	virtual void process(const Plot3Chunk& chunk);

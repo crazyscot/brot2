@@ -33,7 +33,7 @@ void Base::process(const std::list<Plot3Chunk*>& chunks)
 	}
 }
 
-Generic::Generic(unsigned char *buf, int rowstride, unsigned width, unsigned height,
+MemoryBuffer::MemoryBuffer(unsigned char *buf, int rowstride, unsigned width, unsigned height,
 			const int local_inf, pixpack_format fmt, const BasePalette& pal) :
 			_buf(buf), _rowstride(rowstride), _width(width), _height(height),
 			_local_inf(local_inf), _fmt(fmt), _pal(pal)
@@ -54,11 +54,11 @@ Generic::Generic(unsigned char *buf, int rowstride, unsigned width, unsigned hei
 	}
 }
 
-Generic::~Generic()
+MemoryBuffer::~MemoryBuffer()
 {
 }
 
-void Generic::process(const Plot3Chunk& chunk)
+void MemoryBuffer::process(const Plot3Chunk& chunk)
 {
 	(void)chunk;
 	const Fractal::PointData * data = chunk.get_data();

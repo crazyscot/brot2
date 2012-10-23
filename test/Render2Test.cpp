@@ -31,7 +31,7 @@ protected:
 	Fractal::Point _origin, _size;
 	unsigned char *_buf;
 	unsigned _bufz;
-	Render2::Generic *_render;
+	Render2::MemoryBuffer *_render;
 	Render2::pixpack_format _fmt;
 	MockPalette _palette;
 
@@ -56,7 +56,7 @@ protected:
 		_bufz = _rowstride * _TestH;
 		_buf = new unsigned char[_bufz];
 		std::fill_n(_buf, _bufz, 0);
-		_render = new Render2::Generic(_buf, _rowstride, _TestW, _TestH, -1, _fmt, _palette);
+		_render = new Render2::MemoryBuffer(_buf, _rowstride, _TestW, _TestH, -1, _fmt, _palette);
 	}
 
 	virtual void FinalExpectation(int fails) {
