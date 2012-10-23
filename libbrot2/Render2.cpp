@@ -25,8 +25,6 @@
 
 namespace Render2 {
 
-//const int RGB_BYTES_PER_PIXEL = 3;
-
 Generic::Generic(unsigned char *buf, int rowstride, unsigned width, unsigned height,
 			const int local_inf, pixpack_format fmt, const BasePalette& pal) :
 			_buf(buf), _rowstride(rowstride), _width(width), _height(height),
@@ -65,11 +63,8 @@ void Generic::process(const Plot3Chunk& chunk)
 	unsigned i,j;
 
 	for (j=0; j<chunk._height; j++) {
-#define CHUNK_PIXEL_OFFSET_X 0 // XXX
-#define CHUNK_PIXEL_OFFSET_Y 0 // XXX
-
-		unsigned char *dst = &_buf[ (CHUNK_PIXEL_OFFSET_Y + j) * _rowstride
-		                            + CHUNK_PIXEL_OFFSET_X * _pixelstep];
+		unsigned char *dst = &_buf[ (chunk._offY + j) * _rowstride
+		                            + chunk._offX * _pixelstep];
 		const Fractal::PointData * src = &data[j*chunk._width];
 
 		for (i=0; i<chunk._width; i++) {

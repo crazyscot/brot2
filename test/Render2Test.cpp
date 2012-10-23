@@ -106,7 +106,29 @@ TEST_F(Render2MetaTest, TestTheTestware)
 INSTANTIATE_TEST_CASE_P(AllFormats, Render2TestFormatParam,
 	::testing::Values(Render2::pixpack_format::PACKED_RGB_24, CAIRO_FORMAT_ARGB32, CAIRO_FORMAT_RGB24));
 
+TEST_F(Render2Test, ChunkOffsetsWork) {
+	ASSERT_GT(_TestW, 10);
+	ASSERT_GT(_TestH, 15);
+	/* +------------------+------------------+
+	 * | 0,0 -> W-10,H-15 | W-10,0 -> W,H-15 |
+	 * |------------------+------------------|
+	 * | 0,H-15 -> W-10,H | W-10,H-15 -> W,H |
+	 * +------------------+------------------+
+	 */
+	std::list<Plot3Chunk> chunks;
+	std::list<Plot3Chunk>::iterator it;
+#define CHUNK(X,Y,W,H) chunks.push_back(Plot3Chunk(NULL, &_fract, W,H, X,Y, _origin, _size, 10))
+	CHUNK(0,0,                 _TestW-10, _TestH-15);
+	CHUNK(_TestW-10,0,         10, _TestH-15);
 
+	CHUNK(0,_TestH-15,         _TestW-10, 15);
+	CHUNK(_TestW-10,_TestH-15, 10, 15);
+
+	for (it=chunks.begin(); it!=chunks.end(); it++) {
+		(*it).run();
+		_render->process(*it);
+	}
+}
 
 /*
  * now do an end-to-end with a chunkdivider??
