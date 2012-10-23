@@ -16,7 +16,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <png.h>
+#include <png++/png.hpp>
 #include <stdlib.h>
 #include "Render2.h"
 #include "Plot3Chunk.h"
@@ -57,8 +57,6 @@ void Generic::process(const Plot3Chunk& chunk)
 
 	// Slight twist: We've plotted the fractal from a bottom-left origin,
 	// but gdk assumes a top-left origin.
-
-	// need: chunk offset X,Y; pixel step
 
 	unsigned i,j;
 
@@ -102,7 +100,51 @@ void Generic::process(const std::list<Plot3Chunk*>& chunks)
 	}
 }
 
+PNG::PNG(unsigned width, unsigned height,
+		const BasePalette& palette, int local_inf) :
+		_width(width), _height(height), _local_inf(local_inf),
+		_pal(palette), _png(_width, _height)
+{
+}
+
+PNG::~PNG()
+{
+}
+
+void PNG::process(const Plot3Chunk& chunk)
+{
+	(void)chunk;
+	const Fractal::PointData * data = chunk.get_data();
+
+	// Slight twist: We've plotted the fractal from a bottom-left origin,
+	// but gdk assumes a top-left origin.
+
+	unsigned i,j;
+
+	// Sanity checks
+	ASSERT( chunk._offX + chunk._width <= _width );
+	ASSERT( chunk._offY + chunk._height <= _height );
+
+	for (j=0; j<chunk._height; j++) {
+		const Fractal::PointData * src = &data[j*chunk._width];
+
+		for (i=0; i<chunk._width; i++) {
+			rgb pix = render_pixel(src[i], _local_inf, &_pal);
+			_png[j][i] = png::rgb_pixel(pix.r, pix.g, pix.b);
+		}
+	}
+}
+
+void PNG::write(const std::string& filename)
+{
+	// TODO: Set png info text (software, comment) once png++ supports this.
+	_png.write(filename);
+}
+
+void PNG::write(std::ostream& os)
+{
+	_png.write_stream<std::ostream>(os);
+}
+
 }; // namespace Render2
 
-// Then save as PNG, or whatever ... Work in render_generic ...?
-// PNGRender is a Render !

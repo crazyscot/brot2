@@ -129,3 +129,31 @@ TEST_F(Render2Test, ChunkOffsetsWork) {
 		_render->process(*it);
 	}
 }
+
+// -----------------------------------------------------------------------------
+
+class Render2PNG: public ::testing::Test {
+	/* This checks that Render touches every pixel in the output buffer. */
+protected:
+	MockFractal _fract;
+	MockPalette _palette;
+	unsigned _TestW, _TestH;
+	Fractal::Point _origin, _size;
+	Render2::PNG _png;
+
+	Render2PNG() :
+			_TestW(37), _TestH(41),
+			_origin(0.6,0.7), _size(0.001, 0.01),
+			_png(_TestW, _TestH, _palette, -1) {};
+
+};
+
+TEST_F(Render2PNG, Works) {
+	Plot3Chunk chunk(NULL, &_fract, _TestW, _TestH, 0, 0, _origin, _size, 10);
+	chunk.run();
+	_png.process(chunk);
+	std::ostringstream pngout("");
+	_png.write(pngout);
+	std::istringstream pngin(pngout.str());
+	png::image< png::rgb_pixel > png2(pngin);
+}

@@ -21,6 +21,8 @@
 
 #include <list>
 #include <cairo/cairo.h>
+#include <png++/png.hpp>
+#include <stdio.h>
 #include "Fractal.h"
 #include "palette.h"
 #include "Plot3Chunk.h"
@@ -49,6 +51,14 @@ inline rgb render_pixel(const Fractal::PointData data, const int local_inf, cons
 
 
 class Generic {
+	/*
+	 * Generic rendering to a memory buffer.
+	 * Workflow:
+	 * 1. Allocate your buffer, should be at least (rowstride * height) bytes long.
+	 * 2. Instantiate this class
+	 * 3. Process your chunks
+	 * 4. When you're happy, do whatever is appropriate with the buffer.
+	 */
 	unsigned char *_buf;
 	const unsigned _rowstride, _width, _height, _local_inf;
 	const pixpack_format _fmt;
@@ -83,61 +93,39 @@ public:
 
 
 #if 0
-/*
- * The actual work of turning an array of fractal_points - maybe an antialiased
- * set - into a packed array of pixels to a given format.
- *
- * buf: Where to put the data. This should be at least
- * (rowstride * rctx->height) bytes long.
- *
- * rowstride: the size of an output row, in bytes. In other words the byte
- * offset from one row to the next - which may be different from
- * (bytes per pixel * rctx->rwidth) if any padding is required.
- *
- * local_inf: the local plot's current idea of infinity.
- * (N.B. -1 is always treated as infinity.)
- *
- * fmt: The byte format to use. This may be a CAIRO_FORMAT_* or our
- * internal PACKED_RGB_24 (used for png output).
- *
- * plot: The plot to render.
- *
- * rwidth, rheight: The actual rendering width and height as a sanity check
- *
- * factor: The antialias factor to use (usually 1 or 2; simple linear antialias)
- *
- * pal: The palette to use.
- *
- * Returns: True if the render completed, false if the plot disappeared under
- * our feet (typically by the user doing something to cause us to render
- * afresh).
- */
-	static bool render_generic(unsigned char *buf, const int rowstride, const int local_inf, pixpack_format fmt, Plot2& plot, unsigned rwidth, unsigned rheight, unsigned /*antialias*/factor, const BasePalette& pal);
-
 	/* Returns data for a single fractal point, identified by its pixel co-ordinates within a plot. */
 	static const Fractal::PointData& single_pixel_data(Plot2& plot, int x, int y, unsigned antialias_factor);
-
-	// Renders a single pixel, given the current idea of infinity and the palette to use.
-	static inline rgb render_pixel(const Fractal::PointData *data, const int local_inf, const BasePalette * pal) {
-		if (data->iter == local_inf || data->iter<0) {
-			return black; // from Palette
-		} else {
-			return pal->get(*data);
-		}
-	}
-
-	// Renders a plot as a PNG.
-	// FILE* f must be open in mode wb and ready to write.
-	// width and height are in pixels.
-	// plot and pal are the plot to render and palette to use.
-	// antialias is the antialias factor we're using (1 in most cases).
-	// Return: 0 for success, 1 for failure (in which case *error_string_o
-	// is updated to point to a description of the error).
-	static int save_as_png(FILE *f, const unsigned width, const unsigned height,
-			Plot2& plot, const BasePalette& pal, const int antialias,
-			const char** error_string_o);
 #endif
 
+};
+
+class PNG {
+	/*
+	 * Renders a plot as a PNG file.
+	 * Workflow:
+	 * 1. Determine your filename
+	 * 2. Instantiate this class
+	 * 3. Process your chunks
+	 * 4. Call write() when you're ready to write the PNG.
+	 *
+	 * Note that this class contains a nontrivial memory buffer throughout its lifetime.
+	 */
+	unsigned _width, _height, _local_inf, _rowstride;
+	const BasePalette& _pal;
+	png::image< png::rgb_pixel > _png;
+
+
+public:
+	/*
+	 * Width and height are in pixels.
+	 */
+	PNG(unsigned width, unsigned height, const BasePalette& palette, int local_inf);
+	virtual ~PNG();
+
+	virtual void process(const Plot3Chunk& chunk);
+
+	void write(const std::string& filename);
+	void write(std::ostream& ostream);
 };
 
 }; // namespace Render2
