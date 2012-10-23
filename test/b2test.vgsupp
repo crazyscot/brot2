@@ -182,6 +182,4 @@
    Memcheck:Cond
    fun:inflateReset2
    fun:inflateInit2_
-   fun:png_create_read_struct_2
-   fun:png_create_read_struct
 }
