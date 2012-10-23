@@ -73,9 +73,9 @@ namespace ChunkDivider {
 		 * sufficiently close in fractal-coordinates to where we computed
 		 * them to be (centre + size/2).
 		 */
-		const Fractal::Point lastSize(real(size),
-				imag(size) + imag(originalOrigin) - imag(origin));
-		{
+		if (lastPx > 0)	{
+			const Fractal::Point lastSize(real(size),
+					imag(size) + imag(originalOrigin) - imag(origin));
 			Plot3Chunk * chunk = new Plot3Chunk(s, f,
 					width, lastPx,
 					0, 10*nWhole,
