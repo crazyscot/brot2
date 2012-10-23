@@ -89,6 +89,20 @@ TEST_P(Render2TestFormatParam, AllMemTouched) {
 	_render->process(chunk);
 }
 
+class Render2MetaTest: public Render2Test {
+	/* This checks that we haven't accidentally broken the test mechanism... */
+	virtual void FinalExpectation(int fails) {
+		// Expect at least 1 failure. Should get the whole buffer failing.
+		ASSERT_EQ(_TestW*_TestH*(_rowstride/_TestW), fails) << "The whole buffer should have failed";
+	}
+};
+
+TEST_F(Render2MetaTest, TestTheTestware)
+{
+	/* No chunk, nothing to process - we expect the checker to report errors
+	 * See the doctored FinalExpectation above. */
+}
+
 INSTANTIATE_TEST_CASE_P(AllFormats, Render2TestFormatParam,
 	::testing::Values(Render2::pixpack_format::PACKED_RGB_24, CAIRO_FORMAT_ARGB32, CAIRO_FORMAT_RGB24));
 
