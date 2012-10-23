@@ -25,6 +25,14 @@
 
 namespace Render2 {
 
+void Base::process(const std::list<Plot3Chunk*>& chunks)
+{
+	std::list<Plot3Chunk*>::const_iterator it;
+	for (it = chunks.begin() ; it != chunks.end(); it++) {
+		process(**it);
+	}
+}
+
 Generic::Generic(unsigned char *buf, int rowstride, unsigned width, unsigned height,
 			const int local_inf, pixpack_format fmt, const BasePalette& pal) :
 			_buf(buf), _rowstride(rowstride), _width(width), _height(height),
@@ -92,14 +100,6 @@ void Generic::process(const Plot3Chunk& chunk)
 	}
 }
 
-void Generic::process(const std::list<Plot3Chunk*>& chunks)
-{
-	std::list<Plot3Chunk*>::const_iterator it;
-	for (it = chunks.begin() ; it != chunks.end(); it++) {
-		process(**it);
-	}
-}
-
 PNG::PNG(unsigned width, unsigned height,
 		const BasePalette& palette, int local_inf) :
 		_width(width), _height(height), _local_inf(local_inf),
@@ -147,4 +147,3 @@ void PNG::write(std::ostream& os)
 }
 
 }; // namespace Render2
-

@@ -49,8 +49,14 @@ inline rgb render_pixel(const Fractal::PointData data, const int local_inf, cons
 	}
 }
 
+class Base {
+public:
+	virtual void process(const Plot3Chunk& chunk) = 0;
+	virtual void process(const std::list<Plot3Chunk*>& chunks);
+	virtual ~Base() {}
+};
 
-class Generic {
+class Generic : public Base {
 	/*
 	 * Generic rendering to a memory buffer.
 	 * Workflow:
@@ -87,10 +93,8 @@ public:
 
 	virtual ~Generic();
 
-	void process(const Plot3Chunk& chunk);
-	void process(const std::list<Plot3Chunk*>& chunks);
-
-
+	using Base::process;
+	virtual void process(const Plot3Chunk& chunk);
 
 #if 0
 	/* Returns data for a single fractal point, identified by its pixel co-ordinates within a plot. */
@@ -99,7 +103,7 @@ public:
 
 };
 
-class PNG {
+class PNG : public Base {
 	/*
 	 * Renders a plot as a PNG file.
 	 * Workflow:
@@ -114,7 +118,6 @@ class PNG {
 	const BasePalette& _pal;
 	png::image< png::rgb_pixel > _png;
 
-
 public:
 	/*
 	 * Width and height are in pixels.
@@ -122,6 +125,7 @@ public:
 	PNG(unsigned width, unsigned height, const BasePalette& palette, int local_inf);
 	virtual ~PNG();
 
+	using Base::process;
 	virtual void process(const Plot3Chunk& chunk);
 
 	void write(const std::string& filename);
