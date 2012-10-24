@@ -27,6 +27,7 @@ CLEANFILES=
 noinst_LIBRARIES+=libjob/libjob.a
 
 libjob_libjob_a_SOURCES= \
+	 libjob/ThreadPool.h \
 	 libjob/IJob.h libjob/IJobEngine.h \
 	 libjob/SimpleJobEngine.h libjob/SimpleJobEngine.cpp \
 	 libjob/SimpleAsyncJobEngine.h libjob/SimpleAsyncJobEngine.cpp \
