@@ -52,6 +52,7 @@ libbrot2_libbrot2_a_SOURCES= \
 	libbrot2/logo.h $(top_builddir)/libbrot2/logo_auto.c \
 	libbrot2/palette.cpp libbrot2/palette.h \
 	libbrot2/Plot2.cpp libbrot2/Plot2.h \
+	libbrot2/Plot3Plot.cpp libbrot2/Plot3Plot.h \
 	libbrot2/Plot3Chunk.cpp libbrot2/Plot3Chunk.h \
 	libbrot2/Plot3Pass.cpp libbrot2/Plot3Pass.h \
 	libbrot2/IPlot3DataSink.h \

@@ -16,12 +16,12 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <glibmm.h>
 #include <unistd.h>
 #include <values.h>
 #include "Plot3Plot.h"
 #include "Prefs.h"
 #include "ChunkDivider.h"
+#include <thread>
 
 using namespace std;
 using namespace Fractal;
@@ -48,15 +48,16 @@ using namespace std;
 
 namespace Plot3 {
 
-Plot3Plot::Plot3Plot(IPlot3DataSink* s, FractalImpl& f,
+Plot3Plot::Plot3Plot(IPlot3DataSink* s, FractalImpl& f, ChunkDivider::Base& d,
 		Point centre, Point size,
 		unsigned width, unsigned height, unsigned max_passes) :
-		sink(s), fract(f), centre(centre), size(size),
+		sink(s), fract(f), divider(d), runner(&Plot3Plot::threadfunc,this),
+		centre(centre), size(size),
 		width(width), height(height),
 		prefs(Prefs::getMaster()),
+		_shutdown(false),
 		//plotted_maxiter(0), plotted_passes(0),
-		passes_max(max_passes),
-		_engine(0)
+		passes_max(max_passes)
 		//callback(0), _data(0), _abort(false), _done(false), _outstanding(0),
 		//_completed(0), jobs(0)
 {
@@ -100,97 +101,73 @@ string Plot3Plot::info(bool verbose) const {
 	return rv.str();
 }
 
-/* Starts a plot. An IJobEngine is created to do the actual work. */
-void Plot3Plot::start(ChunkDivider::Base& factory) {
- 	ASSERT(!_engine); // May not be null if a resume. Possibly need to delete first?
-
-	factory.dividePlot(_chunks, sink, fract, centre, size, width, height, passes_max);
-
-	std::list<Plot3Chunk*>::iterator it;
-	for (it=_chunks.begin(); it != _chunks.end(); it++) {
-		_jobs.push_back(*it);
-	}
-
-	_engine = new job::MultiThreadJobEngine(_jobs);
-	_engine->start();
+/* Starts a plot. The actual work happens in the background. */
+void Plot3Plot::start() {
+	divider.dividePlot(_chunks, sink, fract, centre, size, width, height, passes_max);
+	post_message(Message::GO);
 }
 
+/** Sends a message to the worker thread */
+void Plot3Plot::post_message(const Message& m) {
+	// TODO: Is there really only GO? If so then reduce complexity...
+	std::unique_lock<std::mutex> lock(_lock);
+	_messages.push(m);
+	_cond.notify_all();
+}
+
+/**
+ * Our message-processing worker thread
+ */
+void Plot3Plot::threadfunc() {
+	while(true) {
+		Message m;
+		{
+			std::unique_lock<std::mutex> lock(_lock);
+			while (_messages.empty()) {
+				_cond.wait(lock);
+				if (_shutdown) return;
+			}
+			m = _messages.front();
+			_messages.pop();
+		}
+		switch(m) {
+		case Message::GO:
+			run();
+			break;
+		}
+	}
+}
+
+/**
+ * The actual work of running a Plot. This happens in its own thread.
+ */
+void Plot3Plot::run() {
+	// HERE
+	// - set up a Pass
+	// - set up variables from P2 ?
+	// - are we nearly there yet?
+	// XXX check stop flag between passes
+}
+
+#if 0
 void Plot3Plot::stop() {
-	if (_engine)
-		_engine->stop(true);
+	// XXX set stop flag - run() should check it
 }
 
 void Plot3Plot::wait() {
-	if (_engine) {
-		_engine->wait();
-		delete _engine;
-		_engine = 0;
-	}
+	// XXX
 }
+#endif
 
 Plot3Plot::~Plot3Plot() {
-	stop();
-	wait();
-	//if (engine) delete engine;//implicit by wait()
+	_shutdown = true;
+	post_message(Message::GO);
+
 	std::list<Plot3Chunk*>::iterator it;
 	for (it=_chunks.begin(); it != _chunks.end(); it++) {
 		delete *it;
 	}
-	// No need to free up _jobs.
 }
-
-#if 0
-void Plot2::prepare()
-{
-	// Called with plot_lock held!
-	if (_data) delete[] _data;
-	_data = new PointData[width * height];
-
-	const Point _origin = origin(); // origin of the _whole plot_, not of firstrow
-	unsigned i,j, out_index = 0;
-	//std::cout << "render centre " << centre << "; size " << size << "; origin " << origin << std::endl;
-
-	Point colstep = Point(real(size) / width,0);
-	Point rowstep = Point(0, imag(size) / height);
-	//std::cout << "rowstep " << rowstep << "; colstep "<<colstep << std::endl;
-	Point render_point = _origin;
-
-	for (j=0; j<height; j++) {
-		for (i=0; i<width; i++) {
-			fract->prepare_pixel(render_point, _data[out_index]);
-			++out_index;
-			render_point += colstep;
-		}
-		render_point.real(real(_origin));
-		render_point += rowstep;
-	}
-
-	initial_maxiter = prefs->get(PREF(InitialMaxIter));
-	live_threshold = prefs->get(PREF(LiveThreshold));
-	minimum_escapee_percent = prefs->get(PREF(MinEscapeePct));
-}
-
-/* Converts an (x,y) pair on the render (say, from a mouse click) to their complex co-ordinates */
-Point Plot2::pixel_to_set(int x, int y) const
-{
-	if (x<0) x=0; else if ((unsigned)x>width) x=width;
-	if (y<0) y=0; else if ((unsigned)y>height) y=height;
-
-	const Value pixwide = real(size) / width,
-		  		 pixhigh  = imag(size) / height;
-	Point delta (x*pixwide, y*pixhigh);
-	return origin() + delta;
-}
-
-/* Returns data for a single point, identified by its pixel co-ordinates within the plot. Does NOT understand antialiasing. */
-const Fractal::PointData& Plot2::get_pixel_point(int x, int y)
-{
-	Glib::Mutex::Lock _auto(plot_lock);
-	ASSERT((unsigned)y < height);
-	ASSERT((unsigned)x < width);
-	return _data[y * width + x];
-}
-#endif
 
 void Plot3Plot::set_prefs(std::shared_ptr<const Prefs>& newprefs) {
 	prefs = newprefs;
@@ -202,9 +179,10 @@ void Plot3Plot::set_prefs(std::shared_ptr<Prefs>& newprefs) {
 	prefs = p2;
 }
 
+/* TODO
 unsigned Plot3Plot::chunks_outstanding() const {
 	return _jobs.size();
-}
+}*/
 
 unsigned Plot3Plot::chunks_total() const {
 	return _chunks.size();
