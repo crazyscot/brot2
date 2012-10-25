@@ -18,6 +18,8 @@
 #define _ISOC99_SOURCE
 #include <math.h>
 
+#include <list>
+#include <functional>
 #include "gtest/gtest.h"
 #include "libbrot2/Plot3Chunk.h"
 #include "libbrot2/ChunkDivider.h"
@@ -238,7 +240,28 @@ TEST_F(ChunkTest,WorksOnThreadPool) {
 	res.get();
 }
 
-// TODO multiple jobs at once.
+TEST_F(ChunkTest,ParallelThreadsWork) {
+	ThreadPool tp(2);
+	sink.reset(100,100);
+	list<TestPlot3Chunk> jobs;
+	list<future<void> > results;
+
+#define CHUNK(a,b,c,d) jobs.push_back(TestPlot3Chunk(a,b,c,d))
+	CHUNK(50,50, 0, 0);
+	CHUNK(50,50,50, 0);
+	CHUNK(50,50, 0,50);
+	CHUNK(50,50,50,50);
+#undef CHUNK
+
+	for (auto it = jobs.begin(); it != jobs.end(); it++) {
+		results.push_back(tp.enqueue<void>([=]{(*it).run();}));
+		// [=] -> pass by current value, which is what we want. Not by ref!!
+	}
+
+	for (auto it = results.begin(); it != results.end(); it++) {
+		(*it).get();
+	}
+}
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
