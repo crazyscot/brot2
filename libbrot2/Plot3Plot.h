@@ -39,6 +39,7 @@ public:
 	// TODO: Callbacks maj/min/complete - what are we donig with them?
 
 	/* What is this plot about? */
+	ThreadPool& _pool;
 	IPlot3DataSink* sink;
 	const Fractal::FractalImpl& fract;
 	const ChunkDivider::Base& divider;
@@ -57,21 +58,17 @@ public:
 
 	/* The real constructor may request the fractal to do any precomputation
 	 * necessary (known-blank regions, for example). */
-	Plot3Plot(IPlot3DataSink* s, Fractal::FractalImpl& f, ChunkDivider::Base& div,
+	Plot3Plot(ThreadPool& pool, IPlot3DataSink* s, Fractal::FractalImpl& f, ChunkDivider::Base& div,
 			Fractal::Point centre, Fractal::Point size, unsigned width, unsigned height, unsigned max_passes=0);
 	virtual ~Plot3Plot();
 
 	/* Starts a plot. The real work goes on asynchronously. */
 	void start();
-	// TODO: Resume ?
-
-	/* Blocks, waiting for all work to finish. It may be some time! */
-	//TODO? //void wait();
+	// TODO: Resume ? Is this part of start()?
 
 	/* Instructs the running plot to stop what it's doing ASAP.
-	 * Does NOT block; the plot may carry on for a little while.
-	 * If this is a problem, call wait() as well. */
-	//TODO? //void stop();
+	 * Does NOT block; the plot may carry on for a little while. */
+	void stop();
 
 	/* Snapshot count of the current state of play */
 	//TODO//unsigned chunks_outstanding() const;
@@ -85,6 +82,11 @@ protected:
 	std::shared_ptr<const Prefs> prefs; // Where to get our global settings from.
 
 	bool _shutdown; // Set only when we are being deleted
+	bool _live; // Set when we are running
+
+	/* Plot statistics: */
+	int plotted_maxiter; // How far did we get before bailing?
+	int plotted_passes; // How many passes before bailing?
 	unsigned passes_max; // Do we have an absolute limit on the number of passes?
 
 	void threadfunc(); // Worker thread function
@@ -93,7 +95,7 @@ protected:
 private:
 	std::list<Plot3Chunk*> _chunks;
 
-	/* Message passing within the class */
+	/* Message passing between threads within the class */
 	std::mutex _lock;
 	std::condition_variable _cond;
 	std::queue<Message> _messages;

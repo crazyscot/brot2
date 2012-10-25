@@ -22,9 +22,16 @@
 #include "Prefs.h"
 #include "ChunkDivider.h"
 #include <thread>
+#include "libjob/ThreadPool.h"
 
 using namespace std;
 using namespace Fractal;
+
+#if 0
+#define DEBUG_LIVECOUNT(x) x
+#else
+#define DEBUG_LIVECOUNT(x)
+#endif
 
 /* Judging the number of iterations and how to scale it on successive passes
  * is really tricky. Too many and it takes too long to get that first pass home;
@@ -48,15 +55,15 @@ using namespace std;
 
 namespace Plot3 {
 
-Plot3Plot::Plot3Plot(IPlot3DataSink* s, FractalImpl& f, ChunkDivider::Base& d,
+Plot3Plot::Plot3Plot(ThreadPool& pool, IPlot3DataSink* s, FractalImpl& f, ChunkDivider::Base& d,
 		Point centre, Point size,
 		unsigned width, unsigned height, unsigned max_passes) :
-		sink(s), fract(f), divider(d), runner(&Plot3Plot::threadfunc,this),
+		_pool(pool), sink(s), fract(f), divider(d), runner(&Plot3Plot::threadfunc,this),
 		centre(centre), size(size),
 		width(width), height(height),
 		prefs(Prefs::getMaster()),
-		_shutdown(false),
-		//plotted_maxiter(0), plotted_passes(0),
+		_shutdown(false), _live(false),
+		plotted_maxiter(0), plotted_passes(0),
 		passes_max(max_passes)
 		//callback(0), _data(0), _abort(false), _done(false), _outstanding(0),
 		//_completed(0), jobs(0)
@@ -119,7 +126,7 @@ void Plot3Plot::post_message(const Message& m) {
  * Our message-processing worker thread
  */
 void Plot3Plot::threadfunc() {
-	while(true) {
+	while(!_shutdown) {
 		Message m;
 		{
 			std::unique_lock<std::mutex> lock(_lock);
@@ -142,30 +149,90 @@ void Plot3Plot::threadfunc() {
  * The actual work of running a Plot. This happens in its own thread.
  */
 void Plot3Plot::run() {
-	// HERE
-	// - set up a Pass
-	// - set up variables from P2 ?
-	// - are we nearly there yet?
-	// XXX check stop flag between passes
+	Plot3Pass pass(_pool, _chunks);
+	unsigned live_pixels = width * height, live_pixels_prev;
+	float live_threshold = prefs->get(PREF(LiveThreshold));
+	unsigned minimum_escapee_percent = prefs->get(PREF(MinEscapeePct));
+	unsigned delta_threshold = width * height * live_threshold;
+
+	unsigned this_pass_maxiter = prefs->get(PREF(InitialMaxIter)),
+			last_pass_maxiter = plotted_maxiter,
+			maxiter_scale = 0,
+			passcount = plotted_passes;
+
+	_live = true;
+
+	if (last_pass_maxiter) {
+		if (passcount&1)
+			maxiter_scale = last_pass_maxiter/2;
+		else
+			maxiter_scale = last_pass_maxiter/3;
+		this_pass_maxiter = last_pass_maxiter + maxiter_scale;
+		if (this_pass_maxiter >= (INT_MAX/2))
+			_live=false;
+	}
+
+	while (_live & !_shutdown) {
+		for (auto chunk : _chunks)
+			chunk->reset_max_passes(this_pass_maxiter);
+
+		pass.run();
+
+		live_pixels_prev = live_pixels;
+		live_pixels = 0;
+		for (auto chunk : _chunks)
+			live_pixels += chunk->livecount();
+		unsigned pixel_threshold = width * height * (100-minimum_escapee_percent) / 100;
+		DEBUG_LIVECOUNT(printf("total %u live pixels remain, threshold=%u\n", live_pixels, pixel_threshold));
+		if (live_pixels < pixel_threshold) {
+			unsigned delta = live_pixels_prev - live_pixels;
+			if (delta < delta_threshold) {
+				_live = false;
+				DEBUG_LIVECOUNT(printf("Threshold hit (only %d changed) - halting\n",live_pixels_prev - live_pixels));
+			} else if (delta < 2*delta_threshold) {
+				// This idea lifted from fanf's code.
+				// Close enough unless it suddenly speeds up again next run?
+				delta_threshold *= 2;
+				DEBUG_LIVECOUNT(std::cout << "Delta " << delta << " getting close to threshold " << delta_threshold << " - doubling threshold" << std::endl);
+			} else {
+				DEBUG_LIVECOUNT(std::cout << "Delta " << delta << " < threshold " << delta_threshold << " - still going" << std::endl);
+			}
+		}
+
+		if (_live) {
+			// How many pixels are live?
+			ostringstream info;
+			info << "Pass " << passcount << ": maxiter=" << this_pass_maxiter;
+			info << ": " << live_pixels << " pixels live";
+			string infos = info.str();
+			// XXX Notify pass completion, send infos somewhere.
+		}
+
+		last_pass_maxiter = this_pass_maxiter;
+		if (passcount & 1) maxiter_scale = this_pass_maxiter / 2;
+		this_pass_maxiter += maxiter_scale;
+		if (this_pass_maxiter >= (INT_MAX/2)) _live=false; // lest we overflow
+	}
+	plotted_maxiter = last_pass_maxiter;
+	plotted_passes = passcount;
+
+	// Any pixel still alive is considered to be infinite.
+	// P3Chunk ensures that the point data is set up correctly for this.
+
+	// XXX Notify completion / stop.
+	_live = false;
 }
 
-#if 0
 void Plot3Plot::stop() {
-	// XXX set stop flag - run() should check it
+	_live = false; // We'll notify when we've actually stopped.
 }
-
-void Plot3Plot::wait() {
-	// XXX
-}
-#endif
 
 Plot3Plot::~Plot3Plot() {
 	_shutdown = true;
 	post_message(Message::GO);
-
-	std::list<Plot3Chunk*>::iterator it;
-	for (it=_chunks.begin(); it != _chunks.end(); it++) {
-		delete *it;
+	runner.join();
+	for (auto it: _chunks) {
+		delete it;
 	}
 }
 
@@ -179,7 +246,7 @@ void Plot3Plot::set_prefs(std::shared_ptr<Prefs>& newprefs) {
 	prefs = p2;
 }
 
-/* TODO
+/* TODO if needed
 unsigned Plot3Plot::chunks_outstanding() const {
 	return _jobs.size();
 }*/
