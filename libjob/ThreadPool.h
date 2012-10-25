@@ -1,6 +1,6 @@
 /*
- * This file is the result of combining COPYING and ThreadPool.h from
- * https://github.com/progschj/ThreadPool
+ * This file is the result of combining COPYING and (parts of) ThreadPool.h
+ * from https://github.com/progschj/ThreadPool
  * -wry
  */
 
@@ -73,7 +73,7 @@ private:
 };
 
 class ThreadPool;
- 
+
 // our worker thread objects
 class Worker {
 public:
@@ -103,30 +103,6 @@ private:
     std::condition_variable condition;
     bool stop;
 };
- 
-void Worker::operator()()
-{
-    while(true)
-    {
-        std::unique_lock<std::mutex> lock(pool.queue_mutex);
-        while(!pool.stop && pool.tasks.empty())
-            pool.condition.wait(lock);
-        if(pool.stop)
-            return;
-        any_packaged_task task(pool.tasks.front());
-        pool.tasks.pop_front();
-        lock.unlock();
-        task();
-    }
-}
- 
-// the constructor just launches some amount of workers
-ThreadPool::ThreadPool(size_t threads)
-    :   stop(false)
-{
-    for(size_t i = 0;i<threads;++i)
-        workers.push_back(std::thread(Worker(*this)));
-}
 
 // add new work item to the pool
 template<class T, class F>
@@ -140,15 +116,6 @@ std::future<T> ThreadPool::enqueue(F f)
     }
     condition.notify_one();
     return res;
-}
- 
-// the destructor joins all threads
-ThreadPool::~ThreadPool()
-{
-    stop = true;
-    condition.notify_all();
-    for(size_t i = 0;i<workers.size();++i)
-        workers[i].join();
 }
 
 #endif
