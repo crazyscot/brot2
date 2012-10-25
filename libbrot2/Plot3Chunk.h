@@ -19,15 +19,13 @@
 #ifndef PLOT3CHUNK_H_
 #define PLOT3CHUNK_H_
 
-#include "libjob/IJob.h"
-#include "libjob/IJobEngine.h"
 #include "Fractal.h"
 
 namespace Plot3 {
 
 class IPlot3DataSink;
 
-class Plot3Chunk : public job::IJob {
+class Plot3Chunk {
 public:
 	// If sink is not null, we will pass our result data to it when complete.
 	Plot3Chunk(IPlot3DataSink* sink, const Fractal::FractalImpl* f,
@@ -38,7 +36,6 @@ public:
 	virtual ~Plot3Chunk();
 
 	virtual void run();
-	virtual void run(job::IJobEngine& engine);
 protected:
 	virtual void prepare();
 	virtual void plot();

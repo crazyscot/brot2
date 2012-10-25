@@ -66,10 +66,6 @@ const Fractal::PointData& Plot3Chunk::get_pixel_point(int x, int y) const
 	return _data[y * _width + x];
 }
 
-void Plot3Chunk::run(job::IJobEngine&) {
-	run();
-}
-
 void Plot3Chunk::run() {
 	ASSERT(!_running);
 	_running = true;
