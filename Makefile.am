@@ -53,6 +53,7 @@ libbrot2_libbrot2_a_SOURCES= \
 	libbrot2/palette.cpp libbrot2/palette.h \
 	libbrot2/Plot2.cpp libbrot2/Plot2.h \
 	libbrot2/Plot3Chunk.cpp libbrot2/Plot3Chunk.h \
+	libbrot2/Plot3Pass.cpp libbrot2/Plot3Pass.h \
 	libbrot2/IPlot3DataSink.h \
 	libbrot2/ChunkDivider.h libbrot2/ChunkDivider.cpp \
 	libbrot2/Render.h libbrot2/Render.cpp \

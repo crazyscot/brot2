@@ -20,13 +20,18 @@
 
 #include <list>
 #include <functional>
+#include <thread>
+#include <chrono>
+
 #include "gtest/gtest.h"
 #include "libbrot2/Plot3Chunk.h"
 #include "libbrot2/ChunkDivider.h"
 #include "libbrot2/IPlot3DataSink.h"
 #include "libbrot2/Plot3Plot.h"
-#include "MockFractal.h"
+#include "libbrot2/Plot3Pass.h"
 #include "libjob/ThreadPool.h"
+#include "MockFractal.h"
+#include "Exception.h"
 
 using namespace std;
 using namespace Plot3;
@@ -261,6 +266,89 @@ TEST_F(ChunkTest,ParallelThreadsWork) {
 	for (auto it = results.begin(); it != results.end(); it++) {
 		(*it).get();
 	}
+}
+
+
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+class TrickExplodingChunk : public Plot3Chunk {
+public:
+	TrickExplodingChunk(Plot3Chunk& other) : Plot3Chunk(other) {}
+	void plot() {
+		throw Exception("my hovercraft is full of eels");
+	}
+};
+
+class SlowChunk : public Plot3Chunk {
+	int delay;
+public:
+	SlowChunk(Plot3Chunk& other, int delay_ms) : Plot3Chunk(other), delay(delay_ms) {}
+	void plot() {
+		std::this_thread::sleep_for(std::chrono::milliseconds(delay));
+		Plot3Chunk::plot();
+	}
+};
+
+class Plot3PassTest : public ChunkTest {
+protected:
+	ThreadPool pool;
+
+	Plot3PassTest(): pool(1) {}
+};
+
+TEST_F(Plot3PassTest, Basics) {
+	chunk = new TestPlot3Chunk(1,1,0,0);
+	sink.reset(1,1);
+
+	std::list<Plot3Chunk*> list;
+	list.push_back(chunk);
+	Plot3Pass pass(pool, list);
+	pass.run();
+}
+
+TEST_F(Plot3PassTest, AllChunksOnce) {
+	sink.reset(10,10);
+	TestPlot3Chunk chunk1(7,7,0,0);
+	TestPlot3Chunk chunk2(7,3,0,7);
+	TestPlot3Chunk chunk3(3,7,7,0);
+	TestPlot3Chunk chunk4(3,3,7,7);
+
+	std::list<Plot3Chunk*> list;
+	list.push_back(&chunk1);
+	list.push_back(&chunk2);
+	list.push_back(&chunk3);
+	list.push_back(&chunk4);
+
+	Plot3Pass pass(pool, list);
+	pass.run();
+}
+
+TEST_F(Plot3PassTest, ExceptionsPropagate) {
+	sink.reset(1,1);
+	TestPlot3Chunk chunk1(1,1,0,0);
+	TrickExplodingChunk chunk2(chunk1);
+
+	std::list<Plot3Chunk*> list;
+	list.push_back(&chunk1);
+	list.push_back(&chunk2);
+	// Subtlety: Non-excepting chunks work as expected, the exception doesn't throw them.
+
+	Plot3Pass pass(pool, list);
+	EXPECT_THROW(pass.run(), Exception);
+}
+
+TEST_F(Plot3PassTest, BasicConcurrencyCheck) {
+	// This provides some assurance that we haven't gone crazy and started
+	// returning before all the chunks are cooked.
+	sink.reset(2,2);
+	TestPlot3Chunk tmpl(2,2,0,0);
+	SlowChunk chunk(tmpl,1000);
+
+	std::list<Plot3Chunk*> list;
+	list.push_back(&chunk);
+
+	Plot3Pass pass(pool, list);
+	pass.run();
 }
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
