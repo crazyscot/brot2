@@ -22,7 +22,7 @@
 	void _NAME::dividePlot(std::list<Plot3Chunk*>& list_o,			\
 			IPlot3DataSink* s, const Fractal::FractalImpl& f,		\
 			Fractal::Point centre, Fractal::Point size,				\
-			unsigned width, unsigned height, unsigned max_passes)
+			unsigned width, unsigned height, unsigned max_passes) const
 	/*
 	 * e.g.
 	 * _CD__BODY(foo) {

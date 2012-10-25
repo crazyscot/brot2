@@ -36,7 +36,7 @@ namespace ChunkDivider {
 		virtual void dividePlot(std::list<Plot3Chunk*>& list_o,
 				IPlot3DataSink* s, const Fractal::FractalImpl& f,
 				Fractal::Point centre, Fractal::Point size,
-				unsigned width, unsigned height, unsigned max_passes) = 0;
+				unsigned width, unsigned height, unsigned max_passes) const = 0;
 
 		virtual ~Base() {}
 	};
@@ -47,7 +47,7 @@ namespace ChunkDivider {
 		virtual void dividePlot(std::list<Plot3Chunk*>& list_o,			\
 				IPlot3DataSink* s, const Fractal::FractalImpl& f,		\
 				Fractal::Point centre, Fractal::Point size,				\
-				unsigned width, unsigned height, unsigned max_passes);	\
+				unsigned width, unsigned height, unsigned max_passes) const;	\
 	}
 
 	_CD_INSTANCE(OneChunk);
