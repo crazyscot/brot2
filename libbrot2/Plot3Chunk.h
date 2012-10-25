@@ -74,6 +74,7 @@ public:
 	 * Call this before completion at your peril... */
 	const Fractal::PointData& get_pixel_point(int x, int y) const;
 
+	/** Updates our idea of the iteration limit */
 	void reset_max_passes(unsigned max);
 };
 

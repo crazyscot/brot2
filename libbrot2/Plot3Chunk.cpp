@@ -30,7 +30,7 @@ Plot3Chunk::Plot3Chunk(IPlot3DataSink* sink, const Fractal::FractalImpl& f,
 		const Fractal::Point origin, const Fractal::Point size,
 		unsigned max_passes) :
 		_sink(sink), _data(NULL), _running(false), _prepared(false),
-		_live_pixels(0), _max_passes(max_passes),
+		_plotted_passes(0), _live_pixels(0), _max_passes(max_passes),
 		_fract(f),
 		_origin(origin),
 		_size(size),
@@ -44,7 +44,7 @@ Plot3Chunk::Plot3Chunk(IPlot3DataSink* sink, const Fractal::FractalImpl& f,
 
 Plot3Chunk::Plot3Chunk(const Plot3Chunk& other) :
 		_sink(other._sink), _data(NULL), _running(false), _prepared(false),
-		_live_pixels(0), _max_passes(other._max_passes),
+		_plotted_passes(0), _live_pixels(0), _max_passes(other._max_passes),
 		_fract(other._fract), _origin(other._origin), _size(other._size),
 		_width(other._width), _height(other._height), _offX(other._offX), _offY(other._offY)
 {
@@ -110,8 +110,17 @@ void Plot3Chunk::plot() {
 			PointData& pt = _data[out_index];
 			if (!pt.nomore) {
 				_fract.plot_pixel(_max_passes, pt);
-				if (pt.nomore)
+				if (pt.nomore) {
+					// point has escaped
 					--_live_pixels;
+					if (pt.iterf <= Fractal::PointData::ITERF_LOW_CLAMP)
+						pt.iterf = Fractal::PointData::ITERF_LOW_CLAMP;
+				}
+				else {
+					// still alive, but has reached the current iteration
+					// limit so is effectively infinite (for now)
+					pt.iter = pt.iterf = -1;
+				}
 			}
 			++out_index;
 		}
