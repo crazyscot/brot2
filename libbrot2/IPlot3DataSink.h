@@ -19,6 +19,8 @@
 #ifndef IPLOT3DATASINK_H_
 #define IPLOT3DATASINK_H_
 
+namespace Plot3 {
+
 class IPlot3DataSink {
 public:
 	/* Signals that a chunk is complete. The implementor is responsible for any sort
@@ -27,5 +29,7 @@ public:
 
 	virtual ~IPlot3DataSink() {}
 };
+
+}
 
 #endif /* IPLOT3DATASINK_H_ */

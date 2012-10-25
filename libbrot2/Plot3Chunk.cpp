@@ -23,6 +23,8 @@
 
 using namespace Fractal;
 
+namespace Plot3 {
+
 Plot3Chunk::Plot3Chunk(IPlot3DataSink* sink, const Fractal::FractalImpl* f,
 		unsigned width, unsigned height, unsigned offX, unsigned offY,
 		const Fractal::Point origin, const Fractal::Point size,
@@ -124,3 +126,5 @@ void Plot3Chunk::reset_max_passes(unsigned max) {
 	ASSERT(!_running);
 	_max_passes = max;
 }
+
+} // namespace Plot3

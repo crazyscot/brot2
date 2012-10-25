@@ -23,6 +23,8 @@
 #include "libjob/IJobEngine.h"
 #include "Fractal.h"
 
+namespace Plot3 {
+
 class IPlot3DataSink;
 
 class Plot3Chunk : public job::IJob {
@@ -77,5 +79,7 @@ public:
 
 	void reset_max_passes(unsigned max);
 };
+
+} // namespace Plot3
 
 #endif /* PLOT3CHUNK_H_ */

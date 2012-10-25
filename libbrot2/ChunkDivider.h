@@ -23,7 +23,10 @@
 #include "Plot3Chunk.h"
 #include "Fractal.h"
 
+namespace Plot3 {
+
 namespace ChunkDivider {
+
 	class Base {
 		public:
 		/*
@@ -51,6 +54,8 @@ namespace ChunkDivider {
 	_CD_INSTANCE(Horizontal10px);
 
 #undef _CD_INSTANCE
-};
+} // Plot3::ChunkDivider
+
+} // Plot3
 
 #endif // CHUNKDIVIDER_H_

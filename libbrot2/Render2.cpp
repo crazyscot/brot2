@@ -25,6 +25,8 @@
 
 namespace Render2 {
 
+using namespace Plot3;
+
 void Base::process(const std::list<Plot3Chunk*>& chunks)
 {
 	std::list<Plot3Chunk*>::const_iterator it;

@@ -46,6 +46,8 @@ using namespace Fractal;
 
 using namespace std;
 
+namespace Plot3 {
+
 Plot3::Plot3(IPlot3DataSink* s, FractalImpl* f, Point centre, Point size,
 		unsigned width, unsigned height, unsigned max_passes) :
 		sink(s), fract(f), centre(centre), size(size),
@@ -207,3 +209,4 @@ unsigned Plot3::chunks_total() const {
 	return _chunks.size();
 }
 
+} // namespace Plot3

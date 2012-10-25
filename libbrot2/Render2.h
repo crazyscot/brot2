@@ -29,6 +29,8 @@
 
 namespace Render2 {
 
+using namespace Plot3;
+
 const int RGB_BYTES_PER_PIXEL = 3;
 
 class pixpack_format {

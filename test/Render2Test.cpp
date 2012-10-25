@@ -23,6 +23,8 @@
 #include "MockPalette.h"
 #include "Render2.h"
 
+using namespace Plot3;
+
 class Render2Test: public ::testing::Test {
 	/* This checks that Render touches every pixel in the output buffer. */
 protected:

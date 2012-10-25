@@ -24,10 +24,13 @@
 #include "noncopyable.hpp"
 #include "Fractal.h"
 #include "Plot3Chunk.h"
+#include "IPlot3DataSink.h"
 #include "ChunkDivider.h"
 #include "MultiThreadJobEngine.h"
 
 class Prefs;
+
+namespace Plot3 {
 
 class Plot3 : boost::noncopyable {
 public:
@@ -163,5 +166,6 @@ private:
 #endif
 };
 
+} // namespace Plot3
 
 #endif /* PLOT3_H_ */

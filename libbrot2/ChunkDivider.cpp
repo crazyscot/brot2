@@ -34,6 +34,7 @@
 #include "Plot3Chunk.h"
 #include "Fractal.h"
 
+namespace Plot3 {
 namespace ChunkDivider {
 	_CD__BODY(OneChunk) {
 		Fractal::Point origin(centre - size / 2.0);
@@ -86,4 +87,5 @@ namespace ChunkDivider {
 	}
 	// TODO: Vertical slices, horizontal, awkward asymmetric, square superpixels...
 
-};
+} // Plot3::ChunkDivider
+} // Plot3
