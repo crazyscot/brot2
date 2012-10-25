@@ -22,7 +22,7 @@
 #include "libbrot2/Plot3Chunk.h"
 #include "libbrot2/ChunkDivider.h"
 #include "libbrot2/IPlot3DataSink.h"
-#include "libbrot2/Plot3.h"
+#include "libbrot2/Plot3Plot.h"
 #include "MockFractal.h"
 #include "libjob/SimpleJobEngine.h"
 

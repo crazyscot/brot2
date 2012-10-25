@@ -19,7 +19,7 @@
 #include <glibmm.h>
 #include <unistd.h>
 #include <values.h>
-#include "Plot3.h"
+#include "Plot3Plot.h"
 #include "Prefs.h"
 #include "ChunkDivider.h"
 
