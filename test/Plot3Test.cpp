@@ -24,8 +24,9 @@
 #include "libbrot2/IPlot3DataSink.h"
 #include "libbrot2/Plot3Plot.h"
 #include "MockFractal.h"
-#include "libjob/SimpleJobEngine.h"
+#include "libjob/ThreadPool.h"
 
+using namespace std;
 using namespace Plot3;
 
 class TestPlot3Chunk : public Plot3Chunk {
@@ -127,7 +128,7 @@ public:
 		int nfailed = false;
 		for (unsigned j=0; j<job->_height; j++) {
 			for (unsigned i=0; i<job->_width; i++) {
-				int addr = ( (job->_offY + j) * job->_width ) + job->_offX + i;
+				int addr = ( (job->_offY + j) * _width ) + job->_offX + i;
 				if (pixels_touched[addr]) {
 					_double_touched++;
 					nfailed++;
@@ -225,6 +226,19 @@ TEST_F(ChunkTest, ReuseChunk) {
 	sink.reset();
 	chunk->run();
 }
+
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+TEST_F(ChunkTest,WorksOnThreadPool) {
+	TestPlot3Chunk chunk(100,100,0,0);
+	sink.reset(100,100);
+	ThreadPool tp(1);
+	// A std::future for... nothing?! But it seems to work:
+	auto res = tp.enqueue<void>([&]{chunk.run();});
+	res.get();
+}
+
+// TODO multiple jobs at once.
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
