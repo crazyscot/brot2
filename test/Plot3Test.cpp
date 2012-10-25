@@ -1,4 +1,4 @@
-/*  Plot3Test: Unit tests for Plot3 and related classes
+/*  Plot3Test: Unit tests for Plot3Plot and related classes
     Copyright (C) 2012 Ross Younger
 
     This program is free software: you can redistribute it and/or modify
@@ -234,12 +234,12 @@ class Plot3Test: public ::testing::Test {
 protected:
 	MockFractal fract;
 	TestSink sink;
-	Plot3::Plot3 *p3;
+	Plot3::Plot3Plot *p3;
 
 	Plot3Test() : sink(101,199) {}
 
 	virtual void SetUp() {
-		p3 = new Plot3::Plot3(&sink, &fract,
+		p3 = new Plot3::Plot3Plot(&sink, &fract,
 				Fractal::Point(-0.4,-0.4),
 				Fractal::Point(0.01,0.01),
 				101, 199, 10);
@@ -277,7 +277,7 @@ class ChunkDividerTest : public ::testing::Test {
 	protected:
 		MockFractal fract;
 		TestSink sink;
-		Plot3::Plot3 *p3;
+		Plot3::Plot3Plot *p3;
 		Fractal::Point centre, size;
 
 		ChunkDividerTest() : sink(0,0)/*update later*/, p3(0),
@@ -294,7 +294,7 @@ class ChunkDividerTest : public ::testing::Test {
 		}
 		void test(int _x, int _y) {
 			this->sink.reset(_x,_y);
-			this->p3 = new Plot3::Plot3(&this->sink, &this->fract,
+			this->p3 = new Plot3::Plot3Plot(&this->sink, &this->fract,
 					this->centre, this->size, _x, _y, 10);
 			this->p3->start(this->divider);
 			this->p3->wait();

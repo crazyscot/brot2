@@ -32,7 +32,7 @@ class Prefs;
 
 namespace Plot3 {
 
-class Plot3 : boost::noncopyable {
+class Plot3Plot : boost::noncopyable {
 public:
 	// TODO: Callbacks maj/min/complete - what are we donig with them?
 
@@ -48,8 +48,8 @@ public:
 
 	/* The constructor may request the fractal to do any precomputation
 	 * necessary (known-blank regions, for example). */
-	Plot3(IPlot3DataSink* s, Fractal::FractalImpl* f, Fractal::Point centre, Fractal::Point size, unsigned width, unsigned height, unsigned max_passes=0);
-	virtual ~Plot3();
+	Plot3Plot(IPlot3DataSink* s, Fractal::FractalImpl* f, Fractal::Point centre, Fractal::Point size, unsigned width, unsigned height, unsigned max_passes=0);
+	virtual ~Plot3Plot();
 
 	/* Starts a plot. An IJobEngine is created to do the actual work.
 	 * `divider' is a factory to turn the plot into a load of chunks.

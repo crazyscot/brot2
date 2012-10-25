@@ -1,5 +1,5 @@
 /*
-    Plot3Chunk.h: A piece of a Plot3.
+    Plot3Chunk.h: A piece of a Plot3Plot.
     Copyright (C) 2012 Ross Younger
 
     This program is free software: you can redistribute it and/or modify

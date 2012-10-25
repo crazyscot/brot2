@@ -1,5 +1,5 @@
 /*
-    Plot3.cpp: Fractal plotting engine (third version)
+    Plot3Plot.cpp: Fractal plotting engine (third version)
     Copyright (C) 2012 Ross Younger
 
     This program is free software: you can redistribute it and/or modify
@@ -48,7 +48,7 @@ using namespace std;
 
 namespace Plot3 {
 
-Plot3::Plot3(IPlot3DataSink* s, FractalImpl* f, Point centre, Point size,
+Plot3Plot::Plot3Plot(IPlot3DataSink* s, FractalImpl* f, Point centre, Point size,
 		unsigned width, unsigned height, unsigned max_passes) :
 		sink(s), fract(f), centre(centre), size(size),
 		width(width), height(height),
@@ -63,7 +63,7 @@ Plot3::Plot3(IPlot3DataSink* s, FractalImpl* f, Point centre, Point size,
 		passes_max = (unsigned)-1;
 }
 
-string Plot3::info(bool verbose) const {
+string Plot3Plot::info(bool verbose) const {
 	std::ostringstream rv;
 	/* LP#783087:
 	 * Compute the size of a pixel in fractal units, then work out the
@@ -100,7 +100,7 @@ string Plot3::info(bool verbose) const {
 }
 
 /* Starts a plot. An IJobEngine is created to do the actual work. */
-void Plot3::start(ChunkDivider::Base& factory) {
+void Plot3Plot::start(ChunkDivider::Base& factory) {
  	ASSERT(!_engine); // May not be null if a resume. Possibly need to delete first?
 
 	factory.dividePlot(_chunks, sink, fract, centre, size, width, height, passes_max);
@@ -114,12 +114,12 @@ void Plot3::start(ChunkDivider::Base& factory) {
 	_engine->start();
 }
 
-void Plot3::stop() {
+void Plot3Plot::stop() {
 	if (_engine)
 		_engine->stop(true);
 }
 
-void Plot3::wait() {
+void Plot3Plot::wait() {
 	if (_engine) {
 		_engine->wait();
 		delete _engine;
@@ -127,7 +127,7 @@ void Plot3::wait() {
 	}
 }
 
-Plot3::~Plot3() {
+Plot3Plot::~Plot3Plot() {
 	stop();
 	wait();
 	//if (engine) delete engine;//implicit by wait()
@@ -191,21 +191,21 @@ const Fractal::PointData& Plot2::get_pixel_point(int x, int y)
 }
 #endif
 
-void Plot3::set_prefs(std::shared_ptr<const Prefs>& newprefs) {
+void Plot3Plot::set_prefs(std::shared_ptr<const Prefs>& newprefs) {
 	prefs = newprefs;
 }
 
-void Plot3::set_prefs(std::shared_ptr<Prefs>& newprefs) {
+void Plot3Plot::set_prefs(std::shared_ptr<Prefs>& newprefs) {
 	// We don't need to write to it...
 	std::shared_ptr<const Prefs> p2(newprefs);
 	prefs = p2;
 }
 
-unsigned Plot3::chunks_outstanding() const {
+unsigned Plot3Plot::chunks_outstanding() const {
 	return _jobs.size();
 }
 
-unsigned Plot3::chunks_total() const {
+unsigned Plot3Plot::chunks_total() const {
 	return _chunks.size();
 }
 
