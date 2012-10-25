@@ -28,7 +28,7 @@ class IPlot3DataSink;
 class Plot3Chunk {
 public:
 	// If sink is not null, we will pass our result data to it when complete.
-	Plot3Chunk(IPlot3DataSink* sink, const Fractal::FractalImpl* f,
+	Plot3Chunk(IPlot3DataSink* sink, const Fractal::FractalImpl& f,
 			unsigned width, unsigned height, unsigned offX, unsigned offY,
 			const Fractal::Point origin, const Fractal::Point size,
 			unsigned max_passes=0);
@@ -54,7 +54,7 @@ private:
 
 public:
 	/* What is this chunk about? */
-	const Fractal::FractalImpl* _fract;
+	const Fractal::FractalImpl& _fract;
 	const Fractal::Point _origin, _size; // Origin co-ordinates; axis length (cannot be 0 in either dimension)
 	const unsigned _width, _height; // plot size in pixels, starting from 0
 	const unsigned _offX, _offY; // This chunk's pixel offset into the plot

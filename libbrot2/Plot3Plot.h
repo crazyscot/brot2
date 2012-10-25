@@ -38,7 +38,7 @@ public:
 
 	/* What is this plot about? */
 	IPlot3DataSink* sink;
-	const Fractal::FractalImpl* fract;
+	const Fractal::FractalImpl& fract;
 	const Fractal::Point centre, size; // Centre co-ordinates; axis length
 	const unsigned width, height; // plot size in pixels
 	const Fractal::Point origin() const { return centre - size/(Fractal::Value)2.0; }
@@ -48,7 +48,8 @@ public:
 
 	/* The constructor may request the fractal to do any precomputation
 	 * necessary (known-blank regions, for example). */
-	Plot3Plot(IPlot3DataSink* s, Fractal::FractalImpl* f, Fractal::Point centre, Fractal::Point size, unsigned width, unsigned height, unsigned max_passes=0);
+	Plot3Plot(IPlot3DataSink* s, Fractal::FractalImpl& f,
+			Fractal::Point centre, Fractal::Point size, unsigned width, unsigned height, unsigned max_passes=0);
 	virtual ~Plot3Plot();
 
 	/* Starts a plot. An IJobEngine is created to do the actual work.

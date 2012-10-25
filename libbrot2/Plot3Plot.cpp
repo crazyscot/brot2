@@ -48,7 +48,8 @@ using namespace std;
 
 namespace Plot3 {
 
-Plot3Plot::Plot3Plot(IPlot3DataSink* s, FractalImpl* f, Point centre, Point size,
+Plot3Plot::Plot3Plot(IPlot3DataSink* s, FractalImpl& f,
+		Point centre, Point size,
 		unsigned width, unsigned height, unsigned max_passes) :
 		sink(s), fract(f), centre(centre), size(size),
 		width(width), height(height),
@@ -74,7 +75,7 @@ string Plot3Plot::info(bool verbose) const {
 	const int clampx = 1+ceill(0-log10(xpixsize)),
 		      clampy = 1+ceill(0-log10(ypixsize));
 
-	rv << fract->name << "@(";
+	rv << fract.name << "@(";
 	rv.precision(clampx);
 	rv << real(centre) << ", ";
 	rv.precision(clampy);

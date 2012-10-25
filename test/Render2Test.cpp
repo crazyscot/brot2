@@ -85,7 +85,7 @@ protected:
 };
 
 TEST_P(Render2TestFormatParam, AllMemTouched) {
-	Plot3Chunk chunk(NULL, &_fract, _TestW, _TestH, 0, 0, _origin, _size, 10);
+	Plot3Chunk chunk(NULL, _fract, _TestW, _TestH, 0, 0, _origin, _size, 10);
 	chunk.run();
 	_render->process(chunk);
 }
@@ -118,7 +118,7 @@ TEST_F(Render2Test, ChunkOffsetsWork) {
 	 */
 	std::list<Plot3Chunk> chunks;
 	std::list<Plot3Chunk>::iterator it;
-#define CHUNK(X,Y,W,H) chunks.push_back(Plot3Chunk(NULL, &_fract, W,H, X,Y, _origin, _size, 10))
+#define CHUNK(X,Y,W,H) chunks.push_back(Plot3Chunk(NULL, _fract, W,H, X,Y, _origin, _size, 10))
 	CHUNK(0,0,                 _TestW-10, _TestH-15);
 	CHUNK(_TestW-10,0,         10, _TestH-15);
 
@@ -166,7 +166,7 @@ protected:
 };
 
 TEST_F(Render2PNG, Works) {
-	Plot3Chunk chunk(NULL, &_fract, _TestW, _TestH, 0, 0, _origin, _size, 10);
+	Plot3Chunk chunk(NULL, _fract, _TestW, _TestH, 0, 0, _origin, _size, 10);
 	chunk.run();
 	_png.process(chunk);
 }
@@ -182,7 +182,7 @@ TEST_F(Render2PNG, ChunkOffsetsWork) {
 	 */
 	std::list<Plot3Chunk> chunks;
 	std::list<Plot3Chunk>::iterator it;
-#define CHUNK(X,Y,W,H) chunks.push_back(Plot3Chunk(NULL, &_fract, W,H, X,Y, _origin, _size, 10))
+#define CHUNK(X,Y,W,H) chunks.push_back(Plot3Chunk(NULL, _fract, W,H, X,Y, _origin, _size, 10))
 	CHUNK(0,0,                 _TestW-10, _TestH-15);
 	CHUNK(_TestW-10,0,         10, _TestH-15);
 

@@ -25,7 +25,7 @@ using namespace Fractal;
 
 namespace Plot3 {
 
-Plot3Chunk::Plot3Chunk(IPlot3DataSink* sink, const Fractal::FractalImpl* f,
+Plot3Chunk::Plot3Chunk(IPlot3DataSink* sink, const Fractal::FractalImpl& f,
 		unsigned width, unsigned height, unsigned offX, unsigned offY,
 		const Fractal::Point origin, const Fractal::Point size,
 		unsigned max_passes) :
@@ -94,7 +94,7 @@ void Plot3Chunk::prepare()
 
 	for (j=0; j<_height; j++) {
 		for (i=0; i<_width; i++) {
-			_fract->prepare_pixel(render_point, _data[out_index]);
+			_fract.prepare_pixel(render_point, _data[out_index]);
 			++out_index;
 			render_point += colstep;
 		}
@@ -109,7 +109,7 @@ void Plot3Chunk::plot() {
 		for (i=0; i<_width; i++) {
 			PointData& pt = _data[out_index];
 			if (!pt.nomore) {
-				_fract->plot_pixel(_max_passes, pt);
+				_fract.plot_pixel(_max_passes, pt);
 				if (pt.nomore)
 					--_live_pixels;
 			}

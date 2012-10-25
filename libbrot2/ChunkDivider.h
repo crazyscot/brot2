@@ -34,7 +34,7 @@ namespace ChunkDivider {
 		 * output: a load of Plot3Chunk. a list? probably take a list&.
 		 */
 		virtual void dividePlot(std::list<Plot3Chunk*>& list_o,
-				IPlot3DataSink* s, const Fractal::FractalImpl* f,
+				IPlot3DataSink* s, const Fractal::FractalImpl& f,
 				Fractal::Point centre, Fractal::Point size,
 				unsigned width, unsigned height, unsigned max_passes) = 0;
 
@@ -45,7 +45,7 @@ namespace ChunkDivider {
 	class _NAME: public Base {	\
 		public:					\
 		virtual void dividePlot(std::list<Plot3Chunk*>& list_o,			\
-				IPlot3DataSink* s, const Fractal::FractalImpl* f,		\
+				IPlot3DataSink* s, const Fractal::FractalImpl& f,		\
 				Fractal::Point centre, Fractal::Point size,				\
 				unsigned width, unsigned height, unsigned max_passes);	\
 	}
