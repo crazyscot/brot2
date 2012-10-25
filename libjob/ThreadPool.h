@@ -41,6 +41,7 @@ freely, subject to the following restrictions:
 // need this type to "erase" the return type of the packaged task
 struct any_packaged_base {
     virtual void execute() = 0;
+    virtual ~any_packaged_base() {}
 };
 
 template<class R>
