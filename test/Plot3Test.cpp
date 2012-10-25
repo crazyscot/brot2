@@ -228,6 +228,7 @@ TEST_F(ChunkTest, ReuseChunk) {
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+#if 0
 using namespace ChunkDivider;
 
 class Plot3Test: public ::testing::Test {
@@ -315,3 +316,4 @@ CHUNK_DIVIDER_TEST(199,1)
 CHUNK_DIVIDER_TEST(1,1)
 // one that trips up the 10px horizontal divider:
 CHUNK_DIVIDER_TEST(1,50)
+#endif
