@@ -119,10 +119,9 @@ endif
 if GTEST
 check_PROGRAMS+=test/b2test
 export builddir
+TESTS+=test/b2test
 if USE_VALGRIND
 TESTS+=test/b2test.valgrind
-else
-TESTS+=test/b2test
 endif
 
 else
