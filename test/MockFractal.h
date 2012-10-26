@@ -22,9 +22,12 @@
 #include "Fractal.h"
 
 class MockFractal: public Fractal::FractalImpl {
+	int _passes;
 public:
-	MockFractal();
+	MockFractal(int passes=0);
 	virtual ~MockFractal();
+
+	void set_passes (int passes) { _passes = passes; }
 
 	/* Pixel initialisation. This is supposed to be quick and straightforward,
 	 * setting up for the first iteration and performing any shortcut checks.
