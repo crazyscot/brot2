@@ -92,7 +92,7 @@ string Plot3Plot::info(bool verbose) const {
 	rv.precision(clampy);
 	rv << imag(centre) << ")";
 	rv << ( verbose ? ", maxiter=" : " max=");
-	rv << "???"; // FIXME //rv << plotted_maxiter;
+	rv << plotted_maxiter;
 
 	// Now that we autofix the aspect ratio, our pixels are square.
 	double zoom = 1.0/real(size); // not a Value, so we can print it
@@ -199,6 +199,7 @@ void Plot3Plot::run() {
 		lock.unlock();
 		pass.run();
 		lock.lock();
+		DEBUG_LIVECOUNT(cout << "pass " << passcount << ", maxiter=" << this_pass_maxiter << endl );
 
 		live_pixels_prev = live_pixels;
 		live_pixels = 0;
@@ -238,6 +239,7 @@ void Plot3Plot::run() {
 		++passcount;
 		last_pass_maxiter = this_pass_maxiter;
 		if (passcount & 1) maxiter_scale = this_pass_maxiter / 2;
+		if (maxiter_scale<1) maxiter_scale=1;
 		this_pass_maxiter += maxiter_scale;
 		if (this_pass_maxiter >= (INT_MAX/2)) _stop=true; // lest we overflow
 	}
