@@ -24,7 +24,7 @@ using namespace Fractal;
 static const std::string EMPTY = "";
 
 MockFractal::MockFractal(int passes) :
-		Fractal::FractalImpl(EMPTY, EMPTY, -1.0, 1.0, -1.0, 1.0, 42), _passes(passes)
+		Fractal::FractalImpl(EMPTY, EMPTY, -1.0, 1.0, -1.0, 1.0, 42), _iters(passes)
 {
 }
 
@@ -39,12 +39,13 @@ void MockFractal::prepare_pixel(const Point coords, PointData& out) const
 void MockFractal::plot_pixel(const int maxiter, PointData& out) const
 {
 	out.point += out.origin;
-	if (!_passes) {
+	if (_iters==0) {
 		out.nomore = true;
 		out.iter = maxiter;
+	} else if (_iters <= maxiter) {
+		out.nomore = true;
+		out.iter = _iters;
 	} else {
-		++out.iter;
-		if (out.iter == _passes)
-			out.nomore = true;
+		out.iter = maxiter;
 	}
 }

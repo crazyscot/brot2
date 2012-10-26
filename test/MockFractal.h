@@ -22,28 +22,19 @@
 #include "Fractal.h"
 
 class MockFractal: public Fractal::FractalImpl {
-	int _passes;
+	int _iters;
 public:
+	/**
+	 * If _iters==0, we set 'nomore' after a single pass, with iter := maxiter.
+	 * Otherwise, we set 'nomore' after that many iterations.
+	 */
 	MockFractal(int passes=0);
 	virtual ~MockFractal();
 
-	void set_passes (int passes) { _passes = passes; }
+	void set_iters (int iters) { _iters = iters; }
 
-	/* Pixel initialisation. This is supposed to be quick and straightforward,
-	 * setting up for the first iteration and performing any shortcut checks.
-	 * The pixel we are interested in.
-	 */
 	virtual void prepare_pixel(const Fractal::Point coords, Fractal::PointData& out) const;
-
-	/* Pixel plotting. This is the slow function; it should run only up to maxiter.
-	 * It's up to the fractal what happens if a pixel reaches maxiter; in the
-	 * general case the nomore flag ought _not_ to be set in case this is a
-	 * multi-pass adaptive run.
-	 * If a pixel escapes, perform any final computation on the result and set up
-	 * _out_ accordingly.
-	 */
 	virtual void plot_pixel(const int maxiter, Fractal::PointData& out) const;
-
 };
 
 #endif /* MOCKFRACTAL_H_ */
