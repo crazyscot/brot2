@@ -362,30 +362,73 @@ class Plot3Test: public ::testing::Test {
 protected:
 	const unsigned _W, _H;
 	MockFractal fract;
-	TestSink sink;
 	ThreadPool pool;
 	ChunkDivider::OneChunk divider;
 	Plot3::Plot3Plot *p3;
 
 	Plot3Test() : _W(11), _H(19),
-			fract(0), sink(_W,_H), pool(1), p3(0) {}
+			fract(0), pool(1), p3(0) {}
 
-	virtual void SetUp() {
-		p3 = new Plot3Plot(pool, &sink, fract, divider,
-				Fractal::Point(-0.4,-0.4),
-				Fractal::Point(0.01,0.01),
-				_W, _H, 10);
-	}
 	virtual void TearDown() {
 		delete p3;
 	}
 };
 
+class PassTestingSink: public IPlot3DataSink {
+	int chunks;
+	int passes;
+	int completions;
+
+public:
+	PassTestingSink() : chunks(0), passes(0), completions(0) {}
+
+	virtual void chunk_done(Plot3Chunk*) {
+		++chunks;
+	}
+	virtual void pass_complete(std::string&) {
+		++passes;
+	}
+	virtual void plot_complete() {
+		++completions;
+	}
+
+	void expect_chunks(int n) { EXPECT_EQ(n, chunks); }
+	void expect_passes(int n) { EXPECT_EQ(n, passes); }
+	void expect_completions(int n) { EXPECT_EQ(n, completions); }
+};
+
 TEST_F(Plot3Test, Basics) {
+	TestSink sink(_W,_H);
+	p3 = new Plot3Plot(pool, &sink, fract, divider,
+			Fractal::Point(-0.4,-0.4),
+			Fractal::Point(0.01,0.01),
+			_W, _H, 10);
 	p3->start();
 	p3->wait();
-	EXPECT_EQ(1, sink.chunks_count()); // Does not hold in general
+	EXPECT_EQ(1, sink.chunks_count());
 	EXPECT_EQ(_W*_H, sink.points_count());
+}
+
+TEST_F(Plot3Test, OnePassNotifies) {
+	PassTestingSink sink;
+	fract.set_passes(1);
+	p3 = new Plot3Plot(pool, &sink, fract, divider,
+			Fractal::Point(-0.4,-0.4),
+			Fractal::Point(0.01,0.01),
+			_W, _H, 10);
+	p3->start();
+	p3->wait();
+	sink.expect_chunks(1 * 1);
+	sink.expect_passes(1);
+	sink.expect_completions(1);
+}
+
+TEST_F(Plot3Test, TwoPassNotifies) {
+	PassTestingSink sink;
+	fract.set_passes(2);
+	// HERE: The above passes, but now what?
+	// TestSink is not set up for multi passes!
+	// We have a multi-pass mockfractal but need to test it.
 }
 
 // Plug our long-double floating point into gtest's floating point comparator:

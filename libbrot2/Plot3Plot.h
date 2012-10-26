@@ -68,6 +68,8 @@ public:
 
 	/**
 	 * Stops the plot ASAP, blocking until it has done so.
+	 * NOTE that we first call the data sink's completion
+	 * handler (if present) before returning.
 	 * May return immediately if the plot was not running.
 	 */
 	void wait();

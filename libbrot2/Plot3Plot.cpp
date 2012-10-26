@@ -230,8 +230,9 @@ void Plot3Plot::run() {
 			info << "Pass " << passcount << ": maxiter=" << this_pass_maxiter;
 			info << ": " << live_pixels << " pixels live";
 			string infos = info.str();
-			// XXX Notify pass completion, send infos somewhere.
-			// XXX Must unlock/relock.
+			lock.unlock();
+			sink->pass_complete(infos);
+			lock.lock();
 		}
 
 		++passcount;
@@ -247,9 +248,10 @@ void Plot3Plot::run() {
 	// P3Chunk ensures that the point data is set up correctly for this.
 
 	_running = false;
+	lock.unlock();
+	sink->plot_complete();
+	lock.lock();
 	_completion_cond.notify_all();
-
-	// XXX Notify client of completion / stop. Must unlock first.
 }
 
 Plot3Plot::~Plot3Plot() {
