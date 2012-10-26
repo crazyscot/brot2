@@ -31,9 +31,6 @@ class Prefs;
 
 namespace Plot3 {
 
-/** Message passing between threads within this class */
-enum Message { GO };
-
 class Plot3Plot {
 public:
 	// TODO: Callbacks maj/min/complete - what are we donig with them?
@@ -103,13 +100,13 @@ private:
 
 	/* Message passing between threads within the class */
 	std::mutex _lock;
-	std::condition_variable _message_cond; // Protected by _lock
-	std::queue<Message> _messages; // Protected by _lock
+	std::atomic<int> _runs_sema; // Protected by _lock, notify by _runs_cond
+	std::condition_variable _runs_cond; // Protected by _lock
 	std::condition_variable _completion_cond; // Also protected by _lock
 
 	std::thread runner;
 
-	void post_message(const Message& m);
+	void poke_runner();
 };
 
 } // namespace Plot3

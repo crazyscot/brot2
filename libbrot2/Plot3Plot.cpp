@@ -65,7 +65,7 @@ Plot3Plot::Plot3Plot(ThreadPool& pool, IPlot3DataSink* s, FractalImpl& f, ChunkD
 		_shutdown(false), _running(false), _stop(false),
 		plotted_maxiter(0), plotted_passes(0),
 		passes_max(max_passes),
-		_lock(), _message_cond(), _completion_cond(),
+		_runs_sema(0),
 		runner(&Plot3Plot::threadfunc,this)
 		// Note: Initialisation order is crucial when the threadfunc will immediately lock _lock !
 		//callback(0), _data(0), _abort(false), _done(false), _outstanding(0),
@@ -118,7 +118,7 @@ void Plot3Plot::start() {
 	_running = true;
 	_stop = false;
 	lock.unlock();
-	post_message(Message::GO);
+	poke_runner();
 }
 
 /* Asynch stop, return immediately */
@@ -136,11 +136,10 @@ void Plot3Plot::wait() {
 
 
 /** Sends a message to the worker thread */
-void Plot3Plot::post_message(const Message& m) {
-	// TODO: Is there really only GO? If so then reduce complexity...
+void Plot3Plot::poke_runner() {
 	std::unique_lock<std::mutex> lock(_lock);
-	_messages.push(m);
-	_message_cond.notify_all();
+	++_runs_sema;
+	_runs_cond.notify_all();
 }
 
 /**
@@ -149,22 +148,16 @@ void Plot3Plot::post_message(const Message& m) {
 void Plot3Plot::threadfunc() {
 	std::unique_lock<std::mutex> lock(_lock);
 	while(!_shutdown) {
-		Message m;
 		{
-			while (_messages.empty()) {
-				_message_cond.wait(lock);
+			while (!_runs_sema) {
+				_runs_cond.wait(lock);
 				if (_shutdown) return;
 			}
-			m = _messages.front();
-			_messages.pop();
+			--_runs_sema;
 		}
-		switch(m) {
-		case Message::GO:
-			lock.unlock();
-			run();
-			lock.lock();
-			break;
-		}
+		lock.unlock();
+		run();
+		lock.lock();
 	}
 }
 
@@ -263,7 +256,7 @@ Plot3Plot::~Plot3Plot() {
 	std::unique_lock<std::mutex> lock(_lock);
 	_shutdown = true;
 	lock.unlock();
-	post_message(Message::GO);
+	poke_runner();
 	runner.join();
 	for (auto it: _chunks) {
 		delete it;
