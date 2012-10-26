@@ -22,7 +22,7 @@
 #include "Prefs.h"
 #include "ChunkDivider.h"
 #include <thread>
-#include "libjob/ThreadPool.h"
+#include "libbrot2/ThreadPool.h"
 
 using namespace std;
 using namespace Fractal;

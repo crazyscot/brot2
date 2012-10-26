@@ -29,7 +29,7 @@
 #include "libbrot2/IPlot3DataSink.h"
 #include "libbrot2/Plot3Plot.h"
 #include "libbrot2/Plot3Pass.h"
-#include "libjob/ThreadPool.h"
+#include "libbrot2/ThreadPool.h"
 #include "MockFractal.h"
 #include "MockPrefs.h"
 #include "Exception.h"

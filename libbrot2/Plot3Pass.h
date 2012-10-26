@@ -20,7 +20,7 @@
 #define PLOT3PASS_H_
 
 #include <list>
-#include "libjob/ThreadPool.h"
+#include "libbrot2/ThreadPool.h"
 #include "libbrot2/Plot3Chunk.h"
 
 namespace Plot3 {

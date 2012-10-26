@@ -1,14 +1,14 @@
-#SUBDIRS=libjob libfractal libbrot2 cli gtkui gtest test
+#SUBDIRS=libfractal libbrot2 cli gtkui gtest test
 
 EXTRA_DIST=debian misc
 
 AM_CPPFLAGS=@libbrot2_CFLAGS@ \
 			-I$(top_srcdir) -I$(top_srcdir)/libfractal \
-			-I$(top_srcdir)/libjob -I$(top_srcdir)/libbrot2
+			-I$(top_srcdir)/libbrot2
 AM_CFLAGS=@BROT2_CFLAGS@
 AM_CXXFLAGS=@BROT2_CXXFLAGS@
 
-all_libs= $(top_builddir)/libjob/libjob.a \
+all_libs= \
 		  $(top_builddir)/libfractal/libfractal.a \
 		  $(top_builddir)/libbrot2/libbrot2.a
 
@@ -21,13 +21,6 @@ check_PROGRAMS=
 TESTS=
 AUTOGEN=
 CLEANFILES=
-
-################################################################
-
-noinst_LIBRARIES+=libjob/libjob.a
-
-libjob_libjob_a_SOURCES= \
-	 libjob/ThreadPool.h libjob/ThreadPool.cpp
 
 ################################################################
 
@@ -51,6 +44,7 @@ libbrot2_libbrot2_a_SOURCES= \
 	libbrot2/Plot3Plot.cpp libbrot2/Plot3Plot.h \
 	libbrot2/Plot3Chunk.cpp libbrot2/Plot3Chunk.h \
 	libbrot2/Plot3Pass.cpp libbrot2/Plot3Pass.h \
+	libbrot2/ThreadPool.h libbrot2/ThreadPool.cpp \
 	libbrot2/IPlot3DataSink.h \
 	libbrot2/ChunkDivider.h libbrot2/ChunkDivider.cpp \
 	libbrot2/Render.h libbrot2/Render.cpp \

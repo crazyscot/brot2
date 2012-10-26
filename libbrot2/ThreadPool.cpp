@@ -27,7 +27,7 @@ freely, subject to the following restrictions:
    distribution.
 */
 
-#include "libjob/ThreadPool.h"
+#include "libbrot2/ThreadPool.h"
 
 void Worker::operator()()
 {
