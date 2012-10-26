@@ -138,6 +138,7 @@ test_b2test_SOURCES=test/b2test.cpp \
 					test/PrefsT.cpp test/PrefsT.h \
 					test/JobsTest.cpp test/JobsTestBits.h \
 					test/MockFractal.h test/MockFractal.cpp \
+					test/MockPrefs.h test/MockPrefs.cpp \
 					test/Plot3Test.cpp test/Render2Test.cpp
 
 test_b2test_LDADD= gtest/libgtest.a $(all_ldadd)
