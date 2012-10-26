@@ -353,19 +353,20 @@ TEST_F(Plot3PassTest, BasicConcurrencyCheck) {
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-#if 0
 using namespace ChunkDivider;
 
 class Plot3Test: public ::testing::Test {
 protected:
 	MockFractal fract;
 	TestSink sink;
+	ThreadPool pool;
+	ChunkDivider::OneChunk divider;
 	Plot3::Plot3Plot *p3;
 
-	Plot3Test() : sink(101,199) {}
+	Plot3Test() : sink(101,199), pool(1), p3(0) {}
 
 	virtual void SetUp() {
-		p3 = new Plot3::Plot3Plot(&sink, &fract,
+		p3 = new Plot3Plot(pool, &sink, fract, divider,
 				Fractal::Point(-0.4,-0.4),
 				Fractal::Point(0.01,0.01),
 				101, 199, 10);
@@ -376,13 +377,13 @@ protected:
 };
 
 TEST_F(Plot3Test, Basics) {
-	ChunkDivider::OneChunk divider;
-	p3->start(divider);
+	p3->start();
 	p3->wait();
-	EXPECT_EQ(1, sink.chunks_count()); // Does not hold in general.
+	EXPECT_EQ(1, sink.chunks_count()); // Does not hold in general
 	EXPECT_EQ(101*199, sink.points_count());
 }
 
+#if 0
 // Plug our long-double floating point into gtest's floating point comparator:
 #define EXPECT_FVAL_EQ(expected,actual) \
 	EXPECT_DOUBLE_EQ(expected,actual)

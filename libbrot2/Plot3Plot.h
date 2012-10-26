@@ -43,7 +43,6 @@ public:
 	IPlot3DataSink* sink;
 	const Fractal::FractalImpl& fract;
 	const ChunkDivider::Base& divider;
-	std::thread runner;
 
 	const Fractal::Point centre, size; // Centre co-ordinates; axis length
 	const unsigned width, height; // plot size in pixels
@@ -70,6 +69,12 @@ public:
 	 * Does NOT block; the plot may carry on for a little while. */
 	void stop();
 
+	/**
+	 * Stops the plot ASAP, blocking until it has done so.
+	 * May return immediately if the plot was not running.
+	 */
+	void wait();
+
 	/* Snapshot count of the current state of play */
 	//TODO//unsigned chunks_outstanding() const;
 	unsigned chunks_total() const;
@@ -81,8 +86,9 @@ public:
 protected:
 	std::shared_ptr<const Prefs> prefs; // Where to get our global settings from.
 
-	bool _shutdown; // Set only when we are being deleted
-	bool _live; // Set when we are running
+	bool _shutdown; // Set only when we are being deleted. PROTECT by _lock !
+	bool _running; // Set when we are running. PROTECT by _lock !
+	bool _stop; // Set to ask the running plot to stop. PROTECT by _lock !
 
 	/* Plot statistics: */
 	int plotted_maxiter; // How far did we get before bailing?
@@ -97,8 +103,11 @@ private:
 
 	/* Message passing between threads within the class */
 	std::mutex _lock;
-	std::condition_variable _cond;
-	std::queue<Message> _messages;
+	std::condition_variable _message_cond; // Protected by _lock
+	std::queue<Message> _messages; // Protected by _lock
+	std::condition_variable _completion_cond; // Also protected by _lock
+
+	std::thread runner;
 
 	void post_message(const Message& m);
 };

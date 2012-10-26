@@ -58,13 +58,16 @@ namespace Plot3 {
 Plot3Plot::Plot3Plot(ThreadPool& pool, IPlot3DataSink* s, FractalImpl& f, ChunkDivider::Base& d,
 		Point centre, Point size,
 		unsigned width, unsigned height, unsigned max_passes) :
-		_pool(pool), sink(s), fract(f), divider(d), runner(&Plot3Plot::threadfunc,this),
+		_pool(pool), sink(s), fract(f), divider(d),
 		centre(centre), size(size),
 		width(width), height(height),
 		prefs(Prefs::getMaster()),
-		_shutdown(false), _live(false),
+		_shutdown(false), _running(false), _stop(false),
 		plotted_maxiter(0), plotted_passes(0),
-		passes_max(max_passes)
+		passes_max(max_passes),
+		_lock(), _message_cond(), _completion_cond(),
+		runner(&Plot3Plot::threadfunc,this)
+		// Note: Initialisation order is crucial when the threadfunc will immediately lock _lock !
 		//callback(0), _data(0), _abort(false), _done(false), _outstanding(0),
 		//_completed(0), jobs(0)
 {
@@ -111,27 +114,45 @@ string Plot3Plot::info(bool verbose) const {
 /* Starts a plot. The actual work happens in the background. */
 void Plot3Plot::start() {
 	divider.dividePlot(_chunks, sink, fract, centre, size, width, height, passes_max);
+	std::unique_lock<std::mutex> lock(_lock);
+	_running = true;
+	_stop = false;
+	lock.unlock();
 	post_message(Message::GO);
 }
+
+/* Asynch stop, return immediately */
+void Plot3Plot::stop() {
+	std::unique_lock<std::mutex> lock(_lock);
+	_stop = true; // We'll notify when we've actually stopped.
+}
+
+/* Wait for completion. Does not call stop() first. */
+void Plot3Plot::wait() {
+	std::unique_lock<std::mutex> lock(_lock);
+	if (!_running) return;
+	_completion_cond.wait(lock);
+}
+
 
 /** Sends a message to the worker thread */
 void Plot3Plot::post_message(const Message& m) {
 	// TODO: Is there really only GO? If so then reduce complexity...
 	std::unique_lock<std::mutex> lock(_lock);
 	_messages.push(m);
-	_cond.notify_all();
+	_message_cond.notify_all();
 }
 
 /**
  * Our message-processing worker thread
  */
 void Plot3Plot::threadfunc() {
+	std::unique_lock<std::mutex> lock(_lock);
 	while(!_shutdown) {
 		Message m;
 		{
-			std::unique_lock<std::mutex> lock(_lock);
 			while (_messages.empty()) {
-				_cond.wait(lock);
+				_message_cond.wait(lock);
 				if (_shutdown) return;
 			}
 			m = _messages.front();
@@ -139,7 +160,9 @@ void Plot3Plot::threadfunc() {
 		}
 		switch(m) {
 		case Message::GO:
+			lock.unlock();
 			run();
+			lock.lock();
 			break;
 		}
 	}
@@ -149,6 +172,8 @@ void Plot3Plot::threadfunc() {
  * The actual work of running a Plot. This happens in its own thread.
  */
 void Plot3Plot::run() {
+	std::unique_lock<std::mutex> lock(_lock);
+
 	Plot3Pass pass(_pool, _chunks);
 	unsigned live_pixels = width * height, live_pixels_prev;
 	float live_threshold = prefs->get(PREF(LiveThreshold));
@@ -160,7 +185,7 @@ void Plot3Plot::run() {
 			maxiter_scale = 0,
 			passcount = plotted_passes;
 
-	_live = true;
+	_running = true;
 
 	if (last_pass_maxiter) {
 		if (passcount&1)
@@ -169,14 +194,16 @@ void Plot3Plot::run() {
 			maxiter_scale = last_pass_maxiter/3;
 		this_pass_maxiter = last_pass_maxiter + maxiter_scale;
 		if (this_pass_maxiter >= (INT_MAX/2))
-			_live=false;
+			_stop=true;
 	}
 
-	while (_live & !_shutdown) {
+	while (!_stop & !_shutdown) {
 		for (auto chunk : _chunks)
 			chunk->reset_max_passes(this_pass_maxiter);
 
+		lock.unlock();
 		pass.run();
+		lock.lock();
 
 		live_pixels_prev = live_pixels;
 		live_pixels = 0;
@@ -186,8 +213,11 @@ void Plot3Plot::run() {
 		DEBUG_LIVECOUNT(printf("total %u live pixels remain, threshold=%u\n", live_pixels, pixel_threshold));
 		if (live_pixels < pixel_threshold) {
 			unsigned delta = live_pixels_prev - live_pixels;
-			if (delta < delta_threshold) {
-				_live = false;
+			if (live_pixels==0) {
+				_stop = true;
+				DEBUG_LIVECOUNT(printf("No live pixels left - all done!\n"));
+			} else if (delta < delta_threshold) {
+				_stop = true;
 				DEBUG_LIVECOUNT(printf("Threshold hit (only %d changed) - halting\n",live_pixels_prev - live_pixels));
 			} else if (delta < 2*delta_threshold) {
 				// This idea lifted from fanf's code.
@@ -199,19 +229,20 @@ void Plot3Plot::run() {
 			}
 		}
 
-		if (_live) {
+		{
 			// How many pixels are live?
 			ostringstream info;
 			info << "Pass " << passcount << ": maxiter=" << this_pass_maxiter;
 			info << ": " << live_pixels << " pixels live";
 			string infos = info.str();
 			// XXX Notify pass completion, send infos somewhere.
+			// XXX Must unlock/relock.
 		}
 
 		last_pass_maxiter = this_pass_maxiter;
 		if (passcount & 1) maxiter_scale = this_pass_maxiter / 2;
 		this_pass_maxiter += maxiter_scale;
-		if (this_pass_maxiter >= (INT_MAX/2)) _live=false; // lest we overflow
+		if (this_pass_maxiter >= (INT_MAX/2)) _stop=true; // lest we overflow
 	}
 	plotted_maxiter = last_pass_maxiter;
 	plotted_passes = passcount;
@@ -219,16 +250,16 @@ void Plot3Plot::run() {
 	// Any pixel still alive is considered to be infinite.
 	// P3Chunk ensures that the point data is set up correctly for this.
 
-	// XXX Notify completion / stop.
-	_live = false;
-}
+	_running = false;
+	_completion_cond.notify_all();
 
-void Plot3Plot::stop() {
-	_live = false; // We'll notify when we've actually stopped.
+	// XXX Notify client of completion / stop. Must unlock first.
 }
 
 Plot3Plot::~Plot3Plot() {
+	std::unique_lock<std::mutex> lock(_lock);
 	_shutdown = true;
+	lock.unlock();
 	post_message(Message::GO);
 	runner.join();
 	for (auto it: _chunks) {
