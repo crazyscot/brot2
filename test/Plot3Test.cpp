@@ -170,7 +170,7 @@ protected:
 	TestSink sink;
 	MockFractal fract;
 
-	ChunkTest(): sink(0,0) {}
+	ChunkTest(): chunk(0), sink(0,0) {}
 
 	virtual void SetUp() {
 		chunk = 0;
@@ -342,7 +342,7 @@ TEST_F(Plot3PassTest, BasicConcurrencyCheck) {
 	// returning before all the chunks are cooked.
 	sink.reset(2,2);
 	TestPlot3Chunk tmpl(2,2,0,0);
-	SlowChunk chunk(tmpl,1000);
+	SlowChunk chunk(tmpl,100);
 
 	std::list<Plot3Chunk*> list;
 	list.push_back(&chunk);
@@ -383,7 +383,6 @@ TEST_F(Plot3Test, Basics) {
 	EXPECT_EQ(101*199, sink.points_count());
 }
 
-#if 0
 // Plug our long-double floating point into gtest's floating point comparator:
 #define EXPECT_FVAL_EQ(expected,actual) \
 	EXPECT_DOUBLE_EQ(expected,actual)
@@ -404,10 +403,11 @@ class ChunkDividerTest : public ::testing::Test {
 	protected:
 		MockFractal fract;
 		TestSink sink;
+		ThreadPool pool;
 		Plot3::Plot3Plot *p3;
 		Fractal::Point centre, size;
 
-		ChunkDividerTest() : sink(0,0)/*update later*/, p3(0),
+		ChunkDividerTest() : sink(0,0)/*update later*/, pool(1), p3(0),
 			centre(-0.4,-0.3), size(0.01,0.02) {}
 
 		virtual void SetUp() {
@@ -421,9 +421,9 @@ class ChunkDividerTest : public ::testing::Test {
 		}
 		void test(int _x, int _y) {
 			this->sink.reset(_x,_y);
-			this->p3 = new Plot3::Plot3Plot(&this->sink, &this->fract,
+			this->p3 = new Plot3::Plot3Plot(pool, &this->sink, this->fract, this->divider,
 					this->centre, this->size, _x, _y, 10);
-			this->p3->start(this->divider);
+			this->p3->start();
 			this->p3->wait();
 			EXPECT_EQ(_x*_y, this->sink.points_count());
 		}
@@ -442,4 +442,3 @@ CHUNK_DIVIDER_TEST(199,1)
 CHUNK_DIVIDER_TEST(1,1)
 // one that trips up the 10px horizontal divider:
 CHUNK_DIVIDER_TEST(1,50)
-#endif

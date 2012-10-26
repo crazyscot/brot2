@@ -195,6 +195,8 @@ void Plot3Plot::run() {
 		this_pass_maxiter = last_pass_maxiter + maxiter_scale;
 		if (this_pass_maxiter >= (INT_MAX/2))
 			_stop=true;
+	} else {
+		maxiter_scale = this_pass_maxiter;
 	}
 
 	while (!_stop & !_shutdown) {
@@ -211,12 +213,12 @@ void Plot3Plot::run() {
 			live_pixels += chunk->livecount();
 		unsigned pixel_threshold = width * height * (100-minimum_escapee_percent) / 100;
 		DEBUG_LIVECOUNT(printf("total %u live pixels remain, threshold=%u\n", live_pixels, pixel_threshold));
-		if (live_pixels < pixel_threshold) {
+		if (live_pixels==0) {
+			_stop = true;
+			DEBUG_LIVECOUNT(printf("No live pixels left - all done!\n"));
+		} else if (live_pixels < pixel_threshold) {
 			unsigned delta = live_pixels_prev - live_pixels;
-			if (live_pixels==0) {
-				_stop = true;
-				DEBUG_LIVECOUNT(printf("No live pixels left - all done!\n"));
-			} else if (delta < delta_threshold) {
+			if (delta < delta_threshold) {
 				_stop = true;
 				DEBUG_LIVECOUNT(printf("Threshold hit (only %d changed) - halting\n",live_pixels_prev - live_pixels));
 			} else if (delta < 2*delta_threshold) {
@@ -239,6 +241,7 @@ void Plot3Plot::run() {
 			// XXX Must unlock/relock.
 		}
 
+		++passcount;
 		last_pass_maxiter = this_pass_maxiter;
 		if (passcount & 1) maxiter_scale = this_pass_maxiter / 2;
 		this_pass_maxiter += maxiter_scale;
