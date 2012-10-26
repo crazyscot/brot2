@@ -1,180 +1,13 @@
 {
-   <g_key_file_set_comment.1.direct>
+   <g_key_file_set_comment>
    Memcheck:Leak
    fun:malloc
-   fun:g_malloc
-   fun:g_slice_alloc
-   obj:/lib/x86_64-linux-gnu/libglib-2.0.so.0.2800.6
+   fun:g_*alloc
+   obj:*/libglib-2.0.*
+   ...
    fun:g_key_file_set_comment
    fun:_ZN4Glib7KeyFile11set_commentERKNS_7ustringES3_
    fun:_ZN12KeyfilePrefs6commitEv
-}
-{
-   <g_key_file_set_comment.2.indirect>
-   Memcheck:Leak
-   fun:malloc
-   fun:realloc
-   fun:g_realloc
-   obj:/lib/x86_64-linux-gnu/libglib-2.0.so.0.2800.6
-   fun:g_string_sized_new
-   obj:/lib/x86_64-linux-gnu/libglib-2.0.so.0.2800.6
-   obj:/lib/x86_64-linux-gnu/libglib-2.0.so.0.2800.6
-   fun:g_key_file_set_comment
-   fun:_ZN4Glib7KeyFile11set_commentERKNS_7ustringES3_
-   fun:_ZN12KeyfilePrefs6commitEv
-}
-{
-   <glib_init.realloc.1.possible>
-   Memcheck:Leak
-   fun:malloc
-   fun:realloc
-   fun:g_realloc
-   obj:/usr/lib/x86_64-linux-gnu/libgobject-2.0.so.0.2800.6
-   fun:g_type_register_static
-   fun:g_boxed_type_register_static
-   fun:g_value_array_get_type
-   obj:/usr/lib/x86_64-linux-gnu/libgobject-2.0.so.0.2800.6
-   fun:g_type_init_with_debug_flags
-   fun:_ZN4Glib18wrap_register_initEv
-   fun:_ZN4Glib4initEv
-}
-{
-   <glib_init.realloc.2.possible>
-   Memcheck:Leak
-   fun:malloc
-   fun:realloc
-   fun:g_realloc
-   obj:/usr/lib/x86_64-linux-gnu/libgobject-2.0.so.0.2800.6
-   fun:g_type_register_static
-   fun:g_boxed_type_register_static
-   fun:g_value_array_get_type
-   obj:/usr/lib/x86_64-linux-gnu/libgobject-2.0.so.0.2800.6
-   fun:g_type_init_with_debug_flags
-   fun:_ZN4Glib18wrap_register_initEv
-   fun:_ZN4Glib4initEv
-}
-{
-   <glib_init.realloc.3.possible>
-   Memcheck:Leak
-   fun:calloc
-   fun:g_malloc0
-   obj:/usr/lib/x86_64-linux-gnu/libgobject-2.0.so.0.2800.6
-   fun:g_type_register_fundamental
-   obj:/usr/lib/x86_64-linux-gnu/libgobject-2.0.so.0.2800.6
-   fun:g_type_init_with_debug_flags
-   fun:_ZN4Glib18wrap_register_initEv
-   fun:_ZN4Glib4initEv
-}
-{
-   <glib_init.realloc.4.possible>
-	Memcheck:Leak
-	fun:malloc
-	fun:realloc
-	fun:g_realloc
-	obj:/usr/lib/x86_64-linux-gnu/libgobject-2.0.so.0.2800.6
-	fun:g_type_register_fundamental
-	obj:/usr/lib/x86_64-linux-gnu/libgobject-2.0.so.0.2800.6
-	fun:g_type_init_with_debug_flags
-	fun:_ZN4Glib18wrap_register_initEv
-	fun:_ZN4Glib4initEv
-}
-{
-    <glib_init.realloc.5.possible>
-	Memcheck:Leak
-	fun:malloc
-	fun:realloc
-	fun:g_realloc
-	obj:/usr/lib/x86_64-linux-gnu/libgobject-2.0.so.0.2800.6
-	fun:g_type_register_static
-	fun:g_gtype_get_type
-	obj:/usr/lib/x86_64-linux-gnu/libgobject-2.0.so.0.2800.6
-	fun:g_type_init_with_debug_flags
-	fun:_ZN4Glib18wrap_register_initEv
-	fun:_ZN4Glib4initEv
-}
-{
-    <glib_init.realloc.6.possible>
-	Memcheck:Leak
-	fun:malloc
-	fun:realloc
-	fun:g_realloc
-	obj:/usr/lib/x86_64-linux-gnu/libgobject-2.0.so.0.2800.6
-	fun:g_type_register_static
-	fun:g_type_plugin_get_type
-	fun:g_type_init_with_debug_flags
-	fun:_ZN4Glib18wrap_register_initEv
-	fun:_ZN4Glib4initEv
-}
-{
-    <glib_init.realloc.7.possible>
-	Memcheck:Leak
-	fun:calloc
-	fun:g_malloc0
-	obj:/usr/lib/x86_64-linux-gnu/libgobject-2.0.so.0.2800.6
-	obj:/usr/lib/x86_64-linux-gnu/libgobject-2.0.so.0.2800.6
-	fun:g_type_init_with_debug_flags
-	fun:_ZN4Glib18wrap_register_initEv
-	fun:_ZN4Glib4initEv
-}
-{
-    <glib_init.realloc.8.possible>
-	Memcheck:Leak
-	fun:calloc
-	fun:g_malloc0
-	obj:/usr/lib/x86_64-linux-gnu/libgobject-2.0.so.0.2800.6
-	obj:/usr/lib/x86_64-linux-gnu/libgobject-2.0.so.0.2800.6
-	fun:g_type_init_with_debug_flags
-	fun:_ZN4Glib18wrap_register_initEv
-	fun:_ZN4Glib4initEv
-}
-{
-    <glib_init.realloc.9.possible>
-	Memcheck:Leak
-	fun:calloc
-	fun:g_malloc0
-	obj:/usr/lib/x86_64-linux-gnu/libgobject-2.0.so.0.2800.6
-	obj:/usr/lib/x86_64-linux-gnu/libgobject-2.0.so.0.2800.6
-	fun:g_type_register_fundamental
-	obj:/usr/lib/x86_64-linux-gnu/libgobject-2.0.so.0.2800.6
-	fun:g_type_init_with_debug_flags
-	fun:_ZN4Glib18wrap_register_initEv
-	fun:_ZN4Glib4initEv
-}
-{
-    <glib_init.realloc.10.possible>
-	Memcheck:Leak
-	fun:calloc
-	fun:g_malloc0
-	obj:/usr/lib/x86_64-linux-gnu/libgobject-2.0.so.0.2800.6
-	fun:g_type_init_with_debug_flags
-	fun:_ZN4Glib18wrap_register_initEv
-	fun:_ZN4Glib4initEv
-}
-{
-    <glib_init.realloc.11.possible>
-	Memcheck:Leak
-	fun:realloc
-	fun:g_realloc
-	obj:/usr/lib/x86_64-linux-gnu/libgobject-2.0.so.0.2800.6
-	fun:g_type_register_static
-	fun:g_param_type_register_static
-	obj:/usr/lib/x86_64-linux-gnu/libgobject-2.0.so.0.2800.6
-	fun:g_type_init_with_debug_flags
-	fun:_ZN4Glib18wrap_register_initEv
-	fun:_ZN4Glib4initEv
-}
-
-{
-   <glib_init.calloc.1.possible>
-   Memcheck:Leak
-   fun:calloc
-   fun:g_malloc0
-   obj:/usr/lib/x86_64-linux-gnu/libgobject-2.0.so.0.2800.6
-   fun:g_type_register_fundamental
-   obj:/usr/lib/x86_64-linux-gnu/libgobject-2.0.so.0.2800.6
-   fun:g_type_init_with_debug_flags
-   fun:_ZN4Glib18wrap_register_initEv
-   fun:_ZN4Glib4initEv
 }
 
 {
@@ -182,20 +15,32 @@
    Memcheck:Cond
    fun:inflateReset2
    fun:inflateInit2_
+   fun:png_create_read_struct_2
+   fun:png_create_read_struct
+   fun:_ZN3png8consumerINS_15basic_rgb_pixelIhEENS_5imageIS2_E14pixel_consumerENS_21image_info_ref_holderELb1EE4readISiNS_19convert_color_spaceIS2_EEEEvRT_RKT0_
+   fun:_ZN10Render2PNG8TearDownEv
+   fun:_ZN7testing8internal35HandleExceptionsInMethodIfSupportedINS_4TestEvEET0_PT_MS4_FS3_vEPKc
+   fun:_ZN7testing4Test3RunEv
+   fun:_ZN7testing8TestInfo3RunEv
+   fun:_ZN7testing8TestCase3RunEv
+   fun:_ZN7testing8internal12UnitTestImpl11RunAllTestsEv
+   fun:_ZN7testing8internal35HandleExceptionsInMethodIfSupportedINS0_12UnitTestImplEbEET0_PT_MS4_FS3_vEPKc
 }
+
 {
    <glib-init-type-registration>
    Memcheck:Leak
    fun:*alloc
    ...
    fun:g_*alloc*
-   obj:/usr/lib*/libgobject-*
+   obj:*/libgobject-*
    ...
    fun:g_type_init_with_debug_flags
    fun:_ZN4Glib18wrap_register_initEv
    fun:_ZN4Glib4initEv
    fun:_ZN7testing8internal12UnitTestImpl11RunAllTestsEv
 }
+
 {
    <joined-std-threads-aren't-really-leaked>
    Memcheck:Leak
@@ -212,13 +57,14 @@
    fun:_ZN7testing8TestCase3RunEv
    fun:_ZN7testing8internal12UnitTestImpl11RunAllTestsEv
 }
+
 {
    <joined-glib-threads-aren't-really-leaked>
    Memcheck:Leak
    fun:calloc
    fun:_dl_allocate_tls
    fun:pthread_create@@GLIBC_*
-   obj:*libglib-*
+   obj:*/libglib-*
    ...
    fun:_ZN4Glib*Thread*ERKN4sigc4slotIvNS1_3nilES3_S3_S3_S3_S3_S3_EE*
 }
