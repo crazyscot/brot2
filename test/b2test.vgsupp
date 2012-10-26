@@ -183,3 +183,42 @@
    fun:inflateReset2
    fun:inflateInit2_
 }
+{
+   <glib-init-type-registration>
+   Memcheck:Leak
+   fun:*alloc
+   ...
+   fun:g_*alloc*
+   obj:/usr/lib*/libgobject-*
+   ...
+   fun:g_type_init_with_debug_flags
+   fun:_ZN4Glib18wrap_register_initEv
+   fun:_ZN4Glib4initEv
+   fun:_ZN7testing8internal12UnitTestImpl11RunAllTestsEv
+}
+{
+   <joined-std-threads-aren't-really-leaked>
+   Memcheck:Leak
+   fun:calloc
+   fun:_dl_allocate_tls
+   fun:pthread_create@@GLIBC_*
+   fun:_ZNSt6thread15_M_start_threadESt10shared_ptrINS_10_Impl_baseEE
+   fun:_ZN5Plot39Plot3PlotC1ER10ThreadPoolPNS_14IPlot3DataSinkERN7Fractal11FractalImplERNS_12ChunkDivider4BaseESt7complexIeESC_jjj
+   fun:_ZN9Plot3Test13notifies_testEii
+   fun:_ZN27Plot3Test_PassNotifies_Test8TestBodyEv
+   fun:_ZN7testing8internal35HandleExceptionsInMethodIfSupportedINS_4TestEvEET0_PT_MS4_FS3_vEPKc
+   fun:_ZN7testing4Test3RunEv
+   fun:_ZN7testing8TestInfo3RunEv
+   fun:_ZN7testing8TestCase3RunEv
+   fun:_ZN7testing8internal12UnitTestImpl11RunAllTestsEv
+}
+{
+   <joined-glib-threads-aren't-really-leaked>
+   Memcheck:Leak
+   fun:calloc
+   fun:_dl_allocate_tls
+   fun:pthread_create@@GLIBC_*
+   obj:*libglib-*
+   ...
+   fun:_ZN4Glib*Thread*ERKN4sigc4slotIvNS1_3nilES3_S3_S3_S3_S3_S3_EE*
+}

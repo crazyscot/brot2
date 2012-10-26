@@ -71,6 +71,7 @@ public:
 	}
 	~TestSink() {
 		final_check();
+		delete[] pixels_touched;
 	}
 
 	int chunks_count() const { return _chunks_count; }
