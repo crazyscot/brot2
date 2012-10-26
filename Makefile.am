@@ -27,11 +27,7 @@ CLEANFILES=
 noinst_LIBRARIES+=libjob/libjob.a
 
 libjob_libjob_a_SOURCES= \
-	 libjob/ThreadPool.h libjob/ThreadPool.cpp \
-	 libjob/IJob.h libjob/IJobEngine.h \
-	 libjob/SimpleJobEngine.h libjob/SimpleJobEngine.cpp \
-	 libjob/SimpleAsyncJobEngine.h libjob/SimpleAsyncJobEngine.cpp \
-	 libjob/MultiThreadJobEngine.h libjob/MultiThreadJobEngine.cpp
+	 libjob/ThreadPool.h libjob/ThreadPool.cpp
 
 ################################################################
 
@@ -136,7 +132,6 @@ EXTRA_DIST+=test/b2test.valgrind test/b2test.vgsupp test/thrash
 
 test_b2test_SOURCES=test/b2test.cpp \
 					test/PrefsT.cpp test/PrefsT.h \
-					test/JobsTest.cpp test/JobsTestBits.h \
 					test/MockFractal.h test/MockFractal.cpp \
 					test/MockPrefs.h test/MockPrefs.cpp \
 					test/Plot3Test.cpp test/Render2Test.cpp

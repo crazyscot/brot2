@@ -57,6 +57,15 @@
    fun:_ZN7testing8TestCase3RunEv
    fun:_ZN7testing8internal12UnitTestImpl11RunAllTestsEv
 }
+{
+   <joined-std-threads-aren't-really-leaked.2>
+   Memcheck:Leak
+   fun:calloc
+   fun:_dl_allocate_tls
+   fun:pthread_create@@GLIBC_2.2.5
+   fun:_ZNSt6thread15_M_start_threadESt10shared_ptrINS_10_Impl_baseEE
+   fun:_ZN10ThreadPoolC1Em
+}
 
 {
    <joined-glib-threads-aren't-really-leaked>
