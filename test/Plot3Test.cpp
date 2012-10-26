@@ -31,6 +31,7 @@
 #include "libbrot2/Plot3Pass.h"
 #include "libjob/ThreadPool.h"
 #include "MockFractal.h"
+#include "MockPrefs.h"
 #include "Exception.h"
 
 using namespace std;
@@ -358,22 +359,6 @@ TEST_F(Plot3PassTest, BasicConcurrencyCheck) {
 
 using namespace ChunkDivider;
 
-class Plot3Test: public ::testing::Test {
-protected:
-	const unsigned _W, _H;
-	MockFractal fract;
-	ThreadPool pool;
-	ChunkDivider::OneChunk divider;
-	Plot3::Plot3Plot *p3;
-
-	Plot3Test() : _W(11), _H(19),
-			fract(0), pool(1), p3(0) {}
-
-	virtual void TearDown() {
-		delete p3;
-	}
-};
-
 class PassTestingSink: public IPlot3DataSink {
 	int chunks;
 	int passes;
@@ -397,38 +382,64 @@ public:
 	void expect_completions(int n) { EXPECT_EQ(n, completions); }
 };
 
+class Plot3Test: public ::testing::Test {
+protected:
+	const unsigned _W, _H;
+	MockFractal fract;
+	ThreadPool pool;
+	ChunkDivider::OneChunk divider;
+	Plot3::Plot3Plot *p3;
+	std::shared_ptr<Prefs> prefs;
+
+	Plot3Test() : _W(11), _H(19),
+			fract(0), pool(1), p3(0), prefs(new MockPrefs()) {}
+
+	virtual void TearDown() {
+		delete p3;
+	}
+
+	void setDummyPrefs() {
+		p3->set_prefs(prefs);
+	}
+
+	void notifies_test(int iters_max, int passes_expected)
+	{
+		PassTestingSink sink; // This tests the notifications
+		fract.set_iters(iters_max);
+		p3 = new Plot3Plot(pool, &sink, fract, divider,
+				Fractal::Point(-0.4,-0.4),
+				Fractal::Point(0.01,0.01),
+				_W, _H, iters_max+1);
+		setDummyPrefs();
+		p3->start();
+		p3->wait();
+		sink.expect_chunks(passes_expected * 1);
+		sink.expect_passes(passes_expected);
+		sink.expect_completions(1);
+	}
+};
+
 TEST_F(Plot3Test, Basics) {
-	TestSink sink(_W,_H);
+	TestSink sink(_W,_H); // This tests the points are touched
 	p3 = new Plot3Plot(pool, &sink, fract, divider,
 			Fractal::Point(-0.4,-0.4),
 			Fractal::Point(0.01,0.01),
 			_W, _H, 10);
+	setDummyPrefs();
 	p3->start();
 	p3->wait();
 	EXPECT_EQ(1, sink.chunks_count());
 	EXPECT_EQ(_W*_H, sink.points_count());
 }
 
-TEST_F(Plot3Test, OnePassNotifies) {
-	PassTestingSink sink;
-	fract.set_passes(1);
-	p3 = new Plot3Plot(pool, &sink, fract, divider,
-			Fractal::Point(-0.4,-0.4),
-			Fractal::Point(0.01,0.01),
-			_W, _H, 10);
-	p3->start();
-	p3->wait();
-	sink.expect_chunks(1 * 1);
-	sink.expect_passes(1);
-	sink.expect_completions(1);
-}
-
-TEST_F(Plot3Test, TwoPassNotifies) {
-	PassTestingSink sink;
-	fract.set_passes(2);
-	// HERE: The above passes, but now what?
-	// TestSink is not set up for multi passes!
-	// We have a multi-pass mockfractal but need to test it.
+TEST_F(Plot3Test, PassNotifies) {
+	// For a given iteration limit, how many passes (starting at 1 iter on the first pass) do we take to get there?
+	notifies_test(1,1);
+	notifies_test(2,2);
+	notifies_test(4,4);
+	notifies_test(8,7);
+	notifies_test(10,8);
+	notifies_test(100,15);
 }
 
 // Plug our long-double floating point into gtest's floating point comparator:
