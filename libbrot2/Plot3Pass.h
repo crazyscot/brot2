@@ -37,7 +37,8 @@ class Plot3Pass {
 	 *
 	 * It is not possible to cleanly abort a Pass. You can destroy the
 	 * threadpool, which will stop processing ASAP, but the unstarted futures
-	 * will never be satisfied.
+	 * will never be satisfied so the thread running the pass will block
+	 * forever.
 	 */
 	ThreadPool& _pool;
 	std::list<Plot3Chunk*>& _chunks;
