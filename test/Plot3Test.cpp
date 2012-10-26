@@ -146,6 +146,9 @@ public:
 		EXPECT_EQ(0,nfailed) << " double-touches in job " << std::hex << (void*)(job);
 	}
 
+	virtual void pass_complete(string&) {}
+	virtual void plot_complete() {}
+
 	virtual void final_check() {
 		EXPECT_EQ(0,_double_touched) << _double_touched << " pixel(s) were multiply-touched";
 		int untouched = 0;
@@ -357,19 +360,21 @@ using namespace ChunkDivider;
 
 class Plot3Test: public ::testing::Test {
 protected:
+	const unsigned _W, _H;
 	MockFractal fract;
 	TestSink sink;
 	ThreadPool pool;
 	ChunkDivider::OneChunk divider;
 	Plot3::Plot3Plot *p3;
 
-	Plot3Test() : sink(101,199), pool(1), p3(0) {}
+	Plot3Test() : _W(11), _H(19),
+			fract(0), sink(_W,_H), pool(1), p3(0) {}
 
 	virtual void SetUp() {
 		p3 = new Plot3Plot(pool, &sink, fract, divider,
 				Fractal::Point(-0.4,-0.4),
 				Fractal::Point(0.01,0.01),
-				101, 199, 10);
+				_W, _H, 10);
 	}
 	virtual void TearDown() {
 		delete p3;
@@ -380,7 +385,7 @@ TEST_F(Plot3Test, Basics) {
 	p3->start();
 	p3->wait();
 	EXPECT_EQ(1, sink.chunks_count()); // Does not hold in general
-	EXPECT_EQ(101*199, sink.points_count());
+	EXPECT_EQ(_W*_H, sink.points_count());
 }
 
 // Plug our long-double floating point into gtest's floating point comparator:

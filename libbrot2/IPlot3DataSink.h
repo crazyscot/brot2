@@ -23,9 +23,21 @@ namespace Plot3 {
 
 class IPlot3DataSink {
 public:
-	/* Signals that a chunk is complete. The implementor is responsible for any sort
-	 * of synchronisation it may require. */
+	/**Signals that a chunk is complete, offering an opportunity to do
+	 * something useful with the freshly-squeezed fractal data. The
+	 * implementor is responsible for any sort of synchronisation they may
+	 * require. */
 	virtual void chunk_done(Plot3Chunk* job) = 0;
+
+	/**Signals that a pass is completed.
+	 * The string provides optional commentary about the plot so far.
+	 * The implementor should not take too long here, as the next pass won't
+	 * start until this function returns. */
+	virtual void pass_complete(std::string&) = 0;
+
+	/**Signals that the plot has finished work.
+	 * It might have completed, or it might have been told to stop. */
+	virtual void plot_complete() = 0;
 
 	virtual ~IPlot3DataSink() {}
 };
