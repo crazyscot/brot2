@@ -1,4 +1,12 @@
 #!/bin/sh -ex
 
-G_SLICE=always-malloc G_DEBUG=gc-friendly valgrind --error-exitcode=99 --leak-check=full --suppressions=${srcdir}/test/b2test.vgsupp --gen-suppressions=all ${builddir}/test/b2test
+G_SLICE=always-malloc G_DEBUG=gc-friendly valgrind \
+	--error-exitcode=99 \
+	--leak-check=full \
+	--track-origins=yes \
+	--suppressions=${srcdir}/test/b2test.vgsupp \
+	--gen-suppressions=all \
+	${builddir}/test/b2test
 
+# --track-origins=yes is helpful for debugging but slows things down,
+# we may want to later reconsider whether to run it every time.
