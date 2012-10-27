@@ -47,7 +47,7 @@ namespace PrefsDialogBits {
 	class SampleTextLabel : public ProddableLabel {
 		ColourPanel *fgcol, *bgcol;
 	public:
-		SampleTextLabel() { /* We'll set up text later. */ }
+		SampleTextLabel() : fgcol(0), bgcol(0) { /* We'll set up text later. */ }
 
 		void set_panels(ColourPanel* fg, ColourPanel* bg) {
 			// Urgh, ColourPanel needs to know what to prod, but the prod target also has to get data from either of them. This might be better refactored.
@@ -235,7 +235,7 @@ namespace PrefsDialogBits {
 		ColourPanel *bgcol, *fgcol;
 		SampleTextLabel *sample;
 
-		HUDFrame() : Gtk::Frame("Heads-Up Display") {
+		HUDFrame() : Gtk::Frame("Heads-Up Display"), hadjust(0), radjust(0) {
 			set_border_width(10);
 			Gtk::Table* tbl = Gtk::manage(new Gtk::Table(3,7,false));
 			Gtk::Label *lbl;
@@ -383,7 +383,7 @@ int PrefsDialog::run() {
 				threshold->readout(*pp);
 				hud->readout(*pp);
 				miscbits->readout(*pp);
-			} catch (Exception e) {
+			} catch (Exception& e) {
 				Util::alert(this, e.msg);
 				error = true;
 				continue;

@@ -53,6 +53,7 @@ MemoryBuffer::MemoryBuffer(unsigned char *buf, int rowstride, unsigned width, un
 		break;
 	default:
 		THROW(Exception,"Unhandled pixpack format "+(int)fmt);
+		break;
 	}
 }
 
@@ -104,6 +105,7 @@ void MemoryBuffer::process(const Plot3Chunk& chunk)
 
 PNG::PNG(unsigned width, unsigned height,
 		const BasePalette& palette, int local_inf) :
+		_buf(0), _rowstride(0),
 		_width(width), _height(height), _local_inf(local_inf),
 		_pal(palette), _png(_width, _height)
 {

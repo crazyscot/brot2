@@ -89,21 +89,23 @@ void KeyfilePrefs::initialise() throw(Exception) {
 	std::string fn = filename();
 	try {
 		kf.load_from_file(fn);
-	} catch (Glib::FileError e) {
+	} catch (Glib::FileError& e) {
 		switch (e.code()) {
-			case Glib::FileError::Code::NO_SUCH_ENTITY:
+			case Glib::FileError::Code::NO_SUCH_ENTITY: // eclipse bug 356057
 				break; // ignore, use defaults only
 			default:
 				THROW(Exception,"reading prefs from " + fn + ": " + e.what());
+				break;
 		}
-	} catch (Glib::KeyFileError e) {
+	} catch (Glib::KeyFileError& e) {
 		switch (e.code()) {
-			case Glib::KeyFileError::Code::PARSE:
+			case Glib::KeyFileError::Code::PARSE: // eclipse bug 356057
 				// may mean an empty file
 				std::cerr << "Warning: KeyFileError reading prefs from " + fn + ": " + e.what()+": will overwrite when saving" << std::endl;
 				break;
 			default:
 				THROW(Exception,"KeyFileError reading prefs from " + fn + ": " + e.what());
+				break;
 		}
 	}
 
@@ -142,6 +144,7 @@ void KeyfilePrefs::commit() throw(Exception) {
 				break; //ignore
 			default:
 				THROW(Exception,"Could not unlink " + fn + ": " + strerror(errno));
+				break;
 		}
 	}
 	kf.set_comment("written by brot2");
@@ -213,9 +216,9 @@ void KeyfilePrefs::reread_mouse_actions() {
 		try {
 			Glib::ustring val = kf.get_string(GROUP_MOUSE, buf);
 			rv[i] = val;
-		} catch (Glib::KeyFileError e) {
+		} catch (Glib::KeyFileError& e) {
 			// ignore - use default for that action
-		} catch (Exception e) {
+		} catch (Exception& e) {
 			std::cerr << "Warning: " << e << " in " GROUP_MOUSE <<":" << buf << ": defaulting" << std::endl;
 		}
 	}
@@ -247,9 +250,9 @@ void KeyfilePrefs::reread_scroll_actions() {
 		try {
 			Glib::ustring val = kf.get_string(GROUP_SCROLL, buf);
 			rv[i] = val;
-		} catch (Glib::KeyFileError e) {
+		} catch (Glib::KeyFileError& e) {
 			// ignore - use default for that action
-		} catch (Exception e) {
+		} catch (Exception& e) {
 			std::cerr << "Warning: " << e << " in " GROUP_SCROLL <<":" << buf << ": defaulting" << std::endl;
 		}
 	}

@@ -92,6 +92,7 @@ bool Render::render_generic(unsigned char *buf, const int rowstride, const int l
 
 				default:
 					THROW(Exception,"Unhandled pixpack format "+(int)fmt);
+					break;
 			}
 			for (unsigned k=0; k < factor; k++) {
 				srcs[k] += factor;

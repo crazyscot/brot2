@@ -26,7 +26,7 @@
 
 struct rgb_double {
 	double r, g, b;
-	rgb_double() { }
+	rgb_double() : r(0), g(0), b(0) { }
 	rgb_double(Gdk::Color c) {
 		r = c.get_red()/65535.0;
 		g = c.get_green()/65535.0;

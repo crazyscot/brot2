@@ -123,6 +123,7 @@ Plot2::Plot2(FractalImpl* f, Point centre, Point size,
 		fract(f), centre(centre), size(size),
 		width(width), height(height),
 		prefs(Prefs::getMaster()),
+		initial_maxiter(0), live_threshold(0), minimum_escapee_percent(0),
 		plotted_maxiter(0), plotted_passes(0), passes_max(max_passes),
 		callback(0), _data(0), _abort(false), _done(false), _outstanding(0),
 		_completed(0), jobs(0)
@@ -180,11 +181,11 @@ class Plot2::worker_job {
 	friend class Plot2;
 	Plot2* plot;
 	unsigned maxiter, first_row, n_rows, live_pixels;
-	worker_job() {};
-	worker_job(Plot2* p, const unsigned first, const unsigned n) {
-		plot = p; first_row=first; n_rows=n;
-		live_pixels = plot->width * n_rows;
-		/* This leads to an overestimate when the job exceeds beyond the
+	worker_job() : plot(0), maxiter(0), first_row(0), n_rows(0), live_pixels(0) {};
+	worker_job(Plot2* p, const unsigned first, const unsigned n) :
+		plot(p), maxiter(0), first_row(first), n_rows(n),
+		live_pixels(plot->width * n_rows) {
+		/* This (live_pixels) leads to an overestimate when the job exceeds beyond the
 		 * plot boundary. We don't care, as it's only the _delta_ of this
 		 * number that's interesting. */
 	};

@@ -236,7 +236,7 @@ protected:
 	template<typename T> void ensure(const BrotPrefs::Base<T>& B) {
 		try {
 			(void)get(B);
-		} catch (Glib::KeyFileError e) {
+		} catch (Glib::KeyFileError& e) {
 			set(B, B._default);
 		}
 	}
@@ -244,7 +244,7 @@ protected:
 	template<typename T> void ensure(const BrotPrefs::Numeric<T>& B) {
 		try {
 			(void)get(B);
-		} catch (Glib::KeyFileError e) {
+		} catch (Glib::KeyFileError& e) {
 			set(B, B._default);
 		}
 	}
@@ -252,7 +252,7 @@ protected:
 	void ensure(const BrotPrefs::Boolean& B) {
 		try {
 			(void)get(B);
-		} catch (Glib::KeyFileError e) {
+		} catch (Glib::KeyFileError& e) {
 			set(B, B._default);
 		}
 	}
