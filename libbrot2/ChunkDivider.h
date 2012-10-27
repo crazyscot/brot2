@@ -31,7 +31,8 @@ namespace ChunkDivider {
 		public:
 		/*
 		 * input: sink, fract, centre, size, width, height, passes_max
-		 * output: a load of Plot3Chunk. a list? probably take a list&.
+		 * output: a load of Plot3Chunk. They have been allocated;
+		 * caller must delete each individually when finished with them.
 		 */
 		virtual void dividePlot(std::list<Plot3Chunk*>& list_o,
 				IPlot3DataSink* s, const Fractal::FractalImpl& f,
@@ -50,8 +51,8 @@ namespace ChunkDivider {
 				unsigned width, unsigned height, unsigned max_passes) const;	\
 	}
 
-	_CD_INSTANCE(OneChunk);
-	_CD_INSTANCE(Horizontal10px);
+	_CD_INSTANCE(OneChunk); // Entire fractal as a single chunk
+	_CD_INSTANCE(Horizontal10px); // Horizontal stripes, 10pixels high
 
 #undef _CD_INSTANCE
 } // Plot3::ChunkDivider
