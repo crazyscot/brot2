@@ -277,11 +277,6 @@ void Plot3Plot::set_prefs(std::shared_ptr<Prefs>& newprefs) {
 	prefs = p2;
 }
 
-/* TODO if needed
-unsigned Plot3Plot::chunks_outstanding() const {
-	return _jobs.size();
-}*/
-
 unsigned Plot3Plot::chunks_total() const {
 	return _chunks.size();
 }

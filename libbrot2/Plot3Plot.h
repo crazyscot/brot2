@@ -74,8 +74,6 @@ public:
 	 */
 	void wait();
 
-	/* Snapshot count of the current state of play */
-	//TODO//unsigned chunks_outstanding() const;
 	unsigned chunks_total() const;
 
 	// Provides a means to override the prefs.
