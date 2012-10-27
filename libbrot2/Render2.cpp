@@ -105,8 +105,8 @@ void MemoryBuffer::process(const Plot3Chunk& chunk)
 
 PNG::PNG(unsigned width, unsigned height,
 		const BasePalette& palette, int local_inf) :
-		_buf(0), _rowstride(0),
 		_width(width), _height(height), _local_inf(local_inf),
+		_rowstride(0),
 		_pal(palette), _png(_width, _height)
 {
 }
