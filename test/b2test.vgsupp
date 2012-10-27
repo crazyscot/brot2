@@ -15,6 +15,7 @@
    Memcheck:Cond
    fun:inflateReset2
    fun:inflateInit2_
+   ...
    fun:png_create_read_struct_2
 }
 
@@ -90,4 +91,11 @@
    obj:*/libglib-*
    ...
    fun:_ZN4Glib*Thread*ERKN4sigc4slotIvNS1_3nilES3_S3_S3_S3_S3_S3_EE*
+}
+
+{
+	<phantom-i386-libglib-possible-leak>
+	Memcheck:Leak
+	fun:calloc
+	obj:/lib/i386-linux-gnu/libglib-2.0.so.0.3000.0
 }
