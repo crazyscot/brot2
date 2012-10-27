@@ -1,7 +1,7 @@
 /* climain.cpp: main GTK program for non-gtk brot2, license text follows */
 const char* license_text = "\
 brot2: Yet Another Mandelbrot Plotter\n\
-Copyright (c) 2010-2011 Ross Younger\n\
+Copyright (c) 2010-2012 Ross Younger\n\
 \n\
 This program is free software: you can redistribute it and/or modify \
 it under the terms of the GNU General Public License as published by \
@@ -16,7 +16,7 @@ GNU General Public License for more details.\n\
 You should have received a copy of the GNU General Public License \
 along with this program.  If not, see <http://www.gnu.org/licenses/>.";
 
-const char *copyright_string = "(c) 2010-2011 Ross Younger";
+const char *copyright_string = "(c) 2010-2012 Ross Younger";
 
 #include <memory>
 #include <iostream>
@@ -29,13 +29,16 @@ const char *copyright_string = "(c) 2010-2011 Ross Younger";
 
 #include "config.h"
 #include "climain.h"
-#include "Plot2.h"
-#include "palette.h"
-#include "Fractal.h"
-#include "reporter.h"
-#include "Render.h"
-#include "Prefs.h"
-#include "PrefsRegistry.h"
+#include "libbrot2/Plot3Plot.h"
+#include "libbrot2/ChunkDivider.h"
+#include "libbrot2/palette.h"
+#include "libfractal/Fractal.h"
+#include "CLIDataSink.h"
+#include "libbrot2/Render2.h"
+#include "libbrot2/Prefs.h"
+#include "libbrot2/PrefsRegistry.h"
+
+using namespace Plot3;
 
 static bool do_version, do_list_fractals, do_list_palettes, quiet, do_antialias, do_info;
 static Glib::ustring c_re_x, c_im_y, length_x;
@@ -255,42 +258,40 @@ int main (int argc, char**argv)
 		return 5;
 	}
 
-	FILE *closeme=0, *f;
+	bool do_stdout = false;
 	if (filename.length()==1 && filename[0]=='-') {
-		f = stdout;
-	} else {
-		f = fopen(filename.c_str(), "wb");
-		closeme = f;
-	}
-	if (!f) {
-		std::cerr << "Could not open file for writing: " << errno << " (" << strerror(errno) << ")" << std::endl;
-		return 4;
+		do_stdout = true;
 	}
 
-	Plot2 plot(selected_fractal, centre, size, plot_w, plot_h, max_passes);
+	int nthreads = BrotPrefs::threadpool_size(prefs);
+
+	CLIDataSink sink(0, quiet);
+	ThreadPool pool(nthreads);
+	ChunkDivider::Horizontal10px divider; // TODO should others be here?
+	Plot3Plot plot(pool, &sink, *selected_fractal, divider,
+			centre, size, plot_w, plot_h, max_passes);
+
+	sink.set_plot(&plot);
 	plot.set_prefs(prefs);
 
-	Reporter reporter(0, quiet);
-	plot.start(&reporter);
+	plot.start();
 	plot.wait();
+	if (!quiet)
+		std::cerr << std::endl << "Complete!" << std::endl;
 
-	const char *err_str = "";
-	if (0 != Render::save_as_png(f,
-				output_w, output_h, plot, *selected_palette, antialias,
-				&err_str)) {
-		std::cerr << "Saving as PNG failed: " << err_str << std::endl;
-		return 3;
+	Render2::PNG png(output_w, output_h, *selected_palette, -1);
+	for (auto it : sink._chunks_done) {
+		png.process(*it);
 	}
-
-	if (closeme && 0!=fclose(closeme)) {
-		std::cerr << "Error closing the save: " << errno << " (" << strerror(errno) << ")";
-		return 2;
+	if (do_stdout) {
+		png.write(std::cout);
+	} else {
+		png.write(filename);
 	}
 
 	if (do_info)
 		std::cout << plot.info(true) << std::endl;
 
-	// TODO: max iteration control?
-	// allow HUD to be rendered? tricky.
+	// TODO: allow HUD to be rendered? tricky.
 	return 0;
 }

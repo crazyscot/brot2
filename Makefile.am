@@ -68,7 +68,7 @@ $(top_builddir)/libbrot2/logo_auto.c: $(LOGO_IN)
 bin_PROGRAMS+=cli/brot2cli
 
 cli_brot2cli_SOURCES=cli/climain.cpp cli/climain.h \
-				 cli/reporter.cpp cli/reporter.h
+				 cli/CLIDataSink.cpp cli/CLIDataSink.h
 
 cli_brot2cli_LDADD= $(all_ldadd)
 

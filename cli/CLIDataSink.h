@@ -1,6 +1,6 @@
 /*
-    reporter.h: definitions for reporter.cpp
-    Copyright (C) 2011 Ross Younger
+    CLIDataSink.h: definitions for CLIDataSink.cpp
+    Copyright (C) 2011-2012 Ross Younger
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,24 +16,33 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #ifndef REPORTER_H_
-#define REPORTER_H_
+#define CLIDATASINK_H
 
-#include "Plot2.h"
+#include <list>
+#include "Plot3Plot.h"
+#include "IPlot3DataSink.h"
 
-class Reporter : public Plot2::callback_t {
+class CLIDataSink : public Plot3::IPlot3DataSink {
 	public:
 		// Constructor may take an explicit terminal width argument.
 		// Otherwise assumes something sensible.
-		Reporter(int columns=0, bool silent=false);
+		CLIDataSink(int columns=0, bool silent=false);
 
-		virtual void plot_progress_minor(Plot2& plot, float workdone);
-		virtual void plot_progress_major(Plot2& plot, unsigned current_maxiter, std::string& commentary);
-		virtual void plot_progress_complete(Plot2& plot);
+		void set_plot(Plot3::Plot3Plot* plot) { _plot = plot; }
 
-		virtual ~Reporter() {}
+		virtual void chunk_done(Plot3::Plot3Chunk* job);
+		virtual void pass_complete(std::string&);
+		virtual void plot_complete();
+
+		virtual ~CLIDataSink() {}
+
+		std::set<Plot3::Plot3Chunk*> _chunks_done;
+
 	protected:
 		int ncolumns;
 		bool quiet;
+		Plot3::Plot3Plot* _plot;
+		std::atomic<int> _chunks_this_pass; // Reset to 0 on pass completion.
 };
 
-#endif /* REPORTER_H_ */
+#endif /* CLIDATASINK_H */

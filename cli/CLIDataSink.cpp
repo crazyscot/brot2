@@ -1,5 +1,5 @@
 /*
-    reporter.cpp: progress reporting for the command-line
+    CLIDataSink.cpp: progress reporting for the command-line
     Copyright (C) 2011 Ross Younger
 
     This program is free software: you can redistribute it and/or modify
@@ -16,9 +16,17 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "reporter.h"
+#include "CLIDataSink.h"
 #include <iostream>
 #include <stdlib.h>
+#include <errno.h>
+#include <sys/ioctl.h>
+#include <stdio.h>
+#include <unistd.h>
+
+#include "Exception.h"
+
+using namespace Plot3;
 
 #ifdef UNUSED
 #elif defined(__GNUC__)
@@ -29,36 +37,44 @@
 # define UNUSED(x) x
 #endif
 
-Reporter::Reporter(int columns, bool silent) : ncolumns(columns), quiet(silent)
+CLIDataSink::CLIDataSink(int columns, bool silent) :
+	ncolumns(columns), quiet(silent), _plot(0), _chunks_this_pass(0)
 {
+	if (!ncolumns) {
+		struct winsize w;
+		ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
+		ncolumns = w.ws_col;
+	}
+	// Final fallback...
 	if (!ncolumns)
 		ncolumns = 80;
 }
 
-void Reporter::plot_progress_minor(Plot2& UNUSED(plot), float workdone)
+void CLIDataSink::chunk_done(Plot3Chunk* job)
 {
+	_chunks_done.insert(job);
+	_chunks_this_pass++;
+
 	if (quiet) return;
+	float workdone = _chunks_this_pass / _plot->chunks_total();
+	ASSERT(workdone <= 1.0);
 	if (ncolumns > 10) {
 		int j, n=ncolumns * workdone;
 		for (j=0; j<n; j++)
-			std::cout << '.';
+			std::cerr << '.';
 	} else {
-		std::cout << int(workdone * 100) << '%';
+		std::cerr << int(workdone * 100) << '%';
 	}
-	std::cout << '\r';
+	std::cerr << '\r';
 }
 
-void Reporter::plot_progress_major(Plot2& UNUSED(plot),
-		unsigned UNUSED(current_maxiter),
-		std::string& commentary)
+void CLIDataSink::pass_complete(std::string& commentary)
 {
+	_chunks_this_pass=0;
 	if (quiet) return;
-	std::cout << std::endl << commentary << std::endl;
+	std::cerr << std::endl << commentary << std::endl;
 }
 
-void Reporter::plot_progress_complete(Plot2& UNUSED(plot))
+void CLIDataSink::plot_complete()
 {
-	if (quiet) return;
-	std::cout << std::endl << "Complete!" << std::endl;
 }
-
