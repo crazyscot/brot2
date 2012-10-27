@@ -2,12 +2,12 @@
    <g_key_file_set_comment>
    Memcheck:Leak
    fun:malloc
+   ...
    fun:g_*alloc
    obj:*/libglib-2.0.*
    ...
    fun:g_key_file_set_comment
    fun:_ZN4Glib7KeyFile11set_commentERKNS_7ustringES3_
-   fun:_ZN12KeyfilePrefs6commitEv
 }
 
 {
@@ -16,15 +16,6 @@
    fun:inflateReset2
    fun:inflateInit2_
    fun:png_create_read_struct_2
-   fun:png_create_read_struct
-   fun:_ZN3png8consumerINS_15basic_rgb_pixelIhEENS_5imageIS2_E14pixel_consumerENS_21image_info_ref_holderELb1EE4readISiNS_19convert_color_spaceIS2_EEEEvRT_RKT0_
-   fun:_ZN10Render2PNG8TearDownEv
-   fun:_ZN7testing8internal35HandleExceptionsInMethodIfSupportedINS_4TestEvEET0_PT_MS4_FS3_vEPKc
-   fun:_ZN7testing4Test3RunEv
-   fun:_ZN7testing8TestInfo3RunEv
-   fun:_ZN7testing8TestCase3RunEv
-   fun:_ZN7testing8internal12UnitTestImpl11RunAllTestsEv
-   fun:_ZN7testing8internal35HandleExceptionsInMethodIfSupportedINS0_12UnitTestImplEbEET0_PT_MS4_FS3_vEPKc
 }
 
 {
@@ -36,17 +27,38 @@
    obj:*/libgobject-*
    ...
    fun:g_type_init_with_debug_flags
-   fun:_ZN4Glib18wrap_register_initEv
-   fun:_ZN4Glib4initEv
-   fun:_ZN7testing8internal12UnitTestImpl11RunAllTestsEv
+}
+
+{
+   <glib-init-type-registration-2>
+   Memcheck:Leak
+   fun:*alloc
+   ...
+   fun:g_*alloc*
+   obj:*/libgobject-*
+   ...
+   fun:g_type_register_static
+}
+
+{
+   <glib-init-type-registration-3>
+   Memcheck:Leak
+   fun:*alloc
+   ...
+   fun:g_*alloc*
+   obj:*/libgobject-*
+   ...
+   fun:g_type_register_fundamental
 }
 
 {
    <joined-std-threads-aren't-really-leaked>
    Memcheck:Leak
    fun:calloc
+   ...
    fun:_dl_allocate_tls
    fun:pthread_create@@GLIBC_*
+   ...
    fun:_ZNSt6thread15_M_start_threadESt10shared_ptrINS_10_Impl_baseEE
    fun:_ZN5Plot39Plot3PlotC1ER10ThreadPoolPNS_14IPlot3DataSinkERN7Fractal11FractalImplERNS_12ChunkDivider4BaseESt7complexIeESC_jjj
    fun:_ZN9Plot3Test13notifies_testEii
@@ -61,10 +73,12 @@
    <joined-std-threads-aren't-really-leaked.2>
    Memcheck:Leak
    fun:calloc
+   ...
    fun:_dl_allocate_tls
-   fun:pthread_create@@GLIBC_2.2.5
+   fun:pthread_create@@GLIBC_2.*
+   ...
    fun:_ZNSt6thread15_M_start_threadESt10shared_ptrINS_10_Impl_baseEE
-   fun:_ZN10ThreadPoolC1Em
+   fun:_ZN10ThreadPoolC1E?
 }
 
 {
