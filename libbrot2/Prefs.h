@@ -279,4 +279,12 @@ private:
 	static Glib::StaticMutex _MASTER_lock;
 };
 
+namespace BrotPrefs {
+
+// Helper: How big should a threadpool be for a given prefs?
+int threadpool_size(const Prefs&);
+int threadpool_size(std::shared_ptr<Prefs> const);
+
+};
+
 #endif /* PREFS_H_ */

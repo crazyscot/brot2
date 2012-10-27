@@ -329,3 +329,20 @@ Prefs::Prefs() { }
 Prefs::~Prefs() { }
 int KeyfilePrefs::_childCount = 0;
 
+namespace BrotPrefs {
+
+int threadpool_size(std::shared_ptr<Prefs> const prefs)
+{
+	int rv = prefs->get(PREF(MaxPlotThreads));
+	if (rv==-1)
+		rv = INT_MAX;
+	if (rv==0) {
+		rv = sysconf(_SC_NPROCESSORS_ONLN);
+		// N.B. Ports to other OSes need different code.
+		// See http://stackoverflow.com/questions/150355/programmatically-find-the-number-of-cores-on-a-machine
+		if (rv==-1) // i.e. sysconf failed somehow
+			rv=1; // Last-ditch default
+	}
+	return rv;
+}
+};
