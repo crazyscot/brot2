@@ -11,12 +11,10 @@
 }
 
 {
-   <png-read-uninitialised>
+   <zlib-uninitialised-conditional>
    Memcheck:Cond
    fun:inflateReset2
    fun:inflateInit2_
-   ...
-   fun:png_create_read_struct_2
 }
 
 {
@@ -81,6 +79,15 @@
    fun:_ZNSt6thread15_M_start_threadESt10shared_ptrINS_10_Impl_baseEE
    fun:_ZN10ThreadPoolC1E?
 }
+{
+   <joined-std-threads-aren't-really-leaked.3.i386.quantal_raring>
+   Memcheck:Leak
+   fun:calloc
+   fun:allocate_dtv
+   fun:_dl_allocate_tls
+   fun:pthread_create@@GLIBC_2.1
+   fun:pthread_create@GLIBC_2.0
+}
 
 {
    <joined-glib-threads-aren't-really-leaked>
@@ -113,4 +120,11 @@
    fun:_dl_sysdep_start
    fun:_dl_start
    obj:/lib/x86_64-linux-gnu/ld-2.16.so
+}
+
+{
+   <i386-glib-phantom-calloc-leak>
+   Memcheck:Leak
+   fun:calloc
+   obj:/lib/i386-linux-gnu/libglib-2.0.so.0.3?00.?
 }
