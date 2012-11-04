@@ -128,7 +128,8 @@ class PNG : public Base {
 	 *
 	 * Note that this class contains a nontrivial memory buffer throughout its lifetime.
 	 */
-	unsigned _width, _height, _local_inf, _rowstride;
+protected:
+	unsigned _width, _height, _local_inf;
 	const BasePalette& _pal;
 	png::image< png::rgb_pixel > _png;
 

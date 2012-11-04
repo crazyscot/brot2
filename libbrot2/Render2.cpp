@@ -106,7 +106,6 @@ void MemoryBuffer::process(const Plot3Chunk& chunk)
 PNG::PNG(unsigned width, unsigned height,
 		const BasePalette& palette, int local_inf) :
 		_width(width), _height(height), _local_inf(local_inf),
-		_rowstride(0),
 		_pal(palette), _png(_width, _height)
 {
 }
@@ -117,7 +116,6 @@ PNG::~PNG()
 
 void PNG::process(const Plot3Chunk& chunk)
 {
-	(void)chunk;
 	const Fractal::PointData * data = chunk.get_data();
 
 	// Slight twist: We've plotted the fractal from a bottom-left origin,
