@@ -20,6 +20,7 @@
 #define RENDER2_H_
 
 #include <list>
+#include <vector>
 #include <cairo/cairo.h>
 #include <png++/png.hpp>
 #include <stdio.h>
@@ -49,6 +50,17 @@ inline rgb render_pixel(const Fractal::PointData data, const int local_inf, cons
 	} else {
 		return pal->get(data);
 	}
+}
+
+inline rgb antialias_pixel(std::vector<rgb> const& pix) {
+	unsigned R=0,G=0,B=0,npix=0;
+	for (auto it = pix.cbegin(); it != pix.cend(); it++) {
+		R += (*it).r;
+		G += (*it).g;
+		B += (*it).b;
+		++npix;
+	}
+	return rgb(R/npix,G/npix,B/npix);
 }
 
 class Base {

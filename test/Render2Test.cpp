@@ -194,3 +194,63 @@ TEST_F(Render2PNG, ChunkOffsetsWork) {
 		_png.process(*it);
 	}
 }
+
+// -----------------------------------------------------------------------------
+
+TEST(AntiAliasBase, Identity) {
+	std::vector<rgb> pix;
+	for (int i=0; i<100; i++) {
+		rgb input(rand()%256,rand()%256,rand()%256);
+		pix.push_back(input);
+		rgb result = Render2::antialias_pixel(pix);
+		EXPECT_EQ(input,result);
+		pix.clear();
+	}
+
+	// one pixel  identity
+	// two pixels, random
+	// three, four, ditto
+	// special cases: A + black == ?; A + white == ?; r/g/b clip ?
+}
+
+class AntiAliasBase : public ::testing::TestWithParam<unsigned> {
+
+};
+
+TEST_P(AntiAliasBase, SameColourUnchanged) {
+	std::vector<rgb> pix;
+	for (int k=0; k<100; k++) {
+		const int n = this->GetParam();
+		rgb input(rand()%256,rand()%256,rand()%256);
+		for (int i=0; i<n; i++)
+			pix.push_back(input);
+		rgb result = Render2::antialias_pixel(pix);
+		EXPECT_EQ(input,result);
+		pix.clear();
+	}
+}
+
+TEST_P(AntiAliasBase, RandomTests) {
+	std::vector<rgb> pix;
+	for (int k=0; k<100; k++) {
+		const int n = this->GetParam();
+		int rr=0,gg=0,bb=0;
+		for (int i=0; i<n; i++) {
+			rgb input(rand()%256,rand()%256,rand()%256);
+			pix.push_back(input);
+			rr += input.r;
+			gg += input.g;
+			bb += input.b;
+		}
+		rgb myResult(rr/n, gg/n, bb/n);
+		rgb result = Render2::antialias_pixel(pix);
+		EXPECT_EQ(myResult,result);
+		pix.clear();
+	}
+}
+
+INSTANTIATE_TEST_CASE_P(TwoThroughFour,
+                        AntiAliasBase,
+                        ::testing::Values(2,3,4));
+
+// -----------------------------------------------------------------------------

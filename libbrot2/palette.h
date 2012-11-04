@@ -45,6 +45,10 @@ public:
 	unsigned char r,g,b;
 	rgb () : r(0),g(0),b(0) {};
 	rgb (unsigned char rr, unsigned char gg, unsigned char bb) : r(rr), g(gg), b(bb) {};
+
+	bool operator==(const rgb& other) const {
+		return (r==other.r) && (g==other.g) && (b==other.b);
+	}
 };
 
 std::ostream& operator<<(std::ostream &stream, rgb o);
