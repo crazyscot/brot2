@@ -104,8 +104,8 @@ void MemoryBuffer::process(const Plot3Chunk& chunk)
 }
 
 PNG::PNG(unsigned width, unsigned height,
-		const BasePalette& palette, int local_inf) :
-		_width(width), _height(height), _local_inf(local_inf),
+		const BasePalette& palette, int local_inf, bool antialias) :
+		_width(width), _height(height), _local_inf(local_inf), _antialias(antialias),
 		_pal(palette), _png(_width, _height)
 {
 }
@@ -116,6 +116,9 @@ PNG::~PNG()
 
 void PNG::process(const Plot3Chunk& chunk)
 {
+	if (_antialias)
+		return process_antialias(chunk);
+
 	const Fractal::PointData * data = chunk.get_data();
 
 	// Slight twist: We've plotted the fractal from a bottom-left origin,
@@ -148,17 +151,7 @@ void PNG::write(std::ostream& os)
 	_png.write_stream<std::ostream>(os);
 }
 
-PNG_AntiAliased::PNG_AntiAliased(unsigned width, unsigned height,
-		const BasePalette& palette, int local_inf) :
-				PNG(width, height, palette, local_inf)
-{
-}
-
-PNG_AntiAliased::~PNG_AntiAliased()
-{
-}
-
-void PNG_AntiAliased::process(const Plot3Chunk& chunk)
+void PNG::process_antialias(const Plot3Chunk& chunk)
 {
 	const Fractal::PointData * data = chunk.get_data();
 
@@ -202,7 +195,5 @@ void PNG_AntiAliased::process(const Plot3Chunk& chunk)
 		}
 	}
 }
-
-// Factory ??
 
 }; // namespace Render2

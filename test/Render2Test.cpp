@@ -263,12 +263,12 @@ protected:
 	MockPalette _palette;
 	unsigned _TestW, _TestH;
 	Fractal::Point _origin, _size;
-	Render2::PNG_AntiAliased _png;
+	Render2::PNG _png;
 
 	PNGAntiAlias() :
 			_TestW(37), _TestH(41),
 			_origin(0.6,0.7), _size(0.001, 0.01),
-			_png(_TestW, _TestH, _palette, -1) {};
+			_png(_TestW, _TestH, _palette, -1, true) {};
 
 	virtual void TearDown() {
 		std::ostringstream pngout("");
