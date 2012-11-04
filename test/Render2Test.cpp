@@ -22,6 +22,7 @@
 #include "MockFractal.h"
 #include "MockPalette.h"
 #include "Render2.h"
+#include "libbrot2/Exception.h"
 
 using namespace Plot3;
 
@@ -188,6 +189,7 @@ TEST_F(Render2PNG, ChunkOffsetsWork) {
 
 	CHUNK(0,_TestH-15,         _TestW-10, 15);
 	CHUNK(_TestW-10,_TestH-15, 10, 15);
+#undef CHUNK
 
 	for (it=chunks.begin(); it!=chunks.end(); it++) {
 		(*it).run();
@@ -252,5 +254,97 @@ TEST_P(AntiAliasBase, RandomTests) {
 INSTANTIATE_TEST_CASE_P(TwoThroughFour,
                         AntiAliasBase,
                         ::testing::Values(2,3,4));
+
+// -----------------------------------------------------------------------------
+
+class PNGAntiAlias: public ::testing::Test {
+protected:
+	MockFractal _fract;
+	MockPalette _palette;
+	unsigned _TestW, _TestH;
+	Fractal::Point _origin, _size;
+	Render2::PNG_AntiAliased _png;
+
+	PNGAntiAlias() :
+			_TestW(37), _TestH(41),
+			_origin(0.6,0.7), _size(0.001, 0.01),
+			_png(_TestW, _TestH, _palette, -1) {};
+
+	virtual void TearDown() {
+		std::ostringstream pngout("");
+		_png.write(pngout);
+		std::istringstream pngin(pngout.str());
+		png::image< png::rgb_pixel > png2(pngin);
+		// And now apply (broadly) the same pixel-is-touched check as above.
+		int fails=0;
+		for (unsigned j=0; j<_TestH; j++) {
+			for (unsigned i=0; i<_TestW; i++) {
+				if (png2[j][i].red != 0xFF) ++fails;
+				if (png2[j][i].green != 0xFF) ++fails;
+				if (png2[j][i].blue != 0xFF) ++fails;
+			}
+		}
+		EXPECT_EQ(0, fails) << "non-FF rgb bytes in the assembled PNG";
+	}
+};
+
+TEST_F(PNGAntiAlias, Works) {
+	Plot3Chunk chunk(NULL, _fract, 2*_TestW, 2*_TestH, 0, 0, _origin, _size, 10);
+	chunk.run();
+	_png.process(chunk);
+}
+
+TEST_F(PNGAntiAlias, ChunkOffsetsWork) {
+	ASSERT_GT(_TestW, 10);
+	ASSERT_GT(_TestH, 15);
+	/* +------------------+------------------+
+	 * | 0,0 -> W-10,H-15 | W-10,0 -> W,H-15 |
+	 * |------------------+------------------|
+	 * | 0,H-15 -> W-10,H | W-10,H-15 -> W,H |
+	 * +------------------+------------------+
+	 */
+	std::list<Plot3Chunk> chunks;
+	std::list<Plot3Chunk>::iterator it;
+#define CHUNK(X,Y,W,H) chunks.push_back(Plot3Chunk(NULL, _fract, 2*(W),2*(H), 2*(X),2*(Y), _origin, _size, 10))
+	CHUNK(0,0,                 _TestW-10, _TestH-15);
+	CHUNK(_TestW-10,0,         10, _TestH-15);
+
+	CHUNK(0,_TestH-15,         _TestW-10, 15);
+	CHUNK(_TestW-10,_TestH-15, 10, 15);
+#undef CHUNK
+
+	for (it=chunks.begin(); it!=chunks.end(); it++) {
+		(*it).run();
+		_png.process(*it);
+	}
+}
+
+TEST_F(PNGAntiAlias, OddWidthAsserts) {
+	ASSERT_GT(_TestW, 5);
+	{
+		Plot3Chunk chunk(NULL, _fract, 5, 2*_TestH, 0, 0, _origin, _size, 10);
+		chunk.run();
+		EXPECT_THROW(_png.process(chunk), Assert);
+	}
+	{
+		Plot3Chunk chunk2(NULL, _fract, 2*_TestW, 2*_TestH, 0, 0, _origin, _size, 10);
+		chunk2.run();
+		_png.process(chunk2);
+	}
+}
+
+TEST_F(PNGAntiAlias, OddHeightAsserts) {
+	ASSERT_GT(_TestH, 5);
+	{
+		Plot3Chunk chunk(NULL, _fract, 2*_TestW, 5, 0, 0, _origin, _size, 10);
+		chunk.run();
+		EXPECT_THROW(_png.process(chunk), Assert);
+	}
+	{
+		Plot3Chunk chunk2(NULL, _fract, 2*_TestW, 2*_TestH, 0, 0, _origin, _size, 10);
+		chunk2.run();
+		_png.process(chunk2);
+	}
+}
 
 // -----------------------------------------------------------------------------

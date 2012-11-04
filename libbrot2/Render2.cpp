@@ -148,4 +148,61 @@ void PNG::write(std::ostream& os)
 	_png.write_stream<std::ostream>(os);
 }
 
+PNG_AntiAliased::PNG_AntiAliased(unsigned width, unsigned height,
+		const BasePalette& palette, int local_inf) :
+				PNG(width, height, palette, local_inf)
+{
+}
+
+PNG_AntiAliased::~PNG_AntiAliased()
+{
+}
+
+void PNG_AntiAliased::process(const Plot3Chunk& chunk)
+{
+	const Fractal::PointData * data = chunk.get_data();
+
+	// Slight twist: We've plotted the fractal from a bottom-left origin,
+	// but gdk assumes a top-left origin.
+
+	unsigned i,j;
+	const unsigned outW = chunk._width / 2,
+				   outH = chunk._height / 2,
+				   outOffX = chunk._offX / 2,
+				   outOffY = chunk._offY / 2;
+
+	std::vector<rgb> allpix;
+
+	ASSERT( chunk._width % 2 == 0);
+	ASSERT( chunk._height % 2 == 0);
+	ASSERT( chunk._offX + chunk._width <= _width*2 );
+	ASSERT( chunk._offY + chunk._height <= _height*2 );
+	ASSERT( outOffX + outW <= _width );
+	ASSERT( outOffY + outH <= _height);
+
+	for (j=0; j<outH; j++) {
+		for (i=0; i<outW; i++) {
+			allpix.clear();
+			rgb pix;
+
+			const Fractal::PointData * base = &data[2*j*chunk._width];
+			pix = render_pixel(base[2*i], _local_inf, &_pal);
+			allpix.push_back(pix);
+			pix = render_pixel(base[2*i+1], _local_inf, &_pal);
+			allpix.push_back(pix);
+
+			base = &data[1 + 2*j*chunk._width];
+			pix = render_pixel(base[2*i], _local_inf, &_pal);
+			allpix.push_back(pix);
+			pix = render_pixel(base[2*i+1], _local_inf, &_pal);
+			allpix.push_back(pix);
+
+			rgb aapix = antialias_pixel(allpix);
+			_png[j+outOffY][i+outOffX] = png::rgb_pixel(aapix.r, aapix.g, aapix.b);
+		}
+	}
+}
+
+// Factory ??
+
 }; // namespace Render2

@@ -147,6 +147,23 @@ public:
 	void write(std::ostream& ostream);
 };
 
+class PNG_AntiAliased : public PNG {
+	/*
+	 * A variant class which applies a 2x downscale in either direction.
+	 * Specify only the output height and width; we expect to process
+	 * 4x as many pixels via the chunks system.
+	 *
+	 * CAUTION: chunk widths and heights should be even! If they aren't,
+	 * the antialiasing will likely leave seaming artefacts everywhere.
+	 */
+public:
+	PNG_AntiAliased(unsigned outWidth, unsigned outHeight, const BasePalette& palette, int local_inf);
+	virtual ~PNG_AntiAliased();
+
+	using Base::process;
+	virtual void process(const Plot3Chunk& chunk);
+};
+
 }; // namespace Render2
 
 #endif /* RENDER2_H_ */
