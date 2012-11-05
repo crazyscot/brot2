@@ -149,6 +149,7 @@ public:
 
 	using Base::process;
 	virtual void process(const Plot3Chunk& chunk);
+	virtual void process_plain(const Plot3Chunk& chunk);
 	virtual void process_antialias(const Plot3Chunk& chunk);
 
 	void write(const std::string& filename);

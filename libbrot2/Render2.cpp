@@ -118,7 +118,12 @@ void PNG::process(const Plot3Chunk& chunk)
 {
 	if (_antialias)
 		return process_antialias(chunk);
+	else
+		return process_plain(chunk);
+}
 
+void PNG::process_plain(const Plot3Chunk& chunk)
+{
 	const Fractal::PointData * data = chunk.get_data();
 
 	// Slight twist: We've plotted the fractal from a bottom-left origin,
