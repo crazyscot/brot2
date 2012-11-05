@@ -234,8 +234,10 @@ int main (int argc, char**argv)
 	if (fail) return 4;
 
 	Fractal::Point centre(CRe, CIm);
+	const unsigned antialias= do_antialias ? 2 : 1;
+	unsigned plot_h=output_h*antialias, plot_w=output_w*antialias;
 
-	double aspect = (double)output_w / output_h;
+	double aspect = (double)plot_w / plot_h;
 	Fractal::Value YAxisLength = XAxisLength / aspect;
 	Fractal::Point size(XAxisLength, YAxisLength);
 
@@ -267,7 +269,7 @@ int main (int argc, char**argv)
 	ThreadPool pool(nthreads);
 	ChunkDivider::Horizontal10px divider; // TODO should others be here?
 	Plot3Plot plot(pool, &sink, *selected_fractal, divider,
-			centre, size, output_w, output_h, max_passes);
+			centre, size, plot_w, plot_h, max_passes);
 
 	sink.set_plot(&plot);
 	plot.set_prefs(prefs);
@@ -277,7 +279,7 @@ int main (int argc, char**argv)
 	if (!quiet)
 		std::cerr << std::endl << "Complete!" << std::endl;
 
-	Render2::PNG png(output_w, output_h, *selected_palette, -1);
+	Render2::PNG png(output_w, output_h, *selected_palette, -1, do_antialias);
 	for (auto it : sink._chunks_done) {
 		png.process(*it);
 	}
