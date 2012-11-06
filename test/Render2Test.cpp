@@ -26,7 +26,7 @@
 
 using namespace Plot3;
 
-class Render2Test: public ::testing::Test {
+class R2Memory: public ::testing::Test {
 	/* This checks that Render touches every pixel in the output buffer. */
 protected:
 	MockFractal _fract;
@@ -37,11 +37,12 @@ protected:
 	Render2::MemoryBuffer *_render;
 	Render2::pixpack_format _fmt;
 	MockPalette _palette;
+	const bool _antialias;
 
-	Render2Test(int pixfmt=Render2::pixpack_format::PACKED_RGB_24) :
+	R2Memory(int pixfmt=Render2::pixpack_format::PACKED_RGB_24, bool aa=false) :
 			_TestW(37), _TestH(41), _rowstride(0),
 			_origin(0.6,0.7), _size(0.001, 0.01),
-			_buf(0), _bufz(0), _render(0), _fmt(pixfmt) {};
+			_buf(0), _bufz(0), _render(0), _fmt(pixfmt), _antialias(aa) {};
 	virtual void SetUp() {
 		switch (_fmt) {
 		/* Note: We carefully choose our rowstride so that there are no
@@ -59,7 +60,7 @@ protected:
 		_bufz = _rowstride * _TestH;
 		_buf = new unsigned char[_bufz];
 		std::fill_n(_buf, _bufz, 0);
-		_render = new Render2::MemoryBuffer(_buf, _rowstride, _TestW, _TestH, false, -1, _fmt, _palette);
+		_render = new Render2::MemoryBuffer(_buf, _rowstride, _TestW, _TestH, _antialias, -1, _fmt, _palette);
 	}
 
 	virtual void FinalExpectation(int fails) {
@@ -80,18 +81,20 @@ protected:
 	}
 };
 
-class Render2TestFormatParam: public ::testing::WithParamInterface<int>, public Render2Test {
+class Render2MemoryFormatP: public ::testing::WithParamInterface<int>, public R2Memory {
 protected:
-	Render2TestFormatParam() : Render2Test(GetParam()) {};
+	Render2MemoryFormatP() : R2Memory(GetParam()) {};
 };
 
-TEST_P(Render2TestFormatParam, AllMemTouched) {
+TEST_P(Render2MemoryFormatP, AllMemTouched) {
 	Plot3Chunk chunk(NULL, _fract, _TestW, _TestH, 0, 0, _origin, _size, 10);
 	chunk.run();
 	_render->process(chunk);
 }
 
-class Render2MetaTest: public Render2Test {
+///////////////////////////////////////////////////
+
+class R2MemoryMetaTest: public R2Memory {
 	/* This checks that we haven't accidentally broken the test mechanism... */
 	virtual void FinalExpectation(int fails) {
 		// Expect at least 1 failure. Should get the whole buffer failing.
@@ -99,16 +102,18 @@ class Render2MetaTest: public Render2Test {
 	}
 };
 
-TEST_F(Render2MetaTest, TestTheTestware)
+TEST_F(R2MemoryMetaTest, TestTheTestware)
 {
 	/* No chunk, nothing to process - we expect the checker to report errors
 	 * See the doctored FinalExpectation above. */
 }
 
-INSTANTIATE_TEST_CASE_P(AllFormats, Render2TestFormatParam,
+///////////////////////////////////////////////////
+
+INSTANTIATE_TEST_CASE_P(AllFormats, Render2MemoryFormatP,
 	::testing::Values(Render2::pixpack_format::PACKED_RGB_24, CAIRO_FORMAT_ARGB32, CAIRO_FORMAT_RGB24));
 
-TEST_F(Render2Test, ChunkOffsetsWork) {
+TEST_F(R2Memory, ChunkOffsetsWork) {
 	ASSERT_GT(_TestW, 10);
 	ASSERT_GT(_TestH, 15);
 	/* +------------------+------------------+
@@ -125,6 +130,7 @@ TEST_F(Render2Test, ChunkOffsetsWork) {
 
 	CHUNK(0,_TestH-15,         _TestW-10, 15);
 	CHUNK(_TestW-10,_TestH-15, 10, 15);
+#undef CHUNK
 
 	for (it=chunks.begin(); it!=chunks.end(); it++) {
 		(*it).run();
@@ -132,7 +138,74 @@ TEST_F(Render2Test, ChunkOffsetsWork) {
 	}
 }
 
-// -----------------------------------------------------------------------------
+///////////////////////////////////////////////////
+
+class R2MemoryAntiAlias: public R2Memory {
+public:
+	R2MemoryAntiAlias(int pixfmt=Render2::pixpack_format::PACKED_RGB_24) :
+			R2Memory(pixfmt, true) {};
+};
+
+TEST_F(R2MemoryAntiAlias, Works) {
+	Plot3Chunk chunk(NULL, _fract, 2*_TestW, 2*_TestH, 0, 0, _origin, _size, 10);
+	chunk.run();
+	_render->process(chunk);
+}
+
+TEST_F(R2MemoryAntiAlias, ChunkOffsetsWork) {
+	ASSERT_GT(_TestW, 10);
+	ASSERT_GT(_TestH, 15);
+	/* +------------------+------------------+
+	 * | 0,0 -> W-10,H-15 | W-10,0 -> W,H-15 |
+	 * |------------------+------------------|
+	 * | 0,H-15 -> W-10,H | W-10,H-15 -> W,H |
+	 * +------------------+------------------+
+	 */
+	std::list<Plot3Chunk> chunks;
+	std::list<Plot3Chunk>::iterator it;
+#define CHUNK(X,Y,W,H) chunks.push_back(Plot3Chunk(NULL, _fract, 2*(W),2*(H), 2*(X),2*(Y), _origin, _size, 10))
+	CHUNK(0,0,                 _TestW-10, _TestH-15);
+	CHUNK(_TestW-10,0,         10, _TestH-15);
+
+	CHUNK(0,_TestH-15,         _TestW-10, 15);
+	CHUNK(_TestW-10,_TestH-15, 10, 15);
+#undef CHUNK
+
+	for (it=chunks.begin(); it!=chunks.end(); it++) {
+		(*it).run();
+		_render->process(*it);
+	}
+}
+
+TEST_F(R2MemoryAntiAlias, OddWidthAsserts) {
+	ASSERT_GT(_TestW, 5);
+	{
+		Plot3Chunk chunk(NULL, _fract, 5, 2*_TestH, 0, 0, _origin, _size, 10);
+		chunk.run();
+		EXPECT_THROW(_render->process(chunk), Assert);
+	}
+	{
+		Plot3Chunk chunk2(NULL, _fract, 2*_TestW, 2*_TestH, 0, 0, _origin, _size, 10);
+		chunk2.run();
+		_render->process(chunk2);
+	}
+}
+
+TEST_F(R2MemoryAntiAlias, OddHeightAsserts) {
+	ASSERT_GT(_TestH, 5);
+	{
+		Plot3Chunk chunk(NULL, _fract, 2*_TestW, 5, 0, 0, _origin, _size, 10);
+		chunk.run();
+		EXPECT_THROW(_render->process(chunk), Assert);
+	}
+	{
+		Plot3Chunk chunk2(NULL, _fract, 2*_TestW, 2*_TestH, 0, 0, _origin, _size, 10);
+		chunk2.run();
+		_render->process(chunk2);
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////
 
 class Render2PNG: public ::testing::Test {
 	/* This checks that Render touches every pixel in the output buffer. */
