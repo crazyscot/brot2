@@ -65,9 +65,18 @@ inline rgb antialias_pixel(std::vector<rgb> const& pix) {
 
 class Base {
 public:
-	virtual void process(const Plot3Chunk& chunk) = 0;
-	virtual void process(const std::list<Plot3Chunk*>& chunks);
 	virtual ~Base() {}
+
+	/** Processes a single chunk. */
+	virtual void process(const Plot3Chunk& chunk) = 0;
+	/** Processes a list of chunks. This usually leads to repeated calls to process(chunk). */
+	virtual void process(const std::list<Plot3Chunk*>& chunks);
+protected:
+	/**
+	 * Called by process_* functions for each output pixel.
+	 * The X and Y parameters are relative to the output width/height.
+	 */
+	virtual void pixel_done(unsigned X, unsigned Y, const rgb& p) = 0;
 };
 
 class MemoryBuffer : public Base {
