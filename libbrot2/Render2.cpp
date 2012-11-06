@@ -140,10 +140,15 @@ void PNG::process_plain(const Plot3Chunk& chunk)
 
 		for (i=0; i<chunk._width; i++) {
 			rgb pix = render_pixel(src[i], _local_inf, &_pal);
-			_png[j+chunk._offY][i+chunk._offX] = png::rgb_pixel(pix.r, pix.g, pix.b);
+			process_pixel(i+chunk._offX, j+chunk._offY, pix);
 		}
 	}
 }
+
+void PNG::process_pixel(unsigned X, unsigned Y, const rgb& pix) {
+	_png[Y][X] = png::rgb_pixel(pix.r, pix.g, pix.b);
+}
+
 
 void PNG::write(const std::string& filename)
 {
@@ -159,9 +164,6 @@ void PNG::write(std::ostream& os)
 void PNG::process_antialias(const Plot3Chunk& chunk)
 {
 	const Fractal::PointData * data = chunk.get_data();
-
-	// Slight twist: We've plotted the fractal from a bottom-left origin,
-	// but gdk assumes a top-left origin.
 
 	unsigned i,j;
 	const unsigned outW = chunk._width / 2,
@@ -196,7 +198,7 @@ void PNG::process_antialias(const Plot3Chunk& chunk)
 			allpix.push_back(pix);
 
 			rgb aapix = antialias_pixel(allpix);
-			_png[j+outOffY][i+outOffX] = png::rgb_pixel(aapix.r, aapix.g, aapix.b);
+			process_pixel(i+outOffX, j+outOffY, aapix);
 		}
 	}
 }

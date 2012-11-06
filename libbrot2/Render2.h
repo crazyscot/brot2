@@ -154,6 +154,14 @@ public:
 
 	void write(const std::string& filename);
 	void write(std::ostream& ostream);
+
+protected:
+	/**
+	 * Called by process_plain / process_antialias for each output pixel.
+	 * This (will be) pure virtual in the base class.
+	 * The X and Y parameters are relative to the output width/height.
+	 */
+	virtual void process_pixel(unsigned X, unsigned Y, const rgb& p);
 };
 
 }; // namespace Render2
