@@ -129,7 +129,7 @@ void PNG::process(const Plot3Chunk& chunk)
 		return process_plain(chunk);
 }
 
-void PNG::process_plain(const Plot3Chunk& chunk)
+void Base::process_plain(const Plot3Chunk& chunk)
 {
 	const Fractal::PointData * data = chunk.get_data();
 

@@ -77,6 +77,10 @@ protected:
 	const BasePalette& _pal;
 
 	/**
+	 * Non-antialiased chunk processing.
+	 */
+	void process_plain(const Plot3Chunk& chunk);
+	/**
 	 * Called by process_* functions for each output pixel.
 	 * The X and Y parameters are relative to the output width/height.
 	 */
@@ -161,18 +165,12 @@ public:
 
 	using Base::process;
 	virtual void process(const Plot3Chunk& chunk);
-	virtual void process_plain(const Plot3Chunk& chunk);
 	virtual void process_antialias(const Plot3Chunk& chunk);
 
 	void write(const std::string& filename);
 	void write(std::ostream& ostream);
 
 protected:
-	/**
-	 * Called by process_plain / process_antialias for each output pixel.
-	 * This (will be) pure virtual in the base class.
-	 * The X and Y parameters are relative to the output width/height.
-	 */
 	virtual void pixel_done(unsigned X, unsigned Y, const rgb& p);
 };
 
