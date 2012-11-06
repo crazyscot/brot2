@@ -144,12 +144,12 @@ void PNG::process_plain(const Plot3Chunk& chunk)
 
 		for (i=0; i<chunk._width; i++) {
 			rgb pix = render_pixel(src[i], _local_inf, &_pal);
-			process_pixel(i+chunk._offX, j+chunk._offY, pix);
+			pixel_done(i+chunk._offX, j+chunk._offY, pix);
 		}
 	}
 }
 
-void PNG::process_pixel(unsigned X, unsigned Y, const rgb& pix) {
+void PNG::pixel_done(unsigned X, unsigned Y, const rgb& pix) {
 	_png[Y][X] = png::rgb_pixel(pix.r, pix.g, pix.b);
 }
 
@@ -202,7 +202,7 @@ void PNG::process_antialias(const Plot3Chunk& chunk)
 			allpix.push_back(pix);
 
 			rgb aapix = antialias_pixel(allpix);
-			process_pixel(i+outOffX, j+outOffY, aapix);
+			pixel_done(i+outOffX, j+outOffY, aapix);
 		}
 	}
 }

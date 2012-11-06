@@ -163,7 +163,7 @@ protected:
 	 * This (will be) pure virtual in the base class.
 	 * The X and Y parameters are relative to the output width/height.
 	 */
-	virtual void process_pixel(unsigned X, unsigned Y, const rgb& p);
+	virtual void pixel_done(unsigned X, unsigned Y, const rgb& p);
 };
 
 }; // namespace Render2
