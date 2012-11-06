@@ -168,7 +168,7 @@ void PNG::write(std::ostream& os)
 	_png.write_stream<std::ostream>(os);
 }
 
-void PNG::process_antialias(const Plot3Chunk& chunk)
+void Base::process_antialias(const Plot3Chunk& chunk)
 {
 	const Fractal::PointData * data = chunk.get_data();
 
