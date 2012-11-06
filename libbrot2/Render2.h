@@ -72,6 +72,7 @@ public:
 	void process(const Plot3Chunk& chunk);
 	/** Processes a list of chunks. This leads to repeated calls to process(chunk). */
 	void process(const std::list<Plot3Chunk*>& chunks);
+
 protected:
 	unsigned _width, _height, _local_inf;
 	bool _antialias;
