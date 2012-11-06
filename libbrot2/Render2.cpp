@@ -30,6 +30,14 @@ using namespace Plot3;
 Base::Base(unsigned width, unsigned height, int local_inf, bool antialias, const BasePalette& pal) :
 		_width(width), _height(height), _local_inf(local_inf), _antialias(antialias), _pal(pal) {}
 
+void Base::process(const Plot3Chunk& chunk)
+{
+	if (_antialias)
+		return process_antialias(chunk);
+	else
+		return process_plain(chunk);
+}
+
 void Base::process(const std::list<Plot3Chunk*>& chunks)
 {
 	std::list<Plot3Chunk*>::const_iterator it;
@@ -37,6 +45,8 @@ void Base::process(const std::list<Plot3Chunk*>& chunks)
 		process(**it);
 	}
 }
+
+/////////////////////////////////////////////////////////////////////////////////////////////
 
 MemoryBuffer::MemoryBuffer(unsigned char *buf, int rowstride, unsigned width, unsigned height,
 		bool antialias, const int local_inf, pixpack_format fmt, const BasePalette& pal) :
@@ -64,30 +74,6 @@ MemoryBuffer::~MemoryBuffer()
 {
 }
 
-void MemoryBuffer::process(const Plot3Chunk& chunk)
-{
-	(void)chunk;
-	const Fractal::PointData * data = chunk.get_data();
-
-	// Slight twist: We've plotted the fractal from a bottom-left origin,
-	// but gdk assumes a top-left origin.
-
-	unsigned i,j;
-
-	// Sanity checks
-	ASSERT( chunk._offX + chunk._width <= _width );
-	ASSERT( chunk._offY + chunk._height <= _height );
-
-	for (j=0; j<chunk._height; j++) {
-		const Fractal::PointData * src = &data[j*chunk._width];
-
-		for (i=0; i<chunk._width; i++) {
-			rgb pix = render_pixel(src[i], _local_inf, &_pal);
-			pixel_done(i + chunk._offX, j + chunk._offY, pix);
-		}
-	}
-}
-
 void MemoryBuffer::pixel_done(unsigned X, unsigned Y, const rgb& pix)
 {
 	unsigned char *dst = &_buf[ Y * _rowstride + X * _pixelstep];
@@ -110,6 +96,8 @@ void MemoryBuffer::pixel_done(unsigned X, unsigned Y, const rgb& pix)
 	}
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////////
+
 PNG::PNG(unsigned width, unsigned height,
 		const BasePalette& palette, int local_inf, bool antialias) :
 				Base(width, height, local_inf, antialias, palette),
@@ -121,13 +109,7 @@ PNG::~PNG()
 {
 }
 
-void PNG::process(const Plot3Chunk& chunk)
-{
-	if (_antialias)
-		return process_antialias(chunk);
-	else
-		return process_plain(chunk);
-}
+/////////////////////////////////////////////////////////////////////////////////////////////
 
 void Base::process_plain(const Plot3Chunk& chunk)
 {

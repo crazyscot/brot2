@@ -69,9 +69,9 @@ public:
 	virtual ~Base() {}
 
 	/** Processes a single chunk. */
-	virtual void process(const Plot3Chunk& chunk) = 0;
-	/** Processes a list of chunks. This usually leads to repeated calls to process(chunk). */
-	virtual void process(const std::list<Plot3Chunk*>& chunks);
+	void process(const Plot3Chunk& chunk);
+	/** Processes a list of chunks. This leads to repeated calls to process(chunk). */
+	void process(const std::list<Plot3Chunk*>& chunks);
 protected:
 	unsigned _width, _height, _local_inf;
 	bool _antialias;
@@ -124,12 +124,7 @@ public:
 	MemoryBuffer(unsigned char *buf, const int rowstride, unsigned width, unsigned height,
 			bool antialias, const int local_inf, pixpack_format fmt, const BasePalette& pal);
 
-	// TODO ANTIALIAS
-
 	virtual ~MemoryBuffer();
-
-	using Base::process;
-	virtual void process(const Plot3Chunk& chunk);
 
 #if 0
 	/* Returns data for a single fractal point, identified by its pixel co-ordinates within a plot. */
@@ -166,9 +161,6 @@ public:
 	 */
 	PNG(unsigned width, unsigned height, const BasePalette& palette, int local_inf, bool antialias=false);
 	virtual ~PNG();
-
-	using Base::process;
-	virtual void process(const Plot3Chunk& chunk);
 
 	void write(const std::string& filename);
 	void write(std::ostream& ostream);
