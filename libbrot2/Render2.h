@@ -65,6 +65,7 @@ inline rgb antialias_pixel(std::vector<rgb> const& pix) {
 
 class Base {
 public:
+	Base(unsigned width, unsigned height, int local_inf, const BasePalette& pal);
 	virtual ~Base() {}
 
 	/** Processes a single chunk. */
@@ -72,6 +73,9 @@ public:
 	/** Processes a list of chunks. This usually leads to repeated calls to process(chunk). */
 	virtual void process(const std::list<Plot3Chunk*>& chunks);
 protected:
+	unsigned _width, _height, _local_inf;
+	const BasePalette& _pal;
+
 	/**
 	 * Called by process_* functions for each output pixel.
 	 * The X and Y parameters are relative to the output width/height.
@@ -89,9 +93,8 @@ class MemoryBuffer : public Base {
 	 * 4. When you're happy, do whatever is appropriate with the buffer.
 	 */
 	unsigned char *_buf;
-	const unsigned _rowstride, _width, _height, _local_inf;
+	const unsigned _rowstride;
 	const pixpack_format _fmt;
-	const BasePalette& _pal;
 	unsigned _pixelstep; // effectively const
 
 public:
@@ -140,9 +143,7 @@ class PNG : public Base {
 	 * Note that this class contains a nontrivial memory buffer throughout its lifetime.
 	 */
 protected:
-	unsigned _width, _height, _local_inf;
 	bool _antialias;
-	const BasePalette& _pal;
 	png::image< png::rgb_pixel > _png;
 
 public:
