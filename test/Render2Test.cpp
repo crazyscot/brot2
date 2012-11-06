@@ -59,7 +59,7 @@ protected:
 		_bufz = _rowstride * _TestH;
 		_buf = new unsigned char[_bufz];
 		std::fill_n(_buf, _bufz, 0);
-		_render = new Render2::MemoryBuffer(_buf, _rowstride, _TestW, _TestH, -1, _fmt, _palette);
+		_render = new Render2::MemoryBuffer(_buf, _rowstride, _TestW, _TestH, false, -1, _fmt, _palette);
 	}
 
 	virtual void FinalExpectation(int fails) {

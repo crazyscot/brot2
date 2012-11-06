@@ -65,7 +65,7 @@ inline rgb antialias_pixel(std::vector<rgb> const& pix) {
 
 class Base {
 public:
-	Base(unsigned width, unsigned height, int local_inf, const BasePalette& pal);
+	Base(unsigned width, unsigned height, int local_inf, bool antialias, const BasePalette& pal);
 	virtual ~Base() {}
 
 	/** Processes a single chunk. */
@@ -74,6 +74,7 @@ public:
 	virtual void process(const std::list<Plot3Chunk*>& chunks);
 protected:
 	unsigned _width, _height, _local_inf;
+	bool _antialias;
 	const BasePalette& _pal;
 
 	/**
@@ -121,7 +122,7 @@ public:
 	 * internal PACKED_RGB_24 (used for png output).
 	 */
 	MemoryBuffer(unsigned char *buf, const int rowstride, unsigned width, unsigned height,
-			const int local_inf, pixpack_format fmt, const BasePalette& pal);
+			bool antialias, const int local_inf, pixpack_format fmt, const BasePalette& pal);
 
 	// TODO ANTIALIAS
 
@@ -151,7 +152,6 @@ class PNG : public Base {
 	 * Note that this class contains a nontrivial memory buffer throughout its lifetime.
 	 */
 protected:
-	bool _antialias;
 	png::image< png::rgb_pixel > _png;
 
 public:

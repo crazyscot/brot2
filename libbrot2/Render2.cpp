@@ -27,8 +27,8 @@ namespace Render2 {
 
 using namespace Plot3;
 
-Base::Base(unsigned width, unsigned height, int local_inf, const BasePalette& pal) :
-		_width(width), _height(height), _local_inf(local_inf), _pal(pal) {}
+Base::Base(unsigned width, unsigned height, int local_inf, bool antialias, const BasePalette& pal) :
+		_width(width), _height(height), _local_inf(local_inf), _antialias(antialias), _pal(pal) {}
 
 void Base::process(const std::list<Plot3Chunk*>& chunks)
 {
@@ -39,8 +39,8 @@ void Base::process(const std::list<Plot3Chunk*>& chunks)
 }
 
 MemoryBuffer::MemoryBuffer(unsigned char *buf, int rowstride, unsigned width, unsigned height,
-			const int local_inf, pixpack_format fmt, const BasePalette& pal) :
-					Base(width, height, local_inf, pal),
+		bool antialias, const int local_inf, pixpack_format fmt, const BasePalette& pal) :
+					Base(width, height, local_inf, antialias, pal),
 					_buf(buf), _rowstride(rowstride), _fmt(fmt)
 {
 	ASSERT(buf);
@@ -112,8 +112,8 @@ void MemoryBuffer::pixel_done(unsigned X, unsigned Y, const rgb& pix)
 
 PNG::PNG(unsigned width, unsigned height,
 		const BasePalette& palette, int local_inf, bool antialias) :
-				Base(width, height, local_inf, palette),
-				_antialias(antialias), _png(_width, _height)
+				Base(width, height, local_inf, antialias, palette),
+				_png(_width, _height)
 {
 }
 
