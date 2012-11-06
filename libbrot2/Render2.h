@@ -115,6 +115,8 @@ public:
 	static const Fractal::PointData& single_pixel_data(Plot2& plot, int x, int y, unsigned antialias_factor);
 #endif
 
+protected:
+	virtual void pixel_done(unsigned X, unsigned Y, const rgb& p);
 };
 
 class PNG : public Base {

@@ -76,30 +76,34 @@ void MemoryBuffer::process(const Plot3Chunk& chunk)
 	ASSERT( chunk._offY + chunk._height <= _height );
 
 	for (j=0; j<chunk._height; j++) {
-		unsigned char *dst = &_buf[ (chunk._offY + j) * _rowstride
-		                            + chunk._offX * _pixelstep];
 		const Fractal::PointData * src = &data[j*chunk._width];
 
 		for (i=0; i<chunk._width; i++) {
 			rgb pix = render_pixel(src[i], _local_inf, &_pal);
-			switch(_fmt) {
-			case CAIRO_FORMAT_ARGB32:
-			case CAIRO_FORMAT_RGB24:
-				dst[3] = 0xff;
-				dst[2] = pix.r;
-				dst[1] = pix.g;
-				dst[0] = pix.b;
-				dst += _pixelstep; // 4
-				break;
-				// alpha=1.0 so these cases are the same.
-			case pixpack_format::PACKED_RGB_24:
-				dst[0] = pix.r;
-				dst[1] = pix.g;
-				dst[2] = pix.b;
-				dst += _pixelstep; // 3
-				break;
-			}
+			pixel_done(i + chunk._offX, j + chunk._offY, pix);
 		}
+	}
+}
+
+void MemoryBuffer::pixel_done(unsigned X, unsigned Y, const rgb& pix)
+{
+	unsigned char *dst = &_buf[ Y * _rowstride + X * _pixelstep];
+	switch(_fmt) {
+	case CAIRO_FORMAT_ARGB32:
+	case CAIRO_FORMAT_RGB24:
+		dst[3] = 0xff;
+		dst[2] = pix.r;
+		dst[1] = pix.g;
+		dst[0] = pix.b;
+		dst += _pixelstep; // 4
+		break;
+		// alpha=1.0 so these cases are the same.
+	case pixpack_format::PACKED_RGB_24:
+		dst[0] = pix.r;
+		dst[1] = pix.g;
+		dst[2] = pix.b;
+		dst += _pixelstep; // 3
+		break;
 	}
 }
 
