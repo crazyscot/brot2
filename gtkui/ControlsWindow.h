@@ -19,7 +19,6 @@
 #ifndef CONTROLSWINDOW_H
 #define CONTROLSWINDOW_H
 
-#include "Plot2.h"
 #include "Prefs.h"
 #include <gtkmm/dialog.h>
 #include <gtkmm/entry.h>

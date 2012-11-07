@@ -19,7 +19,6 @@
 #include "PrefsDialog.h"
 #include "MainWindow.h"
 #include "misc.h"
-#include "Plot2.h"
 #include "Prefs.h"
 #include "Exception.h"
 #include "ColourPanel.h"
