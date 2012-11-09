@@ -107,6 +107,10 @@ private:
 	std::thread runner;
 
 	void poke_runner();
+
+public:
+	// Wormhole to access the chunks list. Calls wait() first.
+	const std::list<Plot3Chunk*>& get_chunks__only_after_completion();
 };
 
 } // namespace Plot3

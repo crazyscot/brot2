@@ -281,4 +281,10 @@ unsigned Plot3Plot::chunks_total() const {
 	return _chunks.size();
 }
 
+const std::list<Plot3Chunk*>& Plot3Plot::get_chunks__only_after_completion()
+{
+	wait();
+	return _chunks;
+}
+
 } // namespace Plot3
