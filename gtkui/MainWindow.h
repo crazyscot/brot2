@@ -29,6 +29,7 @@
 #include "Prefs.h"
 #include "Menus.h"
 #include "noncopyable.hpp"
+#include "libbrot2/ThreadPool.h"
 
 #include <iostream>
 #include <gtkmm/window.h>
@@ -146,6 +147,10 @@ private:
     void zoom_mechanics(enum Zoom z);
 	bool on_timer();
 	void png_save_completion();
+
+	ThreadPool _threadpool;
+public:
+	ThreadPool& get_threadpool(); // singleton-like accessor
 };
 
 #endif /* MAINWINDOW_H_ */

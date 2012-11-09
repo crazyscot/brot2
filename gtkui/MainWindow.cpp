@@ -48,7 +48,9 @@ MainWindow::MainWindow() : Gtk::Window(),
 			draw_hud(true), antialias(false),
 			antialias_factor(DEFAULT_ANTIALIAS_FACTOR), initializing(true),
 			aspectfix(false), clip(false),
-			dragrect(*this) {
+			dragrect(*this),
+			_threadpool(BrotPrefs::threadpool_size(prefs()))
+{
 	set_title(PACKAGE_NAME); // Renderer will update this
 	vbox = Gtk::manage(new Gtk::VBox());
 	vbox->set_border_width(1);
@@ -469,9 +471,9 @@ void MainWindow::png_save_completion()
 		pngq_entry e(png_q.front());
 		png_q.pop();
 		//gdk_threads_leave(); // Don't do this, it deadlocks.
-		e.png->plot->wait();
-		Plot2 *plot = e.png->plot;
-		SaveAsPNG::to_png(this, plot->width/e.png->antialias, plot->height/e.png->antialias, plot, e.png->pal, e.png->antialias, e.png->filename);
+		e.png->wait();
+		Plot3::Plot3Plot *plot = e.png->plot;
+		SaveAsPNG::to_png(this, plot->width/e.png->aafactor, plot->height/e.png->aafactor, plot, e.png->pal, e.png->aafactor == 2, e.png->filename);
 		delete e.png;
 		//gdk_threads_enter();
 	} else {
@@ -482,4 +484,9 @@ bool MainWindow::on_timer()
 {
 	png_save_completion();
 	return true;
+}
+
+ThreadPool& MainWindow::get_threadpool()
+{
+	return _threadpool;
 }
