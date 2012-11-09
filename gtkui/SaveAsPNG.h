@@ -1,6 +1,6 @@
 /*
     SaveAsPNG: PNG export action/support for brot2
-    Copyright (C) 2011 Ross Younger
+    Copyright (C) 2011-12 Ross Younger
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -21,8 +21,9 @@
 
 class MainWindow;
 
-#include "Plot2.h"
+#include "Plot3Plot.h"
 #include "palette.h"
+#include "ChunkDivider.h"
 #include <string>
 
 class PNGProgressWindow;
@@ -30,31 +31,36 @@ class PNGProgressWindow;
 class SaveAsPNG {
 	friend class MainWindow;
 
+	// Private constructor! Called by do_save().
+	SaveAsPNG(MainWindow* mw, Plot3::Plot3Plot& oldplot, unsigned width, unsigned height, bool antialias, std::string&name);
+
 	// Interface for MainWindow to trigger save actions.
 	// An instance of this class is an outstanding PNG-save job.
 private:
 	static void to_png(MainWindow *mw, unsigned rwidth, unsigned rheight,
-			Plot2* plot, BasePalette* pal, int aafactor,
+			Plot3::Plot3Plot* plot, BasePalette* pal, bool antialias,
 			std::string& filename);
 
 	// Delete on destruct:
-	Plot2 *plot;
-	PNGProgressWindow *reporter;
+	PNGProgressWindow reporter;
+	Plot3::ChunkDivider::Horizontal10px divider;
+	const int aafactor;
+	Plot3::Plot3Plot plot;
 
 	// do NOT delete:
 	BasePalette *pal;
-	int antialias;
 	std::string filename;
 
-public:
-	void to_png(); // when the plot has finished.
+	void start(); // ->plot.start()
+	void wait(); // -> plot.wait()
 
+public:
 	static std::string last_saved_dirname;
 
 	// main entrypoint: runs the save dialog and DTRTs
 	static void do_save(MainWindow *mw);
 
-	~SaveAsPNG();
+	virtual ~SaveAsPNG();
 };
 
 #endif /* SAVEASPNG_H_ */

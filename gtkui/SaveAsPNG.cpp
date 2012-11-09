@@ -1,6 +1,6 @@
 /*
     SaveAsPNG: PNG export action/support for brot2
-    Copyright (C) 2011 Ross Younger
+    Copyright (C) 2011-12 Ross Younger
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -17,7 +17,8 @@
 */
 
 #include "SaveAsPNG.h"
-#include "Render.h"
+#include "libbrot2/Render2.h"
+#include "libbrot2/ChunkDivider.h"
 #include "misc.h"
 
 #include "MainWindow.h"
@@ -27,49 +28,39 @@
 #include <gtkmm/table.h>
 #include <gtkmm/main.h>
 #include <iostream>
+#include <fstream>
 
-#include <errno.h>
-#include <stdio.h>
-#include <string.h>
+using namespace std;
+using namespace Plot3;
 
 std::string SaveAsPNG::last_saved_dirname = "";
 
 void SaveAsPNG::to_png(MainWindow *mw, unsigned rwidth, unsigned rheight,
-		Plot2* plot, BasePalette* pal, int aafactor,
+		Plot3Plot* plot, BasePalette* pal, bool antialias,
 		std::string& filename)
 {
-	FILE *f;
-
-	f = fopen(filename.c_str(), "wb");
-	if (f==NULL) {
-		std::ostringstream str;
-		str << "Could not open file for writing: " << errno << " (" << strerror(errno) << ")";
-		Util::alert(mw, str.str());
-		return;
-	}
-
-	const char *errs = 0;
-	if (0 != Render::save_as_png(f, rwidth, rheight, *plot,
-				*pal, aafactor, &errs)) {
-		Util::alert(mw, errs);
-		return;
-	}
-
-	if (0==fclose(f)) {
-		mw->get_progbar()->set_text("Successfully saved");
+	ofstream f(filename, ios::out | ios::trunc | ios::binary);
+	if (f.is_open()) {
+		Render2::PNG png(rwidth, rheight, *pal, -1, antialias);
+		png.process(plot->get_chunks__only_after_completion());
+		png.write(filename);
+		if (f.bad()) {
+			Util::alert(mw, "Writing failed");
+		}
 	} else {
-		std::ostringstream str;
-		str << "Error closing the save: " << errno << " (" << strerror(errno) << ")";
+		ostringstream str;
+		str << "Could not open " << filename << " for writing.";
 		Util::alert(mw, str.str());
 	}
 }
 
-struct PNGProgressWindow: public Gtk::Window, Plot2::callback_t {
+struct PNGProgressWindow: public Gtk::Window, IPlot3DataSink {
 	MainWindow *parent;
 	SaveAsPNG *job;
 	Gtk::ProgressBar *progbar;
+	int _chunks_this_pass;
 
-	PNGProgressWindow(MainWindow *p, SaveAsPNG* j) : parent(p), job(j) {
+	PNGProgressWindow(MainWindow *p, SaveAsPNG* j) : parent(p), job(j), _chunks_this_pass(0) {
 		set_transient_for(*parent);
 		set_title("PNG export");
 		Gtk::VBox* box = Gtk::manage(new Gtk::VBox());
@@ -81,7 +72,10 @@ struct PNGProgressWindow: public Gtk::Window, Plot2::callback_t {
 		show_all();
 	}
 
-	virtual void plot_progress_minor(Plot2& UNUSED(plot), float workdone) {
+	virtual void chunk_done(Plot3Chunk* chunk) {
+		// We're not doing anything with the completed chunks, they're picked up en masse at the end.
+		_chunks_this_pass++;
+		float workdone = _chunks_this_pass / job->plot.chunks_total();
 		gdk_threads_enter();
 		progbar->set_fraction(workdone);
 		progbar->queue_draw();
@@ -89,7 +83,9 @@ struct PNGProgressWindow: public Gtk::Window, Plot2::callback_t {
 		gdk_flush();
 		gdk_threads_leave();
 	}
-	virtual void plot_progress_major(Plot2& UNUSED(plot), unsigned UNUSED(current_maxiter), std::string& commentary) {
+
+	virtual void pass_complete(std::string& commentary) {
+		_chunks_this_pass=0;
 		gdk_threads_enter();
 		progbar->set_text(commentary);
 		progbar->set_fraction(0.0);
@@ -97,7 +93,8 @@ struct PNGProgressWindow: public Gtk::Window, Plot2::callback_t {
 		gdk_flush();
 		gdk_threads_leave();
 	}
-	virtual void plot_progress_complete(Plot2& UNUSED(plot)) {
+
+	virtual void plot_complete() {
 		parent->queue_png(job);
 	}
 };
@@ -158,6 +155,7 @@ class FileChooserExtra : public Gtk::VBox {
 		}
 };
 
+/* STATIC */
 void SaveAsPNG::do_save(MainWindow *mw)
 {
 	std::string filename;
@@ -213,30 +211,40 @@ void SaveAsPNG::do_save(MainWindow *mw)
 
 
 	if (do_extra) {
-		SaveAsPNG *job = new SaveAsPNG();
+		// HARD CASE: Launch a new job in the background to rerender.
 
-		const Plot2& oldplot(mw->get_plot());
-		const int aafactor = do_antialias ? 2 : 1;
-		job->plot = new Plot2(mw->fractal, oldplot.centre, oldplot.size,
-				newx * aafactor, newy * aafactor);
-		std::shared_ptr<const Prefs> pp = mw->prefs();
-		job->plot->set_prefs(pp);
-		job->reporter = new PNGProgressWindow(mw, job);
-		job->pal = mw->pal;
-		job->antialias = aafactor;
-		job->filename = filename;
+		SaveAsPNG* job = new SaveAsPNG(mw, mw->get_plot(), newx, newy, do_antialias, filename);
 
-		job->plot->start(job->reporter);
-		// and commit it to the four winds.
+		job->start();
+		// and commit it to the four winds. Will be deleted later by mw...
 	} else {
+		// EASY CASE: Just save out of the current plot.
 		mw->get_progbar()->set_text("Saving...");
 		to_png(mw, mw->get_rwidth(), mw->get_rheight(), &mw->get_plot(),
-				mw->pal, mw->get_antialias(), filename);
+				mw->pal, mw->antialias, filename);
 	}
+}
+
+SaveAsPNG::SaveAsPNG(MainWindow* mw, Plot3Plot& oldplot, unsigned width, unsigned height, bool antialias, string& name) :
+		reporter(mw,this), divider(), aafactor(antialias ? 2 : 1),
+		plot(mw->get_threadpool(), reporter, mw->fractal, divider, oldplot.centre, oldplot.size, width*aafactor, height*aafactor, 0),
+		pal(mw->pal), filename(name)
+{
+	std::shared_ptr<const Prefs> pp = mw->prefs();
+	plot.set_prefs(pp);
+}
+
+void SaveAsPNG::start(void)
+{
+	plot.start();
+}
+
+void SaveAsPNG::wait(void)
+{
+	plot.wait();
 }
 
 SaveAsPNG::~SaveAsPNG()
 {
 	delete plot;
-	delete reporter;
 }
