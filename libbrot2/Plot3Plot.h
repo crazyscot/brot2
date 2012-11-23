@@ -75,6 +75,9 @@ public:
 	void wait();
 
 	unsigned chunks_total() const;
+	unsigned get_passes() const { return passes_max; }
+	int get_maxiter() const { return plotted_maxiter; }
+	bool is_running();
 
 	// Provides a means to override the prefs.
 	void set_prefs(std::shared_ptr<Prefs>& newprefs);

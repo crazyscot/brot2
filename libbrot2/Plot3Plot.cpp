@@ -287,4 +287,10 @@ const std::list<Plot3Chunk*>& Plot3Plot::get_chunks__only_after_completion()
 	return _chunks;
 }
 
+bool Plot3Plot::is_running() {
+	std::unique_lock<std::mutex> lock(_lock);
+	return _running;
+}
+
+
 } // namespace Plot3
