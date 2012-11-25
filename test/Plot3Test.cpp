@@ -479,10 +479,12 @@ TEST_F(Plot3Test, PixelToSet) {
 //	Fractal::Value LEFT = imag(CENTRE) - imag(SIZE)/2;
 //	Fractal::Value RIGHT = LEFT + imag(SIZE);
 
+	// CAUTION: Valgrind fp limitations come into play here, some comparisons fail despite printing out OK.
+	// Those marked '///VG' were affected until I tweaked the calculations.
 	Fractal::Point BLO_0_0 = CENTRE - SIZE/2.0;
 	Fractal::Point BLO_W_0 = BLO_0_0 + real(SIZE);
-	Fractal::Point BLO_0_H = BLO_0_0 + SIZE - real(SIZE);
-	Fractal::Point BLO_W_H = BLO_0_0 + SIZE;
+	Fractal::Point BLO_0_H = CENTRE + SIZE/2.0 - real(SIZE); // Tweaked for VG
+	Fractal::Point BLO_W_H = CENTRE + SIZE/2.0; // Tweaked for VG
 
 #define TLO_0_H BLO_0_0
 #define TLO_0_0 BLO_0_H
@@ -491,21 +493,21 @@ TEST_F(Plot3Test, PixelToSet) {
 
 	PixelToSetTestBLO(0,0, BLO_0_0);
 	PixelToSetTestBLO(-1,-42, BLO_0_0);
-	PixelToSetTestTLO(0,0, TLO_0_0);
-	PixelToSetTestTLO(-1,-42, TLO_0_0);
+	PixelToSetTestTLO(0,0, TLO_0_0); ///VG
+	PixelToSetTestTLO(-1,-42, TLO_0_0); ///VG
 
 	PixelToSetTestBLO(_W,0, BLO_W_0);
 	PixelToSetTestBLO(_W+1,-42, BLO_W_0);
-	PixelToSetTestTLO(_W,0, TLO_W_0);
-	PixelToSetTestTLO(_W+1,-42, TLO_W_0);
+	PixelToSetTestTLO(_W,0, TLO_W_0); ///VG
+	PixelToSetTestTLO(_W+1,-42, TLO_W_0); ///VG
 
-	PixelToSetTestBLO(0,_H, BLO_0_H);
-	PixelToSetTestBLO(-1,_H+1, BLO_0_H);
+	PixelToSetTestBLO(0,_H, BLO_0_H); ///VG
+	PixelToSetTestBLO(-1,_H+1, BLO_0_H); ///VG
 	PixelToSetTestTLO(0,_H, TLO_0_H);
 	PixelToSetTestTLO(-1,_H+1, TLO_0_H);
 
-	PixelToSetTestBLO(_W,_H, BLO_W_H);
-	PixelToSetTestBLO(_W+1,_H+1, BLO_W_H);
+	PixelToSetTestBLO(_W,_H, BLO_W_H); ///VG
+	PixelToSetTestBLO(_W+1,_H+1, BLO_W_H); ///VG
 	PixelToSetTestTLO(_W,_H, TLO_W_H);
 	PixelToSetTestTLO(_W+1,_H+1, TLO_W_H);
 }
