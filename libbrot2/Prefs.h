@@ -283,7 +283,7 @@ namespace BrotPrefs {
 
 // Helper: How big should a threadpool be for a given prefs?
 int threadpool_size(const Prefs&);
-int threadpool_size(std::shared_ptr<Prefs> const);
+int threadpool_size(std::shared_ptr<const Prefs>);
 
 };
 
