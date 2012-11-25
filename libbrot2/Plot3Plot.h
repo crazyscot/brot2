@@ -83,6 +83,19 @@ public:
 	void set_prefs(std::shared_ptr<Prefs>& newprefs);
 	void set_prefs(std::shared_ptr<const Prefs>& newprefs);
 
+	/* Converts an (x,y) pair on the render (say, from a mouse click) to their complex co-ordinates.
+	 * Returns 1 for success, 0 if the point was outside of the render.
+	 * N.B. that we assume that pixel co-ordinates have a bottom-left origin! */
+	Fractal::Point pixel_to_set(int x, int y) const;
+
+	/* Converts an (x,y) pair on the render (say, from a mouse click) to their complex co-ordinates.
+	 * Returns 1 for success, 0 if the point was outside of the render.
+	 * This is a variant form for pixels with a top-left origin, such as
+	 * those of gtk/gdk. */
+	Fractal::Point pixel_to_set_tlo(int xx, int yy) const {
+		return pixel_to_set(xx, height-yy);
+	};
+
 protected:
 	std::shared_ptr<const Prefs> prefs; // Where to get our global settings from.
 
