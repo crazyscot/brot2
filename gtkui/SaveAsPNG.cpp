@@ -220,13 +220,13 @@ void SaveAsPNG::do_save(MainWindow *mw)
 		// EASY CASE: Just save out of the current plot.
 		mw->get_progbar()->set_text("Saving...");
 		to_png(mw, mw->get_rwidth(), mw->get_rheight(), &mw->get_plot(),
-				mw->pal, mw->antialias, filename);
+				mw->pal, mw->get_antialias(), filename);
 	}
 }
 
 SaveAsPNG::SaveAsPNG(MainWindow* mw, Plot3Plot& oldplot, unsigned width, unsigned height, bool antialias, string& name) :
-		reporter(mw,this), divider(), aafactor(antialias ? 2 : 1),
-		plot(mw->get_threadpool(), reporter, mw->fractal, divider, oldplot.centre, oldplot.size, width*aafactor, height*aafactor, 0),
+		reporter(*mw,*this), divider(), aafactor(antialias ? 2 : 1),
+		plot(mw->get_threadpool(), &reporter, *mw->fractal, divider, oldplot.centre, oldplot.size, width*aafactor, height*aafactor, 0),
 		pal(mw->pal), filename(name)
 {
 	std::shared_ptr<const Prefs> pp = mw->prefs();
@@ -245,5 +245,4 @@ void SaveAsPNG::wait(void)
 
 SaveAsPNG::~SaveAsPNG()
 {
-	delete plot;
 }

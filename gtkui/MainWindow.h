@@ -20,7 +20,9 @@
 #define MAINWINDOW_H_
 
 #include "Canvas.h"
-#include "Plot2.h"
+#include "Plot3Plot.h"
+#include "ChunkDivider.h"
+#include "IPlot3DataSink.h"
 #include "palette.h"
 #include "Fractal.h"
 #include "DragRectangle.h"
@@ -28,10 +30,12 @@
 #include "ControlsWindow.h"
 #include "Prefs.h"
 #include "Menus.h"
-#include "noncopyable.hpp"
+#include "Render2.h"
 #include "libbrot2/ThreadPool.h"
 
 #include <iostream>
+#include <memory>
+#include <set>
 #include <gtkmm/window.h>
 #include <gtkmm/menubar.h>
 #include <gtkmm/box.h>
@@ -40,11 +44,13 @@
 #include <gtkmm/progressbar.h>
 #include <sys/time.h>
 
+using namespace Plot3;
+
 class HUD;
 class ControlsWindow;
 class SaveAsPNG;
 
-class MainWindow : public Gtk::Window, Plot2::callback_t, boost::noncopyable {
+class MainWindow : public Gtk::Window, IPlot3DataSink {
 	Gtk::VBox *vbox; // Main layout widget
 	menus::Menus *menubar;
 	Canvas *canvas;
@@ -54,18 +60,21 @@ class MainWindow : public Gtk::Window, Plot2::callback_t, boost::noncopyable {
 
 	unsigned char *imgbuf;
 
-	Plot2 * plot;
-	Plot2 * plot_prev;
+	Plot3Plot * plot;
+	Plot3Plot * plot_prev;
+	Render2::MemoryBuffer * renderer;
 
 	Fractal::Point centre, size;
 	unsigned rwidth, rheight; // Rendering dimensions; plot dims will be larger if antialiased
 	bool draw_hud, antialias;
-	unsigned antialias_factor;
 	bool initializing; // Disables certain event actions when set.
 
 	bool aspectfix, clip; // Details about the current render
 
 	struct timeval plot_tv_start;
+
+	Plot3::ChunkDivider::Horizontal10px divider; // TODO make selectable??
+	std::atomic<int> _chunks_this_pass; // Reset to 0 on pass completion.
 
 public:
 	BasePalette * pal;
@@ -78,15 +87,18 @@ public:
 		ZOOM_IN,
 		ZOOM_OUT,
 	};
-	static const int DEFAULT_ANTIALIAS_FACTOR;
 	static const double ZOOM_FACTOR;
 
 	MainWindow();
 	virtual ~MainWindow();
 
+	// Not copyable or assignable.
+	MainWindow(const MainWindow&) = delete;
+	const MainWindow operator= (const MainWindow&) = delete;
+
 	int get_rwidth() const { return rwidth; }
 	int get_rheight() const { return rheight; }
-	Plot2& get_plot() const { return *plot; }
+	Plot3Plot& get_plot() const { return *plot; }
 	Gtk::ProgressBar* get_progbar() const { return progbar; }
 
     virtual bool on_key_release_event(GdkEventKey *);
@@ -105,7 +117,18 @@ public:
     void do_zoom(enum Zoom z);
     void do_zoom(enum Zoom z, const Fractal::Point& newcentre);
 
-    void render_cairo(int local_inf=-1);
+    // Prepare to render. Sets up everything needed to start passing chunks in.
+    void render_prep(int local_inf);
+
+    // Call after processing a chunk.
+    void render_buffer_updated();
+
+    // Call after a plot is finished, will redraw the HUD if approprate
+    void render_buffer_tidyup();
+
+    // Pushes the render buffer out to the display. Optionally reprocesses all chunks (only use after the plot is complete, e.g. to change the palette).
+    void render(int local_inf, bool do_reprocess, bool may_do_hud);
+
     void recolour();
     void do_undo();
 	void do_stop();
@@ -116,9 +139,8 @@ public:
 	}
 	void toggle_hud();
 	void toggle_antialias();
-	int get_antialias() const {
-		return antialias ? antialias_factor : 1;
-	}
+	bool get_antialias() const { return antialias; }
+
 
 	Cairo::RefPtr<Cairo::Surface>& get_hud_surface() {
 		return hud.get_surface();
@@ -136,12 +158,12 @@ public:
 		return menubar->optionsMenu;
 	}
 
-	void queue_png(SaveAsPNG* png);
+	void queue_png(std::shared_ptr<SaveAsPNG> png, std::shared_ptr<Plot3Plot> plot, std::shared_ptr<std::string> name);
 
-    // Plot2::callback_t:
-	virtual void plot_progress_minor(Plot2& plot, float workdone);
-	virtual void plot_progress_major(Plot2& plot, unsigned current_maxiter, std::string& commentary);
-	virtual void plot_progress_complete(Plot2& plot);
+	// IPlot3DataSink:
+	virtual void chunk_done(Plot3::Plot3Chunk* job);
+	virtual void pass_complete(std::string& commentary);
+	virtual void plot_complete();
 
 private:
     void zoom_mechanics(enum Zoom z);

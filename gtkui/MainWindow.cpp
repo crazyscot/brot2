@@ -16,15 +16,17 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include "png.h" // must be first, see launchpad 218409
 #include "MainWindow.h"
 #include "Menus.h"
 #include "Canvas.h"
 #include "HUD.h"
-#include "SaveAsPNG.h"
-#include "Render.h"
+#include "libbrot2/Render2.h"
+#include "libbrot2/Plot3Plot.h"
 #include "misc.h"
 #include "config.h"
 #include "ControlsWindow.h"
+#include "SaveAsPNG.h"
 #include "Exception.h"
 
 #include <stdlib.h>
@@ -37,16 +39,19 @@
 #include <gdk/gdkkeysyms.h>
 #include <pangomm.h>
 
-const int MainWindow::DEFAULT_ANTIALIAS_FACTOR = 2;
+using namespace Plot3;
+using namespace std;
+using namespace Render2;
+
 const double MainWindow::ZOOM_FACTOR = 2.0f;
 
 MainWindow::MainWindow() : Gtk::Window(),
 			hud(*this),
 			controlsWin(*this, prefs()),
-			imgbuf(0), plot(0), plot_prev(0),
+			imgbuf(0), plot(0), plot_prev(0), renderer(0),
 			rwidth(0), rheight(0),
 			draw_hud(true), antialias(false),
-			antialias_factor(DEFAULT_ANTIALIAS_FACTOR), initializing(true),
+			initializing(true),
 			aspectfix(false), clip(false),
 			dragrect(*this),
 			_threadpool(BrotPrefs::threadpool_size(prefs()))
@@ -93,6 +98,7 @@ MainWindow::~MainWindow() {
 	}
 	delete plot;
 	delete plot_prev;
+	delete renderer;
 	delete imgbuf;
 }
 
@@ -148,24 +154,44 @@ bool MainWindow::on_delete_event(GdkEventAny * UNUSED(e)) {
 	return true;
 }
 
-
-void MainWindow::render_cairo(int local_inf) {
+void MainWindow::render_prep(int local_inf) {
 	const Cairo::Format FORMAT = Cairo::Format::FORMAT_RGB24;
 	const int rowstride = Cairo::ImageSurface::format_stride_for_width(FORMAT, rwidth);
 
-	if (!imgbuf)
+	if (!imgbuf) {
 		imgbuf = new guchar[rowstride * rheight];
+		delete renderer;
+		renderer = 0;
+	}
+	if (!renderer)
+		renderer = new Render2::MemoryBuffer(imgbuf, rowstride, rwidth, rheight, antialias, local_inf, FORMAT, *pal);
+	else
+		renderer->fresh_local_inf(local_inf);
 
 	if (!canvas->surface) {
 		canvas->surface = Cairo::ImageSurface::create(imgbuf, FORMAT, rwidth, rheight, rowstride);
 		Cairo::ErrorStatus st = canvas->surface->get_status();
 		if (st != 0) {
 			std::cerr << "Surface error: " << cairo_status_to_string(st) << std::endl;
+			// TODO Throw or report or something.
 		}
 	}
-	canvas->surface->reference(); // TODO: Is this right? It should be created with 1 ref, we then add a 2nd and deref when done.
+}
 
+void MainWindow::render_buffer_updated() {
+	render(-1, false, false);
+}
+
+void MainWindow::render_buffer_tidyup() {
+	render(-1, false, true);
+}
+
+void MainWindow::render(int local_inf, bool do_reprocess, bool may_do_hud) {
 	// TODO: autolock on gctx ? and everything that accessess gctx->(surfaces)?
+	if (!canvas->surface)
+		return;
+
+	canvas->surface->reference();
 	{
 		unsigned char *t = canvas->surface->get_data();
 		if (!t)
@@ -178,16 +204,18 @@ void MainWindow::render_cairo(int local_inf) {
 		}
 	}
 
-	if (!Render::render_generic(canvas->surface->get_data(), rowstride,
-			local_inf, Render::pixpack_format(FORMAT), *plot, rwidth, rheight, antialias ? antialias_factor : 1, *pal)) { // Oops, it vanished
-		return;
+	if (do_reprocess) {
+		renderer->fresh_local_inf(local_inf);
+		renderer->fresh_palette(*pal);
+		renderer->process(plot->get_chunks__only_after_completion());
 	}
 
-	if (draw_hud)
+	if (may_do_hud && draw_hud)
 		hud.draw(plot, rwidth, rheight);
 
 	canvas->surface->mark_dirty();
 	canvas->surface->unreference();
+	queue_draw();
 }
 
 
@@ -248,7 +276,7 @@ void MainWindow::do_plot(bool is_same_plot)
 	// N.B. This (gtk/gdk lib calls from non-main thread) will not work at all on win32; will need to refactor if I ever port.
 	gettimeofday(&plot_tv_start,0);
 
-	Plot2 * deleteme = 0;
+	Plot3Plot * deleteme = 0;
 	if (is_same_plot) {
 		deleteme = plot;
 		plot = 0;
@@ -270,11 +298,13 @@ void MainWindow::do_plot(bool is_same_plot)
 	unsigned pwidth = rwidth,
 			pheight = rheight;
 	if (antialias) {
-		pwidth *= antialias_factor;
-		pheight *= antialias_factor;
+		pwidth *= 2;
+		pheight *= 2;
 	}
-	plot = new Plot2(fractal, centre, size, pwidth, pheight);
-	plot->start(this);
+	plot = new Plot3::Plot3Plot(get_threadpool(), this, *fractal, divider, centre, size, pwidth, pheight);
+
+	render_prep(-1);
+	plot->start();
 	// TODO try/catch (and in do_resume) - report failure. Is gtkmm exception-safe?
 }
 
@@ -290,23 +320,35 @@ void MainWindow::safe_stop_plot() {
 	}
 }
 
-void MainWindow::plot_progress_minor(Plot2& UNUSED(plot), float workdone) {
+void MainWindow::chunk_done(Plot3Chunk* job)
+{
+	_chunks_this_pass++;
+	// FIXME do we need to lock against the buffer here??
+	if (renderer) {
+		renderer->process(*job);
+		render_buffer_updated();
+	}
+
+	float workdone = _chunks_this_pass / plot->chunks_total();
+	ASSERT(workdone <= 1.0);
 	gdk_threads_enter();
 	progbar->set_fraction(workdone);
 	gdk_threads_leave();
 }
 
-void MainWindow::plot_progress_major(Plot2& UNUSED(plot), unsigned current_maxiter, std::string& commentary) {
-	render_cairo(current_maxiter);
-	gdk_threads_enter();
-	progbar->set_fraction(0.98);
-	progbar->set_text(commentary.c_str());
-	queue_draw();
-	gdk_threads_leave();
+void MainWindow::pass_complete(std::string& commentary)
+{
+	_chunks_this_pass=0;
 
+	render_buffer_tidyup(); // applies the HUD
+	gdk_threads_enter();
+	progbar->set_fraction(0.98); // TODO Really ? Test me...
+	progbar->set_text(commentary.c_str());
+	gdk_threads_leave();
 }
 
-void MainWindow::plot_progress_complete(Plot2& plot) {
+void MainWindow::plot_complete()
+{
 	struct timeval tv_after, tv_diff;
 
 	gdk_threads_enter();
@@ -317,12 +359,12 @@ void MainWindow::plot_progress_complete(Plot2& plot) {
 	tv_diff = Util::tv_subtract(tv_after, plot_tv_start);
 	double timetaken = tv_diff.tv_sec + (tv_diff.tv_usec / 1e6);
 
-	set_title(plot.info(false).c_str());
+	set_title(plot->info(false).c_str());
 
 	std::ostringstream info;
 	info.precision(4);
 	info << timetaken << "s; ";
-	info << plot.get_passes() <<" passes; maxiter=" << plot.get_maxiter() << ".";
+	info << plot->get_passes() <<" passes; maxiter=" << plot->get_maxiter() << ".";
 	if (aspectfix)
 		info << " Aspect ratio autofixed.";
 	if (clip)
@@ -340,8 +382,7 @@ void MainWindow::plot_progress_complete(Plot2& plot) {
 void MainWindow::recolour()
 {
 	if (initializing) return;
-	render_cairo();
-	queue_draw();
+	render(-1, true, true);
 }
 
 void MainWindow::do_undo()
@@ -352,7 +393,7 @@ void MainWindow::do_undo()
 		return;
 	}
 
-	Plot2 *tmp = plot;
+	Plot3Plot *tmp = plot;
 	plot = plot_prev;
 	plot_prev = tmp;
 
@@ -378,12 +419,12 @@ void MainWindow::do_more_iters()
 		std::cerr << "ALERT: do_more called in invalid state - trace me!" << std::endl;
 		for (;;) sleep(1);
 	}
-	if (!plot->is_done()) {
+	if (plot->is_running()) {
 		progbar->set_text("Plot already running");
 		return;
 	}
 	gettimeofday(&plot_tv_start,0);
-	plot->start(this, true);
+	plot->start();
 }
 
 void MainWindow::update_params(Fractal::Point& ncentre, Fractal::Point& nsize)
@@ -450,15 +491,17 @@ void MainWindow::toggle_antialias()
 }
 
 struct pngq_entry {
-	SaveAsPNG *png;
-	pngq_entry(SaveAsPNG *p) : png(p) {}
+	std::shared_ptr<SaveAsPNG> _png;
+	std::shared_ptr<Plot3Plot> _plot;
+	std::shared_ptr<std::string> _filename;
+	pngq_entry(std::shared_ptr<SaveAsPNG> png, std::shared_ptr<Plot3Plot> plot, std::shared_ptr<std::string> name) : _png(png), _plot(plot), _filename(name) {}
 };
 
 static std::queue<pngq_entry> png_q; // protected by gdk threads lock.
 
-void MainWindow::queue_png(SaveAsPNG* png)
+void MainWindow::queue_png(std::shared_ptr<SaveAsPNG> png, std::shared_ptr<Plot3Plot> plot, std::shared_ptr<std::string> name)
 {
-	pngq_entry e(png);
+	pngq_entry e(png, plot, name);
 	gdk_threads_enter();
 	png_q.push(e);
 	gdk_threads_leave();
@@ -471,10 +514,8 @@ void MainWindow::png_save_completion()
 		pngq_entry e(png_q.front());
 		png_q.pop();
 		//gdk_threads_leave(); // Don't do this, it deadlocks.
-		e.png->wait();
-		Plot3::Plot3Plot *plot = e.png->plot;
-		SaveAsPNG::to_png(this, plot->width/e.png->aafactor, plot->height/e.png->aafactor, plot, e.png->pal, e.png->aafactor == 2, e.png->filename);
-		delete e.png;
+		e._plot->wait();
+		SaveAsPNG::to_png(this, e._plot->width/e._png->aafactor, e._plot->height/e._png->aafactor, plot, e._png->pal, e._png->aafactor == 2, *e._filename);
 		//gdk_threads_enter();
 	} else {
 	}
