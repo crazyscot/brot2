@@ -16,6 +16,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include "png.h" // see launchpad 218409
 #include "HUD.h"
 #include "MainWindow.h"
 #include "Plot3Plot.h"
