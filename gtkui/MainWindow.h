@@ -139,7 +139,7 @@ public:
 	}
 	void toggle_hud();
 	void toggle_antialias();
-	bool get_antialias() const { return antialias; }
+	bool is_antialias() const { return antialias; }
 
 
 	Cairo::RefPtr<Cairo::Surface>& get_hud_surface() {

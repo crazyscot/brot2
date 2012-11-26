@@ -43,11 +43,10 @@ Canvas::~Canvas() {
 // Converts a clicked pixel into a fractal Point, origin = top left
 Fractal::Point Canvas::pixel_to_set_tlo(int x, int y) const
 {
-	int aa = main->get_antialias();
-	if (aa>1) {
+	if (main->is_antialias()) {
 		// scale up our click to the plot point within
-		x *= aa;
-		y *= aa;
+		x *= 2;
+		y *= 2;
 	}
 	return main->get_plot().pixel_to_set_tlo(x,y);
 }

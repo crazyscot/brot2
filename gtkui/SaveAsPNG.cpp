@@ -220,7 +220,7 @@ void SaveAsPNG::do_save(MainWindow *mw)
 		// EASY CASE: Just save out of the current plot.
 		mw->get_progbar()->set_text("Saving...");
 		to_png(mw, mw->get_rwidth(), mw->get_rheight(), &mw->get_plot(),
-				mw->pal, mw->get_antialias(), filename);
+				mw->pal, mw->is_antialias(), filename);
 	}
 }
 
