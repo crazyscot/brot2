@@ -439,7 +439,7 @@ protected:
 		EXPECT_EQ(z,zz); } while(0)
 
 #define PixelToSetTestBLO(x, y, z) do { \
-		Fractal::Point zz = p3->pixel_to_set(x,y); \
+		Fractal::Point zz = p3->pixel_to_set_blo(x,y); \
 		EXPECT_EQ(z,zz); } while(0)
 
 };

@@ -293,7 +293,7 @@ bool Plot3Plot::is_running() {
 }
 
 /* Converts an (x,y) pair on the render (say, from a mouse click) to their complex co-ordinates */
-Point Plot3Plot::pixel_to_set(int x, int y) const
+Point Plot3Plot::pixel_to_set_blo(int x, int y) const
 {
 	if (x<0) x=0; else if ((unsigned)x>width) x=width;
 	if (y<0) y=0; else if ((unsigned)y>height) y=height;
