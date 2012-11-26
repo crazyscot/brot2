@@ -324,15 +324,15 @@ void MainWindow::chunk_done(Plot3Chunk* job)
 {
 	_chunks_this_pass++;
 	// FIXME do we need to lock against the buffer here??
-	if (renderer) {
+	if (renderer)
 		renderer->process(*job);
-		render_buffer_updated();
-	}
 
 	float workdone = _chunks_this_pass / plot->chunks_total();
 	ASSERT(workdone <= 1.0);
 	gdk_threads_enter();
 	progbar->set_fraction(workdone);
+	if (renderer)
+		render_buffer_updated();
 	gdk_threads_leave();
 }
 
