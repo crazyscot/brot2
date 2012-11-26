@@ -56,50 +56,47 @@ void SaveAsPNG::to_png(MainWindow *mw, unsigned rwidth, unsigned rheight,
 	}
 }
 
-struct PNGProgressWindow: public Gtk::Window, IPlot3DataSink {
-	MainWindow *parent;
-	SaveAsPNG *job;
-	Gtk::ProgressBar *progbar;
-	int _chunks_this_pass;
+PNGProgressWindow::PNGProgressWindow(MainWindow& p, SaveAsPNG& j) : parent(p), job(j), _chunks_this_pass(0) {
+	set_transient_for(parent);
+	set_title("PNG export");
+	Gtk::VBox* box = Gtk::manage(new Gtk::VBox());
+	progbar = Gtk::manage(new Gtk::ProgressBar());
+	box->pack_start(*progbar);
+	progbar->set_text("Rendering pass 1...");
 
-	PNGProgressWindow(MainWindow *p, SaveAsPNG* j) : parent(p), job(j), _chunks_this_pass(0) {
-		set_transient_for(*parent);
-		set_title("PNG export");
-		Gtk::VBox* box = Gtk::manage(new Gtk::VBox());
-		progbar = Gtk::manage(new Gtk::ProgressBar());
-		box->pack_start(*progbar);
-		progbar->set_text("Rendering pass 1...");
+	add(*box);
+	show_all();
+}
 
-		add(*box);
-		show_all();
-	}
+void PNGProgressWindow::chunk_done(Plot3Chunk*) {
+	// We're not doing anything with the completed chunks, they're picked up en masse at the end.
+	_chunks_this_pass++;
+	float workdone = _chunks_this_pass / job.get_chunks_count();
+	gdk_threads_enter();
+	progbar->set_fraction(workdone);
+	progbar->queue_draw();
+	queue_draw();
+	gdk_flush();
+	gdk_threads_leave();
+}
 
-	virtual void chunk_done(Plot3Chunk* chunk) {
-		// We're not doing anything with the completed chunks, they're picked up en masse at the end.
-		_chunks_this_pass++;
-		float workdone = _chunks_this_pass / job->plot.chunks_total();
-		gdk_threads_enter();
-		progbar->set_fraction(workdone);
-		progbar->queue_draw();
-		queue_draw();
-		gdk_flush();
-		gdk_threads_leave();
-	}
+void PNGProgressWindow::pass_complete(std::string& commentary) {
+	_chunks_this_pass=0;
+	gdk_threads_enter();
+	progbar->set_text(commentary);
+	progbar->set_fraction(0.0);
+	parent.queue_draw();
+	gdk_flush();
+	gdk_threads_leave();
+}
 
-	virtual void pass_complete(std::string& commentary) {
-		_chunks_this_pass=0;
-		gdk_threads_enter();
-		progbar->set_text(commentary);
-		progbar->set_fraction(0.0);
-		parent->queue_draw();
-		gdk_flush();
-		gdk_threads_leave();
-	}
+void PNGProgressWindow::plot_complete() {
+	std::shared_ptr<SaveAsPNG> png (&job);
+	std::shared_ptr<Plot3::Plot3Plot> plotptr (&job.plot);
+	std::shared_ptr<std::string> nameptr(new std::string(job.filename));
+	parent.queue_png(png, plotptr, nameptr);
+}
 
-	virtual void plot_complete() {
-		parent->queue_png(job);
-	}
-};
 
 class FileChooserExtra : public Gtk::VBox {
 	public:

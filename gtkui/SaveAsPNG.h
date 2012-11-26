@@ -20,16 +20,32 @@
 #define SAVEASPNG_H_
 
 class MainWindow;
+#include <gtkmm/progressbar.h>
+#include <gtkmm/window.h>
 
 #include "Plot3Plot.h"
+#include "Plot3Chunk.h"
+#include "IPlot3DataSink.h"
 #include "palette.h"
 #include "ChunkDivider.h"
 #include <string>
 
-class PNGProgressWindow;
+class SaveAsPNG;
+
+struct PNGProgressWindow: public Gtk::Window, Plot3::IPlot3DataSink {
+	MainWindow& parent;
+	SaveAsPNG& job;
+	Gtk::ProgressBar *progbar;
+	int _chunks_this_pass;
+	PNGProgressWindow(MainWindow& p, SaveAsPNG& j);
+	virtual void chunk_done(Plot3::Plot3Chunk* chunk);
+	virtual void pass_complete(std::string& commentary);
+	virtual void plot_complete();
+};
 
 class SaveAsPNG {
 	friend class MainWindow;
+	friend class PNGProgressWindow;
 
 	// Private constructor! Called by do_save().
 	SaveAsPNG(MainWindow* mw, Plot3::Plot3Plot& oldplot, unsigned width, unsigned height, bool antialias, std::string&name);
