@@ -70,6 +70,7 @@ class TestSink : public IPlot3DataSink {
 	Fractal::Point origin_prev;
 	bool* pixels_touched;
 	unsigned _height, _width, _double_touched;
+	std::mutex _lock;
 public:
 	Fractal::Value _T,_B,_L,_R; // XXX CONCURRENCY XXX
 
@@ -129,6 +130,9 @@ public:
 		origin_prev = p.origin;
 	}
 	virtual void chunk_done(Plot3Chunk* job) {
+		// This is a critical section when called in parallel.
+		std::unique_lock<std::mutex> lock(_lock);
+
 		const Fractal::PointData* pp = job->get_data();
 		for (unsigned i=0; i<job->pixel_count(); i++) {
 			pointCheck(job, pp[i]);
