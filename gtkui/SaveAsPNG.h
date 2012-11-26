@@ -76,6 +76,8 @@ public:
 	// main entrypoint: runs the save dialog and DTRTs
 	static void do_save(MainWindow *mw);
 
+	unsigned get_chunks_count() const { return plot.chunks_total(); }
+
 	virtual ~SaveAsPNG();
 };
 
