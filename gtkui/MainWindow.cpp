@@ -353,7 +353,6 @@ void MainWindow::plot_complete()
 
 	gdk_threads_enter();
 	progbar->pulse();
-	recolour();
 	gettimeofday(&tv_after,0);
 
 	tv_diff = Util::tv_subtract(tv_after, plot_tv_start);
