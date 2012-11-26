@@ -75,7 +75,7 @@ public:
 	void wait();
 
 	unsigned chunks_total() const;
-	unsigned get_passes() const { return passes_max; }
+	unsigned get_passes() const { return plotted_passes; }
 	int get_maxiter() const { return plotted_maxiter; }
 	bool is_running();
 
