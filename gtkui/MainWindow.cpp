@@ -500,16 +500,15 @@ void MainWindow::toggle_antialias()
 
 struct pngq_entry {
 	std::shared_ptr<SaveAsPNG> _png;
-	Plot3Plot *_plot;
 	std::shared_ptr<std::string> _filename;
-	pngq_entry(std::shared_ptr<SaveAsPNG> png, Plot3Plot* plot, std::shared_ptr<std::string> name) : _png(png), _plot(plot), _filename(name) {}
+	pngq_entry(std::shared_ptr<SaveAsPNG> png, std::shared_ptr<std::string> name) : _png(png), _filename(name) {}
 };
 
 static std::queue<pngq_entry> png_q; // protected by gdk threads lock.
 
-void MainWindow::queue_png(std::shared_ptr<SaveAsPNG> png, Plot3Plot* plot, std::shared_ptr<std::string> name)
+void MainWindow::queue_png(std::shared_ptr<SaveAsPNG> png, std::shared_ptr<std::string> name)
 {
-	pngq_entry e(png, plot, name);
+	pngq_entry e(png, name);
 	gdk_threads_enter();
 	png_q.push(e);
 	gdk_threads_leave();
@@ -522,8 +521,9 @@ void MainWindow::png_save_completion()
 		pngq_entry e(png_q.front());
 		png_q.pop();
 		//gdk_threads_leave(); // Don't do this, it deadlocks.
-		e._plot->wait();
-		SaveAsPNG::to_png(this, e._plot->width/e._png->aafactor, e._plot->height/e._png->aafactor, plot, e._png->pal, e._png->aafactor == 2, *e._filename);
+		Plot3Plot& pngplot = e._png->plot;
+		pngplot.wait();
+		SaveAsPNG::to_png(this, pngplot.width/e._png->aafactor, pngplot.height/e._png->aafactor, &pngplot, e._png->pal, e._png->aafactor == 2, *e._filename);
 		//gdk_threads_enter();
 	} else {
 	}
