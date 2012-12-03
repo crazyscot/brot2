@@ -158,7 +158,7 @@ public:
 		return menubar->optionsMenu;
 	}
 
-	void queue_png(std::shared_ptr<SaveAsPNG> png, std::shared_ptr<std::string> name);
+	void queue_png(std::shared_ptr<SaveAsPNG> png);
 
 	// IPlot3DataSink:
 	virtual void chunk_done(Plot3::Plot3Chunk* job);

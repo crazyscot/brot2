@@ -92,8 +92,7 @@ void PNGProgressWindow::pass_complete(std::string& commentary) {
 
 void PNGProgressWindow::plot_complete() {
 	std::shared_ptr<SaveAsPNG> png (&job);
-	std::shared_ptr<std::string> nameptr(new std::string(job.filename));
-	parent.queue_png(png, nameptr);
+	parent.queue_png(png);
 }
 
 
