@@ -51,7 +51,7 @@ void Base::process_plain(const Plot3Chunk& chunk)
 	const Fractal::PointData * data = chunk.get_data();
 
 	// Slight twist: We've plotted the fractal from a bottom-left origin,
-	// but gdk assumes a top-left origin.
+	// but the rest of the universe assumes a top-left origin.
 
 	unsigned i,j;
 
@@ -64,7 +64,7 @@ void Base::process_plain(const Plot3Chunk& chunk)
 
 		for (i=0; i<chunk._width; i++) {
 			rgb pix = render_pixel(src[i], _local_inf, _pal);
-			pixel_done(i+chunk._offX, j+chunk._offY, pix);
+			pixel_done(i+chunk._offX, _height-(1+j+chunk._offY), pix);
 		}
 	}
 }
@@ -106,7 +106,7 @@ void Base::process_antialias(const Plot3Chunk& chunk)
 			allpix.push_back(pix);
 
 			rgb aapix = antialias_pixel(allpix);
-			pixel_done(i+outOffX, j+outOffY, aapix);
+			pixel_done(i+outOffX, _height-(1+j+outOffY), aapix);
 		}
 	}
 }
