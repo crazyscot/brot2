@@ -228,12 +228,7 @@ void MainWindow::do_resize(unsigned width, unsigned height)
 		// Size has changed!
 		rwidth = width;
 		rheight = height;
-		if (canvas->surface) {
-			canvas->surface->finish();
-			canvas->surface.clear();
-		}
-		delete[] imgbuf;
-		imgbuf=0;
+		destroy_image();
 		dragrect.resized();
 	}
 	do_plot();
@@ -481,11 +476,23 @@ void MainWindow::toggle_hud()
 	recolour();
 }
 
+void MainWindow::destroy_image()
+{
+	safe_stop_plot(); // Paranoia
+	if (canvas->surface) {
+		canvas->surface->finish();
+		canvas->surface.clear();
+	}
+	delete[] imgbuf;
+	imgbuf=0;
+}
+
 void MainWindow::toggle_antialias()
 {
 	if (initializing) return;
 	safe_stop_plot();
 	antialias = !antialias;
+	destroy_image();
 	do_plot(false);
 }
 

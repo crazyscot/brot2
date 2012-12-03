@@ -169,6 +169,7 @@ private:
     void zoom_mechanics(enum Zoom z);
 	bool on_timer();
 	void png_save_completion();
+	void destroy_image();
 
 	ThreadPool _threadpool;
 public:
