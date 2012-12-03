@@ -137,7 +137,7 @@ bool Canvas::end_dragrect(gdouble x, gdouble y) {
 	main->dragrect.draw();
 
 	if (silly) {
-		main->recolour(); // Just get rid of it
+		main->render_buffer_tidyup(); // Just get rid of it
 	} else {
 		Fractal::Point TR = pixel_to_set_tlo(r, t);
 		Fractal::Point BL = pixel_to_set_tlo(l, b);
