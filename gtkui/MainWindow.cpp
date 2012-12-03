@@ -160,6 +160,8 @@ void MainWindow::render_prep(int local_inf) {
 
 	if (!imgbuf) {
 		imgbuf = new guchar[rowstride * rheight];
+		// If not zeroed, odd artefacts appear when toggling antialias
+		std::fill(imgbuf, &imgbuf[rowstride*rheight], 0);
 		delete renderer;
 		renderer = 0;
 	}
