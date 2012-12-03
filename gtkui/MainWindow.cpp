@@ -500,14 +500,14 @@ void MainWindow::toggle_antialias()
 
 struct pngq_entry {
 	std::shared_ptr<SaveAsPNG> _png;
-	std::shared_ptr<Plot3Plot> _plot;
+	Plot3Plot *_plot;
 	std::shared_ptr<std::string> _filename;
-	pngq_entry(std::shared_ptr<SaveAsPNG> png, std::shared_ptr<Plot3Plot> plot, std::shared_ptr<std::string> name) : _png(png), _plot(plot), _filename(name) {}
+	pngq_entry(std::shared_ptr<SaveAsPNG> png, Plot3Plot* plot, std::shared_ptr<std::string> name) : _png(png), _plot(plot), _filename(name) {}
 };
 
 static std::queue<pngq_entry> png_q; // protected by gdk threads lock.
 
-void MainWindow::queue_png(std::shared_ptr<SaveAsPNG> png, std::shared_ptr<Plot3Plot> plot, std::shared_ptr<std::string> name)
+void MainWindow::queue_png(std::shared_ptr<SaveAsPNG> png, Plot3Plot* plot, std::shared_ptr<std::string> name)
 {
 	pngq_entry e(png, plot, name);
 	gdk_threads_enter();
