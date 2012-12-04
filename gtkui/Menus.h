@@ -45,8 +45,8 @@ public:
 	AbstractOptionsMenu* optionsMenu;
 
 private:
-	// Menus(const Menus&) {} // TODO should be disallowed
-	Menus& operator=(const Menus&) { return *this; } // disallowed
+	Menus(const Menus&) = delete;
+	Menus& operator=(const Menus&) = delete;
 };
 
 }

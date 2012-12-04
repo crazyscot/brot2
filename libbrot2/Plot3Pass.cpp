@@ -39,6 +39,5 @@ void Plot3Pass::run() {
 		(*it).get();
 	}
 }
-// TODO Pull in pass-tracking functionality from P3Plot
 
 } // namespace

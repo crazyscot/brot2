@@ -27,7 +27,7 @@
 #include <cairomm/cairomm.h>
 
 Canvas::Canvas(MainWindow *parent) : main(parent), surface(0) {
-	set_size_request(300,300); // XXX default size
+	set_size_request(300,300); // default initial size
 	add_events (Gdk::EXPOSURE_MASK
 			| Gdk::LEAVE_NOTIFY_MASK
 			| Gdk::BUTTON_PRESS_MASK
@@ -166,10 +166,8 @@ bool Canvas::on_expose_event(GdkEventExpose * evt) {
 
 	if (!surface) return true; // Haven't rendered yet? Nothing we can do
 	if (evt) {
-#if 0 // TODO Try me
 		cr->rectangle(evt->area.x, evt->area.y, evt->area.width, evt->area.height);
 		cr->clip();
-#endif
 	}
 
 	cr->set_source(surface, 0, 0);

@@ -33,8 +33,6 @@ namespace Plot3 {
 
 class Plot3Plot {
 public:
-	// TODO: Callbacks maj/min/complete - what are we donig with them?
-
 	/* What is this plot about? */
 	ThreadPool& _pool;
 	IPlot3DataSink* sink;
@@ -60,7 +58,7 @@ public:
 
 	/* Starts a plot. The real work goes on asynchronously. */
 	void start();
-	// TODO: Resume ? Is this part of start()?
+	// Could maybe do a resume() - or is it part of start()?
 
 	/* Instructs the running plot to stop what it's doing ASAP.
 	 * Does NOT block; the plot may carry on for a little while. */
