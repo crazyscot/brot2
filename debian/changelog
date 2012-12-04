@@ -2,8 +2,11 @@ brot2 (1.0+unreleased) UNRELEASED; urgency=low
 
   * Fix automake machinery so that make dist works again. (Oops!)
   * LP#882411: Create unit test framework.
+  * Major rewrite of the fractal plotting machinery, with reasonable unit
+  test support (closes #882411).  'make check' added.  Updated CLI and gtkui
+  to use new machinery.  Removed old Render and Plot2 as obsolete.
 
- -- Ross Younger <0ryoungerk.launchpad@coriolis.greenend.org.uk>  Sun, 05 Aug 2012 11:06:41 +1200
+ -- Ross Younger <0ryoungerk.launchpad@coriolis.greenend.org.uk>  Tue, 04 Dec 2012 22:55:22 +1300
 
 brot2 (1.0) oneiric; urgency=low
 
