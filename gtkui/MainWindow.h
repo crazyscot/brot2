@@ -69,7 +69,7 @@ class MainWindow : public Gtk::Window, IPlot3DataSink {
 	bool draw_hud, antialias;
 	bool initializing; // Disables certain event actions when set.
 
-	bool aspectfix, clip; // Details about the current render
+	bool aspectfix, clip, recolour_when_done; // Details about the current render
 
 	struct timeval plot_tv_start;
 

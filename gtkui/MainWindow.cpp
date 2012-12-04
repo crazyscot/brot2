@@ -52,7 +52,7 @@ MainWindow::MainWindow() : Gtk::Window(),
 			rwidth(0), rheight(0),
 			draw_hud(true), antialias(false),
 			initializing(true),
-			aspectfix(false), clip(false),
+			aspectfix(false), clip(false), recolour_when_done(false),
 			dragrect(*this),
 			_threadpool(BrotPrefs::threadpool_size(prefs()))
 {
@@ -370,6 +370,9 @@ void MainWindow::plot_complete()
 	progbar->set_fraction(1.0);
 	progbar->set_text(info.str().c_str());
 
+	if (recolour_when_done) // If the palette was changed during the computation.
+		render(-1, true, true);
+
 	queue_draw();
 	gdk_flush();
 	gdk_threads_leave();
@@ -378,7 +381,12 @@ void MainWindow::plot_complete()
 void MainWindow::recolour()
 {
 	if (initializing) return;
-	render(-1, true, true);
+	if (plot->is_running()) {
+		renderer->fresh_palette(*pal);
+		recolour_when_done = true;
+	}
+	else
+		render(-1, true, true);
 }
 
 void MainWindow::do_undo()
