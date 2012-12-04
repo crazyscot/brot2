@@ -42,7 +42,7 @@ public:
 
 	bool is_active() const { return active; }
 	Util::xy get_origin() const { return origin; }
-	void activate(int x, int y); // x,y = origin TODO take a Util::xy ?
+	void activate(int x, int y); // x,y = origin
 	void draw(); // Deactivates and clears the surface
 	void draw(int x, int y); // Redraws the surface relative to the origin
 	void resized(); // Call if the underlying window has been resized

@@ -37,6 +37,19 @@
 using namespace std;
 using namespace Plot3;
 
+// Plug our long-double floating point into gtest's floating point comparator:
+#define EXPECT_FVAL_EQ(expected,actual) \
+	EXPECT_DOUBLE_EQ(expected,actual)
+#if 0
+// Can't seem to figure out how to do this, so close-enough-for-double
+// will have to do for now.
+typedef FloatingPoint<Fractal::Value> FractalValue;
+#define EXPECT_FVAL_EQ(expected,actual) \
+	EXPECT_PRED_FORMAT2( \
+			::testing::internal::CmpHelperFloatingPointEQ<Fractal::Value>, \
+			expected, actual)
+#endif
+
 class TestPlot3Chunk : public Plot3Chunk {
 public:
 	static IPlot3DataSink* _sink;
@@ -57,6 +70,7 @@ class TestSink : public IPlot3DataSink {
 	Fractal::Point origin_prev;
 	bool* pixels_touched;
 	unsigned _height, _width, _double_touched;
+	std::mutex _lock;
 public:
 	Fractal::Value _T,_B,_L,_R; // XXX CONCURRENCY XXX
 
@@ -116,6 +130,9 @@ public:
 		origin_prev = p.origin;
 	}
 	virtual void chunk_done(Plot3Chunk* job) {
+		// This is a critical section when called in parallel.
+		std::unique_lock<std::mutex> lock(_lock);
+
 		const Fractal::PointData* pp = job->get_data();
 		for (unsigned i=0; i<job->pixel_count(); i++) {
 			pointCheck(job, pp[i]);
@@ -391,9 +408,12 @@ protected:
 	ChunkDivider::OneChunk divider;
 	Plot3::Plot3Plot *p3;
 	std::shared_ptr<Prefs> prefs;
+	Fractal::Point CENTRE, SIZE;
 
 	Plot3Test() : _W(11), _H(19),
-			fract(0), pool(1), p3(0), prefs(new MockPrefs()) {}
+			fract(0), pool(1), p3(0), prefs(new MockPrefs()),
+			CENTRE(-0.4,-0.4),
+			SIZE(0.01,0.2) {}
 
 	virtual void TearDown() {
 		delete p3;
@@ -408,8 +428,7 @@ protected:
 		PassTestingSink sink; // This tests the notifications
 		fract.set_iters(iters_max);
 		p3 = new Plot3Plot(pool, &sink, fract, divider,
-				Fractal::Point(-0.4,-0.4),
-				Fractal::Point(0.01,0.01),
+				CENTRE, SIZE,
 				_W, _H, iters_max+1);
 		setDummyPrefs();
 		p3->start();
@@ -418,13 +437,21 @@ protected:
 		sink.expect_passes(passes_expected);
 		sink.expect_completions(1);
 	}
+
+#define PixelToSetTestTLO(x, y, z) do { \
+		Fractal::Point zz = p3->pixel_to_set_tlo(x,y); \
+		EXPECT_EQ(z,zz); } while(0)
+
+#define PixelToSetTestBLO(x, y, z) do { \
+		Fractal::Point zz = p3->pixel_to_set_blo(x,y); \
+		EXPECT_EQ(z,zz); } while(0)
+
 };
 
 TEST_F(Plot3Test, Basics) {
 	TestSink sink(_W,_H); // This tests the points are touched
 	p3 = new Plot3Plot(pool, &sink, fract, divider,
-			Fractal::Point(-0.4,-0.4),
-			Fractal::Point(0.01,0.01),
+			CENTRE, SIZE,
 			_W, _H, 10);
 	setDummyPrefs();
 	p3->start();
@@ -443,18 +470,52 @@ TEST_F(Plot3Test, PassNotifies) {
 	notifies_test(100,15);
 }
 
-// Plug our long-double floating point into gtest's floating point comparator:
-#define EXPECT_FVAL_EQ(expected,actual) \
-	EXPECT_DOUBLE_EQ(expected,actual)
-#if 0
-// Can't seem to figure out how to do this, so close-enough-for-double
-// will have to do for now.
-typedef FloatingPoint<Fractal::Value> FractalValue;
-#define EXPECT_FVAL_EQ(expected,actual) \
-	EXPECT_PRED_FORMAT2( \
-			::testing::internal::CmpHelperFloatingPointEQ<Fractal::Value>, \
-			expected, actual)
-#endif
+TEST_F(Plot3Test, PixelToSet) {
+	// Known answer tests. We check the corner points, and overruns clip.
+	TestSink sink(_W,_H); // This tests the points are touched
+	p3 = new Plot3Plot(pool, &sink, fract, divider,
+			CENTRE, SIZE,
+			_W, _H, 10);
+	setDummyPrefs();
+	p3->start();
+	p3->wait();
+
+//	Fractal::Value LEFT = imag(CENTRE) - imag(SIZE)/2;
+//	Fractal::Value RIGHT = LEFT + imag(SIZE);
+
+	// CAUTION: Valgrind fp limitations come into play here, some comparisons fail despite printing out OK.
+	// Those marked '///VG' were affected until I tweaked the calculations.
+	Fractal::Point BLO_0_0 = CENTRE - SIZE/2.0;
+	Fractal::Point BLO_W_0 = BLO_0_0 + real(SIZE);
+	Fractal::Point BLO_0_H = CENTRE + SIZE/2.0 - real(SIZE); // Tweaked for VG
+	Fractal::Point BLO_W_H = CENTRE + SIZE/2.0; // Tweaked for VG
+
+#define TLO_0_H BLO_0_0
+#define TLO_0_0 BLO_0_H
+#define TLO_W_H BLO_W_0
+#define TLO_W_0 BLO_W_H
+
+	PixelToSetTestBLO(0,0, BLO_0_0);
+	PixelToSetTestBLO(-1,-42, BLO_0_0);
+	PixelToSetTestTLO(0,0, TLO_0_0); ///VG
+	PixelToSetTestTLO(-1,-42, TLO_0_0); ///VG
+
+	PixelToSetTestBLO(_W,0, BLO_W_0);
+	PixelToSetTestBLO(_W+1,-42, BLO_W_0);
+	PixelToSetTestTLO(_W,0, TLO_W_0); ///VG
+	PixelToSetTestTLO(_W+1,-42, TLO_W_0); ///VG
+
+	PixelToSetTestBLO(0,_H, BLO_0_H); ///VG
+	PixelToSetTestBLO(-1,_H+1, BLO_0_H); ///VG
+	PixelToSetTestTLO(0,_H, TLO_0_H);
+	PixelToSetTestTLO(-1,_H+1, TLO_0_H);
+
+	PixelToSetTestBLO(_W,_H, BLO_W_H); ///VG
+	PixelToSetTestBLO(_W+1,_H+1, BLO_W_H); ///VG
+	PixelToSetTestTLO(_W,_H, TLO_W_H);
+	PixelToSetTestTLO(_W+1,_H+1, TLO_W_H);
+}
+
 
 template<typename T>
 class ChunkDividerTest : public ::testing::Test {
@@ -487,6 +548,7 @@ class ChunkDividerTest : public ::testing::Test {
 			this->p3->wait();
 			EXPECT_EQ(_x*_y, this->sink.points_count());
 		}
+	virtual ~ChunkDividerTest() {}
 };
 
 typedef ::testing::Types<OneChunk, Horizontal10px> ChunkTypes;

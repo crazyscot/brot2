@@ -33,8 +33,6 @@ namespace Plot3 {
 
 class Plot3Plot {
 public:
-	// TODO: Callbacks maj/min/complete - what are we donig with them?
-
 	/* What is this plot about? */
 	ThreadPool& _pool;
 	IPlot3DataSink* sink;
@@ -60,7 +58,7 @@ public:
 
 	/* Starts a plot. The real work goes on asynchronously. */
 	void start();
-	// TODO: Resume ? Is this part of start()?
+	// Could maybe do a resume() - or is it part of start()?
 
 	/* Instructs the running plot to stop what it's doing ASAP.
 	 * Does NOT block; the plot may carry on for a little while. */
@@ -75,10 +73,26 @@ public:
 	void wait();
 
 	unsigned chunks_total() const;
+	unsigned get_passes() const { return plotted_passes; }
+	int get_maxiter() const { return plotted_maxiter; }
+	bool is_running();
 
 	// Provides a means to override the prefs.
 	void set_prefs(std::shared_ptr<Prefs>& newprefs);
 	void set_prefs(std::shared_ptr<const Prefs>& newprefs);
+
+	/* Converts an (x,y) pair on the render (say, from a mouse click) to their complex co-ordinates.
+	 * Returns 1 for success, 0 if the point was outside of the render.
+	 * N.B. that we assume that pixel co-ordinates have a bottom-left origin! */
+	Fractal::Point pixel_to_set_blo(int x, int y) const;
+
+	/* Converts an (x,y) pair on the render (say, from a mouse click) to their complex co-ordinates.
+	 * Returns 1 for success, 0 if the point was outside of the render.
+	 * This is a variant form for pixels with a top-left origin, such as
+	 * those of gtk/gdk. */
+	Fractal::Point pixel_to_set_tlo(int xx, int yy) const {
+		return pixel_to_set_blo(xx, height-yy);
+	};
 
 protected:
 	std::shared_ptr<const Prefs> prefs; // Where to get our global settings from.
@@ -107,6 +121,10 @@ private:
 	std::thread runner;
 
 	void poke_runner();
+
+public:
+	// Wormhole to access the chunks list. Calls wait() first.
+	const std::list<Plot3Chunk*>& get_chunks__only_after_completion();
 };
 
 } // namespace Plot3

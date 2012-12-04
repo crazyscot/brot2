@@ -1,6 +1,6 @@
 /*
     HUD: Heads-Up Display for brot2
-    Copyright (C) 2010-2011 Ross Younger
+    Copyright (C) 2010-2012 Ross Younger
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,9 +16,10 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include "png.h" // see launchpad 218409
 #include "HUD.h"
 #include "MainWindow.h"
-#include "Plot2.h"
+#include "Plot3Plot.h"
 #include "Exception.h"
 #include <pangomm.h>
 #include <cairomm/cairomm.h>
@@ -39,7 +40,7 @@ HUD::HUD(MainWindow &window) : parent(window), w(0), h(0) {
 
 const std::string HUD::font_name = "Luxi Sans 9";
 
-void HUD::draw(Plot2* plot, const int rwidth, const int rheight)
+void HUD::draw(Plot3::Plot3Plot* plot, const int rwidth, const int rheight)
 {
 	Glib::Mutex::Lock autolock(mux); // unwind unlocks
 	if (!plot) return; // race condition trap

@@ -16,6 +16,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include "png.h" // must be first, see launchpad 218409
 #include "Canvas.h"
 #include "MainWindow.h"
 #include "HUD.h"
@@ -26,7 +27,7 @@
 #include <cairomm/cairomm.h>
 
 Canvas::Canvas(MainWindow *parent) : main(parent), surface(0) {
-	set_size_request(300,300); // XXX default size
+	set_size_request(300,300); // default initial size
 	add_events (Gdk::EXPOSURE_MASK
 			| Gdk::LEAVE_NOTIFY_MASK
 			| Gdk::BUTTON_PRESS_MASK
@@ -42,11 +43,10 @@ Canvas::~Canvas() {
 // Converts a clicked pixel into a fractal Point, origin = top left
 Fractal::Point Canvas::pixel_to_set_tlo(int x, int y) const
 {
-	int aa = main->get_antialias();
-	if (aa>1) {
+	if (main->is_antialias()) {
 		// scale up our click to the plot point within
-		x *= aa;
-		y *= aa;
+		x *= 2;
+		y *= 2;
 	}
 	return main->get_plot().pixel_to_set_tlo(x,y);
 }
@@ -137,7 +137,7 @@ bool Canvas::end_dragrect(gdouble x, gdouble y) {
 	main->dragrect.draw();
 
 	if (silly) {
-		main->recolour(); // Just get rid of it
+		main->render_buffer_tidyup(); // Just get rid of it
 	} else {
 		Fractal::Point TR = pixel_to_set_tlo(r, t);
 		Fractal::Point BL = pixel_to_set_tlo(l, b);
@@ -166,10 +166,8 @@ bool Canvas::on_expose_event(GdkEventExpose * evt) {
 
 	if (!surface) return true; // Haven't rendered yet? Nothing we can do
 	if (evt) {
-#if 0 // TODO Try me
 		cr->rectangle(evt->area.x, evt->area.y, evt->area.width, evt->area.height);
 		cr->clip();
-#endif
 	}
 
 	cr->set_source(surface, 0, 0);

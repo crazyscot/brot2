@@ -331,7 +331,7 @@ int KeyfilePrefs::_childCount = 0;
 
 namespace BrotPrefs {
 
-int threadpool_size(std::shared_ptr<Prefs> const prefs)
+int threadpool_size(std::shared_ptr<const Prefs> prefs)
 {
 	int rv = prefs->get(PREF(MaxPlotThreads));
 	if (rv==-1)

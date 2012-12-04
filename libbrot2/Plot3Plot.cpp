@@ -281,4 +281,27 @@ unsigned Plot3Plot::chunks_total() const {
 	return _chunks.size();
 }
 
+const std::list<Plot3Chunk*>& Plot3Plot::get_chunks__only_after_completion()
+{
+	wait();
+	return _chunks;
+}
+
+bool Plot3Plot::is_running() {
+	std::unique_lock<std::mutex> lock(_lock);
+	return _running;
+}
+
+/* Converts an (x,y) pair on the render (say, from a mouse click) to their complex co-ordinates */
+Point Plot3Plot::pixel_to_set_blo(int x, int y) const
+{
+	if (x<0) x=0; else if ((unsigned)x>width) x=width;
+	if (y<0) y=0; else if ((unsigned)y>height) y=height;
+
+	const Value pixwide = real(size) / width,
+				pixhigh  = imag(size) / height;
+	Point delta (x*pixwide, y*pixhigh);
+	return origin() + delta;
+}
+
 } // namespace Plot3

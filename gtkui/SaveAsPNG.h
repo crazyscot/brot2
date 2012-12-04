@@ -1,6 +1,6 @@
 /*
     SaveAsPNG: PNG export action/support for brot2
-    Copyright (C) 2011 Ross Younger
+    Copyright (C) 2011-12 Ross Younger
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -20,41 +20,65 @@
 #define SAVEASPNG_H_
 
 class MainWindow;
+#include <gtkmm/progressbar.h>
+#include <gtkmm/window.h>
 
-#include "Plot2.h"
+#include "Plot3Plot.h"
+#include "Plot3Chunk.h"
+#include "IPlot3DataSink.h"
 #include "palette.h"
+#include "ChunkDivider.h"
 #include <string>
 
-class PNGProgressWindow;
+class SaveAsPNG;
+
+struct PNGProgressWindow: public Gtk::Window, Plot3::IPlot3DataSink {
+	MainWindow& parent;
+	SaveAsPNG& job;
+	Gtk::ProgressBar *progbar;
+	int _chunks_this_pass;
+	PNGProgressWindow(MainWindow& p, SaveAsPNG& j);
+	virtual void chunk_done(Plot3::Plot3Chunk* chunk);
+	virtual void pass_complete(std::string& commentary);
+	virtual void plot_complete();
+};
 
 class SaveAsPNG {
 	friend class MainWindow;
+	friend class PNGProgressWindow;
+
+	// Private constructor! Called by do_save().
+	SaveAsPNG(MainWindow* mw, Plot3::Plot3Plot& oldplot, unsigned width, unsigned height, bool antialias, std::string&name);
 
 	// Interface for MainWindow to trigger save actions.
 	// An instance of this class is an outstanding PNG-save job.
 private:
 	static void to_png(MainWindow *mw, unsigned rwidth, unsigned rheight,
-			Plot2* plot, BasePalette* pal, int aafactor,
+			Plot3::Plot3Plot* plot, BasePalette* pal, bool antialias,
 			std::string& filename);
 
 	// Delete on destruct:
-	Plot2 *plot;
-	PNGProgressWindow *reporter;
+	PNGProgressWindow reporter;
+	Plot3::ChunkDivider::Horizontal10px divider;
+	const int aafactor;
+	Plot3::Plot3Plot plot;
 
 	// do NOT delete:
 	BasePalette *pal;
-	int antialias;
 	std::string filename;
 
-public:
-	void to_png(); // when the plot has finished.
+	void start(); // ->plot.start()
+	void wait(); // -> plot.wait()
 
+public:
 	static std::string last_saved_dirname;
 
 	// main entrypoint: runs the save dialog and DTRTs
 	static void do_save(MainWindow *mw);
 
-	~SaveAsPNG();
+	unsigned get_chunks_count() const { return plot.chunks_total(); }
+
+	virtual ~SaveAsPNG();
 };
 
 #endif /* SAVEASPNG_H_ */

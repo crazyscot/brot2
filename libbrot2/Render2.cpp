@@ -28,7 +28,7 @@ namespace Render2 {
 using namespace Plot3;
 
 Base::Base(unsigned width, unsigned height, int local_inf, bool antialias, const BasePalette& pal) :
-		_width(width), _height(height), _local_inf(local_inf), _antialias(antialias), _pal(pal) {}
+		_width(width), _height(height), _local_inf(local_inf), _antialias(antialias), _pal(&pal) {}
 
 void Base::process(const Plot3Chunk& chunk)
 {
@@ -51,7 +51,7 @@ void Base::process_plain(const Plot3Chunk& chunk)
 	const Fractal::PointData * data = chunk.get_data();
 
 	// Slight twist: We've plotted the fractal from a bottom-left origin,
-	// but gdk assumes a top-left origin.
+	// but the rest of the universe assumes a top-left origin.
 
 	unsigned i,j;
 
@@ -63,8 +63,8 @@ void Base::process_plain(const Plot3Chunk& chunk)
 		const Fractal::PointData * src = &data[j*chunk._width];
 
 		for (i=0; i<chunk._width; i++) {
-			rgb pix = render_pixel(src[i], _local_inf, &_pal);
-			pixel_done(i+chunk._offX, j+chunk._offY, pix);
+			rgb pix = render_pixel(src[i], _local_inf, _pal);
+			pixel_done(i+chunk._offX, _height-(1+j+chunk._offY), pix);
 		}
 	}
 }
@@ -94,22 +94,31 @@ void Base::process_antialias(const Plot3Chunk& chunk)
 			rgb pix;
 
 			const Fractal::PointData * base = &data[2*j*chunk._width];
-			pix = render_pixel(base[2*i], _local_inf, &_pal);
+			pix = render_pixel(base[2*i], _local_inf, _pal);
 			allpix.push_back(pix);
-			pix = render_pixel(base[2*i+1], _local_inf, &_pal);
+			pix = render_pixel(base[2*i+1], _local_inf, _pal);
 			allpix.push_back(pix);
 
 			base = &data[1 + 2*j*chunk._width];
-			pix = render_pixel(base[2*i], _local_inf, &_pal);
+			pix = render_pixel(base[2*i], _local_inf, _pal);
 			allpix.push_back(pix);
-			pix = render_pixel(base[2*i+1], _local_inf, &_pal);
+			pix = render_pixel(base[2*i+1], _local_inf, _pal);
 			allpix.push_back(pix);
 
 			rgb aapix = antialias_pixel(allpix);
-			pixel_done(i+outOffX, j+outOffY, aapix);
+			pixel_done(i+outOffX, _height-(1+j+outOffY), aapix);
 		}
 	}
 }
+
+void Base::fresh_local_inf(unsigned local_inf) {
+	_local_inf = local_inf;
+}
+
+void Base::fresh_palette(const BasePalette& pal) {
+	_pal = &pal;
+}
+
 
 /////////////////////////////////////////////////////////////////////////////////////////////
 

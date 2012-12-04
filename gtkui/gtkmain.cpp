@@ -18,6 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.";
 
 const char *copyright_string = "(c) 2010-2011 Ross Younger";
 
+#include "png.h" // must be first, see launchpad 218409
 #include <memory>
 #include <iostream>
 

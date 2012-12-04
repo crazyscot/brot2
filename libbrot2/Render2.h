@@ -73,10 +73,16 @@ public:
 	/** Processes a list of chunks. This leads to repeated calls to process(chunk). */
 	void process(const std::list<Plot3Chunk*>& chunks);
 
+	/**
+	 * If you want to re-process a render for a new local_inf and/or palette, call fresh_*(), then process(your chunks).
+	 */
+	virtual void fresh_local_inf(unsigned local_inf);
+	virtual void fresh_palette(const BasePalette& pal);
+
 protected:
 	unsigned _width, _height, _local_inf;
 	bool _antialias;
-	const BasePalette& _pal;
+	const BasePalette* _pal;
 
 	/**
 	 * Non-antialiased chunk processing.

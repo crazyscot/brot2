@@ -45,21 +45,22 @@ namespace ChunkDivider {
 	_CD__BODY(Horizontal10px) {
 		unsigned nWhole = height / 10;
 		unsigned lastPx = height % 10;
-		unsigned i;
 		const Fractal::Point sliceSize(real(size), imag(size) * 10.0 / height);
 		const Fractal::Point step(0.0, imag(sliceSize));
 		const Fractal::Point originalOrigin(centre - size / 2.0);
 
 		Fractal::Point origin(originalOrigin);
 
-		for (i=0; i<nWhole; i++) {
+		/* Note: Co-ordinates (0,0) are at the BOTTOM-LEFT of the render buffer.
+		 * For best visual effect, should start at the top and work down. */
+		for (unsigned i=0; i<nWhole; i++) {
 			// create and push
 			Plot3Chunk * chunk = new Plot3Chunk(s, f,
 					width, 10,
 					0, 10*i,
 					origin, sliceSize,
 					max_passes);
-			list_o.push_back(chunk);
+			list_o.push_front(chunk);
 			origin += step;
 		}
 		/* Note: A slight imprecision occurs when repeatedly adding small bits.

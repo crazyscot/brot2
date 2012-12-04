@@ -16,6 +16,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include "png.h" // must be first, see launchpad 218409
 #include "ParamsDialog.h"
 #include "MainWindow.h"
 #include "Fractal.h"
