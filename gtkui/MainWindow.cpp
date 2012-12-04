@@ -320,11 +320,10 @@ void MainWindow::safe_stop_plot() {
 void MainWindow::chunk_done(Plot3Chunk* job)
 {
 	_chunks_this_pass++;
-	// FIXME do we need to lock against the buffer here??
 	if (renderer)
 		renderer->process(*job);
 
-	float workdone = _chunks_this_pass / plot->chunks_total();
+	float workdone = (float) _chunks_this_pass / plot->chunks_total();
 	ASSERT(workdone <= 1.0);
 	gdk_threads_enter();
 	progbar->set_fraction(workdone);
@@ -339,7 +338,6 @@ void MainWindow::pass_complete(std::string& commentary)
 
 	render_buffer_tidyup(); // applies the HUD
 	gdk_threads_enter();
-	progbar->set_fraction(0.98); // TODO Really ? Test me...
 	progbar->set_text(commentary.c_str());
 	gdk_threads_leave();
 }

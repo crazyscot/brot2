@@ -56,7 +56,9 @@ void CLIDataSink::chunk_done(Plot3Chunk* job)
 	_chunks_this_pass++;
 
 	if (quiet) return;
-	float workdone = _chunks_this_pass / _plot->chunks_total();
+	float workdone = (float)_chunks_this_pass / _plot->chunks_total();
+	// Without this lock, multiple threads bicker over the screen and make a mess.
+	std::unique_lock<std::mutex> lock(_terminal_lock);
 	ASSERT(workdone <= 1.0);
 	if (ncolumns > 10) {
 		int j, n=ncolumns * workdone;

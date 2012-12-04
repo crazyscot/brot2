@@ -43,6 +43,7 @@ class CLIDataSink : public Plot3::IPlot3DataSink {
 		bool quiet;
 		Plot3::Plot3Plot* _plot;
 		std::atomic<int> _chunks_this_pass; // Reset to 0 on pass completion.
+		std::mutex _terminal_lock;
 };
 
 #endif /* CLIDATASINK_H */

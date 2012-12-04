@@ -71,7 +71,7 @@ PNGProgressWindow::PNGProgressWindow(MainWindow& p, SaveAsPNG& j) : parent(p), j
 void PNGProgressWindow::chunk_done(Plot3Chunk*) {
 	// We're not doing anything with the completed chunks, they're picked up en masse at the end.
 	_chunks_this_pass++;
-	float workdone = _chunks_this_pass / job.get_chunks_count();
+	float workdone = (float) _chunks_this_pass / job.get_chunks_count();
 	gdk_threads_enter();
 	progbar->set_fraction(workdone);
 	progbar->queue_draw();
