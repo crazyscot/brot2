@@ -2,7 +2,7 @@ AC_INIT([brot2], [1.0])
 AC_CONFIG_AUX_DIR([config.aux])
 AM_INIT_AUTOMAKE([no-define silent-rules])
 AM_SILENT_RULES([yes])
-AC_CONFIG_SRCDIR([libbrot2/Plot2.cpp])
+AC_CONFIG_SRCDIR([libbrot2/Plot3Plot.cpp])
 AM_CONFIG_HEADER([config.h])
 AC_CANONICAL_HOST
 AC_LANG([C++])
