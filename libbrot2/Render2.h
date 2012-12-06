@@ -30,8 +30,6 @@
 
 namespace Render2 {
 
-using namespace Plot3;
-
 const int RGB_BYTES_PER_PIXEL = 3;
 
 class pixpack_format {
@@ -69,9 +67,9 @@ public:
 	virtual ~Base() {}
 
 	/** Processes a single chunk. */
-	void process(const Plot3Chunk& chunk);
+	void process(const Plot3::Plot3Chunk& chunk);
 	/** Processes a list of chunks. This leads to repeated calls to process(chunk). */
-	void process(const std::list<Plot3Chunk*>& chunks);
+	void process(const std::list<Plot3::Plot3Chunk*>& chunks);
 
 	/**
 	 * If you want to re-process a render for a new local_inf and/or palette, call fresh_*(), then process(your chunks).
@@ -87,11 +85,11 @@ protected:
 	/**
 	 * Non-antialiased chunk processing.
 	 */
-	void process_plain(const Plot3Chunk& chunk);
+	void process_plain(const Plot3::Plot3Chunk& chunk);
 	/**
 	 * Anti-aliased chunk processing.
 	 */
-	void process_antialias(const Plot3Chunk& chunk);
+	void process_antialias(const Plot3::Plot3Chunk& chunk);
 	/**
 	 * Called by process_* functions for each output pixel.
 	 * The X and Y parameters are relative to the output width/height.
@@ -132,11 +130,6 @@ public:
 			bool antialias, const int local_inf, pixpack_format fmt, const BasePalette& pal);
 
 	virtual ~MemoryBuffer();
-
-#if 0
-	/* Returns data for a single fractal point, identified by its pixel co-ordinates within a plot. */
-	static const Fractal::PointData& single_pixel_data(Plot2& plot, int x, int y, unsigned antialias_factor);
-#endif
 
 protected:
 	virtual void pixel_done(unsigned X, unsigned Y, const rgb& p);

@@ -44,13 +44,11 @@
 #include <gtkmm/progressbar.h>
 #include <sys/time.h>
 
-using namespace Plot3;
-
 class HUD;
 class ControlsWindow;
 class SaveAsPNG;
 
-class MainWindow : public Gtk::Window, IPlot3DataSink {
+class MainWindow : public Gtk::Window, Plot3::IPlot3DataSink {
 	Gtk::VBox *vbox; // Main layout widget
 	menus::Menus *menubar;
 	Canvas *canvas;
@@ -60,8 +58,8 @@ class MainWindow : public Gtk::Window, IPlot3DataSink {
 
 	unsigned char *imgbuf;
 
-	Plot3Plot * plot;
-	Plot3Plot * plot_prev;
+	Plot3::Plot3Plot * plot;
+	Plot3::Plot3Plot * plot_prev;
 	Render2::MemoryBuffer * renderer;
 
 	Fractal::Point centre, size;
@@ -98,7 +96,7 @@ public:
 
 	int get_rwidth() const { return rwidth; }
 	int get_rheight() const { return rheight; }
-	Plot3Plot& get_plot() const { return *plot; }
+	Plot3::Plot3Plot& get_plot() const { return *plot; }
 	Gtk::ProgressBar* get_progbar() const { return progbar; }
 
     virtual bool on_key_release_event(GdkEventKey *);
