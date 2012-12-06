@@ -37,7 +37,6 @@ noinst_LIBRARIES+=libbrot2/libbrot2.a
 
 libbrot2_libbrot2_a_SOURCES= \
 	libbrot2/Exception.h \
-	libbrot2/noncopyable.hpp \
 	libbrot2/logo.h $(top_builddir)/libbrot2/logo_auto.c \
 	libbrot2/palette.cpp libbrot2/palette.h \
 	libbrot2/Plot3Plot.cpp libbrot2/Plot3Plot.h \

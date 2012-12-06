@@ -41,7 +41,7 @@ protected:
 	virtual void plot();
 
 private:
-	const Plot3Chunk& operator= (const Plot3Chunk&); // Disallowed.
+	const Plot3Chunk& operator= (const Plot3Chunk&) = delete; // Disallowed.
 
     /* Where should this chunk poke its data when complete? */
 	IPlot3DataSink* _sink;

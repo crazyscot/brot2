@@ -261,8 +261,8 @@ protected:
 
 private:
 	// Disallow!
-	KeyfilePrefs(const KeyfilePrefs&): kf(), mouse_cache(), scroll_cache(), _parent() {}
-	KeyfilePrefs& operator= (const KeyfilePrefs&) { return *this; }
+	KeyfilePrefs(const KeyfilePrefs&) = delete;
+	KeyfilePrefs& operator= (const KeyfilePrefs&) = delete;
 };
 
 class DefaultPrefs : KeyfilePrefs {
