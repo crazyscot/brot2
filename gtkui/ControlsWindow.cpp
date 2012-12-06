@@ -36,6 +36,8 @@
 
 #include <sstream>
 
+using namespace BrotPrefs;
+
 namespace Actions {
 
 class Columns : public Gtk::TreeModel::ColumnRecord

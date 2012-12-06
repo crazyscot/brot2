@@ -26,6 +26,8 @@
 #include <gdkmm/event.h>
 #include <cairomm/cairomm.h>
 
+using namespace BrotPrefs;
+
 Canvas::Canvas(MainWindow *parent) : main(parent), surface(0) {
 	set_size_request(300,300); // default initial size
 	add_events (Gdk::EXPOSURE_MASK

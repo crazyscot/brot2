@@ -27,7 +27,9 @@
 #include "IPlot3DataSink.h"
 #include "ChunkDivider.h"
 
+namespace BrotPrefs {
 class Prefs;
+}
 
 namespace Plot3 {
 
@@ -78,8 +80,8 @@ public:
 	bool is_running();
 
 	// Provides a means to override the prefs.
-	void set_prefs(std::shared_ptr<Prefs>& newprefs);
-	void set_prefs(std::shared_ptr<const Prefs>& newprefs);
+	void set_prefs(std::shared_ptr<BrotPrefs::Prefs>& newprefs);
+	void set_prefs(std::shared_ptr<const BrotPrefs::Prefs>& newprefs);
 
 	/* Converts an (x,y) pair on the render (say, from a mouse click) to their complex co-ordinates.
 	 * Returns 1 for success, 0 if the point was outside of the render.
@@ -95,7 +97,7 @@ public:
 	};
 
 protected:
-	std::shared_ptr<const Prefs> prefs; // Where to get our global settings from.
+	std::shared_ptr<const BrotPrefs::Prefs> prefs; // Where to get our global settings from.
 
 	bool _shutdown; // Set only when we are being deleted. PROTECT by _lock !
 	bool _running; // Set when we are running. PROTECT by _lock !

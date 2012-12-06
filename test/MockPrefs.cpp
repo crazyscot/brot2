@@ -18,6 +18,8 @@
 
 #include "MockPrefs.h"
 
+using namespace BrotPrefs;
+
 MockPrefs::MockPrefs() {
 }
 

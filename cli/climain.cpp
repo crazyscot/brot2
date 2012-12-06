@@ -39,6 +39,7 @@ const char *copyright_string = "(c) 2010-2012 Ross Younger";
 #include "libbrot2/PrefsRegistry.h"
 
 using namespace Plot3;
+using namespace BrotPrefs;
 
 static bool do_version, do_list_fractals, do_list_palettes, quiet, do_antialias, do_info;
 static Glib::ustring c_re_x, c_im_y, length_x;

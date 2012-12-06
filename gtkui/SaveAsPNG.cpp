@@ -34,6 +34,7 @@
 
 using namespace std;
 using namespace Plot3;
+using namespace BrotPrefs;
 
 std::string SaveAsPNG::last_saved_dirname = "";
 

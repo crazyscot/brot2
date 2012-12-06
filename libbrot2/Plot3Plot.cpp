@@ -26,6 +26,7 @@
 
 using namespace std;
 using namespace Fractal;
+using namespace BrotPrefs;
 
 #if 0
 #define DEBUG_LIVECOUNT(x) x

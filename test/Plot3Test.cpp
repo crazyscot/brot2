@@ -36,6 +36,7 @@
 
 using namespace std;
 using namespace Plot3;
+using namespace BrotPrefs;
 
 // Plug our long-double floating point into gtest's floating point comparator:
 #define EXPECT_FVAL_EQ(expected,actual) \

@@ -26,6 +26,8 @@
 #include <glibmm/thread.h>
 #include "PrefsRegistry.h"
 
+namespace BrotPrefs {
+
 // Second-order macro to easily define our constants and have their strings to hand.
 // ACTION macro takes three args: symbolic constant, numeric constant, friendly string.
 #define ALL_ACTIONS(ACTION) \
@@ -279,12 +281,9 @@ private:
 	static Glib::StaticMutex _MASTER_lock;
 };
 
-namespace BrotPrefs {
-
 // Helper: How big should a threadpool be for a given prefs?
-int threadpool_size(const Prefs&);
 int threadpool_size(std::shared_ptr<const Prefs>);
 
-};
+}; // BrotPrefs
 
 #endif /* PREFS_H_ */

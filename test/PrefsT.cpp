@@ -25,6 +25,8 @@
 #include "PrefsT.h"
 #include "PrefsRegistry.h"
 
+using namespace BrotPrefs;
+
 TestingKeyfilePrefs::TestingKeyfilePrefs() throw(Exception) : KeyfilePrefs() {
 }
 

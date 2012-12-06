@@ -150,8 +150,8 @@ public:
 		return controlsWin;
 	}
 
-	std::shared_ptr<const Prefs> prefs() {
-		return Prefs::getMaster();
+	std::shared_ptr<const BrotPrefs::Prefs> prefs() {
+		return BrotPrefs::Prefs::getMaster();
 	}
 
 	menus::AbstractOptionsMenu *optionsMenu() {

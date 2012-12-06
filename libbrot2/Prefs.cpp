@@ -29,7 +29,7 @@
 #include <glibmm/keyfile.h>
 #include <glibmm/fileutils.h>
 
-using namespace BrotPrefs;
+namespace BrotPrefs {
 
 class KeyfilePrefs;
 
@@ -329,8 +329,6 @@ Prefs::Prefs() { }
 Prefs::~Prefs() { }
 int KeyfilePrefs::_childCount = 0;
 
-namespace BrotPrefs {
-
 int threadpool_size(std::shared_ptr<const Prefs> prefs)
 {
 	int rv = prefs->get(PREF(MaxPlotThreads));
@@ -345,4 +343,5 @@ int threadpool_size(std::shared_ptr<const Prefs> prefs)
 	}
 	return rv;
 }
-};
+
+} // BrotPrefs

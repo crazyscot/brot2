@@ -40,6 +40,7 @@
 #include <string>
 
 using namespace std;
+using namespace BrotPrefs;
 
 namespace PrefsDialogBits {
 

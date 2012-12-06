@@ -21,19 +21,19 @@
 
 #include "Prefs.h"
 
-class MockPrefs: public Prefs {
+class MockPrefs: public BrotPrefs::Prefs {
 public:
 	MockPrefs();
 	virtual ~MockPrefs();
 
-	virtual std::shared_ptr<Prefs> getWorkingCopy() const throw(Exception);
+	virtual std::shared_ptr<BrotPrefs::Prefs> getWorkingCopy() const throw(Exception);
 	virtual void commit() throw(Exception);
 
-	virtual const MouseActions& mouseActions() const;
-	virtual void mouseActions(const MouseActions& mouse);
+	virtual const BrotPrefs::MouseActions& mouseActions() const;
+	virtual void mouseActions(const BrotPrefs::MouseActions& mouse);
 
-	virtual const ScrollActions& scrollActions() const;
-	virtual void scrollActions(const ScrollActions& scroll);
+	virtual const BrotPrefs::ScrollActions& scrollActions() const;
+	virtual void scrollActions(const BrotPrefs::ScrollActions& scroll);
 
 	virtual int get(const BrotPrefs::Numeric<int>& B) const;
 	virtual void set(const BrotPrefs::Numeric<int>& B, int newval);

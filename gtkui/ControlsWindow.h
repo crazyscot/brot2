@@ -33,7 +33,7 @@ namespace Actions {
 class ControlsWindow: public Gtk::Window{
 	protected:
 		MainWindow& mw;
-		std::shared_ptr<const Prefs> _prefs; // master
+		std::shared_ptr<const BrotPrefs::Prefs> _prefs; // master
 		Actions::MouseButtonsPanel* mouse;
 		Actions::ScrollButtonsPanel* scroll;
 
@@ -41,7 +41,7 @@ class ControlsWindow: public Gtk::Window{
 		void on_defaults();
 
 	public:
-		ControlsWindow(MainWindow& _mw, std::shared_ptr<const Prefs> prefs);
+		ControlsWindow(MainWindow& _mw, std::shared_ptr<const BrotPrefs::Prefs> prefs);
 		~ControlsWindow();
 
 		bool close();

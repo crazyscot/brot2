@@ -40,6 +40,8 @@
 #include "ControlsWindow.h"
 #include "SaveAsPNG.h"
 
+using namespace BrotPrefs;
+
 namespace menus {
 
 static MainWindow* find_main(Gtk::Menu *mnu) {

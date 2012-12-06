@@ -25,6 +25,8 @@
 #include <cairomm/cairomm.h>
 #include <string>
 
+using namespace BrotPrefs;
+
 struct rgb_double {
 	double r, g, b;
 	rgb_double() : r(0), g(0), b(0) { }
