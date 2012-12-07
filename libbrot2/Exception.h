@@ -54,6 +54,13 @@ struct BrotAssert : BrotException {
 	virtual ~BrotAssert() throw() {}
 };
 
+struct BrotFatalException : BrotException {
+	BrotFatalException(const std::string& m) : BrotException("FATAL: "+m) {}
+	BrotFatalException(const std::string& m, const std::string& f, int l) :
+		BrotException("FATAL: "+m,f,l) {}
+	virtual ~BrotFatalException() throw() {}
+};
+
 inline std::ostream& operator<< (std::ostream& out, BrotException val) {
 	out << val.detail();
 	return out;
