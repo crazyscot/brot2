@@ -20,11 +20,19 @@
 #define PREFS_H_
 
 #include <string>
-#include <Exception.h>
+#include "Exception.h"
 #include <memory> //for unique_ptr
 #include <mutex>
 #include <glibmm/keyfile.h>
 #include "PrefsRegistry.h"
+
+struct PrefsException : BrotException {
+	PrefsException(const std::string& m) : BrotException(m) {}
+	PrefsException(const std::string& m, const std::string& f, int l) :
+		BrotException(m,f,l) {}
+	virtual ~PrefsException() throw() {}
+};
+
 
 namespace BrotPrefs {
 
@@ -73,18 +81,18 @@ struct Action {
 		return name(value);
 	}
 
-	inline Action& operator=(int newval) throw(BrotException) {
+	inline Action& operator=(int newval) throw(PrefsException) {
 		if ((newval < MIN) || (newval > MAX) )
-			THROW(BrotException,"Illegal enum value");
+			THROW(PrefsException,"Illegal enum value");
 		value = newval;
 		return *this;
 	}
 	inline operator int() const { return value; }
 	inline operator std::string() const { return name(); }
 
-	inline Action& operator=(std::string newname) throw(BrotException) {
+	inline Action& operator=(std::string newname) throw(PrefsException) {
 		int newval = lookup(newname);
-		if (newval==-1) THROW(BrotException,"Unrecognised enum string");
+		if (newval==-1) THROW(PrefsException,"Unrecognised enum string");
 		value = newval;
 		return *this;
 	}
@@ -145,8 +153,8 @@ class Prefs {
 		// working copy for editing.
 		//
 		// If something went wrong (e.g. backing store I/O error), throws a
-		// BrotException explaining what; it's up to the caller to inform the user.
-		static std::shared_ptr<const Prefs> getMaster() throw(BrotException);
+		// PrefsException explaining what; it's up to the caller to inform the user.
+		static std::shared_ptr<const Prefs> getMaster() throw(PrefsException);
 
 		// Creates a working copy of a Prefs object.
 		// Call commit() causes it to update the object it was cloned
@@ -160,13 +168,13 @@ class Prefs {
 		// Commit (currently) overwrites the entire destination!
 		// Because of this it is an error (assert fail) to have more
 		// than one working copy outstanding.
-		virtual std::shared_ptr<Prefs> getWorkingCopy() const throw(BrotException) = 0;
+		virtual std::shared_ptr<Prefs> getWorkingCopy() const throw(PrefsException) = 0;
 
 		// Commits all outstanding writes of a working copy to the master
 		// instance, and thence to backing store.
-		// If something went wrong, throws a BrotException explaining what; it's
+		// If something went wrong, throws a PrefsException explaining what; it's
 		// up to the caller to inform the user suitably.
-		virtual void commit() throw(BrotException) = 0;
+		virtual void commit() throw(PrefsException) = 0;
 
 		// Data accessors. Note that the getters may change internal state
 		// if the relevant backing store did not contain the relevant
@@ -194,10 +202,10 @@ class Prefs {
 class KeyfilePrefs : public Prefs {
 
 public:
-	KeyfilePrefs() throw(BrotException);
-	virtual void commit() throw(BrotException);
+	KeyfilePrefs() throw(PrefsException);
+	virtual void commit() throw(PrefsException);
 
-	virtual std::shared_ptr<Prefs> getWorkingCopy() const throw(BrotException);
+	virtual std::shared_ptr<Prefs> getWorkingCopy() const throw(PrefsException);
 
 	virtual const MouseActions& mouseActions() const;
 	virtual void mouseActions(const MouseActions& mouse);
@@ -230,8 +238,8 @@ protected:
 
 	KeyfilePrefs(const KeyfilePrefs& src, KeyfilePrefs* parent);
 
-	void reread() throw (BrotException);
-	void initialise() throw(BrotException);
+	void reread() throw (PrefsException);
+	void initialise() throw(PrefsException);
 	void reread_scroll_actions();
 	void reread_mouse_actions();
 
@@ -272,8 +280,8 @@ public:
 	// working copy for editing.
 	//
 	// If something went wrong (e.g. backing store I/O error), throws a
-	// BrotException explaining what; it's up to the caller to inform the user.
-	static std::shared_ptr<const Prefs> getMaster() throw(BrotException);
+	// PrefsException explaining what; it's up to the caller to inform the user.
+	static std::shared_ptr<const Prefs> getMaster() throw(PrefsException);
 
 private:
 	DefaultPrefs(){}; // Not instantiable

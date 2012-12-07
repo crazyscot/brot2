@@ -60,7 +60,7 @@ void ScrollActions::set_to_default() {
 	a[3] = Action::NO_ACTION; // GDK_SCROLL_RIGHT
 }
 
-KeyfilePrefs::KeyfilePrefs() throw(BrotException) : kf(), mouse_cache(), scroll_cache(), _parent(NULL) {
+KeyfilePrefs::KeyfilePrefs() throw(PrefsException) : kf(), mouse_cache(), scroll_cache(), _parent(NULL) {
 	initialise();
 }
 
@@ -79,11 +79,11 @@ KeyfilePrefs::~KeyfilePrefs() {
 	// Do NOT commit here.
 }
 
-void KeyfilePrefs::reread() throw (BrotException) {
+void KeyfilePrefs::reread() throw (PrefsException) {
 	initialise();
 }
 
-void KeyfilePrefs::initialise() throw(BrotException) {
+void KeyfilePrefs::initialise() throw(PrefsException) {
 	kf.set_integer(META_GROUP, KEY_VERSION, CURRENT_VERSION);
 
 	std::string fn = filename();
@@ -94,7 +94,7 @@ void KeyfilePrefs::initialise() throw(BrotException) {
 			case Glib::FileError::Code::NO_SUCH_ENTITY: // eclipse bug 356057
 				break; // ignore, use defaults only
 			default:
-				THROW(BrotException,"reading prefs from " + fn + ": " + e.what());
+				THROW(PrefsException,"reading prefs from " + fn + ": " + e.what());
 				break;
 		}
 	} catch (Glib::KeyFileError& e) {
@@ -104,7 +104,7 @@ void KeyfilePrefs::initialise() throw(BrotException) {
 				std::cerr << "Warning: KeyFileError reading prefs from " + fn + ": " + e.what()+": will overwrite when saving" << std::endl;
 				break;
 			default:
-				THROW(BrotException,"KeyFileError reading prefs from " + fn + ": " + e.what());
+				THROW(PrefsException,"KeyFileError reading prefs from " + fn + ": " + e.what());
 				break;
 		}
 	}
@@ -128,7 +128,7 @@ std::string KeyfilePrefs::filename(bool temp) {
 	return rv;
 }
 
-void KeyfilePrefs::commit() throw(BrotException) {
+void KeyfilePrefs::commit() throw(PrefsException) {
 	// This is sneaky... We write to the backing store, and
 	// prod the parent to reread.
 	if (!_parent)
@@ -143,7 +143,7 @@ void KeyfilePrefs::commit() throw(BrotException) {
 			case ENOENT:
 				break; //ignore
 			default:
-				THROW(BrotException,"Could not unlink " + fn + ": " + strerror(errno));
+				THROW(PrefsException,"Could not unlink " + fn + ": " + strerror(errno));
 				break;
 		}
 	}
@@ -186,7 +186,7 @@ void KeyfilePrefs::commit() throw(BrotException) {
 	std::string newfn = filename();
 	rv = rename(fn.c_str(), newfn.c_str());
 	if (rv==-1) {
-		THROW(BrotException,"Could not rename " + fn + " to " + newfn + ": " + strerror(errno));
+		THROW(PrefsException,"Could not rename " + fn + " to " + newfn + ": " + strerror(errno));
 	}
 
 	_parent->reread();
@@ -218,7 +218,7 @@ void KeyfilePrefs::reread_mouse_actions() {
 			rv[i] = val;
 		} catch (Glib::KeyFileError& e) {
 			// ignore - use default for that action
-		} catch (BrotException& e) {
+		} catch (PrefsException& e) {
 			std::cerr << "Warning: " << e << " in " GROUP_MOUSE <<":" << buf << ": defaulting" << std::endl;
 		}
 	}
@@ -252,7 +252,7 @@ void KeyfilePrefs::reread_scroll_actions() {
 			rv[i] = val;
 		} catch (Glib::KeyFileError& e) {
 			// ignore - use default for that action
-		} catch (BrotException& e) {
+		} catch (PrefsException& e) {
 			std::cerr << "Warning: " << e << " in " GROUP_SCROLL <<":" << buf << ": defaulting" << std::endl;
 		}
 	}
@@ -267,7 +267,7 @@ int KeyfilePrefs::get(const BrotPrefs::Numeric<int>& B) const {
 }
 void KeyfilePrefs::set(const BrotPrefs::Numeric<int>& B, int newval) {
 	if ((newval < B._min) || (newval > B._max)) {
-		THROW(BrotException,"Pref "+B._name+"set out of range");
+		THROW(PrefsException,"Pref "+B._name+"set out of range");
 	}
 	kf.set_integer(B._group, B._key, newval);
 }
@@ -280,7 +280,7 @@ double KeyfilePrefs::get(const BrotPrefs::Numeric<double>& B) const {
 }
 void KeyfilePrefs::set(const BrotPrefs::Numeric<double>& B, double newval) {
 	if ((newval < B._min) || (newval > B._max)) {
-		THROW(BrotException,"Pref "+B._name+"set out of range");
+		THROW(PrefsException,"Pref "+B._name+"set out of range");
 	}
 	kf.set_double(B._group, B._key, newval);
 }
@@ -303,11 +303,11 @@ std::shared_ptr<Prefs> DefaultPrefs::_MASTER;
 std::mutex DefaultPrefs::_MASTER_lock;
 
 // Default accessor, singleton-like.
-std::shared_ptr<const Prefs> Prefs::getMaster() throw(BrotException) {
+std::shared_ptr<const Prefs> Prefs::getMaster() throw(PrefsException) {
 	return DefaultPrefs::getMaster();
 }
 
-std::shared_ptr<const Prefs> DefaultPrefs::getMaster() throw(BrotException) {
+std::shared_ptr<const Prefs> DefaultPrefs::getMaster() throw(PrefsException) {
 	std::unique_lock<std::mutex> lock(_MASTER_lock);
 	if (!_MASTER) {
 		_MASTER = std::shared_ptr<Prefs>(new KeyfilePrefs());
@@ -315,11 +315,11 @@ std::shared_ptr<const Prefs> DefaultPrefs::getMaster() throw(BrotException) {
 	return _MASTER;
 }
 
-std::shared_ptr<Prefs> KeyfilePrefs::getWorkingCopy() const throw(BrotException) {
+std::shared_ptr<Prefs> KeyfilePrefs::getWorkingCopy() const throw(PrefsException) {
 	if (_parent != NULL)
-		THROW(BrotException,"Prefs: Cannot make a working copy of a working copy!");
+		THROW(PrefsException,"Prefs: Cannot make a working copy of a working copy!");
 	if (_childCount)
-		THROW(BrotException,"Prefs: cannot make a working copy when there's one outstanding");
+		THROW(PrefsException,"Prefs: cannot make a working copy when there's one outstanding");
 
 	std::shared_ptr<Prefs> prv(new KeyfilePrefs(*this, const_cast<KeyfilePrefs*>(this)));
 	return prv;

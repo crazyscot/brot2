@@ -26,10 +26,10 @@ MockPrefs::MockPrefs() {
 MockPrefs::~MockPrefs() {
 }
 
-#define UNSUPPORTED { THROW(BrotException,"Unsupported"); }
-std::shared_ptr<Prefs> MockPrefs::getWorkingCopy() const throw(BrotException)
+#define UNSUPPORTED { THROW(PrefsException,"Unsupported"); }
+std::shared_ptr<Prefs> MockPrefs::getWorkingCopy() const throw(PrefsException)
 UNSUPPORTED;
-void MockPrefs::commit() throw(BrotException)
+void MockPrefs::commit() throw(PrefsException)
 UNSUPPORTED;
 
 const MouseActions& MockPrefs::mouseActions() const
@@ -52,22 +52,22 @@ int MockPrefs::get(const BrotPrefs::Numeric<int>& B) const {
 		return 20;
 	if(B._name == "Initial maxiter")
 		return 1;
-	THROW(BrotException,"Unknown "+B._name);
+	THROW(PrefsException,"Unknown "+B._name);
 	return 0;
 }
 
 double MockPrefs::get(const BrotPrefs::Numeric<double>& B) const {
 	if(B._name == "Live threshold")
 		return 0.001;
-	THROW(BrotException,"Unknown "+B._name);
+	THROW(PrefsException,"Unknown "+B._name);
 	return 0;
 }
 bool MockPrefs::get(const BrotPrefs::Boolean& B) const {
-	THROW(BrotException,"Unknown "+B._name);
+	THROW(PrefsException,"Unknown "+B._name);
 	return false;
 }
 
 std::string MockPrefs::get(const BrotPrefs::String& B) const {
-	THROW(BrotException,"Unknown "+B._name);
+	THROW(PrefsException,"Unknown "+B._name);
 	return "";
 }
