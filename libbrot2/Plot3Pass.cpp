@@ -36,7 +36,7 @@ void Plot3Pass::run() {
 	}
 
 	for (auto it=results.begin(); it != results.end(); it++) {
-		(*it).get();
+		(*it).get(); // Throws if anything went wrong.
 	}
 }
 
