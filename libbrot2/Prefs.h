@@ -22,8 +22,8 @@
 #include <string>
 #include <Exception.h>
 #include <memory> //for unique_ptr
+#include <mutex>
 #include <glibmm/keyfile.h>
-#include <glibmm/thread.h>
 #include "PrefsRegistry.h"
 
 namespace BrotPrefs {
@@ -278,7 +278,7 @@ public:
 private:
 	DefaultPrefs(){}; // Not instantiable
 	static std::shared_ptr<Prefs> _MASTER;
-	static Glib::StaticMutex _MASTER_lock;
+	static std::mutex _MASTER_lock;
 };
 
 // Helper: How big should a threadpool be for a given prefs?

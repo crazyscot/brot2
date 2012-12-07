@@ -44,7 +44,7 @@ const std::string HUD::font_name = "Luxi Sans 9";
 
 void HUD::draw(Plot3::Plot3Plot* plot, const int rwidth, const int rheight)
 {
-	Glib::Mutex::Lock autolock(mux); // unwind unlocks
+	std::unique_lock<std::mutex> lock(mux);
 	if (!plot) return; // race condition trap
 	std::string info = plot->info(true);
 	std::shared_ptr<const Prefs> prefs = parent.prefs();

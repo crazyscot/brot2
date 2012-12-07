@@ -22,7 +22,7 @@
 #include "Plot3Plot.h"
 #include <gtkmm/window.h>
 #include <cairomm/cairomm.h>
-#include <glibmm/thread.h>
+#include <mutex>
 
 class MainWindow;
 
@@ -34,7 +34,7 @@ protected:
 
 	void clear_locked(Cairo::RefPtr<Cairo::Context> cr);
 
-	Glib::Mutex mux; // Protects all contents
+	std::mutex mux; // Protects all contents
 
 public:
 	HUD(MainWindow &w);
