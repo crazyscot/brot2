@@ -182,7 +182,7 @@ TEST_F(R2MemoryAntiAlias, OddWidthAsserts) {
 	{
 		Plot3Chunk chunk(NULL, _fract, 5, 2*_TestH, 0, 0, _origin, _size, 10);
 		chunk.run();
-		EXPECT_THROW(_render->process(chunk), Assert);
+		EXPECT_THROW(_render->process(chunk), BrotAssert);
 	}
 	{
 		Plot3Chunk chunk2(NULL, _fract, 2*_TestW, 2*_TestH, 0, 0, _origin, _size, 10);
@@ -196,7 +196,7 @@ TEST_F(R2MemoryAntiAlias, OddHeightAsserts) {
 	{
 		Plot3Chunk chunk(NULL, _fract, 2*_TestW, 5, 0, 0, _origin, _size, 10);
 		chunk.run();
-		EXPECT_THROW(_render->process(chunk), Assert);
+		EXPECT_THROW(_render->process(chunk), BrotAssert);
 	}
 	{
 		Plot3Chunk chunk2(NULL, _fract, 2*_TestW, 2*_TestH, 0, 0, _origin, _size, 10);
@@ -397,7 +397,7 @@ TEST_F(PNGAntiAlias, OddWidthAsserts) {
 	{
 		Plot3Chunk chunk(NULL, _fract, 5, 2*_TestH, 0, 0, _origin, _size, 10);
 		chunk.run();
-		EXPECT_THROW(_png.process(chunk), Assert);
+		EXPECT_THROW(_png.process(chunk), BrotAssert);
 	}
 	{
 		Plot3Chunk chunk2(NULL, _fract, 2*_TestW, 2*_TestH, 0, 0, _origin, _size, 10);
@@ -411,7 +411,7 @@ TEST_F(PNGAntiAlias, OddHeightAsserts) {
 	{
 		Plot3Chunk chunk(NULL, _fract, 2*_TestW, 5, 0, 0, _origin, _size, 10);
 		chunk.run();
-		EXPECT_THROW(_png.process(chunk), Assert);
+		EXPECT_THROW(_png.process(chunk), BrotAssert);
 	}
 	{
 		Plot3Chunk chunk2(NULL, _fract, 2*_TestW, 2*_TestH, 0, 0, _origin, _size, 10);

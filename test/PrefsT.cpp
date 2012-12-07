@@ -27,10 +27,10 @@
 
 using namespace BrotPrefs;
 
-TestingKeyfilePrefs::TestingKeyfilePrefs() throw(Exception) : KeyfilePrefs() {
+TestingKeyfilePrefs::TestingKeyfilePrefs() throw(BrotException) : KeyfilePrefs() {
 }
 
-TestingKeyfilePrefs* TestingKeyfilePrefs::getInstance() throw(Exception) {
+TestingKeyfilePrefs* TestingKeyfilePrefs::getInstance() throw(BrotException) {
 	TestingKeyfilePrefs* rv = new TestingKeyfilePrefs();
 	rv->initialise();
 	return rv;
@@ -39,7 +39,7 @@ TestingKeyfilePrefs* TestingKeyfilePrefs::getInstance() throw(Exception) {
 TestingKeyfilePrefs::TestingKeyfilePrefs(const KeyfilePrefs& src, KeyfilePrefs* parent) : KeyfilePrefs(src,parent) {
 }
 
-TestingKeyfilePrefs* TestingKeyfilePrefs::getInstance(const KeyfilePrefs& src, KeyfilePrefs* parent) throw(Exception) {
+TestingKeyfilePrefs* TestingKeyfilePrefs::getInstance(const KeyfilePrefs& src, KeyfilePrefs* parent) throw(BrotException) {
 	TestingKeyfilePrefs* rv = new TestingKeyfilePrefs(src,parent);
 	rv->initialise();
 	return rv;
@@ -98,9 +98,9 @@ TEST(prefs,ThereCanBeOnlyOne) {
 	MouseActions ma = p->mouseActions();
 	p2->mouseActions(ma);
 	// Cannot make a working copy while there is one outstanding:
-	EXPECT_THROW(std::shared_ptr<Prefs> p3 = p->getWorkingCopy(), Exception);
+	EXPECT_THROW(std::shared_ptr<Prefs> p3 = p->getWorkingCopy(), BrotException);
 	// Cannot make a child working copy of a working copy:
-	EXPECT_THROW(std::shared_ptr<Prefs> p3 = p2->getWorkingCopy(), Exception);
+	EXPECT_THROW(std::shared_ptr<Prefs> p3 = p2->getWorkingCopy(), BrotException);
 }
 
 TEST(prefs,CommitAffectsMasterAndSubsequentChildren) {

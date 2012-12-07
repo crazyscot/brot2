@@ -22,14 +22,15 @@
 #include <string>
 #include <iostream>
 #include <sstream>
+#include <exception>
 
-struct Exception {
+struct BrotException : std::exception {
 	const std::string msg;
 	const std::string file;
 	const int line;
 
-	Exception(const std::string& m) : msg(m), file(""), line(-1) { }
-	Exception(const std::string& m, const std::string& f, int l) : msg(m), file(f), line(l) { }
+	BrotException(const std::string& m) : msg(m), file(""), line(-1) { }
+	BrotException(const std::string& m, const std::string& f, int l) : msg(m), file(f), line(l) { }
 	virtual std::string detail() const {
 		std::stringstream str;
 		str << msg;
@@ -42,23 +43,23 @@ struct Exception {
 	virtual operator const std::string() const {
 		return detail();
 	}
-	virtual ~Exception() {}
+	virtual ~BrotException() throw() {}
 };
 
-struct Assert : Exception {
-	Assert(const std::string& m) :
-		Exception("Assertion failed: "+m) { }
-	Assert(const std::string& m, const std::string& f, int l) :
-		Exception("Assertion failed: "+m,f,l) { }
-	virtual ~Assert() {}
+struct BrotAssert : BrotException {
+	BrotAssert(const std::string& m) :
+		BrotException("Assertion failed: "+m) { }
+	BrotAssert(const std::string& m, const std::string& f, int l) :
+		BrotException("Assertion failed: "+m,f,l) { }
+	virtual ~BrotAssert() throw() {}
 };
 
-inline std::ostream& operator<< (std::ostream& out, Exception val) {
+inline std::ostream& operator<< (std::ostream& out, BrotException val) {
 	out << val.detail();
 	return out;
 }
 
 #define THROW(type,msg) do { throw type(msg,__FILE__,__LINE__); } while(0)
-#define ASSERT(_expr) do { if (!(_expr)) THROW(Assert,#_expr); } while(0)
+#define ASSERT(_expr) do { if (!(_expr)) THROW(BrotAssert,#_expr); } while(0)
 
 #endif /* EXCEPTION_H_ */

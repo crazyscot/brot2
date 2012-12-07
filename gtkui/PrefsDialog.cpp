@@ -157,29 +157,29 @@ namespace PrefsDialogBits {
 			f_live_threshold->update(PREF(LiveThreshold)._default, 4);
 		}
 
-		void readout(Prefs& prefs) throw(Exception) {
+		void readout(Prefs& prefs) throw(BrotException) {
 			unsigned tmpu;
 			int tmpi=0;
 
 			if (!f_init_maxiter->read(tmpi))
-				THROW(Exception,"Sorry, I don't understand your initial maxiter");
+				THROW(BrotException,"Sorry, I don't understand your initial maxiter");
 			if ((tmpi < PREF(InitialMaxIter)._min) || (tmpi > PREF(InitialMaxIter)._max))
-				THROW(Exception,"Initial maxiter must be at least 2");
+				THROW(BrotException,"Initial maxiter must be at least 2");
 			tmpu = tmpi;
 			prefs.set(PREF(InitialMaxIter), tmpu);
 
 			if (!f_min_done_pct->read(tmpi))
-				THROW(Exception,"Sorry, I don't understand your Minimum done %");
+				THROW(BrotException,"Sorry, I don't understand your Minimum done %");
 			if ((tmpi<PREF(MinEscapeePct)._min)||(tmpi>PREF(MinEscapeePct)._max))
-				THROW(Exception,"Minimum done % must be from 1 to 99");
+				THROW(BrotException,"Minimum done % must be from 1 to 99");
 			tmpu = tmpi;
 			prefs.set(PREF(MinEscapeePct),tmpu);
 
 			double tmpf=0.0;
 			if (!f_live_threshold->read(tmpf))
-				THROW(Exception,"Sorry, I don't understand your Live threshold");
+				THROW(BrotException,"Sorry, I don't understand your Live threshold");
 			if ((tmpf<PREF(LiveThreshold)._min)||(tmpf>PREF(LiveThreshold)._max))
-				THROW(Exception,"Live threshold must be between 0 and 1");
+				THROW(BrotException,"Live threshold must be between 0 and 1");
 			prefs.set(PREF(LiveThreshold), tmpf);
 		}
 	};
@@ -214,14 +214,14 @@ namespace PrefsDialogBits {
 			f_max_threads->update(PREF(MaxPlotThreads)._default);
 		}
 
-		void readout(Prefs& prefs) throw(Exception) {
+		void readout(Prefs& prefs) throw(BrotException) {
 			unsigned tmpu;
 			int tmpi=0;
 
 			if (!f_max_threads->read(tmpi))
-				THROW(Exception,"Sorry, I don't understand your max CPU threads");
+				THROW(BrotException,"Sorry, I don't understand your max CPU threads");
 			if ((tmpi < PREF(MaxPlotThreads)._min) || (tmpi > PREF(MaxPlotThreads)._max))
-				THROW(Exception,"Max CPU threads must be at least 0");
+				THROW(BrotException,"Max CPU threads must be at least 0");
 			tmpu = tmpi;
 			prefs.set(PREF(MaxPlotThreads), tmpu);
 		}
@@ -335,7 +335,7 @@ namespace PrefsDialogBits {
 			sample->prod();
 		}
 
-		void readout(Prefs& prefs) throw(Exception) {
+		void readout(Prefs& prefs) throw(BrotException) {
 			prefs.set(PREF(HUDHorizontalOffset), horiz->get_value());
 			prefs.set(PREF(HUDVerticalOffset), vert->get_value());
 			prefs.set(PREF(HUDTransparency), nalpha->get_value());
@@ -384,7 +384,7 @@ int PrefsDialog::run() {
 				threshold->readout(*pp);
 				hud->readout(*pp);
 				miscbits->readout(*pp);
-			} catch (Exception& e) {
+			} catch (BrotException& e) {
 				Util::alert(this, e.msg);
 				error = true;
 				continue;

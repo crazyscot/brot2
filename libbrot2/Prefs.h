@@ -73,18 +73,18 @@ struct Action {
 		return name(value);
 	}
 
-	inline Action& operator=(int newval) throw(Exception) {
+	inline Action& operator=(int newval) throw(BrotException) {
 		if ((newval < MIN) || (newval > MAX) )
-			THROW(Exception,"Illegal enum value");
+			THROW(BrotException,"Illegal enum value");
 		value = newval;
 		return *this;
 	}
 	inline operator int() const { return value; }
 	inline operator std::string() const { return name(); }
 
-	inline Action& operator=(std::string newname) throw(Exception) {
+	inline Action& operator=(std::string newname) throw(BrotException) {
 		int newval = lookup(newname);
-		if (newval==-1) THROW(Exception,"Unrecognised enum string");
+		if (newval==-1) THROW(BrotException,"Unrecognised enum string");
 		value = newval;
 		return *this;
 	}
@@ -144,9 +144,9 @@ class Prefs {
 		// Start with one of these, then (only if you need to) request a
 		// working copy for editing.
 		//
-		// If something went wrong (e.g. backing store I/O error), throws an
-		// Exception explaining what; it's up to the caller to inform the user.
-		static std::shared_ptr<const Prefs> getMaster() throw(Exception);
+		// If something went wrong (e.g. backing store I/O error), throws a
+		// BrotException explaining what; it's up to the caller to inform the user.
+		static std::shared_ptr<const Prefs> getMaster() throw(BrotException);
 
 		// Creates a working copy of a Prefs object.
 		// Call commit() causes it to update the object it was cloned
@@ -160,13 +160,13 @@ class Prefs {
 		// Commit (currently) overwrites the entire destination!
 		// Because of this it is an error (assert fail) to have more
 		// than one working copy outstanding.
-		virtual std::shared_ptr<Prefs> getWorkingCopy() const throw(Exception) = 0;
+		virtual std::shared_ptr<Prefs> getWorkingCopy() const throw(BrotException) = 0;
 
 		// Commits all outstanding writes of a working copy to the master
 		// instance, and thence to backing store.
-		// If something went wrong, throws an Exception explaining what; it's
+		// If something went wrong, throws a BrotException explaining what; it's
 		// up to the caller to inform the user suitably.
-		virtual void commit() throw(Exception) = 0;
+		virtual void commit() throw(BrotException) = 0;
 
 		// Data accessors. Note that the getters may change internal state
 		// if the relevant backing store did not contain the relevant
@@ -194,10 +194,10 @@ class Prefs {
 class KeyfilePrefs : public Prefs {
 
 public:
-	KeyfilePrefs() throw(Exception);
-	virtual void commit() throw(Exception);
+	KeyfilePrefs() throw(BrotException);
+	virtual void commit() throw(BrotException);
 
-	virtual std::shared_ptr<Prefs> getWorkingCopy() const throw(Exception);
+	virtual std::shared_ptr<Prefs> getWorkingCopy() const throw(BrotException);
 
 	virtual const MouseActions& mouseActions() const;
 	virtual void mouseActions(const MouseActions& mouse);
@@ -230,8 +230,8 @@ protected:
 
 	KeyfilePrefs(const KeyfilePrefs& src, KeyfilePrefs* parent);
 
-	void reread() throw (Exception);
-	void initialise() throw(Exception);
+	void reread() throw (BrotException);
+	void initialise() throw(BrotException);
 	void reread_scroll_actions();
 	void reread_mouse_actions();
 
@@ -271,9 +271,9 @@ public:
 	// Start with one of these, then (only if you need to) request a
 	// working copy for editing.
 	//
-	// If something went wrong (e.g. backing store I/O error), throws an
-	// Exception explaining what; it's up to the caller to inform the user.
-	static std::shared_ptr<const Prefs> getMaster() throw(Exception);
+	// If something went wrong (e.g. backing store I/O error), throws a
+	// BrotException explaining what; it's up to the caller to inform the user.
+	static std::shared_ptr<const Prefs> getMaster() throw(BrotException);
 
 private:
 	DefaultPrefs(){}; // Not instantiable

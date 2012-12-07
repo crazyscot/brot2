@@ -302,7 +302,7 @@ public:
 	}
 
 		if (!Fractal::FractalCommon::registry.get(initial))
-			THROW(Exception,"FATAL: Initial fractal selection " + initial + " not found. Link error?");
+			THROW(BrotException,"FATAL: Initial fractal selection " + initial + " not found. Link error?");
 		selection1(initial);
 	}
 	void selection(Gtk::RadioMenuItem *item) {
@@ -412,7 +412,7 @@ public:
 		}
 
 		if (!got_init)
-			THROW(Exception,"FATAL: Initial palette selection " + initial + " not found. Link error?");
+			THROW(BrotException,"FATAL: Initial palette selection " + initial + " not found. Link error?");
 		selection1(initial);
 	}
 	void selection(Gtk::RadioMenuItem *item) {

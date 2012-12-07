@@ -298,7 +298,7 @@ class TrickExplodingChunk : public Plot3Chunk {
 public:
 	TrickExplodingChunk(Plot3Chunk& other) : Plot3Chunk(other) {}
 	void plot() {
-		throw Exception("my hovercraft is full of eels");
+		throw BrotException("my hovercraft is full of eels");
 	}
 };
 
@@ -357,7 +357,7 @@ TEST_F(Plot3PassTest, ExceptionsPropagate) {
 	// Subtlety: Non-excepting chunks work as expected, the exception doesn't throw them.
 
 	Plot3Pass pass(pool, list);
-	EXPECT_THROW(pass.run(), Exception);
+	EXPECT_THROW(pass.run(), BrotException);
 }
 
 TEST_F(Plot3PassTest, BasicConcurrencyCheck) {

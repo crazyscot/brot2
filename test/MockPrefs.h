@@ -26,8 +26,8 @@ public:
 	MockPrefs();
 	virtual ~MockPrefs();
 
-	virtual std::shared_ptr<BrotPrefs::Prefs> getWorkingCopy() const throw(Exception);
-	virtual void commit() throw(Exception);
+	virtual std::shared_ptr<BrotPrefs::Prefs> getWorkingCopy() const throw(BrotException);
+	virtual void commit() throw(BrotException);
 
 	virtual const BrotPrefs::MouseActions& mouseActions() const;
 	virtual void mouseActions(const BrotPrefs::MouseActions& mouse);

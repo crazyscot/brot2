@@ -79,7 +79,7 @@ int main (int argc, char**argv)
 {
 	try {
 		realmain(argc,argv);
-	} catch (Exception& e) {
+	} catch (BrotException& e) {
 		std::cerr << "Died from an uncaught exception. This shouldn't happen. Please debug. Message follows." << std::endl << e.msg << std::endl;
 	}
 }

@@ -139,7 +139,7 @@ MemoryBuffer::MemoryBuffer(unsigned char *buf, int rowstride, unsigned width, un
 		_pixelstep = 3;
 		break;
 	default:
-		THROW(Exception,"Unhandled pixpack format "+(int)fmt);
+		THROW(BrotException,"Unhandled pixpack format "+(int)fmt);
 		break;
 	}
 }
