@@ -45,6 +45,17 @@ using namespace Render2;
 
 const double MainWindow::ZOOM_FACTOR = 2.0f;
 
+static inline void surface_error_check(MainWindow& mw, Cairo::RefPtr<Cairo::ImageSurface>* s)
+{
+	Cairo::ErrorStatus st = (*s)->get_status();
+	if (st != 0) {
+		std::cerr << "Surface error: " << cairo_status_to_string(st) << std::endl;
+		ostringstream ss;
+		ss << "Cairo reported an error (" << cairo_status_to_string(st) << "). This isn't good.";
+		Util::alert(&mw, ss.str());
+	}
+}
+
 MainWindow::MainWindow() : Gtk::Window(),
 			hud(*this),
 			controlsWin(*this, prefs()),
@@ -172,11 +183,7 @@ void MainWindow::render_prep(int local_inf) {
 
 	if (!canvas->surface) {
 		canvas->surface = Cairo::ImageSurface::create(imgbuf, FORMAT, rwidth, rheight, rowstride);
-		Cairo::ErrorStatus st = canvas->surface->get_status();
-		if (st != 0) {
-			std::cerr << "Surface error: " << cairo_status_to_string(st) << std::endl;
-			// TODO Throw or report or something.
-		}
+		surface_error_check(*this, &canvas->surface);
 	}
 }
 
@@ -194,17 +201,8 @@ void MainWindow::render(int local_inf, bool do_reprocess, bool may_do_hud) {
 		return;
 
 	canvas->surface->reference();
-	{
-		unsigned char *t = canvas->surface->get_data();
-		if (!t)
-			std::cerr << "Surface data is NULL!" <<std::endl;
-		{
-			cairo_status_t st = canvas->surface->get_status();
-			if (st != 0) {
-				std::cerr << "Surface error: " << cairo_status_to_string(st) << std::endl;
-			}
-		}
-	}
+	surface_error_check(*this, &canvas->surface);
+	ASSERT(canvas->surface->get_data() != NULL);
 
 	if (do_reprocess) {
 		renderer->fresh_local_inf(local_inf);
