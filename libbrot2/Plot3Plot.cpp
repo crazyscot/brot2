@@ -226,10 +226,12 @@ void Plot3Plot::run() {
 			}
 		}
 
+		++passcount;
+
 		{
 			// How many pixels are live?
 			ostringstream info;
-			info << "Pass " << passcount << ": maxiter=" << this_pass_maxiter;
+			info << passcount << " pass" << (passcount==1 ? "" : "es") << " plotted: maxiter=" << this_pass_maxiter;
 			info << ": " << live_pixels << " pixels live";
 			string infos = info.str();
 			lock.unlock();
@@ -237,7 +239,6 @@ void Plot3Plot::run() {
 			lock.lock();
 		}
 
-		++passcount;
 		last_pass_maxiter = this_pass_maxiter;
 		if (passcount & 1) maxiter_scale = this_pass_maxiter / 2;
 		if (maxiter_scale<1) maxiter_scale=1;

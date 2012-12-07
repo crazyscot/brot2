@@ -59,7 +59,7 @@ void SaveAsPNG::to_png(MainWindow *mw, unsigned rwidth, unsigned rheight,
 
 PNGProgressWindow::PNGProgressWindow(MainWindow& p, SaveAsPNG& j) : parent(p), job(j), _chunks_this_pass(0) {
 	set_transient_for(parent);
-	set_title("PNG export");
+	set_title("Save as PNG");
 	Gtk::VBox* box = Gtk::manage(new Gtk::VBox());
 	progbar = Gtk::manage(new Gtk::ProgressBar());
 	box->pack_start(*progbar);
