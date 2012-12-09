@@ -73,13 +73,14 @@ class TestSink : public IPlot3DataSink {
 	unsigned _height, _width, _double_touched;
 	std::mutex _lock;
 public:
+	// Trackers for the extremities of the chunks, e.g. furthest-left chunk left edge, to be checked later that they match the desired plot extremities.
 	Fractal::Value _T,_B,_L,_R; // XXX CONCURRENCY XXX
 
 	TestSink(unsigned width, unsigned height) :
 			_chunks_count(0), _points_count(0),
 			origin_prev(666,666), pixels_touched(0),
 			_height(height), _width(width), _double_touched(0),
-			_T(HUGE_VAL), _B(-HUGE_VAL), _L(-HUGE_VAL), _R(HUGE_VAL)
+			_T(HUGE_VAL), _B(-HUGE_VAL), _L(HUGE_VAL), _R(-HUGE_VAL)
 	{
 		if (height*width!=0)
 			pixels_touched = new bool[height*width]();
@@ -137,13 +138,18 @@ public:
 		const Fractal::PointData* pp = job->get_data();
 		for (unsigned i=0; i<job->pixel_count(); i++) {
 			pointCheck(job, pp[i]);
-
+			ASSERT_GT(real(job->_size), 0);
+			ASSERT_GT(imag(job->_size), 0);
+		}
+		{
 			Fractal::Point TL = job->_origin;
 			Fractal::Point BR = job->_origin+job->_size;
-			if (real(BR) < _R) _R = real(BR);
-			if (real(TL) > _L) _L = real(TL);
+			if (real(BR) > _R) _R = real(BR);
+			if (real(TL) < _L) _L = real(TL);
 			if (imag(BR) > _B) _B = imag(BR);
 			if (imag(TL) < _T) _T = imag(TL);
+			EXPECT_LE(_T, _B);
+			EXPECT_LE(_L, _R);
 		}
 
 		_chunks_count += 1;
