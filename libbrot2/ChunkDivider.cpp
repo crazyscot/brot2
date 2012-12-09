@@ -33,6 +33,7 @@
 #include <memory>
 #include "Plot3Chunk.h"
 #include "Fractal.h"
+#include "Exception.h"
 
 namespace Plot3 {
 namespace ChunkDivider {
@@ -86,7 +87,73 @@ namespace ChunkDivider {
 			list_o.push_back(chunk);
 		}
 	}
-	// TODO: Vertical slices, horizontal, awkward asymmetric, square superpixels...
+
+	_CD__BODY(Horizontal1px) {
+		unsigned nWhole = height-1;
+		unsigned lastPx = 1;
+		const Fractal::Point sliceSize(real(size), imag(size) * 1.0 / height);
+		const Fractal::Point step(0.0, imag(sliceSize));
+		const Fractal::Point originalOrigin(centre - size / 2.0);
+
+		Fractal::Point origin(originalOrigin);
+
+		/* Note: Co-ordinates (0,0) are at the BOTTOM-LEFT of the render buffer.
+		 * For best visual effect, should start at the top and work down. */
+		for (unsigned i=0; i<nWhole; i++) {
+			Plot3Chunk * chunk = new Plot3Chunk(s, f,
+					width, 1,
+					0, i,
+					origin, sliceSize,
+					max_passes);
+			list_o.push_front(chunk);
+			origin += step;
+		}
+		// Same inaccuracy as previous.
+		if (lastPx > 0)	{
+			const Fractal::Point lastSize(real(size),
+					imag(size) + imag(originalOrigin) - imag(origin));
+			Plot3Chunk * chunk = new Plot3Chunk(s, f,
+					width, lastPx,
+					0, nWhole,
+					origin, lastSize,
+					max_passes);
+			list_o.push_back(chunk);
+		}
+	}
+
+	_CD__BODY(Vertical10px) {
+		unsigned nWhole = (width-1) / 10; // Force the last-strip mechanism to always run
+		unsigned lastPx = width - 10*nWhole;
+		const Fractal::Point sliceSize(real(size) * 10.0 / width, imag(size));
+		const Fractal::Point step(real(sliceSize), 0.0);
+		const Fractal::Point originalOrigin(centre - size / 2.0);
+
+		Fractal::Point origin(originalOrigin);
+
+		for (unsigned i=0; i<nWhole; i++) {
+			Plot3Chunk * chunk = new Plot3Chunk(s, f,
+					10, height,
+					10*i, 0,
+					origin, sliceSize,
+					max_passes);
+			list_o.push_back(chunk);
+			origin += step;
+		}
+		ASSERT(lastPx > 0);
+		{
+			const Fractal::Point lastSize(
+					real(size) + real(originalOrigin) - real(origin),
+					imag(size));
+			Plot3Chunk * chunk = new Plot3Chunk(s, f,
+					lastPx, height,
+					10*nWhole, 0,
+					origin, lastSize,
+					max_passes);
+			list_o.push_back(chunk);
+		}
+	}
+
+	// TODO: awkward asymmetric, square superpixels...
 
 } // Plot3::ChunkDivider
 } // Plot3

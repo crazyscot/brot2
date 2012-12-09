@@ -53,6 +53,8 @@ namespace ChunkDivider {
 
 	_CD_INSTANCE(OneChunk); // Entire fractal as a single chunk
 	_CD_INSTANCE(Horizontal10px); // Horizontal stripes, 10pixels high
+	_CD_INSTANCE(Horizontal1px); // Ditto, 1px high
+	_CD_INSTANCE(Vertical10px); // Vertical stripes, 10pixels wide
 
 #undef _CD_INSTANCE
 } // Plot3::ChunkDivider
