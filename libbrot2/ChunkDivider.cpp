@@ -88,6 +88,9 @@ namespace ChunkDivider {
 		}
 	}
 
+#if 0
+	/* Sadly, this is illegal at the moment. Anti-alias mode requires chunk heights
+	 * to always be even numbers of pixels. */
 	_CD__BODY(Horizontal1px) {
 		unsigned nWhole = height-1;
 		unsigned lastPx = 1;
@@ -115,6 +118,40 @@ namespace ChunkDivider {
 			Plot3Chunk * chunk = new Plot3Chunk(s, f,
 					width, lastPx,
 					0, nWhole,
+					origin, lastSize,
+					max_passes);
+			list_o.push_back(chunk);
+		}
+	}
+#endif
+
+
+	_CD__BODY(Horizontal2px) {
+		unsigned nWhole = (height-1) / 2;
+		unsigned lastPx = height - 2*nWhole;
+		const Fractal::Point sliceSize(real(size), imag(size) * 2.0 / height);
+		const Fractal::Point step(0.0, imag(sliceSize));
+		const Fractal::Point originalOrigin(centre - size / 2.0);
+
+		Fractal::Point origin(originalOrigin);
+
+		for (unsigned i=0; i<nWhole; i++) {
+			// create and push
+			Plot3Chunk * chunk = new Plot3Chunk(s, f,
+					width, 2,
+					0, 2*i,
+					origin, sliceSize,
+					max_passes);
+			list_o.push_front(chunk);
+			origin += step;
+		}
+		// Same inaccuracy as previous.
+		if (lastPx > 0)	{
+			const Fractal::Point lastSize(real(size),
+					imag(size) + imag(originalOrigin) - imag(origin));
+			Plot3Chunk * chunk = new Plot3Chunk(s, f,
+					width, lastPx,
+					0, 2*nWhole,
 					origin, lastSize,
 					max_passes);
 			list_o.push_back(chunk);

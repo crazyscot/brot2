@@ -51,9 +51,10 @@ namespace ChunkDivider {
 				unsigned width, unsigned height, unsigned max_passes) const;	\
 	}
 
+	/* NOTE: Chunks must always be an even number of pixels high! */
 	_CD_INSTANCE(OneChunk); // Entire fractal as a single chunk
 	_CD_INSTANCE(Horizontal10px); // Horizontal stripes, 10pixels high
-	_CD_INSTANCE(Horizontal1px); // Ditto, 1px high
+	_CD_INSTANCE(Horizontal2px); // Ditto, 2px high
 	_CD_INSTANCE(Vertical10px); // Vertical stripes, 10pixels wide
 
 #undef _CD_INSTANCE
