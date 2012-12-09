@@ -175,7 +175,7 @@ bool Canvas::on_expose_event(GdkEventExpose * evt) {
 	cr->set_source(surface, 0, 0);
 	cr->paint();
 
-	if (main->dragrect.is_active()) {
+	if (main->dragrect.is_active() && main->dragrect.surface_valid()) {
 		cr->save();
 		cr->set_source(main->dragrect.get_surface(), 0, 0);
 		cr->paint();

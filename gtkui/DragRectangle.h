@@ -47,6 +47,7 @@ public:
 	void draw(int x, int y); // Redraws the surface relative to the origin
 	void resized(); // Call if the underlying window has been resized
 	Cairo::RefPtr<Cairo::Surface> & get_surface() { return surface; }
+	bool surface_valid() { return !(!surface); }
 
 	static const std::valarray<double> dashes;
 };
