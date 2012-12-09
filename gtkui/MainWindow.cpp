@@ -64,6 +64,7 @@ MainWindow::MainWindow() : Gtk::Window(),
 			draw_hud(true), antialias(false),
 			initializing(true),
 			aspectfix(false), clip(false), recolour_when_done(false),
+			divider(new Plot3::ChunkDivider::Horizontal2px()),
 			dragrect(*this),
 			_threadpool(BrotPrefs::threadpool_size(prefs()))
 {
@@ -109,6 +110,7 @@ MainWindow::~MainWindow() {
 	}
 	delete plot;
 	delete plot_prev;
+	delete divider;
 	delete renderer;
 	delete imgbuf;
 }
@@ -296,7 +298,7 @@ void MainWindow::do_plot(bool is_same_plot)
 		pwidth *= 2;
 		pheight *= 2;
 	}
-	plot = new Plot3::Plot3Plot(get_threadpool(), this, *fractal, divider, centre, size, pwidth, pheight);
+	plot = new Plot3::Plot3Plot(get_threadpool(), this, *fractal, *divider, centre, size, pwidth, pheight);
 
 	render_prep(-1);
 	plot->start();

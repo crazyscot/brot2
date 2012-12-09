@@ -71,7 +71,7 @@ class MainWindow : public Gtk::Window, Plot3::IPlot3DataSink {
 
 	struct timeval plot_tv_start;
 
-	Plot3::ChunkDivider::Horizontal10px divider; // TODO make selectable??
+	Plot3::ChunkDivider::Base* divider; // TODO make selectable??
 	std::atomic<int> _chunks_this_pass; // Reset to 0 on pass completion.
 
 public:
