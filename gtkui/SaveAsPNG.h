@@ -29,6 +29,7 @@ class MainWindow;
 #include "palette.h"
 #include "ChunkDivider.h"
 #include <string>
+#include <memory>
 
 class SaveAsPNG;
 
@@ -59,7 +60,7 @@ private:
 
 	// Delete on destruct:
 	PNGProgressWindow reporter;
-	Plot3::ChunkDivider::Horizontal10px divider;
+	std::shared_ptr<Plot3::ChunkDivider::Base> divider;
 	const int aafactor;
 	Plot3::Plot3Plot plot;
 
