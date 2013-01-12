@@ -103,14 +103,12 @@ string Plot3Plot::info(bool verbose) const {
 	rv << plotted_maxiter;
 
 	// Now that we autofix the aspect ratio, our pixels are square.
-	double zoom = 1.0/real(size); // not a Value, so we can print it
 
 	rv.precision(4); // Don't need more than this for the axis length or pixsize.
 	if (verbose) {
-		char buf[128];
-		unsigned rr = snprintf(buf, sizeof buf, "%g", zoom);
-		ASSERT(rr < sizeof buf);
-		rv << ", zoom=" << buf;
+		rv.precision(2);
+		rv << ", zoom=" << scientific << zoom();
+		rv.unsetf(ios::floatfield);
 		rv << " / axis length=" << size << " / pixel size=" << real(size)/width;
 	} else {
 		rv << " axis=" <<size;
@@ -123,8 +121,7 @@ string Plot3Plot::info_zoom() const {
 	/* In support of LP#1039385 */
 	std::ostringstream rv;
 	rv.precision(2);
-	double zoom = 1.0/real(size);
-	rv << "Zoom: " << scientific << zoom;
+	rv << "Zoom: " << scientific << zoom();
 	return rv.str();
 }
 

@@ -121,10 +121,12 @@ class ZoomControl : public Gtk::Frame {
 			return in / _mw->get_rwidth();
 		}
 		inline Fractal::Value zoom_to_ax(Fractal::Value in) const {
-			return 1.0 / in;
+			// FIXME Law of Demeter violation
+			return _mw->get_plot().zoom_to_axis(in);
 		}
 		inline Fractal::Value ax_to_zoom(Fractal::Value in) const {
-			return 1.0 / in;
+			// FIXME Law of Demeter violation
+			return _mw->get_plot().axis_to_zoom(in);
 		}
 
 		void do_toggle(Gtk::ToggleButton*b, mode_t newmode) {
