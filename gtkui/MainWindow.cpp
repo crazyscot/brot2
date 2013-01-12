@@ -73,12 +73,25 @@ MainWindow::MainWindow() : Gtk::Window(),
 	vbox->set_border_width(1);
 	add(*vbox);
 
-	// Default plot params:
-	centre = {0.0,0.0};
-	size = {4.5,4.5};
-
 	std::string init_fract = "Mandelbrot",
 		init_pal = "Linear rainbow";
+
+	{
+		// Sort out the initial plot params.
+		// (One day this might become a CLI option?)
+		Fractal::FractalCommon::load_base();
+		Fractal::FractalImpl* impl = Fractal::FractalCommon::registry.get(init_fract);
+		if (impl) {
+			size = { impl->xmax - impl->xmin,
+					 impl->ymax - impl->ymin };
+			centre = { impl->xmin, impl->ymin };
+			centre += size/2.0;
+		} else {
+			// fallback, shouldn't happen but do something vaguely sensible anyway
+			centre = {0.0,0.0};
+			size = {4.5,4.5};
+		}
+	}
 
 	menubar = Gtk::manage(new menus::Menus(*this, init_fract, init_pal));
 	vbox->pack_start(*menubar, false, false, 0);
