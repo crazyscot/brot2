@@ -47,6 +47,8 @@ protected:
 	// Must hold the lock before calling.
 	void ensure_surface_locked(const int rwidth, const int rheight);
 
+	unsigned compute_layout_height(Glib::RefPtr<Pango::Layout> lyt);
+
 public:
 	HUD(MainWindow &w);
 

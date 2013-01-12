@@ -77,18 +77,29 @@ void HUD::ensure_surface_locked(const int rwidth, const int rheight)
 	}
 }
 
+unsigned HUD::compute_layout_height(Glib::RefPtr<Pango::Layout> lyt)
+{
+	Pango::LayoutIter iter = lyt->get_iter();
+	unsigned ytotal = 0;
+	do {
+		int yy = iter.get_line_logical_extents().get_height();
+		ytotal += yy;
+	} while (iter.next_line());
+	ytotal /= PANGO_SCALE;
+	return ytotal;
+}
+
 void HUD::draw(Plot3::Plot3Plot* plot, const int rwidth, const int rheight)
 {
 	std::unique_lock<std::mutex> lock(mux);
 	if (!plot) return; // race condition trap
 	std::string info = plot->info(true);
-	std::shared_ptr<const Prefs> prefs = parent.prefs();
 	int xpos, ypos, xright;
-	Gdk::Color fg_int, bg_int;
+	Gdk::Color fg_gdk, bg_gdk;
 	double alpha;
 
-	retrieve_prefs(prefs,fg_int,bg_int,alpha,xpos,ypos,xright);
-	const rgb_double fg(fg_int), bg(bg_int);
+	retrieve_prefs(parent.prefs(),fg_gdk,bg_gdk,alpha,xpos,ypos,xright);
+	const rgb_double fg(fg_gdk), bg(bg_gdk);
 	const int hudwidthpct = MAX(xright - xpos, 1);
 
 	ensure_surface_locked(rwidth, rheight);
@@ -109,19 +120,11 @@ void HUD::draw(Plot3::Plot3Plot* plot, const int rwidth, const int rheight)
 	lyt->set_width(Pango::SCALE * WIDTH_PIXELS);
 	lyt->set_wrap(Pango::WRAP_WORD_CHAR);
 
-	// add up the height, make sure we fit.
+	// Make sure we fit.
+	const int YOFFSET = ypos * (rheight - compute_layout_height(lyt)) / 100;
+
+	// Now paint the text background.
 	Pango::LayoutIter iter = lyt->get_iter();
-	int ytotal = 0;
-	do {
-		int yy = iter.get_line_logical_extents().get_height();
-		ytotal += yy;
-	} while (iter.next_line());
-	ytotal /= PANGO_SCALE;
-
-	const int YOFFSET = ypos * (rheight - ytotal) / 100;
-
-	// Now iterate again for the text background.
-	iter = lyt->get_iter();
 	do {
 		Pango::Rectangle log = iter.get_line_logical_extents();
 		cr->save();
@@ -135,6 +138,7 @@ void HUD::draw(Plot3::Plot3Plot* plot, const int rwidth, const int rheight)
 		cr->restore();
 	} while (iter.next_line());
 
+	// Finally, draw the text itself.
 	cr->move_to(XOFFSET,YOFFSET);
 	cr->set_operator(Cairo::Operator::OPERATOR_OVER);
 	cr->set_source_rgba(fg.r, fg.g, fg.b, alpha);
