@@ -162,7 +162,6 @@ bool MainWindow::on_key_release_event(GdkEventKey *event) {
 }
 
 bool MainWindow::on_delete_event(GdkEventAny * UNUSED(e)) {
-	safe_stop_plot();
 	Gtk::Main::instance()->quit(); // NORETURN
 	return true;
 }
