@@ -190,12 +190,16 @@ namespace ChunkDivider {
 		}
 	}
 
-	_CD__BODY(Superpixel8x8) {
-		unsigned nX = (width-1) / 8, nY = (height-1) / 8;
-		unsigned lastXsize = width - 8*nX, lastYsize = height - 8*nY;
-		const Fractal::Point pixSize(real(size) * 8.0 / width, imag(size) * 8.0 / height);
-		const Fractal::Point lastColSize(real(size) * lastXsize / width, imag(size) * 8.0 / height);
-		const Fractal::Point lastRowSize(real(size) * 8.0 / width, imag(size) * lastYsize / height);
+	void Superpixel::dividePlot(std::list<Plot3Chunk*>& list_o,
+			IPlot3DataSink* s, const Fractal::FractalImpl& f,
+			Fractal::Point centre, Fractal::Point size,
+			unsigned width, unsigned height, unsigned max_passes) const {
+
+		unsigned nX = (width-1) / SIZE, nY = (height-1) / SIZE;
+		unsigned lastXsize = width - SIZE*nX, lastYsize = height - SIZE*nY;
+		const Fractal::Point pixSize(real(size) * (double)SIZE / width, imag(size) * (double)SIZE / height);
+		const Fractal::Point lastColSize(real(size) * lastXsize / width, imag(size) * (double)SIZE / height);
+		const Fractal::Point lastRowSize(real(size) * (double)SIZE / width, imag(size) * lastYsize / height);
 		const Fractal::Point lastCornerSize(real(size) * lastXsize / width, imag(size) * lastYsize / height);
 
 
@@ -208,11 +212,11 @@ namespace ChunkDivider {
 		for (unsigned i=0; i<nY; i++) {
 			Fractal::Point thisRowOrigin(origin);
 			for (unsigned j=0; j<nX; j++) {
-				Plot3Chunk * chunk = new Plot3Chunk(s, f, 8, 8, 8*j, 8*i, thisRowOrigin, pixSize, max_passes);
+				Plot3Chunk * chunk = new Plot3Chunk(s, f, SIZE, SIZE, SIZE*j, SIZE*i, thisRowOrigin, pixSize, max_passes);
 				list_o.push_back(chunk);
 				thisRowOrigin += stepX;
 			}
-			Plot3Chunk * chunk = new Plot3Chunk(s, f, lastXsize, 8, (width - lastXsize), 8*i, thisRowOrigin, lastColSize, max_passes);
+			Plot3Chunk * chunk = new Plot3Chunk(s, f, lastXsize, SIZE, (width - lastXsize), SIZE*i, thisRowOrigin, lastColSize, max_passes);
 			list_o.push_back(chunk);
 			origin += stepY;
 		}
@@ -220,7 +224,7 @@ namespace ChunkDivider {
 		{
 			Fractal::Point thisRowOrigin(origin);
 			for (unsigned j=0; j<nX; j++) {
-				Plot3Chunk * chunk = new Plot3Chunk(s, f, 8, lastYsize, 8*j, (height-lastYsize), thisRowOrigin, lastRowSize, max_passes);
+				Plot3Chunk * chunk = new Plot3Chunk(s, f, SIZE, lastYsize, SIZE*j, (height-lastYsize), thisRowOrigin, lastRowSize, max_passes);
 				list_o.push_back(chunk);
 				thisRowOrigin += stepX;
 			}

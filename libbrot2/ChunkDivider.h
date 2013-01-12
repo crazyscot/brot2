@@ -56,7 +56,24 @@ namespace ChunkDivider {
 	_CD_INSTANCE(Horizontal10px); // Horizontal stripes, 10pixels high
 	_CD_INSTANCE(Horizontal2px); // Ditto, 2px high
 	_CD_INSTANCE(Vertical10px); // Vertical stripes, 10pixels wide
-	_CD_INSTANCE(Superpixel8x8); // 8x8 superpixels
+
+	class Superpixel: public Base {
+	public:
+		Superpixel(unsigned s) : SIZE(s) {}
+		const unsigned SIZE;
+
+		virtual void dividePlot(std::list<Plot3Chunk*>& list_o,
+			IPlot3DataSink* s, const Fractal::FractalImpl& f,
+			Fractal::Point centre, Fractal::Point size,
+			unsigned width, unsigned height, unsigned max_passes) const;
+	};
+
+	// Single-type instantiator for testing
+	template<int I>
+	class SuperpixelInstance : public Superpixel {
+	public:
+		SuperpixelInstance() : Superpixel(I) {}
+	};
 
 #undef _CD_INSTANCE
 } // Plot3::ChunkDivider
