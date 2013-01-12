@@ -23,6 +23,7 @@
 #include "Exception.h"
 #include <pangomm.h>
 #include <cairomm/cairomm.h>
+#include <gdkmm/color.h>
 #include <string>
 
 using namespace BrotPrefs;
@@ -42,31 +43,27 @@ HUD::HUD(MainWindow &window) : parent(window), w(0), h(0) {
 
 const std::string HUD::font_name = "Luxi Sans 9";
 
-void HUD::draw(Plot3::Plot3Plot* plot, const int rwidth, const int rheight)
+void HUD::retrieve_prefs(std::shared_ptr<const Prefs> prefs,
+		Gdk::Color& fgcol, Gdk::Color& bgcol, double& alpha,
+		int& xpos, int& ypos, int& xright)
 {
-	std::unique_lock<std::mutex> lock(mux);
-	if (!plot) return; // race condition trap
-	std::string info = plot->info(true);
-	std::shared_ptr<const Prefs> prefs = parent.prefs();
-	const int ypos = prefs->get(PREF(HUDVerticalOffset)),
-		  xpos = prefs->get(PREF(HUDHorizontalOffset)),
-		  xright = prefs->get(PREF(HUDRightMargin));
-	const int hudwidthpct = MAX(xright - xpos, 1);
+	const std::string fgtext = prefs->get(PREF(HUDTextColour)),
+		  bgtext = prefs->get(PREF(HUDBackgroundColour));
+	if (!fgcol.set(fgtext))
+		fgcol.set(PREF(HUDTextColour)._default);
+	if (!bgcol.set(bgtext))
+		bgcol.set(PREF(HUDBackgroundColour)._default);
 
-	rgb_double fg, bg;
-	{
-		Gdk::Color fgcol, bgcol;
-		const std::string fgtext = prefs->get(PREF(HUDTextColour)),
-			  bgtext = prefs->get(PREF(HUDBackgroundColour));
-		if (!fgcol.set(fgtext))
-			fgcol.set(PREF(HUDTextColour)._default);
-		if (!bgcol.set(bgtext))
-			bgcol.set(PREF(HUDBackgroundColour)._default);
-		fg = fgcol;
-		bg = bgcol;
-	}
-	const double alpha = 1.0 - prefs->get(PREF(HUDTransparency));
+	alpha = 1.0 - prefs->get(PREF(HUDTransparency));
 
+	xpos = prefs->get(PREF(HUDHorizontalOffset));
+	ypos = prefs->get(PREF(HUDVerticalOffset));
+	xright = prefs->get(PREF(HUDRightMargin));
+}
+
+// Must hold the lock before calling.
+void HUD::ensure_surface_locked(const int rwidth, const int rheight)
+{
 	if ((rwidth!=w) || (rheight!=h)) {
 		if (surface)
 			surface->finish();
@@ -78,6 +75,23 @@ void HUD::draw(Plot3::Plot3Plot* plot, const int rwidth, const int rheight)
 		Glib::RefPtr<Gdk::Window> w = parent.get_window();
 		surface = w->create_similar_surface(Cairo::CONTENT_COLOR_ALPHA, rwidth, rheight);
 	}
+}
+
+void HUD::draw(Plot3::Plot3Plot* plot, const int rwidth, const int rheight)
+{
+	std::unique_lock<std::mutex> lock(mux);
+	if (!plot) return; // race condition trap
+	std::string info = plot->info(true);
+	std::shared_ptr<const Prefs> prefs = parent.prefs();
+	int xpos, ypos, xright;
+	Gdk::Color fg_int, bg_int;
+	double alpha;
+
+	retrieve_prefs(prefs,fg_int,bg_int,alpha,xpos,ypos,xright);
+	const rgb_double fg(fg_int), bg(bg_int);
+	const int hudwidthpct = MAX(xright - xpos, 1);
+
+	ensure_surface_locked(rwidth, rheight);
 
 	Cairo::RefPtr<Cairo::Context> cr = Cairo::Context::create(surface);
 	clear_locked(cr);
@@ -106,8 +120,6 @@ void HUD::draw(Plot3::Plot3Plot* plot, const int rwidth, const int rheight)
 
 	const int YOFFSET = ypos * (rheight - ytotal) / 100;
 
-	//Pango::Rectangle rect = lyt->get_logical_extents();
-
 	// Now iterate again for the text background.
 	iter = lyt->get_iter();
 	do {
@@ -129,6 +141,7 @@ void HUD::draw(Plot3::Plot3Plot* plot, const int rwidth, const int rheight)
 	lyt->show_in_cairo_context(cr);
 }
 
+// Must hold the lock before calling.
 void HUD::clear_locked(Cairo::RefPtr<Cairo::Context> cr) {
 	cr->save();
 	cr->set_source_rgba(0,0,0,0);

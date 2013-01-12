@@ -19,10 +19,14 @@
 #ifndef HUD_H_
 #define HUD_H_
 
-#include "Plot3Plot.h"
+#include "libbrot2/Plot3Plot.h"
+#include "libbrot2/Prefs.h"
 #include <gtkmm/window.h>
+#include <gdkmm/color.h>
 #include <cairomm/cairomm.h>
 #include <mutex>
+#include <memory>
+
 
 class MainWindow;
 
@@ -31,10 +35,17 @@ protected:
 	MainWindow &parent;
 	Cairo::RefPtr<Cairo::Surface> surface;
 	int w, h; // Last size we drew to
+	std::mutex mux; // Protects all contents
 
+	// Must hold the lock before calling.
 	void clear_locked(Cairo::RefPtr<Cairo::Context> cr);
 
-	std::mutex mux; // Protects all contents
+	void retrieve_prefs(std::shared_ptr<const BrotPrefs::Prefs> prefs,
+			Gdk::Color& fg, Gdk::Color& bg, double& alpha,
+			int& xpos, int& ypos, int& xright);
+
+	// Must hold the lock before calling.
+	void ensure_surface_locked(const int rwidth, const int rheight);
 
 public:
 	HUD(MainWindow &w);
