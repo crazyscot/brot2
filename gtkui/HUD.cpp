@@ -93,7 +93,7 @@ void HUD::draw(Plot3::Plot3Plot* plot, const int rwidth, const int rheight)
 {
 	std::unique_lock<std::mutex> lock(mux);
 	if (!plot) return; // race condition trap
-	std::string info = plot->info(true);
+	std::string info = plot->info_zoom();
 	int xpos, ypos, xright;
 	Gdk::Color fg_gdk, bg_gdk;
 	double alpha;
