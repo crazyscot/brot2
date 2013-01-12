@@ -76,6 +76,13 @@ Plot3Plot::Plot3Plot(ThreadPool& pool, IPlot3DataSink* s, FractalImpl& f, ChunkD
 		passes_max = (unsigned)-1;
 }
 
+Fractal::Value Plot3Plot::axis_to_zoom(Fractal::Value ax) const {
+	return (fract.xmax - fract.xmin) / ax;
+}
+Fractal::Value Plot3Plot::zoom() const {
+	return axis_to_zoom(real(size));
+}
+
 string Plot3Plot::info(bool verbose) const {
 	std::ostringstream rv;
 	/* LP#783087:
