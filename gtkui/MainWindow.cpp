@@ -424,10 +424,9 @@ void MainWindow::do_undo()
 
 void MainWindow::do_stop()
 {
-	progbar->set_text("Stopping...");
-	safe_stop_plot();
-	progbar->set_text("Stopped at user request");
-	progbar->set_fraction(0.0);
+	progbar->set_text("Stopping at end of this pass...");
+	//safe_stop_plot(); // Blocking!
+	if (plot) plot->stop(); // Safe enough - other actions will call safe_stop_plot before proceeding.
 }
 
 void MainWindow::do_more_iters()
