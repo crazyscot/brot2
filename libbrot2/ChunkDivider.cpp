@@ -190,7 +190,45 @@ namespace ChunkDivider {
 		}
 	}
 
-	// TODO: awkward asymmetric, square superpixels...
+	_CD__BODY(Superpixel8x8) {
+		unsigned nX = (width-1) / 8, nY = (height-1) / 8;
+		unsigned lastXsize = width - 8*nX, lastYsize = height - 8*nY;
+		const Fractal::Point pixSize(real(size) * 8.0 / width, imag(size) * 8.0 / height);
+		const Fractal::Point lastColSize(real(size) * lastXsize / width, imag(size) * 8.0 / height);
+		const Fractal::Point lastRowSize(real(size) * 8.0 / width, imag(size) * lastYsize / height);
+		const Fractal::Point lastCornerSize(real(size) * lastXsize / width, imag(size) * lastYsize / height);
+
+
+		const Fractal::Point stepX(real(pixSize), 0.0);
+		const Fractal::Point stepY(0.0, imag(pixSize));
+		const Fractal::Point originalOrigin(centre - size / 2.0);
+
+		Fractal::Point origin(originalOrigin);
+
+		for (unsigned i=0; i<nY; i++) {
+			Fractal::Point thisRowOrigin(origin);
+			for (unsigned j=0; j<nX; j++) {
+				Plot3Chunk * chunk = new Plot3Chunk(s, f, 8, 8, 8*j, 8*i, thisRowOrigin, pixSize, max_passes);
+				list_o.push_back(chunk);
+				thisRowOrigin += stepX;
+			}
+			Plot3Chunk * chunk = new Plot3Chunk(s, f, lastXsize, 8, (width - lastXsize), 8*i, thisRowOrigin, lastColSize, max_passes);
+			list_o.push_back(chunk);
+			origin += stepY;
+		}
+		// Last row ...
+		{
+			Fractal::Point thisRowOrigin(origin);
+			for (unsigned j=0; j<nX; j++) {
+				Plot3Chunk * chunk = new Plot3Chunk(s, f, 8, lastYsize, 8*j, (height-lastYsize), thisRowOrigin, lastRowSize, max_passes);
+				list_o.push_back(chunk);
+				thisRowOrigin += stepX;
+			}
+			Plot3Chunk * chunk = new Plot3Chunk(s, f, lastXsize, lastYsize, (width - lastXsize), (height-lastYsize), thisRowOrigin, lastCornerSize, max_passes);
+			list_o.push_back(chunk);
+			origin += stepY;
+		}
+	}
 
 } // Plot3::ChunkDivider
 } // Plot3

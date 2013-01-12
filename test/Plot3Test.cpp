@@ -558,7 +558,7 @@ class ChunkDividerTest : public ::testing::Test {
 	virtual ~ChunkDividerTest() {}
 };
 
-typedef ::testing::Types<OneChunk, Horizontal10px, Horizontal2px, Vertical10px> ChunkTypes;
+typedef ::testing::Types<OneChunk, Horizontal10px, Horizontal2px, Vertical10px, Superpixel8x8> ChunkTypes;
 TYPED_TEST_CASE(ChunkDividerTest, ChunkTypes);
 
 #define CHUNK_DIVIDER_TEST(xx,yy) \

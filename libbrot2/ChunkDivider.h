@@ -56,6 +56,7 @@ namespace ChunkDivider {
 	_CD_INSTANCE(Horizontal10px); // Horizontal stripes, 10pixels high
 	_CD_INSTANCE(Horizontal2px); // Ditto, 2px high
 	_CD_INSTANCE(Vertical10px); // Vertical stripes, 10pixels wide
+	_CD_INSTANCE(Superpixel8x8); // 8x8 superpixels
 
 #undef _CD_INSTANCE
 } // Plot3::ChunkDivider
