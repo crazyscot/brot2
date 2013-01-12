@@ -407,6 +407,7 @@ void MainWindow::do_undo()
 		progbar->set_text("Nothing to undo");
 		return;
 	}
+	safe_stop_plot();
 
 	Plot3Plot *tmp = plot;
 	plot = plot_prev;
@@ -418,6 +419,8 @@ void MainWindow::do_undo()
 	rheight = plot->height;
 
 	recolour();
+	//progbar->set_text(""); // For some reason this breaks the undo. Boggle.
+	progbar->set_fraction(0.0);
 }
 
 void MainWindow::do_stop()
