@@ -232,8 +232,19 @@ void MainWindow::do_resize(unsigned width, unsigned height)
 		rheight = height;
 		destroy_image();
 		dragrect.resized();
+
+		{
+			// It doesn't make sense to allow undo through a size change.
+			gdk_threads_leave();
+			delete plot_prev;
+			plot_prev = 0;
+			delete plot;
+			plot = 0;
+			gdk_threads_enter();
+		}
+
+		do_plot();
 	}
-	do_plot();
 }
 
 
