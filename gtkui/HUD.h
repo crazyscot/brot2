@@ -40,6 +40,7 @@ public:
 	HUD(MainWindow &w);
 
 	void draw(Plot3::Plot3Plot* plot, const int rwidth, const int rheight);
+	void erase();
 	Cairo::RefPtr<Cairo::Surface> & get_surface() { return surface; }
 
 	static const std::string font_name;

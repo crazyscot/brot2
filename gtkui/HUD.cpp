@@ -136,3 +136,9 @@ void HUD::clear_locked(Cairo::RefPtr<Cairo::Context> cr) {
 	cr->paint();
 	cr->restore();
 }
+
+void HUD::erase() {
+	if (!surface) return; // Nothing to do
+	Cairo::RefPtr<Cairo::Context> cr = Cairo::Context::create(surface);
+	clear_locked(cr);
+}
