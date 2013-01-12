@@ -112,6 +112,15 @@ string Plot3Plot::info(bool verbose) const {
 	return rv.str();
 }
 
+string Plot3Plot::info_zoom() const {
+	/* In support of LP#1039385 */
+	std::ostringstream rv;
+	rv.precision(2);
+	double zoom = 1.0/real(size);
+	rv << "Zoom: " << scientific << zoom;
+	return rv.str();
+}
+
 /* Starts a plot. The actual work happens in the background. */
 void Plot3Plot::start() {
 	divider.dividePlot(_chunks, sink, fract, centre, size, width, height, passes_max);

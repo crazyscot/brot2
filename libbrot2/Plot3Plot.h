@@ -47,6 +47,8 @@ public:
 
 	// Returns a human-readable summary of this plot for the status bar.
 	virtual std::string info(bool verbose = false) const;
+	// The same, but just the zoom.
+	virtual std::string info_zoom() const;
 
 	/* No assignment or copy constructor. */
 	Plot3Plot(Plot3Plot&) = delete;
