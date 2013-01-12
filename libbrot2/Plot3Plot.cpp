@@ -226,27 +226,26 @@ void Plot3Plot::run() {
 			}
 		}
 
-		++passcount;
-
-		last_pass_maxiter = this_pass_maxiter;
-		if (passcount & 1) maxiter_scale = this_pass_maxiter / 2;
-		if (maxiter_scale<1) maxiter_scale=1;
-		this_pass_maxiter += maxiter_scale;
-		if (this_pass_maxiter >= (INT_MAX/2)) _stop=true; // lest we overflow
-		plotted_maxiter = last_pass_maxiter;
-		plotted_passes = passcount;
+		plotted_passes = ++passcount;
+		plotted_maxiter = last_pass_maxiter = this_pass_maxiter;
 
 		{
-			// How many pixels are live?
+			// Notify this pass is complete
 			ostringstream info;
-			info << passcount << " pass" << (passcount==1 ? "" : "es") << " plotted: maxiter=" << this_pass_maxiter;
+			info << passcount << " pass" << (passcount==1 ? "" : "es") << " plotted: maxiter=" << plotted_maxiter;
 			info << ": " << live_pixels << " pixels live";
 			string infos = info.str();
 			lock.unlock();
 			sink->pass_complete(infos);
 			lock.lock();
 		}
-}
+
+		// Now set up for next pass
+		if (passcount & 1) maxiter_scale = this_pass_maxiter / 2;
+		if (maxiter_scale<1) maxiter_scale=1;
+		this_pass_maxiter += maxiter_scale;
+		if (this_pass_maxiter >= (INT_MAX/2)) _stop=true; // lest we overflow
+	}
 
 	// Any pixel still alive is considered to be infinite.
 	// P3Chunk ensures that the point data is set up correctly for this.
