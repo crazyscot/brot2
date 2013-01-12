@@ -268,7 +268,7 @@ int main (int argc, char**argv)
 
 	CLIDataSink sink(0, quiet);
 	ThreadPool pool(nthreads);
-	ChunkDivider::Horizontal10px divider; // TODO should others be here?
+	ChunkDivider::Horizontal10px divider;
 	Plot3Plot plot(pool, &sink, *selected_fractal, divider,
 			centre, size, plot_w, plot_h, max_passes);
 
