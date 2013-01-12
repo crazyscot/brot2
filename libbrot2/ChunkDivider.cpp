@@ -213,11 +213,11 @@ namespace ChunkDivider {
 			Fractal::Point thisRowOrigin(origin);
 			for (unsigned j=0; j<nX; j++) {
 				Plot3Chunk * chunk = new Plot3Chunk(s, f, SIZE, SIZE, SIZE*j, SIZE*i, thisRowOrigin, pixSize, max_passes);
-				list_o.push_back(chunk);
+				list_o.push_front(chunk);
 				thisRowOrigin += stepX;
 			}
 			Plot3Chunk * chunk = new Plot3Chunk(s, f, lastXsize, SIZE, (width - lastXsize), SIZE*i, thisRowOrigin, lastColSize, max_passes);
-			list_o.push_back(chunk);
+			list_o.push_front(chunk);
 			origin += stepY;
 		}
 		// Last row ...
@@ -225,11 +225,11 @@ namespace ChunkDivider {
 			Fractal::Point thisRowOrigin(origin);
 			for (unsigned j=0; j<nX; j++) {
 				Plot3Chunk * chunk = new Plot3Chunk(s, f, SIZE, lastYsize, SIZE*j, (height-lastYsize), thisRowOrigin, lastRowSize, max_passes);
-				list_o.push_back(chunk);
+				list_o.push_front(chunk);
 				thisRowOrigin += stepX;
 			}
 			Plot3Chunk * chunk = new Plot3Chunk(s, f, lastXsize, lastYsize, (width - lastXsize), (height-lastYsize), thisRowOrigin, lastCornerSize, max_passes);
-			list_o.push_back(chunk);
+			list_o.push_front(chunk);
 			origin += stepY;
 		}
 	}
