@@ -99,7 +99,7 @@ void Base::process_antialias(const Plot3Chunk& chunk)
 			pix = render_pixel(base[2*i+1], _local_inf, _pal);
 			allpix.push_back(pix);
 
-			base = &data[1 + 2*j*chunk._width];
+			base = &data[(1+2*j)*chunk._width];
 			pix = render_pixel(base[2*i], _local_inf, _pal);
 			allpix.push_back(pix);
 			pix = render_pixel(base[2*i+1], _local_inf, _pal);
