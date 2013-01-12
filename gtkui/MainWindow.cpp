@@ -301,6 +301,8 @@ void MainWindow::do_plot(bool is_same_plot)
 	plot = new Plot3::Plot3Plot(get_threadpool(), this, *fractal, *divider, centre, size, pwidth, pheight);
 
 	render_prep(-1);
+	if (draw_hud)
+		hud.draw(plot, rwidth, rheight);
 	plot->start();
 	// TODO try/catch (and in do_resume) - report failure. Is gtkmm exception-safe?
 }
