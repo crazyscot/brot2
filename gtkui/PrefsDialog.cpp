@@ -230,7 +230,7 @@ namespace PrefsDialogBits {
 	class HUDFrame : public Gtk::Frame {
 	public:
 		Gtk::VScale *vert;
-		Gtk::HScale *horiz, *rightmarg;
+		Gtk::HScale *horiz, *rightmarg, *fontsize;
 		Gtk::HScale *nalpha; // transparency 0.0-0.5, so alpha is 1.0 - nalpha.
 		Gtk::Adjustment *hadjust, *radjust;
 		ColourPanel *bgcol, *fgcol;
@@ -238,13 +238,13 @@ namespace PrefsDialogBits {
 
 		HUDFrame() : Gtk::Frame("Heads-Up Display"), hadjust(0), radjust(0) {
 			set_border_width(10);
-			Gtk::Table* tbl = Gtk::manage(new Gtk::Table(4,2,false));
+			Gtk::Table* tbl = Gtk::manage(new Gtk::Table(5,2,false));
 			Gtk::Label *lbl;
 
 			{
 				// Vertical position
 				Gtk::Table* inner = Gtk::manage(new Gtk::Table(1,2,false));
-				tbl->attach(*inner, 0, 1, 0, 2);
+				tbl->attach(*inner, 0, 1, 0, 3);
 
 				lbl = Gtk::manage(new Gtk::Label("Vertical position (%)"));
 				lbl->set_tooltip_text(PREFDESC(HUDVerticalOffset));
@@ -260,7 +260,7 @@ namespace PrefsDialogBits {
 			{
 				// Right margin
 				Gtk::Table* inner = Gtk::manage(new Gtk::Table(2,1,false));
-				tbl->attach(*inner, 0, 2, 3, 4);
+				tbl->attach(*inner, 0, 2, 4, 5);
 
 				lbl = Gtk::manage(new Gtk::Label("Right margin (%)"));
 				lbl->set_tooltip_text(PREFDESC(HUDRightMargin));
@@ -275,7 +275,7 @@ namespace PrefsDialogBits {
 				// Horizontal position
 				// Note ordering - we need rightmarg to be set up by now
 				Gtk::Table* inner = Gtk::manage(new Gtk::Table(2,1,false));
-				tbl->attach(*inner, 0, 2, 2, 3);
+				tbl->attach(*inner, 0, 2, 3, 4);
 
 				lbl = Gtk::manage(new Gtk::Label("Horizontal position (%)"));
 				lbl->set_tooltip_text(PREFDESC(HUDHorizontalOffset));
@@ -320,6 +320,18 @@ namespace PrefsDialogBits {
 
 				lbl = Gtk::manage(new Gtk::Label()); // empty, for spacing
 				inner->attach(*lbl, 0, 2, 2, 3);
+			}
+
+			{ // Font size widget
+				Gtk::Table* inner = Gtk::manage(new Gtk::Table(2,1,false));
+				tbl->attach(*inner, 1, 2, 2, 3);
+
+				lbl = Gtk::manage(new Gtk::Label("Font size"));
+				inner->attach(*lbl, 0, 1, 0, 1);
+				fontsize = Gtk::manage(new Gtk::HScale(6.0, 26.0, 2.0));
+				fontsize->set_digits(0);
+				fontsize->set_value_pos(Gtk::PositionType::POS_RIGHT);
+				inner->attach(*fontsize, 0, 1, 1, 2);
 			}
 
 			add(*tbl);
