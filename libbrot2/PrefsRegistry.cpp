@@ -89,6 +89,9 @@ namespace BrotPrefs {
 		HUDOutlineText("HUD outline text",
 				"Use outline text for the HUD?",
 				true, Groups::HUD, "use_outline_text"),
+		HUDShowZoom("HUD show 'zoom'",
+				"Show the legend 'Zoom:' in the HUD?",
+				true, Groups::HUD, "show_zoom_legend"),
 		end()
 	{ }
 
