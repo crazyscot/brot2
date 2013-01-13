@@ -117,11 +117,16 @@ string Plot3Plot::info(bool verbose) const {
 	return rv.str();
 }
 
-string Plot3Plot::info_zoom() const {
+string Plot3Plot::info_zoom(bool show_legend) const {
 	/* In support of LP#1039385 */
+	Fractal::Value z = zoom();
 	std::ostringstream rv;
 	rv.precision(2);
-	rv << "Zoom: " << scientific << zoom();
+	if (show_legend)
+		rv << "Zoom: ";
+	rv << z;
+	if (!show_legend)
+		rv << "x";
 	return rv.str();
 }
 
