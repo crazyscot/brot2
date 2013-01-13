@@ -238,13 +238,13 @@ namespace PrefsDialogBits {
 
 		HUDFrame() : Gtk::Frame("Heads-Up Display"), hadjust(0), radjust(0) {
 			set_border_width(10);
-			Gtk::Table* tbl = Gtk::manage(new Gtk::Table(3,7,false));
+			Gtk::Table* tbl = Gtk::manage(new Gtk::Table(4,2,false));
 			Gtk::Label *lbl;
 
 			{
 				// Vertical position
 				Gtk::Table* inner = Gtk::manage(new Gtk::Table(1,2,false));
-				tbl->attach(*inner, 0, 2, 0, 3);
+				tbl->attach(*inner, 0, 1, 0, 2);
 
 				lbl = Gtk::manage(new Gtk::Label("Vertical position (%)"));
 				lbl->set_tooltip_text(PREFDESC(HUDVerticalOffset));
@@ -260,7 +260,7 @@ namespace PrefsDialogBits {
 			{
 				// Right margin
 				Gtk::Table* inner = Gtk::manage(new Gtk::Table(2,1,false));
-				tbl->attach(*inner, 0, 3, 5, 7);
+				tbl->attach(*inner, 0, 2, 3, 4);
 
 				lbl = Gtk::manage(new Gtk::Label("Right margin (%)"));
 				lbl->set_tooltip_text(PREFDESC(HUDRightMargin));
@@ -275,7 +275,7 @@ namespace PrefsDialogBits {
 				// Horizontal position
 				// Note ordering - we need rightmarg to be set up by now
 				Gtk::Table* inner = Gtk::manage(new Gtk::Table(2,1,false));
-				tbl->attach(*inner, 0, 3, 3, 5);
+				tbl->attach(*inner, 0, 2, 2, 3);
 
 				lbl = Gtk::manage(new Gtk::Label("Horizontal position (%)"));
 				lbl->set_tooltip_text(PREFDESC(HUDHorizontalOffset));
@@ -289,7 +289,7 @@ namespace PrefsDialogBits {
 
 			{ // Transparency widget
 				Gtk::Table* inner = Gtk::manage(new Gtk::Table(2,1,false));
-				tbl->attach(*inner, 2, 3, 1, 3);
+				tbl->attach(*inner, 1, 2, 1, 2);
 
 				lbl = Gtk::manage(new Gtk::Label("Transparency"));
 				lbl->set_tooltip_text(PREFDESC(HUDTransparency));
@@ -304,7 +304,7 @@ namespace PrefsDialogBits {
 
 			{ // Colour pickers and sample text
 				Gtk::Table* inner = Gtk::manage(new Gtk::Table(2,3,false));
-				tbl->attach(*inner, 2, 3, 0, 1);
+				tbl->attach(*inner, 1, 2, 0, 1);
 
 				sample = Gtk::manage(new SampleTextLabel());
 				inner->attach(*sample, 0, 2, 1, 2);
