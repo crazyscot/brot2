@@ -151,12 +151,17 @@ void MainWindow::zoom_mechanics(enum Zoom type) {
 
 void MainWindow::do_zoom(enum Zoom type) {
 	if (!canvas) return;
+	// LP#1033910: Don't allow a straight zoom in when we're at max.
+	if (is_clipping() && type == ZOOM_IN)
+		return;
 	zoom_mechanics(type);
 	do_plot(false);
 }
 
 void MainWindow::do_zoom(enum Zoom type, const Fractal::Point& newcentre) {
 	if (!canvas) return;
+	// LP#1033910: Go ahead with a recentring zoom if at max, as we need to replot anyway
+	// (but won't actually zoom).
 	zoom_mechanics(type);
 	new_centre_checked(newcentre);
 	do_plot(false);
