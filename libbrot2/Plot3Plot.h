@@ -44,9 +44,15 @@ public:
 	const Fractal::Point centre, size; // Centre co-ordinates; axis length
 	const unsigned width, height; // plot size in pixels
 	const Fractal::Point origin() const { return centre - size/(Fractal::Value)2.0; }
+	Fractal::Value zoom() const;
+	Fractal::Value axis_to_zoom(Fractal::Value ax) const;
+	// zoom-to-axis is the same calculation but we'll provide the sugar anyway.
+	Fractal::Value zoom_to_axis(Fractal::Value zo) const { return axis_to_zoom(zo); }
 
 	// Returns a human-readable summary of this plot for the status bar.
 	virtual std::string info(bool verbose = false) const;
+	// The same, but just the zoom.
+	virtual std::string info_zoom(bool show_legend = true) const;
 
 	/* No assignment or copy constructor. */
 	Plot3Plot(Plot3Plot&) = delete;

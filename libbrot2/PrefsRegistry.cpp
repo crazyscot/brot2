@@ -82,7 +82,16 @@ namespace BrotPrefs {
 				"HUD transparency (0.0-0.5)",
 				0.0, 0.2, 0.5,
 				Groups::HUD, "alpha"),
-
+		HUDFontSize("HUD font size",
+				"HUD font size (6-24)",
+				6, 12, 24,
+				Groups::HUD, "fontsize"),
+		HUDOutlineText("HUD outline text",
+				"Use outline text for the HUD?",
+				true, Groups::HUD, "use_outline_text"),
+		HUDShowZoom("HUD show 'zoom'",
+				"Show the legend 'Zoom:' in the HUD?",
+				true, Groups::HUD, "show_zoom_legend"),
 		end()
 	{ }
 

@@ -23,6 +23,7 @@
 #include "Exception.h"
 #include <pangomm.h>
 #include <cairomm/cairomm.h>
+#include <gdkmm/color.h>
 #include <string>
 
 using namespace BrotPrefs;
@@ -37,37 +38,34 @@ struct rgb_double {
 	}
 };
 
-HUD::HUD(MainWindow &window) : parent(window), w(0), h(0) {
+HUD::HUD(MainWindow &window) : parent(window), last_drawn_w(0), last_drawn_h(0) {
 }
 
-const std::string HUD::font_name = "Luxi Sans 9";
+const std::string HUD::font_name = "sans-serif";
 
-void HUD::draw(Plot3::Plot3Plot* plot, const int rwidth, const int rheight)
+void HUD::retrieve_prefs(std::shared_ptr<const Prefs> prefs,
+		Gdk::Color& fgcol, Gdk::Color& bgcol, double& alpha,
+		int& xpos, int& ypos, int& xright, int& fontsize)
 {
-	std::unique_lock<std::mutex> lock(mux);
-	if (!plot) return; // race condition trap
-	std::string info = plot->info(true);
-	std::shared_ptr<const Prefs> prefs = parent.prefs();
-	const int ypos = prefs->get(PREF(HUDVerticalOffset)),
-		  xpos = prefs->get(PREF(HUDHorizontalOffset)),
-		  xright = prefs->get(PREF(HUDRightMargin));
-	const int hudwidthpct = MAX(xright - xpos, 1);
+	const std::string fgtext = prefs->get(PREF(HUDTextColour)),
+		  bgtext = prefs->get(PREF(HUDBackgroundColour));
+	if (!fgcol.set(fgtext))
+		fgcol.set(PREF(HUDTextColour)._default);
+	if (!bgcol.set(bgtext))
+		bgcol.set(PREF(HUDBackgroundColour)._default);
 
-	rgb_double fg, bg;
-	{
-		Gdk::Color fgcol, bgcol;
-		const std::string fgtext = prefs->get(PREF(HUDTextColour)),
-			  bgtext = prefs->get(PREF(HUDBackgroundColour));
-		if (!fgcol.set(fgtext))
-			fgcol.set(PREF(HUDTextColour)._default);
-		if (!bgcol.set(bgtext))
-			bgcol.set(PREF(HUDBackgroundColour)._default);
-		fg = fgcol;
-		bg = bgcol;
-	}
-	const double alpha = 1.0 - prefs->get(PREF(HUDTransparency));
+	alpha = 1.0 - prefs->get(PREF(HUDTransparency));
 
-	if ((rwidth!=w) || (rheight!=h)) {
+	xpos = prefs->get(PREF(HUDHorizontalOffset));
+	ypos = prefs->get(PREF(HUDVerticalOffset));
+	xright = prefs->get(PREF(HUDRightMargin));
+	fontsize = Pango::SCALE * prefs->get(PREF(HUDFontSize));
+}
+
+// Must hold the lock before calling.
+void HUD::ensure_surface_locked(const int rwidth, const int rheight)
+{
+	if ((rwidth!=last_drawn_w) || (rheight!=last_drawn_h)) {
 		if (surface)
 			surface->finish();
 		surface.clear();
@@ -78,57 +76,101 @@ void HUD::draw(Plot3::Plot3Plot* plot, const int rwidth, const int rheight)
 		Glib::RefPtr<Gdk::Window> w = parent.get_window();
 		surface = w->create_similar_surface(Cairo::CONTENT_COLOR_ALPHA, rwidth, rheight);
 	}
+}
 
-	Cairo::RefPtr<Cairo::Context> cr = Cairo::Context::create(surface);
-	clear_locked(cr);
-
-	w = rwidth;
-	h = rheight;
-
-	const int XOFFSET = xpos * rwidth / 100;
-	const int WIDTH_PIXELS = hudwidthpct * rwidth / 100;
-
-	Glib::RefPtr<Pango::Layout> lyt = Pango::Layout::create(cr);
-	Pango::FontDescription fontdesc(font_name);
-	lyt->set_font_description(fontdesc);
-	lyt->set_text(info);
-	lyt->set_width(Pango::SCALE * WIDTH_PIXELS);
-	lyt->set_wrap(Pango::WRAP_WORD_CHAR);
-
-	// add up the height, make sure we fit.
+unsigned HUD::compute_layout_height(Glib::RefPtr<Pango::Layout> lyt)
+{
 	Pango::LayoutIter iter = lyt->get_iter();
-	int ytotal = 0;
+	unsigned ytotal = 0;
 	do {
 		int yy = iter.get_line_logical_extents().get_height();
 		ytotal += yy;
 	} while (iter.next_line());
 	ytotal /= PANGO_SCALE;
+	return ytotal;
+}
 
-	const int YOFFSET = ypos * (rheight - ytotal) / 100;
+void HUD::draw(Plot3::Plot3Plot* plot, const int rwidth, const int rheight)
+{
+	std::unique_lock<std::mutex> lock(mux);
+	if (!plot) return; // race condition trap
 
-	//Pango::Rectangle rect = lyt->get_logical_extents();
+	std::shared_ptr<const BrotPrefs::Prefs> prefs = parent.prefs();
+	std::string info = plot->info_zoom(prefs->get(PREF(HUDShowZoom)));
+	int xpos, ypos, xright, fontsize;
+	Gdk::Color fg_gdk, bg_gdk;
+	double alpha;
 
-	// Now iterate again for the text background.
-	iter = lyt->get_iter();
-	do {
-		Pango::Rectangle log = iter.get_line_logical_extents();
+	retrieve_prefs(prefs,fg_gdk,bg_gdk,alpha,xpos,ypos,xright,fontsize);
+	const rgb_double fg(fg_gdk), bg(bg_gdk);
+	const int hudwidthpct = MAX(xright - xpos, 1);
+
+	ensure_surface_locked(rwidth, rheight);
+
+	Cairo::RefPtr<Cairo::Context> cr = Cairo::Context::create(surface);
+	clear_locked(cr);
+
+	last_drawn_w = rwidth;
+	last_drawn_h = rheight;
+
+	const int XOFFSET = xpos * rwidth / 100;
+	const int WIDTH_PIXELS = hudwidthpct * rwidth / 100;
+
+	Pango::FontDescription fontdesc(font_name);
+	fontdesc.set_size(fontsize);
+	fontdesc.set_weight(Pango::Weight::WEIGHT_BOLD);
+
+	Glib::RefPtr<Pango::Layout> lyt = Pango::Layout::create(cr);
+	lyt->set_font_description(fontdesc);
+	lyt->set_markup(info);
+	lyt->set_width(Pango::SCALE * WIDTH_PIXELS);
+	lyt->set_wrap(Pango::WRAP_WORD_CHAR);
+
+	// Make sure we fit.
+	const int YOFFSET = ypos * (rheight - compute_layout_height(lyt)) / 100;
+
+	if (prefs->get(PREF(HUDOutlineText))) {
+		// Outline text effect
 		cr->save();
-		cr->set_source_rgb(bg.r, bg.g, bg.b);
-		// NB. there are PANGO_SCALE pango units to the device unit.
-		cr->rectangle(XOFFSET + log.get_x() / PANGO_SCALE,
-				YOFFSET + log.get_y() / PANGO_SCALE,
-				log.get_width() / PANGO_SCALE, log.get_height() / PANGO_SCALE);
-		cr->clip();
-		cr->paint_with_alpha(alpha);
+		cr->begin_new_path();
+		cr->move_to(XOFFSET,YOFFSET);
+		if (fontsize <= 13)
+			cr->set_line_width(1.0);
+		else
+			cr->set_line_width(2.0);
+		cr->set_operator(Cairo::Operator::OPERATOR_OVER);
+		cr->set_source_rgba(bg.r, bg.g, bg.b, alpha);
+		lyt->update_from_cairo_context(cr);
+		lyt->add_to_cairo_context(cr);
+		cr->stroke_preserve();
+		lyt->show_in_cairo_context(cr);
 		cr->restore();
-	} while (iter.next_line());
+		lyt->update_from_cairo_context(cr);
+	} else {
+		// Boring rectangular text background
+		Pango::LayoutIter iter = lyt->get_iter();
+		do {
+			Pango::Rectangle log = iter.get_line_logical_extents();
+			cr->save();
+			cr->set_source_rgb(bg.r, bg.g, bg.b);
+			// NB. there are PANGO_SCALE pango units to the device unit.
+			cr->rectangle(XOFFSET + log.get_x() / PANGO_SCALE,
+					YOFFSET + log.get_y() / PANGO_SCALE,
+					log.get_width() / PANGO_SCALE, log.get_height() / PANGO_SCALE);
+			cr->clip();
+			cr->paint_with_alpha(alpha);
+			cr->restore();
+		} while (iter.next_line());
+	}
 
+	// Finally, draw the text itself.
 	cr->move_to(XOFFSET,YOFFSET);
 	cr->set_operator(Cairo::Operator::OPERATOR_OVER);
 	cr->set_source_rgba(fg.r, fg.g, fg.b, alpha);
 	lyt->show_in_cairo_context(cr);
 }
 
+// Must hold the lock before calling.
 void HUD::clear_locked(Cairo::RefPtr<Cairo::Context> cr) {
 	cr->save();
 	cr->set_source_rgba(0,0,0,0);

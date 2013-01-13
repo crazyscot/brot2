@@ -47,13 +47,17 @@ namespace PrefsDialogBits {
 	// Label for our dialog sample text.
 	class SampleTextLabel : public ProddableLabel {
 		ColourPanel *fgcol, *bgcol;
+		Gtk::HScale *fontsz;
 	public:
-		SampleTextLabel() : fgcol(0), bgcol(0) { /* We'll set up text later. */ }
+		SampleTextLabel() : fgcol(0), bgcol(0), fontsz(0) { /* We'll set up text later. */ }
 
 		void set_panels(ColourPanel* fg, ColourPanel* bg) {
 			// Urgh, ColourPanel needs to know what to prod, but the prod target also has to get data from either of them. This might be better refactored.
 			fgcol=fg;
 			bgcol=bg;
+		}
+		void set_fontsize(Gtk::HScale* hs) {
+			fontsz = hs;
 		}
 		virtual void prod() {
 			ostringstream str;
@@ -80,11 +84,14 @@ namespace PrefsDialogBits {
 			// a text string with alpha colouring.
 			// TODO: Another day, refactor this to use a DrawingArea and
 			// invoke cairo directly to achieve an alphaful preview.
+			// TODO: Show outline text, if that is selected.
 			str << "<span" <<
 				" foreground=\"#" << FG << "\"" <<
 				" background=\"#" << BG << "\"" <<
-				" font_desc=\"" << HUD::font_name << "\""<<
-				"> Sample text 01234.567e89</span>";
+				" font_family=\"" << HUD::font_name << "\"" <<
+				" size=\"" << fontsz->get_value()*PANGO_SCALE << "\"" <<
+				" weight=\"bold\"" <<
+				"> Sample 0123 </span>";
 			// cout << "Markup is: " << str.str() << endl; // TEST
 			set_markup(str.str());
 		}
@@ -230,76 +237,120 @@ namespace PrefsDialogBits {
 	class HUDFrame : public Gtk::Frame {
 	public:
 		Gtk::VScale *vert;
-		Gtk::HScale *horiz, *rightmarg;
+		Gtk::HScale *horiz, *rightmarg, *fontsize;
 		Gtk::HScale *nalpha; // transparency 0.0-0.5, so alpha is 1.0 - nalpha.
 		Gtk::Adjustment *hadjust, *radjust;
+		Gtk::CheckButton *outline, *show_zoom;
 		ColourPanel *bgcol, *fgcol;
 		SampleTextLabel *sample;
 
 		HUDFrame() : Gtk::Frame("Heads-Up Display"), hadjust(0), radjust(0) {
 			set_border_width(10);
-			Gtk::Table* tbl = Gtk::manage(new Gtk::Table(3,7,false));
+			Gtk::Table* tbl = Gtk::manage(new Gtk::Table(7,2,false));
 			Gtk::Label *lbl;
 
-			lbl = Gtk::manage(new Gtk::Label("Vertical position (%)"));
-			lbl->set_tooltip_text(PREFDESC(HUDVerticalOffset));
-			lbl->set_angle(90);
-			tbl->attach(*lbl, 0, 1, 0, 3);
+			{
+				// Vertical position
+				Gtk::Table* inner = Gtk::manage(new Gtk::Table(1,2,false));
+				tbl->attach(*inner, 0, 1, 0, 5);
 
-			lbl = Gtk::manage(new Gtk::Label("Horizontal position (%)"));
-			lbl->set_tooltip_text(PREFDESC(HUDHorizontalOffset));
-			tbl->attach(*lbl, 0, 3, 4, 5);
+				lbl = Gtk::manage(new Gtk::Label("Vertical position (%)"));
+				lbl->set_tooltip_text(PREFDESC(HUDVerticalOffset));
+				lbl->set_angle(90);
+				inner->attach(*lbl, 0, 1, 0, 3);
 
-			lbl = Gtk::manage(new Gtk::Label("Right margin (%)"));
-			lbl->set_tooltip_text(PREFDESC(HUDRightMargin));
-			tbl->attach(*lbl, 0, 3, 6, 7);
+				vert = Gtk::manage(new Gtk::VScale(0.0, 105.0, 5.0));
+				vert->set_digits(0);
+				vert->set_value_pos(Gtk::PositionType::POS_LEFT);
+				vert->set_tooltip_text(PREFDESC(HUDVerticalOffset));
+				inner->attach(*vert, 1, 2, 0, 3);
+			}
+			{
+				// Right margin
+				Gtk::Table* inner = Gtk::manage(new Gtk::Table(2,1,false));
+				tbl->attach(*inner, 0, 2, 6, 7);
 
-			vert = Gtk::manage(new Gtk::VScale(0.0, 105.0, 5.0));
-			vert->set_digits(0);
-			vert->set_value_pos(Gtk::PositionType::POS_LEFT);
-			vert->set_tooltip_text(PREFDESC(HUDVerticalOffset));
-			tbl->attach(*vert, 1, 2, 0, 3);
+				lbl = Gtk::manage(new Gtk::Label("Right margin (%)"));
+				lbl->set_tooltip_text(PREFDESC(HUDRightMargin));
+				inner->attach(*lbl, 0, 1, 1, 2);
+				rightmarg = Gtk::manage(new Gtk::HScale(1.0, 105.0, 5.0));
+				rightmarg->set_digits(0);
+				rightmarg->set_value_pos(Gtk::PositionType::POS_TOP);
+				rightmarg->set_tooltip_text(PREFDESC(HUDRightMargin));
+				inner->attach(*rightmarg, 0, 1, 0, 1);
+			}
+			{
+				// Horizontal position
+				// Note ordering - we need rightmarg to be set up by now
+				Gtk::Table* inner = Gtk::manage(new Gtk::Table(2,1,false));
+				tbl->attach(*inner, 0, 2, 5, 6);
 
-			rightmarg = Gtk::manage(new Gtk::HScale(1.0, 105.0, 5.0));
-			horiz = Gtk::manage(new ConstrainingHScale(rightmarg, 0.0, 104.0, 5.0));
-			horiz->set_digits(0);
-			horiz->set_value_pos(Gtk::PositionType::POS_TOP);
-			horiz->set_tooltip_text(PREFDESC(HUDHorizontalOffset));
-			tbl->attach(*horiz, 0, 3, 3, 4);
+				lbl = Gtk::manage(new Gtk::Label("Horizontal position (%)"));
+				lbl->set_tooltip_text(PREFDESC(HUDHorizontalOffset));
+				inner->attach(*lbl, 0, 1, 1, 2);
+				horiz = Gtk::manage(new ConstrainingHScale(rightmarg, 0.0, 104.0, 5.0));
+				horiz->set_digits(0);
+				horiz->set_value_pos(Gtk::PositionType::POS_TOP);
+				horiz->set_tooltip_text(PREFDESC(HUDHorizontalOffset));
+				inner->attach(*horiz, 0, 1, 0, 1);
+			}
 
-			// done above so we've got the pointer to hand // rightmarg = Gtk::manage(new Gtk::HScale(0.0, 104.0, 5.0));
-			rightmarg->set_digits(0);
-			rightmarg->set_value_pos(Gtk::PositionType::POS_TOP);
-			rightmarg->set_tooltip_text(PREFDESC(HUDRightMargin));
-			tbl->attach(*rightmarg, 0, 3, 5, 6);
+			{ // Transparency widget
+				Gtk::Table* inner = Gtk::manage(new Gtk::Table(2,1,false));
+				tbl->attach(*inner, 1, 2, 1, 2);
 
-			lbl = Gtk::manage(new Gtk::Label("Transparency"));
-			lbl->set_tooltip_text(PREFDESC(HUDTransparency));
-			tbl->attach(*lbl, 2, 3, 2, 3);
+				lbl = Gtk::manage(new Gtk::Label("Transparency"));
+				lbl->set_tooltip_text(PREFDESC(HUDTransparency));
+				inner->attach(*lbl, 0, 1, 0, 1);
 
-			nalpha = Gtk::manage(new Gtk::HScale(0.0, 0.6, 0.10));
-			nalpha->set_digits(1);
-			nalpha->set_value_pos(Gtk::PositionType::POS_RIGHT);
-			nalpha->set_tooltip_text(PREFDESC(HUDTransparency));
-			tbl->attach(*nalpha, 2, 3, 1, 2);
+				nalpha = Gtk::manage(new Gtk::HScale(0.0, 0.6, 0.10));
+				nalpha->set_digits(1);
+				nalpha->set_value_pos(Gtk::PositionType::POS_RIGHT);
+				nalpha->set_tooltip_text(PREFDESC(HUDTransparency));
+				inner->attach(*nalpha, 0, 1, 1, 2);
+			}
 
-			Gtk::Table* inner = Gtk::manage(new Gtk::Table(2,3,false));
-			tbl->attach(*inner, 2, 3, 0, 1);
+			{ // Colour pickers and sample text
+				Gtk::Table* inner = Gtk::manage(new Gtk::Table(2,3,false));
+				tbl->attach(*inner, 1, 2, 0, 1);
 
-			sample = Gtk::manage(new SampleTextLabel());
-			inner->attach(*sample, 0, 2, 1, 2);
+				sample = Gtk::manage(new SampleTextLabel());
+				inner->attach(*sample, 0, 2, 1, 2);
 
-			fgcol = Gtk::manage(new ColourPanel(this, sample));
-			fgcol->set_tooltip_text("HUD text colour");
-			inner->attach(*fgcol, 0, 1, 0, 1, Gtk::AttachOptions::FILL, Gtk::AttachOptions::FILL);
-			bgcol = Gtk::manage(new ColourPanel(this, sample));
-			bgcol->set_tooltip_text("HUD background colour");
-			inner->attach(*bgcol, 1, 2, 0, 1, Gtk::AttachOptions::FILL, Gtk::AttachOptions::FILL);
+				fgcol = Gtk::manage(new ColourPanel(this, sample));
+				fgcol->set_tooltip_text("HUD text colour");
+				inner->attach(*fgcol, 0, 1, 0, 1, Gtk::AttachOptions::FILL, Gtk::AttachOptions::FILL);
+				bgcol = Gtk::manage(new ColourPanel(this, sample));
+				bgcol->set_tooltip_text("HUD background colour");
+				inner->attach(*bgcol, 1, 2, 0, 1, Gtk::AttachOptions::FILL, Gtk::AttachOptions::FILL);
 
-			sample->set_panels(fgcol, bgcol);
+				sample->set_panels(fgcol, bgcol);
 
-			lbl = Gtk::manage(new Gtk::Label()); // empty, for spacing
-			inner->attach(*lbl, 0, 2, 2, 3);
+				lbl = Gtk::manage(new Gtk::Label()); // empty, for spacing
+				inner->attach(*lbl, 0, 2, 2, 3);
+			}
+
+			{ // Font size widget
+				Gtk::Table* inner = Gtk::manage(new Gtk::Table(2,1,false));
+				tbl->attach(*inner, 1, 2, 2, 3);
+
+				lbl = Gtk::manage(new Gtk::Label("Font size"));
+				inner->attach(*lbl, 0, 1, 0, 1);
+				fontsize = Gtk::manage(new Gtk::HScale(6.0, 26.0, 2.0));
+				fontsize->set_digits(0);
+				fontsize->set_value_pos(Gtk::PositionType::POS_RIGHT);
+				fontsize->set_tooltip_text(PREFDESC(HUDFontSize));
+				inner->attach(*fontsize, 0, 1, 1, 2);
+
+				fontsize->signal_value_changed().connect(sigc::mem_fun(sample, &SampleTextLabel::prod));
+				sample->set_fontsize(fontsize);
+			}
+
+			outline = Gtk::manage(new Gtk::CheckButton("Outline text"));
+			tbl->attach(*outline, 1, 2, 3, 4);
+
+			show_zoom = Gtk::manage(new Gtk::CheckButton("Show \"Zoom:\""));
+			tbl->attach(*show_zoom, 1, 2, 4, 5);
 
 			add(*tbl);
 		}
@@ -309,6 +360,9 @@ namespace PrefsDialogBits {
 			vert->set_value(prefs.get(PREF(HUDVerticalOffset)));
 			nalpha->set_value(prefs.get(PREF(HUDTransparency)));
 			rightmarg->set_value(prefs.get(PREF(HUDRightMargin)));
+			fontsize->set_value(prefs.get(PREF(HUDFontSize)));
+			outline->set_active(prefs.get(PREF(HUDOutlineText)));
+			show_zoom->set_active(prefs.get(PREF(HUDShowZoom)));
 
 			Gdk::Color bg,fg;
 			if (!bg.set(prefs.get(PREF(HUDBackgroundColour))))
@@ -325,6 +379,9 @@ namespace PrefsDialogBits {
 			vert->set_value(PREF(HUDVerticalOffset)._default);
 			nalpha->set_value(PREF(HUDTransparency)._default);
 			rightmarg->set_value(PREF(HUDRightMargin)._default);
+			fontsize->set_value(PREF(HUDFontSize)._default);
+			outline->set_active(PREF(HUDOutlineText)._default);
+			show_zoom->set_active(PREF(HUDShowZoom)._default);
 
 			Gdk::Color bg(PREF(HUDBackgroundColour)._default);
 			Gdk::Color fg(PREF(HUDTextColour)._default);
@@ -340,6 +397,9 @@ namespace PrefsDialogBits {
 			prefs.set(PREF(HUDVerticalOffset), vert->get_value());
 			prefs.set(PREF(HUDTransparency), nalpha->get_value());
 			prefs.set(PREF(HUDRightMargin), rightmarg->get_value());
+			prefs.set(PREF(HUDFontSize), fontsize->get_value());
+			prefs.set(PREF(HUDOutlineText), outline->get_active());
+			prefs.set(PREF(HUDShowZoom), show_zoom->get_active());
 
 			prefs.set(PREF(HUDBackgroundColour), bgcol->get_colour().to_string());
 			prefs.set(PREF(HUDTextColour), fgcol->get_colour().to_string());
