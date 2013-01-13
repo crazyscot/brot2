@@ -240,19 +240,19 @@ namespace PrefsDialogBits {
 		Gtk::HScale *horiz, *rightmarg, *fontsize;
 		Gtk::HScale *nalpha; // transparency 0.0-0.5, so alpha is 1.0 - nalpha.
 		Gtk::Adjustment *hadjust, *radjust;
-		Gtk::CheckButton *outline;
+		Gtk::CheckButton *outline, *show_zoom;
 		ColourPanel *bgcol, *fgcol;
 		SampleTextLabel *sample;
 
 		HUDFrame() : Gtk::Frame("Heads-Up Display"), hadjust(0), radjust(0) {
 			set_border_width(10);
-			Gtk::Table* tbl = Gtk::manage(new Gtk::Table(6,2,false));
+			Gtk::Table* tbl = Gtk::manage(new Gtk::Table(7,2,false));
 			Gtk::Label *lbl;
 
 			{
 				// Vertical position
 				Gtk::Table* inner = Gtk::manage(new Gtk::Table(1,2,false));
-				tbl->attach(*inner, 0, 1, 0, 4);
+				tbl->attach(*inner, 0, 1, 0, 5);
 
 				lbl = Gtk::manage(new Gtk::Label("Vertical position (%)"));
 				lbl->set_tooltip_text(PREFDESC(HUDVerticalOffset));
@@ -268,7 +268,7 @@ namespace PrefsDialogBits {
 			{
 				// Right margin
 				Gtk::Table* inner = Gtk::manage(new Gtk::Table(2,1,false));
-				tbl->attach(*inner, 0, 2, 5, 6);
+				tbl->attach(*inner, 0, 2, 6, 7);
 
 				lbl = Gtk::manage(new Gtk::Label("Right margin (%)"));
 				lbl->set_tooltip_text(PREFDESC(HUDRightMargin));
@@ -283,7 +283,7 @@ namespace PrefsDialogBits {
 				// Horizontal position
 				// Note ordering - we need rightmarg to be set up by now
 				Gtk::Table* inner = Gtk::manage(new Gtk::Table(2,1,false));
-				tbl->attach(*inner, 0, 2, 4, 5);
+				tbl->attach(*inner, 0, 2, 5, 6);
 
 				lbl = Gtk::manage(new Gtk::Label("Horizontal position (%)"));
 				lbl->set_tooltip_text(PREFDESC(HUDHorizontalOffset));
@@ -349,6 +349,9 @@ namespace PrefsDialogBits {
 			outline = Gtk::manage(new Gtk::CheckButton("Outline text"));
 			tbl->attach(*outline, 1, 2, 3, 4);
 
+			show_zoom = Gtk::manage(new Gtk::CheckButton("Show \"Zoom:\""));
+			tbl->attach(*show_zoom, 1, 2, 4, 5);
+
 			add(*tbl);
 		}
 
@@ -359,6 +362,7 @@ namespace PrefsDialogBits {
 			rightmarg->set_value(prefs.get(PREF(HUDRightMargin)));
 			fontsize->set_value(prefs.get(PREF(HUDFontSize)));
 			outline->set_active(prefs.get(PREF(HUDOutlineText)));
+			show_zoom->set_active(prefs.get(PREF(HUDShowZoom)));
 
 			Gdk::Color bg,fg;
 			if (!bg.set(prefs.get(PREF(HUDBackgroundColour))))
@@ -377,6 +381,7 @@ namespace PrefsDialogBits {
 			rightmarg->set_value(PREF(HUDRightMargin)._default);
 			fontsize->set_value(PREF(HUDFontSize)._default);
 			outline->set_active(PREF(HUDOutlineText)._default);
+			show_zoom->set_active(PREF(HUDShowZoom)._default);
 
 			Gdk::Color bg(PREF(HUDBackgroundColour)._default);
 			Gdk::Color fg(PREF(HUDTextColour)._default);
@@ -394,6 +399,7 @@ namespace PrefsDialogBits {
 			prefs.set(PREF(HUDRightMargin), rightmarg->get_value());
 			prefs.set(PREF(HUDFontSize), fontsize->get_value());
 			prefs.set(PREF(HUDOutlineText), outline->get_active());
+			prefs.set(PREF(HUDShowZoom), show_zoom->get_active());
 
 			prefs.set(PREF(HUDBackgroundColour), bgcol->get_colour().to_string());
 			prefs.set(PREF(HUDTextColour), fgcol->get_colour().to_string());
