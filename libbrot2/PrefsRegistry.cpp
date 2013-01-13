@@ -86,6 +86,9 @@ namespace BrotPrefs {
 				"HUD font size (6-24)",
 				6, 12, 24,
 				Groups::HUD, "fontsize"),
+		HUDOutlineText("HUD outline text",
+				"Use outline text for the HUD?",
+				true, Groups::HUD, "use_outline_text"),
 		end()
 	{ }
 
