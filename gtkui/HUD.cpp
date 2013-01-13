@@ -122,7 +122,7 @@ void HUD::draw(Plot3::Plot3Plot* plot, const int rwidth, const int rheight)
 
 	Glib::RefPtr<Pango::Layout> lyt = Pango::Layout::create(cr);
 	lyt->set_font_description(fontdesc);
-	lyt->set_text(info);
+	lyt->set_markup(info);
 	lyt->set_width(Pango::SCALE * WIDTH_PIXELS);
 	lyt->set_wrap(Pango::WRAP_WORD_CHAR);
 
