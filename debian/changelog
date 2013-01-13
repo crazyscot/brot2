@@ -8,8 +8,10 @@ brot2 (1.0+unreleased) UNRELEASED; urgency=low
   * LP#1039385: Major HUD improvements: text reduced; font size is now
   variable (and a preference); can appear with an outline text effect;
   can show/hide 'Zoom:' legend; uses reasonable superscript notation.
+  * LP#1033910: Report in the HUD when we're at the zoom limit, and don't
+  bother to zoom further.
 
- -- Ross Younger <0ryoungerk.launchpad@coriolis.greenend.org.uk>  Sun, 13 Jan 2013 17:29:45 +1300
+ -- Ross Younger <0ryoungerk.launchpad@coriolis.greenend.org.uk>  Sun, 13 Jan 2013 18:01:10 +1300
 
 brot2 (1.0) oneiric; urgency=low
 
