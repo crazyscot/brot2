@@ -5,10 +5,11 @@ brot2 (1.0+unreleased) UNRELEASED; urgency=low
   * Major rewrite of the fractal plotting machinery, with reasonable unit
   test support (closes #882411).  'make check' added.  Updated CLI and gtkui
   to use new machinery.  Removed old Render and Plot2 as obsolete.
-  * LP#1039385: HUD text reduced. Font size is now variable (and a
-  preference).  The HUD can now appear with an outline text effect.
+  * LP#1039385: Major HUD improvements: text reduced; font size is now
+  variable (and a preference); can appear with an outline text effect;
+  can show/hide 'Zoom:' legend; uses reasonable superscript notation.
 
- -- Ross Younger <0ryoungerk.launchpad@coriolis.greenend.org.uk>  Sun, 13 Jan 2013 16:40:39 +1300
+ -- Ross Younger <0ryoungerk.launchpad@coriolis.greenend.org.uk>  Sun, 13 Jan 2013 17:29:45 +1300
 
 brot2 (1.0) oneiric; urgency=low
 
