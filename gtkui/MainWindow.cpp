@@ -151,12 +151,17 @@ void MainWindow::zoom_mechanics(enum Zoom type) {
 
 void MainWindow::do_zoom(enum Zoom type) {
 	if (!canvas) return;
+	// LP#1033910: Don't allow a straight zoom in when we're at max.
+	if (is_clipping() && type == ZOOM_IN)
+		return;
 	zoom_mechanics(type);
 	do_plot(false);
 }
 
 void MainWindow::do_zoom(enum Zoom type, const Fractal::Point& newcentre) {
 	if (!canvas) return;
+	// LP#1033910: Go ahead with a recentring zoom if at max, as we need to replot anyway
+	// (but won't actually zoom).
 	zoom_mechanics(type);
 	new_centre_checked(newcentre);
 	do_plot(false);
@@ -279,18 +284,19 @@ void MainWindow::do_plot(bool is_same_plot)
 
 	double aspect;
 
+	aspectfix = clip = false;
 	aspect = (double)rwidth / rheight;
 	if (imag(size) * aspect != real(size)) {
 		size.imag(real(size)/aspect);
-		aspectfix=1;
+		aspectfix=true;
 	}
-	if (fabs(real(size)/rwidth) < MINIMUM_PIXEL_SIZE) {
+	if (fabs(real(size)/rwidth) <= MINIMUM_PIXEL_SIZE) {
 		size.real(MINIMUM_PIXEL_SIZE*rwidth);
-		clip = 1;
+		clip = true;
 	}
-	if (fabs(imag(size)/rheight) < MINIMUM_PIXEL_SIZE) {
+	if (fabs(imag(size)/rheight) <= MINIMUM_PIXEL_SIZE) {
 		size.imag(MINIMUM_PIXEL_SIZE*rheight);
-		clip = 1;
+		clip = true;
 	}
 
 	// N.B. This (gtk/gdk lib calls from non-main thread) will not work at all on win32; will need to refactor if I ever port.
@@ -388,7 +394,6 @@ void MainWindow::plot_complete()
 		info << " Aspect ratio autofixed.";
 	if (clip)
 		info << " Resolution limit reached, cannot zoom further!";
-	clip = aspectfix = false;
 
 	progbar->set_fraction(1.0);
 	progbar->set_text(info.str().c_str());

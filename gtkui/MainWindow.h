@@ -108,6 +108,8 @@ public:
 
 	const Fractal::Point& get_centre() const { return centre; }
 	const Fractal::Point& get_size() const { return size; }
+	bool is_clipping() const { return clip; }
+	bool is_aspect_fixed() const { return aspectfix; }
 
 	void update_params(Fractal::Point& centre, Fractal::Point& size);
 	void new_centre_checked(const Fractal::Point& centre);
