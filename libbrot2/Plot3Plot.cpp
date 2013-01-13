@@ -121,7 +121,12 @@ string Plot3Plot::info_zoom(bool show_legend) const {
 	/* In support of LP#1039385 */
 	Fractal::Value z = zoom();
 	std::ostringstream rv;
-	rv.precision(2);
+	if (z > 10000.0) {
+		rv.precision(2);
+		rv << scientific;
+	} else {
+		rv.precision(4);
+	}
 	if (show_legend)
 		rv << "Zoom: ";
 	rv << z;
