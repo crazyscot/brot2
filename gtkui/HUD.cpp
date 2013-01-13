@@ -96,10 +96,14 @@ void HUD::draw(Plot3::Plot3Plot* plot, const int rwidth, const int rheight)
 	if (!plot) return; // race condition trap
 
 	std::shared_ptr<const BrotPrefs::Prefs> prefs = parent.prefs();
-	std::string info = plot->info_zoom(prefs->get(PREF(HUDShowZoom)));
 	int xpos, ypos, xright, fontsize;
 	Gdk::Color fg_gdk, bg_gdk;
 	double alpha;
+
+	std::string info = plot->info_zoom(prefs->get(PREF(HUDShowZoom)));
+	if (parent.is_clipping()) {
+		info.append(" (max!)");
+	}
 
 	retrieve_prefs(prefs,fg_gdk,bg_gdk,alpha,xpos,ypos,xright,fontsize);
 	const rgb_double fg(fg_gdk), bg(bg_gdk);
