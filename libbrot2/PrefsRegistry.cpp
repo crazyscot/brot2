@@ -48,7 +48,7 @@ namespace BrotPrefs {
 		MinEscapeePct("Minimum escapee %",
 				"Percentage of pixels required to have escaped before a plot "
 				"is considered finished",
-				0, 20, 100,
+				0, 14, 100,
 				Groups::PLOT_CONTROL, "minimum_done_percent"),
 
 		MaxPlotThreads("Max plot threads",

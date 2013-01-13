@@ -262,7 +262,7 @@ void Plot3Plot::run() {
 				delta_threshold *= 2;
 				DEBUG_LIVECOUNT(std::cout << "Delta " << delta << " getting close to threshold " << delta_threshold << " - doubling threshold" << std::endl);
 			} else {
-				DEBUG_LIVECOUNT(std::cout << "Delta " << delta << " < threshold " << delta_threshold << " - still going" << std::endl);
+				DEBUG_LIVECOUNT(std::cout << "Delta " << delta << " > threshold " << delta_threshold << " - still going" << std::endl);
 			}
 		}
 
