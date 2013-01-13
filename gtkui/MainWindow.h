@@ -67,7 +67,7 @@ class MainWindow : public Gtk::Window, Plot3::IPlot3DataSink {
 	bool draw_hud, antialias;
 	bool initializing; // Disables certain event actions when set.
 
-	bool aspectfix, clip, recolour_when_done; // Details about the current render
+	bool aspectfix, at_max_zoom, at_min_zoom, recolour_when_done; // Details about the current render
 
 	struct timeval plot_tv_start;
 
@@ -108,7 +108,8 @@ public:
 
 	const Fractal::Point& get_centre() const { return centre; }
 	const Fractal::Point& get_size() const { return size; }
-	bool is_clipping() const { return clip; }
+	bool is_at_max_zoom() const { return at_max_zoom; }
+	bool is_at_min_zoom() const { return at_min_zoom; }
 	bool is_aspect_fixed() const { return aspectfix; }
 
 	void update_params(Fractal::Point& centre, Fractal::Point& size);

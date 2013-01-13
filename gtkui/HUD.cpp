@@ -101,9 +101,10 @@ void HUD::draw(Plot3::Plot3Plot* plot, const int rwidth, const int rheight)
 	double alpha;
 
 	std::string info = plot->info_zoom(prefs->get(PREF(HUDShowZoom)));
-	if (parent.is_clipping()) {
+	if (parent.is_at_max_zoom())
 		info.append(" (max!)");
-	}
+	if (parent.is_at_min_zoom())
+		info.append(" (min!)");
 
 	retrieve_prefs(prefs,fg_gdk,bg_gdk,alpha,xpos,ypos,xright,fontsize);
 	const rgb_double fg(fg_gdk), bg(bg_gdk);
