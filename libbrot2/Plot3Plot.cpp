@@ -56,6 +56,8 @@ using namespace std;
 
 namespace Plot3 {
 
+ThreadPool Plot3Plot::runner_pool(1);
+
 Plot3Plot::Plot3Plot(ThreadPool& pool, IPlot3DataSink* s, FractalImpl& f, ChunkDivider::Base& d,
 		Point centre, Point size,
 		unsigned width, unsigned height, unsigned max_passes) :
@@ -65,9 +67,7 @@ Plot3Plot::Plot3Plot(ThreadPool& pool, IPlot3DataSink* s, FractalImpl& f, ChunkD
 		prefs(Prefs::getMaster()),
 		_shutdown(false), _running(false), _stop(false),
 		plotted_maxiter(0), plotted_passes(0),
-		passes_max(max_passes),
-		_runs_sema(0),
-		runner(&Plot3Plot::threadfunc,this)
+		passes_max(max_passes)
 		// Note: Initialisation order is crucial when the threadfunc will immediately lock _lock !
 		//callback(0), _data(0), _abort(false), _done(false), _outstanding(0),
 		//_completed(0), jobs(0)
@@ -159,7 +159,7 @@ void Plot3Plot::start() {
 	_running = true;
 	_stop = false;
 	lock.unlock();
-	poke_runner();
+	completion = runner_pool.enqueue<void>([=]{ this->threadfunc(); });
 }
 
 /* Asynch stop, return immediately */
@@ -171,39 +171,21 @@ void Plot3Plot::stop() {
 /* Wait for completion. Does not call stop() first. */
 void Plot3Plot::wait() {
 	std::unique_lock<std::mutex> lock(_lock);
-	if (!_running) return;
-	_completion_cond.wait(lock);
-}
-
-
-/** Sends a message to the worker thread */
-void Plot3Plot::poke_runner() {
-	std::unique_lock<std::mutex> lock(_lock);
-	++_runs_sema;
-	_runs_cond.notify_all();
+	while (_running)
+		_waiters_cond.wait(lock);
 }
 
 /**
- * Our message-processing worker thread
+ * Our master monitoring thread
  */
 void Plot3Plot::threadfunc() {
+	run();
 	std::unique_lock<std::mutex> lock(_lock);
-	while(!_shutdown) {
-		{
-			while (!_runs_sema) {
-				_runs_cond.wait(lock);
-				if (_shutdown) return;
-			}
-			--_runs_sema;
-		}
-		lock.unlock();
-		run();
-		lock.lock();
-	}
+	_waiters_cond.notify_all();
 }
 
 /**
- * The actual work of running a Plot. This happens in its own thread.
+ * The actual work of running a Plot. This happens in a thread.
  */
 void Plot3Plot::run() {
 	std::unique_lock<std::mutex> lock(_lock);
@@ -293,16 +275,15 @@ void Plot3Plot::run() {
 	_running = false;
 	lock.unlock();
 	sink->plot_complete();
-	lock.lock();
-	_completion_cond.notify_all();
 }
 
 Plot3Plot::~Plot3Plot() {
-	std::unique_lock<std::mutex> lock(_lock);
-	_shutdown = true;
-	lock.unlock();
-	poke_runner();
-	runner.join();
+	{
+		std::unique_lock<std::mutex> lock(_lock);
+		_shutdown = true;
+	}
+	// Must wait for all jobs to finish before we delete any data, otherwise things will get messy
+	completion.get();
 	for (auto it: _chunks) {
 		delete it;
 	}

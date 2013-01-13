@@ -73,8 +73,8 @@ public:
 	void stop();
 
 	/**
-	 * Stops the plot ASAP, blocking until it has done so.
-	 * NOTE that we first call the data sink's completion
+	 * Waits for the plot to complete. Blocking.
+	 * NOTE that we call the data sink's completion
 	 * handler (if present) before returning.
 	 * May return immediately if the plot was not running.
 	 */
@@ -115,20 +115,17 @@ protected:
 	unsigned passes_max; // Do we have an absolute limit on the number of passes?
 
 	void threadfunc(); // Worker thread function
-	void run(); // Actually does the work
+	void run(); // Actually does the work. Runs in its own thread (set up by constructor, called on start()).
 
 private:
 	std::list<Plot3Chunk*> _chunks;
 
 	/* Message passing between threads within the class */
 	std::mutex _lock;
-	std::atomic<int> _runs_sema; // Protected by _lock, notify by _runs_cond
-	std::condition_variable _runs_cond; // Protected by _lock
-	std::condition_variable _completion_cond; // Also protected by _lock
+	std::condition_variable _waiters_cond; // Protected by _lock. For anybody wait()ing on us to finish.
 
-	std::thread runner;
-
-	void poke_runner();
+	static ThreadPool runner_pool; // LP#1099061: A single threaded "pool", runs our plot threads.
+	std::future<void> completion; // Use get() in the destructor, to ensure all jobs finished. Callers should use wait().
 
 public:
 	// Wormhole to access the chunks list. Calls wait() first.
