@@ -63,7 +63,7 @@ MainWindow::MainWindow() : Gtk::Window(),
 			rwidth(0), rheight(0),
 			draw_hud(true), antialias(false),
 			initializing(true),
-			aspectfix(false), clip(false), recolour_when_done(false),
+			aspectfix(false), at_max_zoom(false), at_min_zoom(false), recolour_when_done(false),
 			divider(new Plot3::ChunkDivider::Superpixel(64)),
 			dragrect(*this),
 			_threadpool(BrotPrefs::threadpool_size(prefs()))
@@ -132,16 +132,22 @@ void MainWindow::zoom_mechanics(enum Zoom type) {
 	switch (type) {
 	case ZOOM_IN:
 		size /= ZOOM_FACTOR;
+		at_min_zoom = false;
 		break;
 	case ZOOM_OUT:
 		size *= ZOOM_FACTOR;
+		at_min_zoom = false;
 		{
 			Fractal::Value d = real(size), lim = fractal->xmax - fractal->xmin;
-			if (d > lim)
+			if (d > lim) {
 				size.real(lim);
+				at_min_zoom = true;
+			}
 			d = imag(size), lim = fractal->ymax - fractal->ymin;
-			if (d > lim)
+			if (d > lim) {
 				size.imag(lim);
+				at_min_zoom = true;
+			}
 		}
 		break;
 	case REDRAW_ONLY:
@@ -152,7 +158,7 @@ void MainWindow::zoom_mechanics(enum Zoom type) {
 void MainWindow::do_zoom(enum Zoom type) {
 	if (!canvas) return;
 	// LP#1033910: Don't allow a straight zoom in when we're at max.
-	if (is_clipping() && type == ZOOM_IN)
+	if ( (is_at_max_zoom() && type == ZOOM_IN) || (is_at_min_zoom() && type == ZOOM_OUT) )
 		return;
 	zoom_mechanics(type);
 	do_plot(false);
@@ -284,7 +290,7 @@ void MainWindow::do_plot(bool is_same_plot)
 
 	double aspect;
 
-	aspectfix = clip = false;
+	aspectfix = at_max_zoom = false;
 	aspect = (double)rwidth / rheight;
 	if (imag(size) * aspect != real(size)) {
 		size.imag(real(size)/aspect);
@@ -292,11 +298,11 @@ void MainWindow::do_plot(bool is_same_plot)
 	}
 	if (fabs(real(size)/rwidth) <= MINIMUM_PIXEL_SIZE) {
 		size.real(MINIMUM_PIXEL_SIZE*rwidth);
-		clip = true;
+		at_max_zoom = true;
 	}
 	if (fabs(imag(size)/rheight) <= MINIMUM_PIXEL_SIZE) {
 		size.imag(MINIMUM_PIXEL_SIZE*rheight);
-		clip = true;
+		at_max_zoom = true;
 	}
 
 	// N.B. This (gtk/gdk lib calls from non-main thread) will not work at all on win32; will need to refactor if I ever port.
@@ -392,8 +398,10 @@ void MainWindow::plot_complete()
 	info << plot->get_passes() <<" passes; maxiter=" << plot->get_maxiter() << ".";
 	if (aspectfix)
 		info << " Aspect ratio autofixed.";
-	if (clip)
+	if (at_max_zoom)
 		info << " Resolution limit reached, cannot zoom further!";
+	if (at_min_zoom)
+		info << " Cannot zoom out further!";
 
 	progbar->set_fraction(1.0);
 	progbar->set_text(info.str().c_str());
