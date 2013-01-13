@@ -159,7 +159,7 @@ void Plot3Plot::start() {
 	_running = true;
 	_stop = false;
 	lock.unlock();
-	completion = runner_pool.enqueue<void>([=]{ this->threadfunc(); });
+	completion = runner_pool.enqueue<void>([=]{ this->run(); });
 }
 
 /* Asynch stop, return immediately */
@@ -173,15 +173,6 @@ void Plot3Plot::wait() {
 	std::unique_lock<std::mutex> lock(_lock);
 	while (_running)
 		_waiters_cond.wait(lock);
-}
-
-/**
- * Our master monitoring thread
- */
-void Plot3Plot::threadfunc() {
-	run();
-	std::unique_lock<std::mutex> lock(_lock);
-	_waiters_cond.notify_all();
 }
 
 /**
@@ -275,6 +266,8 @@ void Plot3Plot::run() {
 	_running = false;
 	lock.unlock();
 	sink->plot_complete();
+	lock.lock();
+	_waiters_cond.notify_all();
 }
 
 Plot3Plot::~Plot3Plot() {

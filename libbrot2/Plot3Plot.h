@@ -114,7 +114,6 @@ protected:
 	int plotted_passes; // How many passes before bailing?
 	unsigned passes_max; // Do we have an absolute limit on the number of passes?
 
-	void threadfunc(); // Worker thread function
 	void run(); // Actually does the work. Runs in its own thread (set up by constructor, called on start()).
 
 private:
