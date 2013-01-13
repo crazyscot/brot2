@@ -38,7 +38,7 @@ struct rgb_double {
 	}
 };
 
-HUD::HUD(MainWindow &window) : parent(window), w(0), h(0) {
+HUD::HUD(MainWindow &window) : parent(window), last_drawn_w(0), last_drawn_h(0) {
 }
 
 const std::string HUD::font_name = "sans-serif";
@@ -65,7 +65,7 @@ void HUD::retrieve_prefs(std::shared_ptr<const Prefs> prefs,
 // Must hold the lock before calling.
 void HUD::ensure_surface_locked(const int rwidth, const int rheight)
 {
-	if ((rwidth!=w) || (rheight!=h)) {
+	if ((rwidth!=last_drawn_w) || (rheight!=last_drawn_h)) {
 		if (surface)
 			surface->finish();
 		surface.clear();
@@ -108,8 +108,8 @@ void HUD::draw(Plot3::Plot3Plot* plot, const int rwidth, const int rheight)
 	Cairo::RefPtr<Cairo::Context> cr = Cairo::Context::create(surface);
 	clear_locked(cr);
 
-	w = rwidth;
-	h = rheight;
+	last_drawn_w = rwidth;
+	last_drawn_h = rheight;
 
 	const int XOFFSET = xpos * rwidth / 100;
 	const int WIDTH_PIXELS = hudwidthpct * rwidth / 100;

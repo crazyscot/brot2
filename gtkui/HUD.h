@@ -34,7 +34,7 @@ class HUD {
 protected:
 	MainWindow &parent;
 	Cairo::RefPtr<Cairo::Surface> surface;
-	int w, h; // Last size we drew to
+	int last_drawn_w, last_drawn_h; // Last size we drew to
 	std::mutex mux; // Protects all contents
 
 	// Must hold the lock before calling.
