@@ -121,18 +121,35 @@ string Plot3Plot::info_zoom(bool show_legend) const {
 	/* In support of LP#1039385 */
 	Fractal::Value z = zoom();
 	std::ostringstream rv;
+	if (show_legend)
+		rv << "Zoom: ";
+	else
+		rv << "x";
+
 	if (z > 10000.0) {
 		rv.precision(2);
 		rv << scientific;
+		rv << z;
 	} else {
 		rv.precision(4);
+		rv << z;
 	}
-	if (show_legend)
-		rv << "Zoom: ";
-	rv << z;
-	if (!show_legend)
-		rv << "x";
-	return rv.str();
+
+	string rs = rv.str();
+	if (z > 10000.0) {
+		// Messy...
+		size_t pos = rs.find("e");
+		if(pos != std::string::npos)
+			rs.replace(pos, 1, "x10<sup>");
+		pos = rs.find("+0"); // Pesky extra zeroes, can't see how to turn them off
+		if(pos != std::string::npos)
+			rs.replace(pos, 2, "");
+		pos = rs.find("+"); // This one shouldn't get triggered, but be paranoid
+		if(pos != std::string::npos)
+			rs.replace(pos, 1, "");
+		rs.append("</sup>");
+	}
+	return rs;
 }
 
 /* Starts a plot. The actual work happens in the background. */
