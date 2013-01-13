@@ -41,7 +41,7 @@ struct rgb_double {
 HUD::HUD(MainWindow &window) : parent(window), w(0), h(0) {
 }
 
-const std::string HUD::font_name = "Luxi Sans 9";
+const std::string HUD::font_name = "sans-serif";
 
 void HUD::retrieve_prefs(std::shared_ptr<const Prefs> prefs,
 		Gdk::Color& fgcol, Gdk::Color& bgcol, double& alpha,
@@ -113,8 +113,11 @@ void HUD::draw(Plot3::Plot3Plot* plot, const int rwidth, const int rheight)
 	const int XOFFSET = xpos * rwidth / 100;
 	const int WIDTH_PIXELS = hudwidthpct * rwidth / 100;
 
-	Glib::RefPtr<Pango::Layout> lyt = Pango::Layout::create(cr);
 	Pango::FontDescription fontdesc(font_name);
+	fontdesc.set_size(12 * Pango::SCALE);
+	fontdesc.set_weight(Pango::Weight::WEIGHT_BOLD);
+
+	Glib::RefPtr<Pango::Layout> lyt = Pango::Layout::create(cr);
 	lyt->set_font_description(fontdesc);
 	lyt->set_text(info);
 	lyt->set_width(Pango::SCALE * WIDTH_PIXELS);
