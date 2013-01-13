@@ -331,6 +331,7 @@ namespace PrefsDialogBits {
 				fontsize = Gtk::manage(new Gtk::HScale(6.0, 26.0, 2.0));
 				fontsize->set_digits(0);
 				fontsize->set_value_pos(Gtk::PositionType::POS_RIGHT);
+				fontsize->set_tooltip_text(PREFDESC(HUDFontSize));
 				inner->attach(*fontsize, 0, 1, 1, 2);
 			}
 
@@ -342,6 +343,7 @@ namespace PrefsDialogBits {
 			vert->set_value(prefs.get(PREF(HUDVerticalOffset)));
 			nalpha->set_value(prefs.get(PREF(HUDTransparency)));
 			rightmarg->set_value(prefs.get(PREF(HUDRightMargin)));
+			fontsize->set_value(prefs.get(PREF(HUDFontSize)));
 
 			Gdk::Color bg,fg;
 			if (!bg.set(prefs.get(PREF(HUDBackgroundColour))))
@@ -358,6 +360,7 @@ namespace PrefsDialogBits {
 			vert->set_value(PREF(HUDVerticalOffset)._default);
 			nalpha->set_value(PREF(HUDTransparency)._default);
 			rightmarg->set_value(PREF(HUDRightMargin)._default);
+			fontsize->set_value(PREF(HUDFontSize)._default);
 
 			Gdk::Color bg(PREF(HUDBackgroundColour)._default);
 			Gdk::Color fg(PREF(HUDTextColour)._default);
@@ -373,6 +376,7 @@ namespace PrefsDialogBits {
 			prefs.set(PREF(HUDVerticalOffset), vert->get_value());
 			prefs.set(PREF(HUDTransparency), nalpha->get_value());
 			prefs.set(PREF(HUDRightMargin), rightmarg->get_value());
+			prefs.set(PREF(HUDFontSize), fontsize->get_value());
 
 			prefs.set(PREF(HUDBackgroundColour), bgcol->get_colour().to_string());
 			prefs.set(PREF(HUDTextColour), fgcol->get_colour().to_string());

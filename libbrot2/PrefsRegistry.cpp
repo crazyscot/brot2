@@ -82,7 +82,10 @@ namespace BrotPrefs {
 				"HUD transparency (0.0-0.5)",
 				0.0, 0.2, 0.5,
 				Groups::HUD, "alpha"),
-
+		HUDFontSize("HUD font size",
+				"HUD font size (6-24)",
+				6, 12, 24,
+				Groups::HUD, "fontsize"),
 		end()
 	{ }
 
