@@ -45,7 +45,7 @@ const std::string HUD::font_name = "sans-serif";
 
 void HUD::retrieve_prefs(std::shared_ptr<const Prefs> prefs,
 		Gdk::Color& fgcol, Gdk::Color& bgcol, double& alpha,
-		int& xpos, int& ypos, int& xright)
+		int& xpos, int& ypos, int& xright, int& fontsize)
 {
 	const std::string fgtext = prefs->get(PREF(HUDTextColour)),
 		  bgtext = prefs->get(PREF(HUDBackgroundColour));
@@ -59,6 +59,7 @@ void HUD::retrieve_prefs(std::shared_ptr<const Prefs> prefs,
 	xpos = prefs->get(PREF(HUDHorizontalOffset));
 	ypos = prefs->get(PREF(HUDVerticalOffset));
 	xright = prefs->get(PREF(HUDRightMargin));
+	fontsize = Pango::SCALE * prefs->get(PREF(HUDFontSize));
 }
 
 // Must hold the lock before calling.
@@ -94,11 +95,11 @@ void HUD::draw(Plot3::Plot3Plot* plot, const int rwidth, const int rheight)
 	std::unique_lock<std::mutex> lock(mux);
 	if (!plot) return; // race condition trap
 	std::string info = plot->info_zoom();
-	int xpos, ypos, xright;
+	int xpos, ypos, xright, fontsize;
 	Gdk::Color fg_gdk, bg_gdk;
 	double alpha;
 
-	retrieve_prefs(parent.prefs(),fg_gdk,bg_gdk,alpha,xpos,ypos,xright);
+	retrieve_prefs(parent.prefs(),fg_gdk,bg_gdk,alpha,xpos,ypos,xright,fontsize);
 	const rgb_double fg(fg_gdk), bg(bg_gdk);
 	const int hudwidthpct = MAX(xright - xpos, 1);
 
@@ -114,7 +115,7 @@ void HUD::draw(Plot3::Plot3Plot* plot, const int rwidth, const int rheight)
 	const int WIDTH_PIXELS = hudwidthpct * rwidth / 100;
 
 	Pango::FontDescription fontdesc(font_name);
-	fontdesc.set_size(12 * Pango::SCALE);
+	fontdesc.set_size(fontsize);
 	fontdesc.set_weight(Pango::Weight::WEIGHT_BOLD);
 
 	Glib::RefPtr<Pango::Layout> lyt = Pango::Layout::create(cr);

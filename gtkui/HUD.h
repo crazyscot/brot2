@@ -42,7 +42,7 @@ protected:
 
 	void retrieve_prefs(std::shared_ptr<const BrotPrefs::Prefs> prefs,
 			Gdk::Color& fg, Gdk::Color& bg, double& alpha,
-			int& xpos, int& ypos, int& xright);
+			int& xpos, int& ypos, int& xright, int& fontsize);
 
 	// Must hold the lock before calling.
 	void ensure_surface_locked(const int rwidth, const int rheight);
