@@ -47,13 +47,17 @@ namespace PrefsDialogBits {
 	// Label for our dialog sample text.
 	class SampleTextLabel : public ProddableLabel {
 		ColourPanel *fgcol, *bgcol;
+		Gtk::HScale *fontsz;
 	public:
-		SampleTextLabel() : fgcol(0), bgcol(0) { /* We'll set up text later. */ }
+		SampleTextLabel() : fgcol(0), bgcol(0), fontsz(0) { /* We'll set up text later. */ }
 
 		void set_panels(ColourPanel* fg, ColourPanel* bg) {
 			// Urgh, ColourPanel needs to know what to prod, but the prod target also has to get data from either of them. This might be better refactored.
 			fgcol=fg;
 			bgcol=bg;
+		}
+		void set_fontsize(Gtk::HScale* hs) {
+			fontsz = hs;
 		}
 		virtual void prod() {
 			ostringstream str;
@@ -83,8 +87,10 @@ namespace PrefsDialogBits {
 			str << "<span" <<
 				" foreground=\"#" << FG << "\"" <<
 				" background=\"#" << BG << "\"" <<
-				" font_desc=\"" << HUD::font_name << "\""<<
-				"> Sample text 01234.567e89</span>";
+				" font_family=\"" << HUD::font_name << "\"" <<
+				" size=\"" << fontsz->get_value()*PANGO_SCALE << "\"" <<
+				" weight=\"bold\"" <<
+				"> Sample text \n 01234.567e89 </span>";
 			// cout << "Markup is: " << str.str() << endl; // TEST
 			set_markup(str.str());
 		}
@@ -333,6 +339,9 @@ namespace PrefsDialogBits {
 				fontsize->set_value_pos(Gtk::PositionType::POS_RIGHT);
 				fontsize->set_tooltip_text(PREFDESC(HUDFontSize));
 				inner->attach(*fontsize, 0, 1, 1, 2);
+
+				fontsize->signal_value_changed().connect(sigc::mem_fun(sample, &SampleTextLabel::prod));
+				sample->set_fontsize(fontsize);
 			}
 
 			add(*tbl);
