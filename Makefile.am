@@ -124,6 +124,7 @@ EXTRA_DIST+=test/b2test.valgrind test/b2test.vgsupp test/thrash
 test_b2test_SOURCES=test/b2test.cpp \
 					test/PrefsT.cpp test/PrefsT.h \
 					test/MockFractal.h test/MockFractal.cpp \
+					test/MockPalette.h \
 					test/MockPrefs.h test/MockPrefs.cpp \
 					test/Plot3Test.cpp test/Render2Test.cpp
 
