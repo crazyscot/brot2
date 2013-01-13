@@ -6,9 +6,9 @@ brot2 (1.0+unreleased) UNRELEASED; urgency=low
   test support (closes #882411).  'make check' added.  Updated CLI and gtkui
   to use new machinery.  Removed old Render and Plot2 as obsolete.
   * LP#1039385: HUD text reduced. Font size is now variable (and a
-  preference).
+  preference).  The HUD can now appear with an outline text effect.
 
- -- Ross Younger <0ryoungerk.launchpad@coriolis.greenend.org.uk>  Sun, 13 Jan 2013 15:48:18 +1300
+ -- Ross Younger <0ryoungerk.launchpad@coriolis.greenend.org.uk>  Sun, 13 Jan 2013 16:40:39 +1300
 
 brot2 (1.0) oneiric; urgency=low
 
