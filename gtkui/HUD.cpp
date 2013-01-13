@@ -94,12 +94,14 @@ void HUD::draw(Plot3::Plot3Plot* plot, const int rwidth, const int rheight)
 {
 	std::unique_lock<std::mutex> lock(mux);
 	if (!plot) return; // race condition trap
-	std::string info = plot->info_zoom();
+
+	std::shared_ptr<const BrotPrefs::Prefs> prefs = parent.prefs();
+	std::string info = plot->info_zoom(prefs->get(PREF(HUDShowZoom)));
 	int xpos, ypos, xright, fontsize;
 	Gdk::Color fg_gdk, bg_gdk;
 	double alpha;
 
-	retrieve_prefs(parent.prefs(),fg_gdk,bg_gdk,alpha,xpos,ypos,xright,fontsize);
+	retrieve_prefs(prefs,fg_gdk,bg_gdk,alpha,xpos,ypos,xright,fontsize);
 	const rgb_double fg(fg_gdk), bg(bg_gdk);
 	const int hudwidthpct = MAX(xright - xpos, 1);
 
@@ -127,7 +129,7 @@ void HUD::draw(Plot3::Plot3Plot* plot, const int rwidth, const int rheight)
 	// Make sure we fit.
 	const int YOFFSET = ypos * (rheight - compute_layout_height(lyt)) / 100;
 
-	if (parent.prefs()->get(PREF(HUDOutlineText))) {
+	if (prefs->get(PREF(HUDOutlineText))) {
 		// Outline text effect
 		cr->save();
 		cr->begin_new_path();
