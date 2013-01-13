@@ -285,11 +285,11 @@ void MainWindow::do_plot(bool is_same_plot)
 		size.imag(real(size)/aspect);
 		aspectfix=true;
 	}
-	if (fabs(real(size)/rwidth) < MINIMUM_PIXEL_SIZE) {
+	if (fabs(real(size)/rwidth) <= MINIMUM_PIXEL_SIZE) {
 		size.real(MINIMUM_PIXEL_SIZE*rwidth);
 		clip = true;
 	}
-	if (fabs(imag(size)/rheight) < MINIMUM_PIXEL_SIZE) {
+	if (fabs(imag(size)/rheight) <= MINIMUM_PIXEL_SIZE) {
 		size.imag(MINIMUM_PIXEL_SIZE*rheight);
 		clip = true;
 	}
