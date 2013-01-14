@@ -1,3 +1,9 @@
+brot2 (1.2~unreleased) UNRELEASED; urgency=low
+
+  * Changes in 1.2 will appear here
+
+ -- Ross Younger <0ryoungerk.launchpad@coriolis.greenend.org.uk>  Mon, 14 Jan 2013 22:48:36 +1300
+
 brot2 (1.1) precise; urgency=low
 
   * Fix automake machinery so that make dist works again. (Oops!)
