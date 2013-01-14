@@ -276,7 +276,8 @@ Plot3Plot::~Plot3Plot() {
 		_shutdown = true;
 	}
 	// Must wait for all jobs to finish before we delete any data, otherwise things will get messy
-	completion.get();
+	if (_running)
+		completion.get();
 	for (auto it: _chunks) {
 		delete it;
 	}

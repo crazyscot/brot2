@@ -65,6 +65,13 @@ public:
 #undef MAXITER
 };
 
+class NullSink : public IPlot3DataSink {
+public:
+	virtual void chunk_done(Plot3Chunk*) {}
+	virtual void pass_complete(string&) {}
+	virtual void plot_complete() {}
+};
+
 class TestSink : public IPlot3DataSink {
 	std::atomic<unsigned> _chunks_count;
 	std::atomic<unsigned> _points_count;
@@ -456,6 +463,11 @@ protected:
 		EXPECT_EQ(z,zz); } while(0)
 
 };
+
+TEST_F(Plot3Test, CanDestroyWithoutRunning) {
+	NullSink sink;
+	p3 = new Plot3Plot(pool, &sink, fract, divider, CENTRE, SIZE, _W, _H, 10);
+}
 
 TEST_F(Plot3Test, Basics) {
 	TestSink sink(_W,_H); // This tests the points are touched
