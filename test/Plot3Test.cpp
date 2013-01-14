@@ -443,6 +443,8 @@ protected:
 		sink.expect_chunks(passes_expected * 1);
 		sink.expect_passes(passes_expected);
 		sink.expect_completions(1);
+		delete p3;
+		p3 = 0;
 	}
 
 #define PixelToSetTestTLO(x, y, z) do { \
