@@ -1,4 +1,4 @@
-brot2 (1.0+unreleased) UNRELEASED; urgency=low
+brot2 (1.1) precise; urgency=low
 
   * Fix automake machinery so that make dist works again. (Oops!)
   * LP#882411: Create unit test framework.
@@ -12,7 +12,7 @@ brot2 (1.0+unreleased) UNRELEASED; urgency=low
   bother to zoom further.
   * LP#1099061: Avoid creating/destroying one thread per plot.
 
- -- Ross Younger <0ryoungerk.launchpad@coriolis.greenend.org.uk>  Sun, 13 Jan 2013 22:36:01 +1300
+ -- Ross Younger <0ryoungerk.launchpad@coriolis.greenend.org.uk>  Mon, 14 Jan 2013 22:14:49 +1300
 
 brot2 (1.0) oneiric; urgency=low
 
