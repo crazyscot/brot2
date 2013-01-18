@@ -26,8 +26,8 @@ class Mandelbrot_Generic : public FractalImpl {
 public:
 	Mandelbrot_Generic(string name, string desc,
 			Value xmin_=-3.0, Value xmax_=3.0, Value ymin_=-3.0, Value ymax_=3.0) :
-				FractalImpl(name, desc, xmin_, xmax_, ymin_, ymax_, 10) {};
-	~Mandelbrot_Generic() {};
+				FractalImpl(name, desc, xmin_, xmax_, ymin_, ymax_, 10) {}
+	~Mandelbrot_Generic() {}
 
 	virtual void prepare_pixel(const Point coords, PointData& out) const {
 		// The first iteration is easy, 0^k + origin = origin
@@ -213,10 +213,9 @@ public:
 	};
 };
 
-
-#define REGISTER(cls) do {							\
-	cls* cls##impl = new cls();						\
-	FractalCommon::registry.reg(cls##impl->name, cls##impl);	\
+#define REGISTER(cls) do { 		\
+	cls* cls##impl = new cls(); \
+	(void)cls##impl;			\
 } while(0)
 
 void Fractal::load_Mandelbrot() {

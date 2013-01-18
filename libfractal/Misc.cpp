@@ -188,9 +188,9 @@ public:
 
 // --------------------------------------------------------------------
 
-#define REGISTER(cls) do { 										\
-	cls* cls##impl = new cls();           						\
-	FractalCommon::registry.reg(cls##impl->name, cls##impl);	\
+#define REGISTER(cls) do { 		\
+	cls* cls##impl = new cls(); \
+	(void)cls##impl;			\
 } while(0)
 
 void Fractal::load_Misc() {
