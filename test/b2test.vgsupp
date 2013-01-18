@@ -128,3 +128,43 @@
    fun:calloc
    obj:/lib/i386-linux-gnu/libglib-2.0.so.0.3?00.?
 }
+
+{
+   <raring-glib-dl-init-amd64>
+   Memcheck:Leak
+   fun:calloc
+   fun:g_malloc0
+   obj*
+   obj:*/libgobject-*
+   fun:call_init.part.0
+   fun:_dl_init
+}
+
+{
+   <raring-glib-dl-init-i386>
+   Memcheck:Leak
+   fun:calloc
+   obj:*/libglib-*
+   fun:g_malloc0
+   obj*
+   obj:*/libgobject-*
+   fun:call_init
+   fun:_dl_init
+}
+
+{
+   <raring-calloc-i386-partial-frame>
+   Memcheck:Leak
+   fun:calloc
+   obj:/lib/i386-linux-gnu/libglib-2.0.so.0.3504.0
+   fun:g_malloc0
+   obj:/usr/lib/i386-linux-gnu/libgobject-2.0.so.0.3504.0
+   obj:/usr/lib/i386-linux-gnu/libgobject-2.0.so.0.3504.0
+}
+
+{
+   <raring-calloc-i386-partial-frame-2>
+   Memcheck:Leak
+   fun:calloc
+   obj:/lib/i386-linux-gnu/libglib-2.0.so.0.3504.0
+}
