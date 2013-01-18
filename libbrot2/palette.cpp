@@ -1,6 +1,6 @@
 /*
     palette.c: Discrete and continuous palette interface
-    Copyright (C) 2010 Ross Younger
+    Copyright (C) 2010-3 Ross Younger
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -372,6 +372,75 @@ public:
 	};
 };
 
+class Mandy : public SmoothPalette {
+/* The colouring scheme used by Richard Kettlewell's "mandy".
+ * See http://www.greenend.org.uk/rjk/mandy/ */
+public:
+	Mandy() : SmoothPalette() {};
+	rgb get(const PointData &pt) const {
+		float f = pt.iterf;
+		rgb rv;
+		if (f < Fractal::PointData::ITERF_LOW_CLAMP)
+			f = Fractal::PointData::ITERF_LOW_CLAMP;
+		float c = 2.0 * M_PI * sqrt(f);
+		rv.r = (cos(c / 5.0) + 1.0) * 127;
+		rv.g = (cos(c / 7.0) + 1.0) * 127;
+		rv.b = (cos(c /11.0) + 1.0) * 127;
+		return rv;
+	};
+};
+
+class MandyBlue : public SmoothPalette {
+/* A derivative of Mandy that I discovered while noodling around. */
+public:
+	MandyBlue() : SmoothPalette() {};
+	rgb get(const PointData &pt) const {
+		float f = log(pt.iterf); // one log, that's all the difference
+		rgb rv;
+		if (f < Fractal::PointData::ITERF_LOW_CLAMP)
+			f = Fractal::PointData::ITERF_LOW_CLAMP;
+		float c = 2.0 * M_PI * sqrt(f);
+		rv.r = (cos(c / 5.0) + 1.0) * 127;
+		rv.g = (cos(c / 7.0) + 1.0) * 127;
+		rv.b = (cos(c /11.0) + 1.0) * 127;
+		return rv;
+	};
+};
+
+class fanfBlackFade: public SmoothPalette {
+/* Based on a colouring algorithm by Tony Finch.
+ * See http://dotat.at/prog/mandelbrot/ */
+public:
+	fanfBlackFade() : SmoothPalette() {};
+	rgb get(const PointData &pt) const {
+		double f = log(pt.iterf);
+		rgb rv;
+		if (f < Fractal::PointData::ITERF_LOW_CLAMP)
+			f = Fractal::PointData::ITERF_LOW_CLAMP;
+		rv.r = 127 * (1.0 - cos(f*1.0));
+		rv.g = 127 * (1.0 - cos(f*2.0));
+		rv.b = 127 * (1.0 - cos(f*3.0));
+		return rv;
+	};
+};
+
+class fanfWhiteFade: public SmoothPalette {
+/* Based on a colouring algorithm by Tony Finch.
+ * See http://dotat.at/prog/mandelbrot/ */
+public:
+	fanfWhiteFade() : SmoothPalette() {};
+	rgb get(const PointData &pt) const {
+		double f = log(pt.iterf);
+		rgb rv;
+		if (f < Fractal::PointData::ITERF_LOW_CLAMP)
+			f = Fractal::PointData::ITERF_LOW_CLAMP;
+		rv.r = 127 * (1.0 + cos(f*2.0));
+		rv.g = 127 * (1.0 + cos(f*1.5));
+		rv.b = 127 * (1.0 + cos(f*1.0));
+		return rv;
+	};
+};
+
 SimpleRegistry<SmoothPalette> SmoothPalette::all;
 int SmoothPalette::base_registered=0;
 
@@ -389,10 +458,16 @@ void SmoothPalette::register_base() {
 
 
 	all.reg("sin(log)", new SinLogSmoothed());
-	all.reg("sin(log) shallow", new SlowSineLog());
+	//all.reg("sin(log) shallow", new SlowSineLog());
 	all.reg("sin(log) steep", new FastSineLog());
 
 	all.reg("cos(log)", new CosLogSmoothed());
-	all.reg("cos(log) shallow", new SlowCosLog());
+	//all.reg("cos(log) shallow", new SlowCosLog());
 	all.reg("cos(log) steep", new FastCosLog());
+
+	all.reg("rjk.mandy", new Mandy());
+	all.reg("rjk.mandy.blue", new MandyBlue());
+
+	all.reg("fanf.black.fade", new fanfBlackFade());
+	all.reg("fanf.white.fade", new fanfWhiteFade());
 }
