@@ -1,8 +1,8 @@
 brot2 (1.2~unreleased) UNRELEASED; urgency=low
 
-  * Changes in 1.2 will appear here
+  * Add palettes from rjk's and fanf's mandelbrotters
 
- -- Ross Younger <0ryoungerk.launchpad@coriolis.greenend.org.uk>  Mon, 14 Jan 2013 22:48:36 +1300
+ -- Ross Younger <0ryoungerk.launchpad@coriolis.greenend.org.uk>  Sat, 19 Jan 2013 08:53:24 +1300
 
 brot2 (1.1) precise; urgency=low
 
