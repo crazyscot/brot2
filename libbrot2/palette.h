@@ -100,15 +100,19 @@ std::ostream& operator<<(std::ostream &stream, rgbf o);
 
 class BasePalette {
 public:
-	virtual rgb get(const Fractal::PointData &pt) const = 0;
+	BasePalette(std::string& _name): name(_name) {}
 	virtual ~BasePalette() {}
+
+	virtual rgb get(const Fractal::PointData &pt) const = 0;
+
+	const std::string name;
 };
 
 
 class DiscretePalette : public BasePalette {
 public:
 	// Construction registration in one go.
-	DiscretePalette(int n) : BasePalette(), size(n) { };
+	DiscretePalette(std::string name, int n) : BasePalette(name), size(n) { };
 	virtual ~DiscretePalette() { };
 
 	const int size; // number of colours in the palette
@@ -124,7 +128,7 @@ protected:
 
 class SmoothPalette : public BasePalette {
 public:
-	SmoothPalette() : BasePalette() { };
+	SmoothPalette(std::string name) : BasePalette(name) { };
 	virtual ~SmoothPalette() { };
 
 	virtual rgb get(const Fractal::PointData &pt) const = 0;

@@ -92,7 +92,7 @@ std::ostream& operator<<(std::ostream &stream, hsvf o) {
 
 class Kaleidoscopic : public DiscretePalette {
 public:
-	Kaleidoscopic(int n) : DiscretePalette(n) {};
+	Kaleidoscopic(int n) : DiscretePalette("Kaleidoscopic", n) {};
 	virtual rgb get(const PointData &pt) const {
 		// This one jumps at random around the hue space.
 			hsvf h(0.5+cos(pt.iter)/2.0, 0.87, 0.87);
@@ -106,7 +106,7 @@ public:
 
 class Rainbow : public DiscretePalette {
 public:
-	Rainbow(int n) : DiscretePalette(n) {};
+	Rainbow(int n) : DiscretePalette("Rainbow", n) {};
 	virtual rgb get(const PointData &pt) const {
 		// This is a continuous "gradient" around the Hue wheel.
 		double n = (double)pt.iter / size;
@@ -123,7 +123,7 @@ public:
 
 class PastelSalad : public DiscretePalette {
 public:
-	PastelSalad(int n) : DiscretePalette(n) {};
+	PastelSalad(int n) : DiscretePalette("Pastel salad", n) {};
 	virtual rgb get(const PointData &pt) const {
 		return rgb((size-pt.iter)*255/size,
 					144,
@@ -136,7 +136,7 @@ class SawtoothGradient : public DiscretePalette {
 protected:
 	rgbf point1, point2;
 public:
-	SawtoothGradient(int n, const rgbf p1, const rgbf p2) : DiscretePalette(n), point1(p1), point2(p2) {};
+	SawtoothGradient(std::string name, int n, const rgbf p1, const rgbf p2) : DiscretePalette(name, n), point1(p1), point2(p2) {};
 
 	virtual rgb get(const PointData &pt) const {
 		// I tried a sinusoid function here as well, but it didn't work so well.
@@ -160,7 +160,7 @@ public:
 class OpticalIllusion: public DiscretePalette {
 	rgb pal[4];
 public:
-	OpticalIllusion() : DiscretePalette(4) {
+	OpticalIllusion() : DiscretePalette("Optical Illusion", 4) {
 		pal[0].r = pal[0].g = pal[0].b = 0;
 		pal[1].r = 150; pal[1].g = 2; pal[1].b = 198; // purple
 		pal[2].r = pal[2].g = pal[2].b = 255;
@@ -180,7 +180,7 @@ void DiscretePalette::register_base() {
 	all.reg("Kaleidoscopic", new Kaleidoscopic(32));
 	all.reg("Rainbow", new Rainbow(32));
 	all.reg("Pastel Salad", new PastelSalad(32));
-	all.reg("Red-cyan sawtooth", new SawtoothGradient(16, rgbf(0,1,1), rgbf(1,0,0)));
+	all.reg("Red-cyan sawtooth", new SawtoothGradient("Red-cyan sawtooth", 16, rgbf(0,1,1), rgbf(1,0,0)));
 	all.reg("Optical illusion", new OpticalIllusion());
 	base_registered = 1;
 }
@@ -191,7 +191,7 @@ class HueCycle : public SmoothPalette {
 public:
 	const double wrap;
 	const hsvf pointa, pointb; // Points to smooth between
-	HueCycle(float wrap, hsvf pa, hsvf pb) : SmoothPalette(), wrap(wrap), pointa(pa), pointb(pb) {};
+	HueCycle(string name, float wrap, hsvf pa, hsvf pb) : SmoothPalette(name), wrap(wrap), pointa(pa), pointb(pb) {};
 	rgb get(const PointData &pt) const {
 		float tau,tmp;
 		tau = pt.iterf / wrap;
@@ -223,7 +223,8 @@ HUECYCLE(viol_red_16, Shallow greenish, 16, hsvf(0,1,1), hsvf(1,1,1));
 
 class LogSmoothed : public SmoothPalette {
 public:
-	LogSmoothed() : SmoothPalette() {};
+	LogSmoothed() : SmoothPalette("Logarithmic rainbow") {};
+	LogSmoothed(string name) : SmoothPalette(name) {};
 	hsvf get_hsvf(const PointData &pt) const {
 		hsvf rv;
 		float f = pt.iterf;
@@ -244,7 +245,9 @@ public:
 
 class LogSmoothedRays : public LogSmoothed {
 public:
-	LogSmoothedRays() : LogSmoothed() {};
+	// nasty hack: two spaces to sort this one next to the plain log rainbow.
+	LogSmoothedRays() : LogSmoothed("Logarithmic rainbow  with rays") {};
+
 	rgb get(const PointData &pt) const {
 		hsvf rv = get_hsvf(pt);
 		rv.s = 0.5 + cos(pt.arg) / 2.0;
@@ -254,7 +257,7 @@ public:
 
 class FastLogSmoothed : public SmoothPalette {
 public:
-	FastLogSmoothed() : SmoothPalette() {};
+	FastLogSmoothed() : SmoothPalette("Logarithmic rainbow (steep)") {};
 	hsvf get_hsvf(const PointData &pt) const {
 		float f = pt.iterf;
 		if (f < Fractal::PointData::ITERF_LOW_CLAMP)
@@ -272,7 +275,7 @@ public:
 
 class SinLogSmoothed : public SmoothPalette {
 public:
-	SinLogSmoothed() : SmoothPalette() {};
+	SinLogSmoothed() : SmoothPalette("sin(log)") {};
 	hsvf get_hsvf(const PointData &pt) const {
 		float f = pt.iterf;
 		if (f < Fractal::PointData::ITERF_LOW_CLAMP)
@@ -289,25 +292,9 @@ public:
 	};
 };
 
-class SlowSineLog : public SmoothPalette {
-public:
-	SlowSineLog() : SmoothPalette() {};
-	rgb get(const PointData &pt) const {
-		float f = pt.iterf;
-		if (f < Fractal::PointData::ITERF_LOW_CLAMP)
-			f = Fractal::PointData::ITERF_LOW_CLAMP;
-		double t = log(f);
-		hsvf rv;
-		rv.h = 0.5 + sin(t/3.0*M_PI)/2.0;
-		rv.s = 1.0;
-		rv.v = 1.0;
-		return rv;
-	};
-};
-
 class FastSineLog : public SmoothPalette {
 public:
-	FastSineLog() : SmoothPalette() {};
+	FastSineLog() : SmoothPalette("sin(log) steep") {};
 	rgb get(const PointData &pt) const {
 		float f = pt.iterf;
 		if (f < Fractal::PointData::ITERF_LOW_CLAMP)
@@ -323,7 +310,7 @@ public:
 
 class CosLogSmoothed : public SmoothPalette {
 public:
-	CosLogSmoothed() : SmoothPalette() {};
+	CosLogSmoothed() : SmoothPalette("cos(log)") {};
 	hsvf get_hsvf(const PointData &pt) const {
 		float f = pt.iterf;
 		if (f < Fractal::PointData::ITERF_LOW_CLAMP)
@@ -340,25 +327,9 @@ public:
 	};
 };
 
-class SlowCosLog : public SmoothPalette {
-public:
-	SlowCosLog() : SmoothPalette() {};
-	rgb get(const PointData &pt) const {
-		float f = pt.iterf;
-		if (f < Fractal::PointData::ITERF_LOW_CLAMP)
-			f = Fractal::PointData::ITERF_LOW_CLAMP;
-		double t = log(f);
-		hsvf rv;
-		rv.h = 0.5 + cos(t/3.0*M_PI)/2.0;
-		rv.s = 1.0;
-		rv.v = 1.0;
-		return rv;
-	};
-};
-
 class FastCosLog : public SmoothPalette {
 public:
-	FastCosLog() : SmoothPalette() {};
+	FastCosLog() : SmoothPalette("cos(log) steep") {};
 	rgb get(const PointData &pt) const {
 		float f = pt.iterf;
 		if (f < Fractal::PointData::ITERF_LOW_CLAMP)
@@ -376,7 +347,7 @@ class Mandy : public SmoothPalette {
 /* The colouring scheme used by Richard Kettlewell's "mandy".
  * See http://www.greenend.org.uk/rjk/mandy/ */
 public:
-	Mandy() : SmoothPalette() {};
+	Mandy() : SmoothPalette("rjk.mandy") {};
 	rgb get(const PointData &pt) const {
 		float f = pt.iterf;
 		rgb rv;
@@ -393,7 +364,7 @@ public:
 class MandyBlue : public SmoothPalette {
 /* A derivative of Mandy that I discovered while noodling around. */
 public:
-	MandyBlue() : SmoothPalette() {};
+	MandyBlue() : SmoothPalette("rjk.mandy.blue") {};
 	rgb get(const PointData &pt) const {
 		float f = log(pt.iterf); // one log, that's all the difference
 		rgb rv;
@@ -411,7 +382,7 @@ class fanfBlackFade: public SmoothPalette {
 /* Based on a colouring algorithm by Tony Finch.
  * See http://dotat.at/prog/mandelbrot/ */
 public:
-	fanfBlackFade() : SmoothPalette() {};
+	fanfBlackFade() : SmoothPalette("fanf.black.fade") {};
 	rgb get(const PointData &pt) const {
 		double f = log(pt.iterf);
 		rgb rv;
@@ -428,7 +399,7 @@ class fanfWhiteFade: public SmoothPalette {
 /* Based on a colouring algorithm by Tony Finch.
  * See http://dotat.at/prog/mandelbrot/ */
 public:
-	fanfWhiteFade() : SmoothPalette() {};
+	fanfWhiteFade() : SmoothPalette("fanf.white.fade") {};
 	rgb get(const PointData &pt) const {
 		double f = log(pt.iterf);
 		rgb rv;
@@ -447,7 +418,7 @@ int SmoothPalette::base_registered=0;
 void SmoothPalette::register_base() {
 	if (base_registered) return;
 	base_registered = 1;
-	all.reg("Linear rainbow", new HueCycle(32, hsvf(0.5,1,1), hsvf(1.5,1,1)));
+	all.reg("Linear rainbow", new HueCycle("Linear rainbow", 32, hsvf(0.5,1,1), hsvf(1.5,1,1)));
 
 	all.reg("Logarithmic rainbow", new LogSmoothed());
 	all.reg("Logarithmic rainbow  with rays", new LogSmoothedRays());
@@ -458,11 +429,9 @@ void SmoothPalette::register_base() {
 
 
 	all.reg("sin(log)", new SinLogSmoothed());
-	//all.reg("sin(log) shallow", new SlowSineLog());
 	all.reg("sin(log) steep", new FastSineLog());
 
 	all.reg("cos(log)", new CosLogSmoothed());
-	//all.reg("cos(log) shallow", new SlowCosLog());
 	all.reg("cos(log) steep", new FastCosLog());
 
 	all.reg("rjk.mandy", new Mandy());
