@@ -134,7 +134,7 @@
    Memcheck:Leak
    fun:calloc
    fun:g_malloc0
-   obj*
+   obj:*
    obj:*/libgobject-*
    fun:call_init.part.0
    fun:_dl_init
@@ -146,7 +146,7 @@
    fun:calloc
    obj:*/libglib-*
    fun:g_malloc0
-   obj*
+   obj:*
    obj:*/libgobject-*
    fun:call_init
    fun:_dl_init
