@@ -175,13 +175,18 @@ public:
 SimpleRegistry<DiscretePalette> DiscretePalette::all;
 int DiscretePalette::base_registered=0;
 
+#define REGISTER(cls, ...) do { 			\
+	cls* cls##impl = new cls(__VA_ARGS__);	\
+	all.reg(cls##impl->name, cls##impl);	\
+} while(0)
+
 void DiscretePalette::register_base() {
 	if (base_registered) return;
-	all.reg("Kaleidoscopic", new Kaleidoscopic(32));
-	all.reg("Rainbow", new Rainbow(32));
-	all.reg("Pastel Salad", new PastelSalad(32));
-	all.reg("Red-cyan sawtooth", new SawtoothGradient("Red-cyan sawtooth", 16, rgbf(0,1,1), rgbf(1,0,0)));
-	all.reg("Optical illusion", new OpticalIllusion());
+	REGISTER(Kaleidoscopic, 32);
+	REGISTER(Rainbow, 32);
+	REGISTER(PastelSalad, 32);
+	REGISTER(SawtoothGradient, "Red-cyan sawtooth", 16, rgbf(0,1,1), rgbf(1,0,0));
+	REGISTER(OpticalIllusion);
 	base_registered = 1;
 }
 
@@ -257,6 +262,8 @@ public:
 
 class FastLogSmoothed : public SmoothPalette {
 public:
+	/* What to call it? I originally called it _fast_, but it could mislead as
+	 * it doesn't make the plot any faster; the gradient is _steeper_ perhaps? */
 	FastLogSmoothed() : SmoothPalette("Logarithmic rainbow (steep)") {};
 	hsvf get_hsvf(const PointData &pt) const {
 		float f = pt.iterf;
@@ -415,28 +422,25 @@ public:
 SimpleRegistry<SmoothPalette> SmoothPalette::all;
 int SmoothPalette::base_registered=0;
 
+// same REGISTER macro as for Discretes
+
 void SmoothPalette::register_base() {
 	if (base_registered) return;
 	base_registered = 1;
-	all.reg("Linear rainbow", new HueCycle("Linear rainbow", 32, hsvf(0.5,1,1), hsvf(1.5,1,1)));
+	REGISTER(HueCycle, "Linear rainbow", 32, hsvf(0.5,1,1), hsvf(1.5,1,1));
 
-	all.reg("Logarithmic rainbow", new LogSmoothed());
-	all.reg("Logarithmic rainbow  with rays", new LogSmoothedRays());
-// nasty hack: two spaces to sort this one next to the plain log rainbow.
-	all.reg("Logarithmic rainbow (steep)", new FastLogSmoothed());
-/* What to call it? I originally called it _fast_, but it could mislead as
- * it doesn't make the plot any faster; the gradient is _steeper_ perhaps? */
+	REGISTER(LogSmoothed);
+	REGISTER(LogSmoothedRays);
+	REGISTER(FastLogSmoothed);
 
+	REGISTER(SinLogSmoothed);
+	REGISTER(FastSineLog);
+	REGISTER(CosLogSmoothed);
+	REGISTER(FastCosLog);
 
-	all.reg("sin(log)", new SinLogSmoothed());
-	all.reg("sin(log) steep", new FastSineLog());
+	REGISTER(Mandy);
+	REGISTER(MandyBlue);
 
-	all.reg("cos(log)", new CosLogSmoothed());
-	all.reg("cos(log) steep", new FastCosLog());
-
-	all.reg("rjk.mandy", new Mandy());
-	all.reg("rjk.mandy.blue", new MandyBlue());
-
-	all.reg("fanf.black.fade", new fanfBlackFade());
-	all.reg("fanf.white.fade", new fanfWhiteFade());
+	REGISTER(fanfBlackFade);
+	REGISTER(fanfWhiteFade);
 }
