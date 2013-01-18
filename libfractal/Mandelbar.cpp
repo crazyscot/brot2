@@ -36,12 +36,15 @@ public:
 	};
 };
 
+#define CONSTRUCT(cls, name, desc) 			  \
+	cls(): Mandelbar_Generic(name, desc) {}; \
+	~cls() {};
+
 // --------------------------------------------------
 
 class Mandelbar2: public Mandelbar_Generic {
 public:
-	Mandelbar2(std::string name_, std::string desc_) : Mandelbar_Generic(name_, desc_, -3.0, 3.0, -3.0, 3.0) {};
-	~Mandelbar2() {};
+	CONSTRUCT(Mandelbar2, "Mandelbar (Tricorn)", "z:=(zbar)^2+c")
 
 	static inline void ITER2(Value& o_re, Value& o_im, Value& re2, Value& im2, Value& z_re, Value& z_im) {
 		re2 = z_re * z_re;
@@ -78,8 +81,7 @@ public:
 
 class Mandelbar3: public Mandelbar_Generic {
 public:
-	Mandelbar3(std::string name_, std::string desc_) : Mandelbar_Generic(name_, desc_, -3.0, 3.0, -3.0, 3.0) {};
-	~Mandelbar3() {};
+	CONSTRUCT(Mandelbar3, "Mandelbar^3", "z:=(zbar)^3+c")
 
 	static inline void ITER3(Value& o_re, Value& o_im, Value& re2, Value& im2, Value& z_re, Value& z_im) {
 		re2 = z_re * z_re;
@@ -115,8 +117,7 @@ public:
 
 class Mandelbar4: public Mandelbar_Generic {
 public:
-	Mandelbar4(std::string name_, std::string desc_) : Mandelbar_Generic(name_, desc_, -3.0, 3.0, -3.0, 3.0) {};
-	~Mandelbar4() {};
+	CONSTRUCT(Mandelbar4, "Mandelbar^4", "z:=(zbar)^4+c")
 
 	static inline void ITER4(Value& o_re, Value& o_im, Value& re2, Value& im2, Value& z_re, Value& z_im) {
 		re2 = z_re * z_re;
@@ -152,8 +153,7 @@ public:
 
 class Mandelbar5: public Mandelbar_Generic {
 public:
-	Mandelbar5(std::string name_, std::string desc_) : Mandelbar_Generic(name_, desc_, -3.0, 3.0, -3.0, 3.0) {};
-	~Mandelbar5() {};
+	CONSTRUCT(Mandelbar5, "Mandelbar^5", "z:=(zbar)^5+c")
 
 	static inline void ITER5(Value& o_re, Value& o_im, Value& re2, Value& im2, Value& z_re, Value& z_im, Value& re4, Value& im4) {
 		re2 = z_re * z_re;
@@ -187,14 +187,14 @@ public:
 	};
 };
 
-#define REGISTER(cls, name, desc) do { 				\
-	cls* cls##impl = new cls(name, desc);           \
-	FractalCommon::registry.reg(name, cls##impl);   \
+#define REGISTER(cls) do { 										\
+	cls* cls##impl = new cls();           						\
+	FractalCommon::registry.reg(cls##impl->name, cls##impl);	\
 } while(0)
 
 void Fractal::load_Mandelbar() {
-	REGISTER(Mandelbar2, "Mandelbar (Tricorn)", "z:=(zbar)^2+c");
-	REGISTER(Mandelbar3, "Mandelbar^3", "z:=(zbar)^3+c");
-	REGISTER(Mandelbar4, "Mandelbar^4", "z:=(zbar)^4+c");
-	REGISTER(Mandelbar5, "Mandelbar^5", "z:=(zbar)^5+c");
+	REGISTER(Mandelbar2);
+	REGISTER(Mandelbar3);
+	REGISTER(Mandelbar4);
+	REGISTER(Mandelbar5);
 }

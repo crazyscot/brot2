@@ -87,7 +87,9 @@ protected:
 // but nothing about an individual _plot_ of it (meta-instance?)
 class FractalImpl {
 public:
-	FractalImpl(std::string name_, std::string desc_, Value xmin_, Value xmax_, Value ymin_, Value ymax_, int sortorder_=100) : name(name_), description(desc_), xmin(xmin_), xmax(xmax_), ymin(ymin_), ymax(ymax_), sortorder(sortorder_), isRegistered(false)
+	FractalImpl(std::string _name, std::string _desc,
+			Value xmin_, Value xmax_, Value ymin_, Value ymax_, int sortorder_=100) :
+				name(_name), description(_desc), xmin(xmin_), xmax(xmax_), ymin(ymin_), ymax(ymax_), sortorder(sortorder_), isRegistered(false)
 	{
 		reg();
 	};
@@ -95,9 +97,10 @@ public:
 		dereg();
 	};
 
+	// Human-readable information
+	const std::string name;
+	const std::string description;
 
-	std::string name; // Human-readable
-	std::string description; // Human-readable
 	Value xmin, xmax, ymin, ymax; // Maximum useful complex area
 
 	/* Pixel initialisation. This is supposed to be quick and straightforward,

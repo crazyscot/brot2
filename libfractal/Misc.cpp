@@ -37,10 +37,13 @@ public:
 	};
 };
 
+#define CONSTRUCT(cls, name, desc) 			  \
+	cls(): Misc_Generic(name, desc) {}; \
+	~cls() {};
+
 class BurningShip : public Misc_Generic {
 public:
-	BurningShip(std::string name_, std::string desc_, Value xmin_=-3.0, Value xmax_=3.0, Value ymin_=-3.0, Value ymax_=3.0) : Misc_Generic(name_, desc_, xmin_, xmax_, ymin_, ymax_) {};
-	~BurningShip() {};
+	CONSTRUCT(BurningShip, "Burning Ship", "z:=(|Re(z)|+i|Im(z)|)^2+c")
 
 	static inline void ITER2(Value& o_re, Value& o_im, Value& re2, Value& im2, Value& z_re, Value& z_im) {
 		re2 = z_re * z_re;
@@ -76,8 +79,7 @@ public:
 
 class Celtic : public Misc_Generic {
 public:
-	Celtic(std::string name_, std::string desc_, Value xmin_=-3.0, Value xmax_=3.0, Value ymin_=-3.0, Value ymax_=3.0) : Misc_Generic(name_, desc_, xmin_, xmax_, ymin_, ymax_) {};
-	~Celtic() {};
+	CONSTRUCT(Celtic, "Generalised Celtic", "z:=(|Re(z)|+i.Im(z))^2+c")
 
 	static inline void ITER2(Value& o_re, Value& o_im, Value& re2, Value& im2, Value& z_re, Value& z_im) {
 		re2 = z_re * z_re;
@@ -113,8 +115,7 @@ public:
 
 class Variant : public Misc_Generic {
 public:
-	Variant(std::string name_, std::string desc_, Value xmin_=-3.0, Value xmax_=3.0, Value ymin_=-3.0, Value ymax_=3.0) : Misc_Generic(name_, desc_, xmin_, xmax_, ymin_, ymax_) {};
-	~Variant() {};
+	CONSTRUCT(Variant, "The Variant", "z:=z^2+c with Re(z):=|Re(z)| on odd iterations")
 
 	static inline void ITER2(Value& o_re, Value& o_im, Value& re2, Value& im2, Value& z_re, Value& z_im, const int iter) {
 		re2 = z_re * z_re;
@@ -153,8 +154,7 @@ public:
 
 class BirdOfPrey : public Misc_Generic {
 public:
-	BirdOfPrey(std::string name_, std::string desc_, Value xmin_=-3.0, Value xmax_=3.0, Value ymin_=-3.0, Value ymax_=3.0) : Misc_Generic(name_, desc_, xmin_, xmax_, ymin_, ymax_) {};
-	~BirdOfPrey() {};
+	CONSTRUCT(BirdOfPrey, "Bird Of Prey", "z:=(Re(z)+i|Im(z)|)^2+c")
 
 	static inline void ITER2(Value& o_re, Value& o_im, Value& re2, Value& im2, Value& z_re, Value& z_im) {
 		re2 = z_re * z_re;
@@ -188,15 +188,15 @@ public:
 
 // --------------------------------------------------------------------
 
-#define REGISTER(cls, name, desc) do {				\
-	cls* cls##impl = new cls(name, desc);			\
-	FractalCommon::registry.reg(name, cls##impl);	\
+#define REGISTER(cls) do { 										\
+	cls* cls##impl = new cls();           						\
+	FractalCommon::registry.reg(cls##impl->name, cls##impl);	\
 } while(0)
 
 void Fractal::load_Misc() {
-	REGISTER(BurningShip, "Burning Ship", "z:=(|Re(z)|+i|Im(z)|)^2+c");
-	REGISTER(Celtic, "Generalised Celtic", "z:=(|Re(z)|+i.Im(z))^2+c");
-	REGISTER(Variant, "The Variant", "z:=z^2+c with Re(z):=|Re(z)| on odd iterations");
-	REGISTER(BirdOfPrey, "Bird Of Prey", "z:=(Re(z)+i|Im(z)|)^2+c");
+	REGISTER(BurningShip);
+	REGISTER(Celtic);
+	REGISTER(Variant);
+	REGISTER(BirdOfPrey);
 }
 

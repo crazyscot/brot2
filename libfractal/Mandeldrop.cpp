@@ -37,10 +37,13 @@ public:
 	};
 };
 
+#define CONSTRUCT(cls, name, desc) 			  \
+	cls(): Mandeldrop_Generic(name, desc) {}; \
+	~cls() {};
+
 class Mandeldrop : public Mandeldrop_Generic {
 public:
-	Mandeldrop(std::string name_, std::string desc_) : Mandeldrop_Generic(name_, desc_, -1.5, 4.5, -1.0, 1.0) {};
-	~Mandeldrop() {};
+	CONSTRUCT(Mandeldrop, "Mandeldrop", "Inverse Mandelbrot set, z:=z^2+c with z0' := 1/z0")
 
 	static inline void ITER2(Value& o_re, Value& o_im, Value& re2, Value& im2, Value& z_re, Value& z_im) {
 		re2 = z_re * z_re;
@@ -79,8 +82,7 @@ public:
 
 class Mandeldrop3 : public Mandeldrop_Generic {
 public:
-	Mandeldrop3(string name_, string desc_) : Mandeldrop_Generic(name_, desc_) {};
-	~Mandeldrop3() {};
+	CONSTRUCT(Mandeldrop3, "Mandeldrop^3", "z:=z^3+c with z0' := 1/z0")
 
 	static inline void ITER3(Value& o_re, Value& o_im, Value& re2, Value& im2, Value& z_re, Value& z_im) {
 		re2 = z_re * z_re;
@@ -115,8 +117,7 @@ public:
 
 class Mandeldrop4 : public Mandeldrop_Generic {
 public:
-	Mandeldrop4(string name_, string desc_) : Mandeldrop_Generic(name_, desc_) {};
-	~Mandeldrop4() {};
+	CONSTRUCT(Mandeldrop4, "Mandeldrop^4", "z:=z^4+c with z0' := 1/z0")
 
 	static inline void ITER4(Value& o_re, Value& o_im, Value& re2, Value& im2, Value& z_re, Value& z_im) {
 		re2 = z_re * z_re;
@@ -152,8 +153,7 @@ public:
 
 class Mandeldrop5 : public Mandeldrop_Generic {
 public:
-	Mandeldrop5(string name_, string desc_) : Mandeldrop_Generic(name_, desc_) {};
-	~Mandeldrop5() {};
+	CONSTRUCT(Mandeldrop5, "Mandeldrop^5", "z:=z^5+c with z0' := 1/z0")
 
 	static inline void ITER5(Value& o_re, Value& o_im, Value& re2, Value& im2, Value& z_re, Value& z_im, Value& re4, Value& im4) {
 		re2 = z_re * z_re;
@@ -187,15 +187,15 @@ public:
 		out.point = Point(z_re,z_im);
 	};
 };
-#define REGISTER(cls, name, desc) do {				\
-	cls* cls##impl = new cls(name, desc);			\
-	FractalCommon::registry.reg(name, cls##impl);	\
+
+#define REGISTER(cls) do { 										\
+	cls* cls##impl = new cls();           						\
+	FractalCommon::registry.reg(cls##impl->name, cls##impl);	\
 } while(0)
 
 void Fractal::load_Mandeldrop() {
-	REGISTER(Mandeldrop, "Mandeldrop", "Inverse Mandelbrot set, z:=z^2+c with z0' := 1/z0");
-	REGISTER(Mandeldrop3, "Mandeldrop^3", "z:=z^3+c with z0' := 1/z0");
-	REGISTER(Mandeldrop4, "Mandeldrop^4", "z:=z^4+c with z0' := 1/z0");
-	REGISTER(Mandeldrop5, "Mandeldrop^5", "z:=z^5+c with z0' := 1/z0");
+	REGISTER(Mandeldrop);
+	REGISTER(Mandeldrop3);
+	REGISTER(Mandeldrop4);
+	REGISTER(Mandeldrop5);
 }
-
