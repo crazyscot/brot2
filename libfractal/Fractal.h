@@ -41,9 +41,18 @@ void load_Misc();
 typedef long double Value; // short for "fractal value"
 typedef std::complex<Value> Point; // "complex fractal point"
 
+typedef enum {
+	v_double,
+	v_max
+} value_e;
+
 template<typename T> class value_traits {
 public:
-	static T min_pixel_size(); // Smallest pixel size we are prepared to render to
+	/* The smallest pixel size we are prepared to render to.
+	 * At the moment this is the size of epsilon at 3.0
+	 * i.e. (the next double above 3.0) - 3.0.
+	 */
+	static T min_pixel_size();
 
 	// ops maybe required for Value:
 	// << into a stream
@@ -53,7 +62,6 @@ public:
 template<> class value_traits<double> {
 public:
 	static inline double min_pixel_size() {
-		// This is the size of epsilon at 3.0 i.e. (the next highest double above 3.0) - 3.0.
 		return 0.00000000000000044408920985006L;
 	}
 };
@@ -133,7 +141,7 @@ public:
 	 * If a pixel escapes, perform any final computation on the result and set up
 	 * _out_ accordingly.
 	 */
-	virtual void plot_pixel(const int maxiter, PointData& out) const = 0;
+	virtual void plot_pixel(const int maxiter, PointData& out, value_e type) const = 0;
 
 	/* Fractal menu sort order group.
 	 * Items with the same group are sorted together,

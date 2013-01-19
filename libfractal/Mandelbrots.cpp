@@ -103,8 +103,14 @@ public:
 		out.point = Point(z_re,z_im);
 	}
 
-	virtual void plot_pixel(const int maxiter, PointData& out) const {
-		plot_generic<double>(maxiter,out);
+	virtual void plot_pixel(const int maxiter, PointData& out, value_e type) const {
+		switch(type) {
+		case v_double:
+			plot_generic<double>(maxiter,out);
+			break;
+		default:
+			throw "Unhandled value type";
+		}
 	}
 };
 

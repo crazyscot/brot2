@@ -154,7 +154,7 @@ string Plot3Plot::info_zoom(bool show_legend) const {
 
 /* Starts a plot. The actual work happens in the background. */
 void Plot3Plot::start() {
-	divider.dividePlot(_chunks, sink, fract, centre, size, width, height, passes_max);
+	divider.dividePlot(_chunks, sink, fract, centre, size, width, height, passes_max, v_double); // XXX Dynamically compute
 	std::unique_lock<std::mutex> lock(_lock);
 	_running = true;
 	_stop = false;
