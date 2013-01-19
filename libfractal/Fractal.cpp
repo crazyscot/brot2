@@ -44,3 +44,7 @@ void Fractal::FractalCommon::load_base() {
 #endif
 }
 
+const char* const Fractal::value_names[] = {
+	"double",
+	"long double",
+};

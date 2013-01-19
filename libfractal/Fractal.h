@@ -48,6 +48,8 @@ typedef enum {
 	v_max
 } value_e;
 
+extern const char* const value_names[];
+
 template<typename T> class value_traits {
 public:
 	/* The smallest pixel size we are prepared to render to.
