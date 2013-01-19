@@ -338,7 +338,12 @@ void MainWindow::do_plot(bool is_same_plot)
 	render_prep(-1);
 	if (draw_hud)
 		hud.draw(plot, rwidth, rheight);
-	plot->start();
+	try {
+		plot->start();
+	} catch (BrotException e) {
+		progbar->set_text("Plot failed to start!");
+		std::cerr << e.detail() << std::endl;
+	}
 	// TODO try/catch (and in do_resume) - report failure. Is gtkmm exception-safe?
 }
 
