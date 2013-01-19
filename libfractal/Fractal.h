@@ -40,8 +40,23 @@ void load_Misc();
 
 typedef long double Value; // short for "fractal value"
 typedef std::complex<Value> Point; // "complex fractal point"
-#define MINIMUM_PIXEL_SIZE ((Fractal::Value)0.000000000000000444089209850062616169452667236328125)
-// This is 2^-51 : specific to long double; adjust for any future change.
+
+template<typename T> class value_traits {
+public:
+	static T min_pixel_size(); // Smallest pixel size we are prepared to render to
+
+	// ops maybe required for Value:
+	// << into a stream
+	// >> from a stream
+};
+
+template<> class value_traits<double> {
+public:
+	static inline double min_pixel_size() {
+		// This is the size of epsilon at 3.0 i.e. (the next highest double above 3.0) - 3.0.
+		return 0.00000000000000044408920985006L;
+	}
+};
 
 #define AXIS_LENGTH_PRECISION 4 // For decimal output.
 

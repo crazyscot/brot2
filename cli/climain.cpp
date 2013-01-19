@@ -194,7 +194,7 @@ int main (int argc, char**argv)
 		std::cerr << "cannot parse input axis length " << length_x << std::endl;
 		fail = true;
 	}
-	if (XAxisLength < MINIMUM_PIXEL_SIZE) {
+	if (XAxisLength < Fractal::value_traits<double>::min_pixel_size()) {
 		std::cerr << "input axis length is smaller than the resolution limit" << std::endl;
 		fail = true;
 	}
