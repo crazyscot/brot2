@@ -35,6 +35,8 @@
 #include "Fractal.h"
 #include "Exception.h"
 
+using namespace Fractal;
+
 namespace Plot3 {
 namespace ChunkDivider {
 	_CD__BODY(OneChunk) {
@@ -197,9 +199,9 @@ namespace ChunkDivider {
 
 		unsigned nX = (width-1) / SIZE, nY = (height-1) / SIZE;
 		unsigned lastXsize = width - SIZE*nX, lastYsize = height - SIZE*nY;
-		const Fractal::Point pixSize(real(size) * (double)SIZE / width, imag(size) * (double)SIZE / height);
-		const Fractal::Point lastColSize(real(size) * lastXsize / width, imag(size) * (double)SIZE / height);
-		const Fractal::Point lastRowSize(real(size) * (double)SIZE / width, imag(size) * lastYsize / height);
+		const Fractal::Point pixSize(real(size) * (Value)SIZE / width, imag(size) * (Value)SIZE / height);
+		const Fractal::Point lastColSize(real(size) * lastXsize / width, imag(size) * (Value)SIZE / height);
+		const Fractal::Point lastRowSize(real(size) * (Value)SIZE / width, imag(size) * lastYsize / height);
 		const Fractal::Point lastCornerSize(real(size) * lastXsize / width, imag(size) * lastYsize / height);
 
 
