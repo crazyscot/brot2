@@ -28,8 +28,9 @@ noinst_LIBRARIES+=libfractal/libfractal.a
 
 libfractal_libfractal_a_SOURCES= \
 	libfractal/Fractal.h libfractal/Fractal.cpp libfractal/Registry.h \
-	libfractal/Mandelbar.cpp libfractal/Mandelbrots.cpp \
-	libfractal/Mandeldrop.cpp libfractal/Misc.cpp
+	libfractal/Mandelbrots.cpp
+#libfractal/Mandelbar.cpp \
+#libfractal/Mandeldrop.cpp libfractal/Misc.cpp
 
 ################################################################
 

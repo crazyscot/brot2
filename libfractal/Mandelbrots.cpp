@@ -105,6 +105,7 @@ public:
 
 // --------------------------------------------------------------------
 
+#if 0 // Temp disable
 DECLARE(Mandel3) {
 public:
 	CONSTRUCT(Mandel3, "Mandelbrot^3", "z:=z^3+c")
@@ -212,6 +213,7 @@ public:
 		out.point = Point(z_re,z_im);
 	};
 };
+#endif
 
 #define REGISTER(cls) do { 		\
 	cls* cls##impl = new cls(); \
@@ -220,8 +222,10 @@ public:
 
 void Fractal::load_Mandelbrot() {
 	REGISTER(Mandelbrot);
+#if 0 // Temp disable
 	REGISTER(Mandel3);
 	REGISTER(Mandel4);
 	REGISTER(Mandel5);
+#endif
 }
 
