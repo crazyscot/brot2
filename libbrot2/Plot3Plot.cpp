@@ -23,6 +23,7 @@
 #include "ChunkDivider.h"
 #include <thread>
 #include "libbrot2/ThreadPool.h"
+#include "Exception.h"
 
 using namespace std;
 using namespace Fractal;
@@ -154,7 +155,21 @@ string Plot3Plot::info_zoom(bool show_legend) const {
 
 /* Starts a plot. The actual work happens in the background. */
 void Plot3Plot::start() {
-	divider.dividePlot(_chunks, sink, fract, centre, size, width, height, passes_max, v_double); // XXX Dynamically compute
+	value_e arithtype = v_max;
+	Value pixsize = MAX(real(size),imag(size)) / (Value)MAX(width,height);
+	/*
+	 * if (pixsize < value_traits<double>::min_pixel_size())
+	 * 		arithtype = v_long_ double;
+	 * else ...
+	 */
+	if (pixsize > value_traits<double>::min_pixel_size())
+		arithtype = v_double;
+
+	if (arithtype==v_max)
+		// Caller should not pass on such a request...
+		throw BrotFatalException("Pixels are too small for all known types");
+
+	divider.dividePlot(_chunks, sink, fract, centre, size, width, height, passes_max, arithtype);
 	std::unique_lock<std::mutex> lock(_lock);
 	_running = true;
 	_stop = false;
