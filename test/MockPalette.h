@@ -21,10 +21,16 @@
 
 #include "palette.h"
 
-class MockPalette: public BasePalette {
+class MockPaletteTypeFix: public BasePalette {
 public:
-	MockPalette() {}
+	MockPaletteTypeFix(std::string name) : BasePalette(name) {}
 	virtual rgb get(const Fractal::PointData &) const { return rgb(255,255,255); }
+	virtual ~MockPaletteTypeFix() {}
+};
+
+class MockPalette: public MockPaletteTypeFix {
+public:
+	MockPalette() : MockPaletteTypeFix("Mock") {}
 	virtual ~MockPalette() {}
 };
 
