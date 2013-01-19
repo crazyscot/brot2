@@ -296,12 +296,12 @@ void MainWindow::do_plot(bool is_same_plot)
 		size.imag(real(size)/aspect);
 		aspectfix=true;
 	}
-	if (fabs(real(size)/rwidth) <= Fractal::value_traits<double>::min_pixel_size()) {
-		size.real(Fractal::value_traits<double>::min_pixel_size()*rwidth);
+	if (fabs(real(size)/rwidth) <= Fractal::smallest_min_pixel_size()) {
+		size.real(Fractal::smallest_min_pixel_size()*rwidth);
 		at_max_zoom = true;
 	}
-	if (fabs(imag(size)/rheight) <= Fractal::value_traits<double>::min_pixel_size()) {
-		size.imag(Fractal::value_traits<double>::min_pixel_size()*rheight);
+	if (fabs(imag(size)/rheight) <= Fractal::smallest_min_pixel_size()) {
+		size.imag(Fractal::smallest_min_pixel_size()*rheight);
 		at_max_zoom = true;
 	}
 

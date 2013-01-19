@@ -44,6 +44,7 @@ typedef std::complex<Value> Point; // "complex fractal point"
 typedef enum {
 	v_double,
 	v_long_double,
+	// Remember to update smallest_min_pixel_size() !
 	v_max
 } value_e;
 
@@ -73,6 +74,11 @@ public:
 		return 0.0000000000000000002168404345L;
 	}
 };
+
+static inline Value smallest_min_pixel_size() {
+	return value_traits<double>::min_pixel_size();
+}
+
 
 #define AXIS_LENGTH_PRECISION 4 // For decimal output.
 
