@@ -70,36 +70,41 @@ public:
 		SHORTCUT:
 		out.mark_infinite();
 	}
-	static inline void ITER2(Value& o_re, Value& o_im, Value& re2, Value& im2, Value& z_re, Value& z_im) {
+
+	template<typename T>
+	static inline void ITER2(T& o_re, T& o_im, T& re2, T& im2, T& z_re, T& z_im) {
 		re2 = z_re * z_re;
 		im2 = z_im * z_im;
 		z_im = 2 * z_re * z_im + o_im;
 		z_re = re2 - im2 + o_re;
 	}
-	virtual void plot_pixel(const int maxiter, PointData& out) const {
-		// Speed notes:
-		// Don't use Point in the actual calculation - using straight doubles and
-		// doing the complex maths by hand is about 6x faster for me.
+
+	template<typename T>
+	void plot_generic(const int maxiter, PointData& out) const {
 		int iter;
-		Value o_re = real(out.origin), o_im = imag(out.origin),
-			   z_re = real(out.point), z_im = imag(out.point), re2, im2;
+		T o_re = real(out.origin), o_im = imag(out.origin),
+		  z_re = real(out.point), z_im = imag(out.point), re2, im2;
 
 		for (iter=out.iter; iter<maxiter; iter++) {
 			ITER2(o_re, o_im, re2, im2, z_re, z_im);
-			if (re2 + im2 > 4.0) {
+			if (re2 + im2 > T(4.0)) {
 				// Fractional escape count: See http://linas.org/art-gallery/escape/escape.html
 				ITER2(o_re, o_im, re2, im2, z_re, z_im);
 				ITER2(o_re, o_im, re2, im2, z_re, z_im);
 				iter+=2;
 				out.iter = iter;
-				out.iterf = iter - log(log(re2 + im2)) / Consts::log2;
-				out.arg = atan2(z_im, z_re);
+				out.iterf = iter - logl(logl(re2 + im2)) / Consts::log2;
+				out.arg = atan2l(z_im, z_re);
 				out.nomore = true;
 				return;
 			}
 		}
 		out.iter = iter;
 		out.point = Point(z_re,z_im);
+	}
+
+	virtual void plot_pixel(const int maxiter, PointData& out) const {
+		plot_generic<double>(maxiter,out);
 	}
 };
 
