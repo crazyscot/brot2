@@ -67,6 +67,7 @@ template<> class value_traits<double> {
 public:
 	static inline double min_pixel_size() {
 		return 0.00000000000000044408920985006L;
+		// 4.44e-16
 	}
 };
 
@@ -74,11 +75,12 @@ template<> class value_traits<long double> {
 public:
 	static inline long double min_pixel_size() {
 		return 0.0000000000000000002168404345L;
+		// 2.16e-19
 	}
 };
 
 static inline Value smallest_min_pixel_size() {
-	return value_traits<double>::min_pixel_size();
+	return value_traits<long double>::min_pixel_size();
 }
 
 

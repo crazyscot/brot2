@@ -108,6 +108,9 @@ public:
 		case v_double:
 			plot_generic<double>(maxiter,out);
 			break;
+		case v_long_double:
+			plot_generic<long double>(maxiter,out);
+			break;
 		default:
 			throw "Unhandled value type";
 		}
