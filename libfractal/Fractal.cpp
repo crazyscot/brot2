@@ -22,10 +22,10 @@
 
 using namespace Fractal;
 
-const Value Consts::log2 = log(2.0);
-const Value Consts::log3 = log(3.0);
-const Value Consts::log4 = log(4.0);
-const Value Consts::log5 = log(5.0);
+const Value Consts::log2 = logl(2.0);
+const Value Consts::log3 = logl(3.0);
+const Value Consts::log4 = logl(4.0);
+const Value Consts::log5 = logl(5.0);
 
 const float Fractal::PointData::ITERF_LOW_CLAMP = 0.0001;
 
