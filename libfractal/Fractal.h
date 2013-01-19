@@ -43,6 +43,7 @@ typedef std::complex<Value> Point; // "complex fractal point"
 
 typedef enum {
 	v_double,
+	v_long_double,
 	v_max
 } value_e;
 
@@ -63,6 +64,13 @@ template<> class value_traits<double> {
 public:
 	static inline double min_pixel_size() {
 		return 0.00000000000000044408920985006L;
+	}
+};
+
+template<> class value_traits<long double> {
+public:
+	static inline long double min_pixel_size() {
+		return 0.0000000000000000002168404345L;
 	}
 };
 
