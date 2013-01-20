@@ -83,9 +83,6 @@ static inline Value smallest_min_pixel_size() {
 	return value_traits<long double>::min_pixel_size();
 }
 
-
-#define AXIS_LENGTH_PRECISION 4 // For decimal output.
-
 class Consts {
 public:
 	static const Value log2;
