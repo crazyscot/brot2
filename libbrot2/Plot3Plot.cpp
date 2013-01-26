@@ -157,17 +157,8 @@ string Plot3Plot::info_zoom(bool show_legend) const {
 
 /* Starts a plot. This version autodetects the maths type to use. */
 void Plot3Plot::start() {
-	value_e arithtype = v_max;
-	Value pixsize = MAX(real(size),imag(size)) / (Value)MAX(width,height);
-	if (pixsize >= value_traits<double>::min_pixel_size())
-		arithtype = v_double;
-	else if (pixsize >= value_traits<long double>::min_pixel_size())
-		arithtype = v_long_double;
-
+	value_e arithtype = Fractal::FractalCommon::select_maths_type(size, width, height);
 	if (arithtype==v_max) {
-#ifdef DEBUG_ARITH_SELECTION
-		std::cout << "pixsize is " << pixsize << ", limit is " << smallest_min_pixel_size() << std::endl;
-#endif
 		THROW(BrotException,"Pixels are too small for all known types");
 	}
 

@@ -115,6 +115,13 @@ public:
 	static SimpleRegistry<FractalImpl> registry;
 	// Call on startup to load the base fractals.
 	static void load_base();
+
+	// What is the most appropriate maths type to use for this pixel size?
+	// Returns v_max if nothing suits.
+	static Fractal::value_e select_maths_type(Fractal::Value pixsize);
+	// What is the most appropriate maths type to use for this plot?
+	// Returns v_max if nothing suits.
+	static Fractal::value_e select_maths_type(Fractal::Point plot_size, unsigned width, unsigned height);
 protected:
 	// Set when the base set has been loaded.
 	static bool base_loaded;

@@ -18,6 +18,7 @@
 
 #include <string>
 #include <map>
+#include <glib/gmacros.h>
 #include "Fractal.h"
 
 using namespace Fractal;
@@ -46,3 +47,17 @@ const char* const Fractal::value_names[] = {
 	"double",
 	"long double",
 };
+
+value_e Fractal::FractalCommon::select_maths_type(Value pixsize) {
+	value_e arithtype = v_max;
+	if (pixsize >= value_traits<double>::min_pixel_size())
+		arithtype = v_double;
+	else if (pixsize >= value_traits<long double>::min_pixel_size())
+		arithtype = v_long_double;
+	return arithtype;
+}
+
+value_e Fractal::FractalCommon::select_maths_type(Point plot_size, unsigned width, unsigned height) {
+	Value pixsize = MAX(real(plot_size),imag(plot_size)) / (Value)MAX(width,height);
+	return select_maths_type(pixsize);
+}
