@@ -131,3 +131,26 @@ b2test_DEPENDENCIES= libgtest.a $(all_libs)
 
 b2test_CPPFLAGS=$(AM_CPPFLAGS) -I$(GTEST_INC)
 
+################################################################
+
+check_LIBRARIES+=libhayai.a
+
+libhayai_a_SOURCES= hayai/hayai.hpp hayai/hayai-posixmain.cpp \
+	hayai/hayai-benchmarker.hpp hayai/hayai-console.hpp \
+	hayai/hayai-defaulttestfactory.hpp hayai/hayai-fixture.hpp \
+	hayai/hayai-testdescriptor.hpp hayai/hayai-testfactory.hpp \
+	hayai/hayai-test.hpp
+
+################################################################
+
+check_PROGRAMS+=b2benchmark
+b2benchmark_SOURCES=benchmark/benchmark.cpp
+
+b2benchmark_LDADD= libhayai.a $(all_ldadd)
+b2benchmark_DEPENDENCIES= libhayai.a $(all_libs)
+b2benchmark_CPPFLAGS=$(AM_CPPFLAGS)
+
+benchmark: b2benchmark
+	./b2benchmark
+
+################################################################
