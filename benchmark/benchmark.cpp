@@ -15,9 +15,43 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include "Fractal.h"
 #include <hayai/hayai.hpp>
 
-BENCHMARK(foo, bar, 10, 100)
-{
+using namespace Fractal;
 
+class FractalBM : public Hayai::Fixture
+{
+public:
+	FractalImpl *impl;
+	Point coords;
+	PointData data;
+
+	virtual void SetUp() {
+		FractalCommon::load_base();
+		impl = FractalCommon::registry.get("Mandelbrot");
+		if (impl==0) throw "Cannot find my fractal!";
+
+		/* A point (found by experiment) that's in the set but not
+		 * in the special-case cut-off regions */
+		coords = { -0.1586536, 1.034804 };
+
+		impl->prepare_pixel(coords, data);
+}
+
+	void doit(value_e ty) {
+		impl->plot_pixel(16777216, data, ty);
+		/* Note that plot_pixel converts the point data from the base type
+		 * to the templated type - but only once per call. */
+	}
+};
+
+BENCHMARK_F(FractalBM, double, 10, 1)
+{
+	doit(v_double);
+}
+
+BENCHMARK_F(FractalBM, longdouble, 10, 1)
+{
+	doit(v_long_double);
 }
