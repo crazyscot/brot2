@@ -3,8 +3,9 @@ brot2 (1.2~unreleased) UNRELEASED; urgency=low
   * Add palettes from rjk's and fanf's mandelbrotters
   * Refactor fractal maths machinery to be traits-based, have it auto-select
   between double and long double based on zoom depth.
+  * Add benchmarker (`make benchmark') using Nick Bruun's `hayai'.
 
- -- Ross Younger <0ryoungerk.launchpad@coriolis.greenend.org.uk>  Sat, 26 Jan 2013 21:34:26 +1300
+ -- Ross Younger <0ryoungerk.launchpad@coriolis.greenend.org.uk>  Sat, 26 Jan 2013 22:22:10 +1300
 
 brot2 (1.1) precise; urgency=low
 
