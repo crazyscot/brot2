@@ -37,8 +37,8 @@ void Fractal::FractalCommon::load_base() {
 	if (base_loaded) return;
 	base_loaded = true;
 	load_Mandelbrot();
-#if 0 // Temp disable
 	load_Mandelbar();
+#if 0 // Temp disable
 	load_Mandeldrop();
 	load_Misc();
 #endif

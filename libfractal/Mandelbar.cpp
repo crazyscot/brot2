@@ -28,7 +28,8 @@ public:
 	Mandelbar_Generic(std::string name_, std::string desc_, Value xmin_=-3.0, Value xmax_=3.0, Value ymin_=-3.0, Value ymax_=3.0, unsigned sortorder=20) : FractalImpl(name_, desc_, xmin_, xmax_, ymin_, ymax_, sortorder) {};
 	~Mandelbar_Generic() {};
 
-	virtual void prepare_pixel(const Point coords, PointData& out) const {
+protected:
+	static void prepare_pixel_impl(const Point coords, PointData& out) {
 		// The first iteration is easy, 0^k + origin = origin
 		out.origin = out.point = Point(coords);
 		out.iter = 1;
@@ -46,15 +47,17 @@ class Mandelbar2: public Mandelbar_Generic {
 public:
 	CONSTRUCT(Mandelbar2, "Mandelbar (Tricorn)", "z:=(zbar)^2+c")
 
-	static inline void ITER2(Value& o_re, Value& o_im, Value& re2, Value& im2, Value& z_re, Value& z_im) {
+	template <typename MATH_T>
+	static inline void ITER2(MATH_T& o_re, MATH_T& o_im, MATH_T& re2, MATH_T& im2, MATH_T& z_re, MATH_T& z_im) {
 		re2 = z_re * z_re;
 		im2 = z_im * z_im;
 		z_im = -2 * z_re * z_im + o_im;
 		z_re = re2 - im2 + o_re;
 	}
-	virtual void plot_pixel(const int maxiter, PointData& out) const {
+	template <typename MATH_T>
+	static void plot_pixel_impl(const int maxiter, PointData& out) {
 		int iter;
-		Value o_re = real(out.origin), o_im = imag(out.origin),
+		MATH_T o_re = real(out.origin), o_im = imag(out.origin),
 			   z_re = real(out.point), z_im = imag(out.point), re2, im2;
 
 		for (iter=out.iter; iter<maxiter; iter++) {
@@ -83,15 +86,17 @@ class Mandelbar3: public Mandelbar_Generic {
 public:
 	CONSTRUCT(Mandelbar3, "Mandelbar^3", "z:=(zbar)^3+c")
 
-	static inline void ITER3(Value& o_re, Value& o_im, Value& re2, Value& im2, Value& z_re, Value& z_im) {
+	template <typename MATH_T>
+	static inline void ITER3(MATH_T& o_re, MATH_T& o_im, MATH_T& re2, MATH_T& im2, MATH_T& z_re, MATH_T& z_im) {
 		re2 = z_re * z_re;
 		im2 = z_im * z_im;
 		z_re = z_re * re2 - 3*z_re*im2 + o_re;
 		z_im = -3 * z_im * re2 + z_im * im2 + o_im;
 	}
-	virtual void plot_pixel(const int maxiter, PointData& out) const {
+	template <typename MATH_T>
+	static void plot_pixel_impl(const int maxiter, PointData& out) {
 		int iter;
-		Value o_re = real(out.origin), o_im = imag(out.origin),
+		MATH_T o_re = real(out.origin), o_im = imag(out.origin),
 			   z_re = real(out.point), z_im = imag(out.point), re2, im2;
 
 		for (iter=out.iter; iter<maxiter; iter++) {
@@ -119,15 +124,17 @@ class Mandelbar4: public Mandelbar_Generic {
 public:
 	CONSTRUCT(Mandelbar4, "Mandelbar^4", "z:=(zbar)^4+c")
 
-	static inline void ITER4(Value& o_re, Value& o_im, Value& re2, Value& im2, Value& z_re, Value& z_im) {
+	template <typename MATH_T>
+	static inline void ITER4(MATH_T& o_re, MATH_T& o_im, MATH_T& re2, MATH_T& im2, MATH_T& z_re, MATH_T& z_im) {
 		re2 = z_re * z_re;
 		im2 = z_im * z_im;
 		z_im = -4 * (re2*z_re*z_im - z_re*im2*z_im) + o_im;
 		z_re = re2*re2 - 6*re2*im2 + im2*im2 + o_re;
 	}
-	virtual void plot_pixel(const int maxiter, PointData& out) const {
+	template <typename MATH_T>
+	static void plot_pixel_impl(const int maxiter, PointData& out) {
 		int iter;
-		Value o_re = real(out.origin), o_im = imag(out.origin),
+		MATH_T o_re = real(out.origin), o_im = imag(out.origin),
 			   z_re = real(out.point), z_im = imag(out.point), re2, im2;
 
 		for (iter=out.iter; iter<maxiter; iter++) {
@@ -155,7 +162,8 @@ class Mandelbar5: public Mandelbar_Generic {
 public:
 	CONSTRUCT(Mandelbar5, "Mandelbar^5", "z:=(zbar)^5+c")
 
-	static inline void ITER5(Value& o_re, Value& o_im, Value& re2, Value& im2, Value& z_re, Value& z_im, Value& re4, Value& im4) {
+	template <typename MATH_T>
+	static inline void ITER5(MATH_T& o_re, MATH_T& o_im, MATH_T& re2, MATH_T& im2, MATH_T& z_re, MATH_T& z_im, MATH_T& re4, MATH_T& im4) {
 		re2 = z_re * z_re;
 		im2 = z_im * z_im;
 		re4 = re2 * re2;
@@ -163,9 +171,10 @@ public:
 		z_re = re4*z_re - 10*z_re*re2*im2 + 5*z_re*im4 + o_re;
 		z_im = -5*re4*z_im + 10*re2*im2*z_im - im4*z_im + o_im;
 	}
-	virtual void plot_pixel(const int maxiter, PointData& out) const {
+	template <typename MATH_T>
+	static void plot_pixel_impl(const int maxiter, PointData& out) {
 		int iter;
-		Value o_re = real(out.origin), o_im = imag(out.origin),
+		MATH_T o_re = real(out.origin), o_im = imag(out.origin),
 			   z_re = real(out.point), z_im = imag(out.point), re2, im2, re4, im4;
 
 		for (iter=out.iter; iter<maxiter; iter++) {
@@ -187,9 +196,9 @@ public:
 	};
 };
 
-#define REGISTER(cls) do { 		\
-	cls* cls##impl = new cls(); \
-	(void)cls##impl;			\
+#define REGISTER(cls) do { 				\
+	auto impl = new MathsMixin<cls>();	\
+	(void)impl;							\
 } while(0)
 
 void Fractal::load_Mandelbar() {

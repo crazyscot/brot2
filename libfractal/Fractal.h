@@ -30,11 +30,9 @@ namespace Fractal {
 // Every source file that declares fractals must have a load_ function.
 // They are called in Fractal.cpp.
 void load_Mandelbrot();
-#if 0 // Temp disable
 void load_Mandelbar();
 void load_Mandeldrop();
 void load_Misc();
-#endif
 
 // Maths types etc
 
