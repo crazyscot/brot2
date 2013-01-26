@@ -27,7 +27,8 @@ public:
 	Mandeldrop_Generic(std::string name_, std::string desc_, Value xmin_=-3.0, Value xmax_=3.0, Value ymin_=-3.0, Value ymax_=3.0) : FractalImpl(name_, desc_, xmin_, xmax_, ymin_, ymax_, 30) {};
 	~Mandeldrop_Generic() {};
 
-	virtual void prepare_pixel(const Point coords, PointData& out) const {
+protected:
+	static void prepare_pixel_impl(const Point coords, PointData& out) {
 		// Prep for the pixel described by 1/z0:
 		Value zre = real(coords), zim = imag(coords);
 		Point z0_inv = coords / Point(zre*zre - zim*zim, 2.0*zre*zim);
@@ -45,18 +46,20 @@ class Mandeldrop : public Mandeldrop_Generic {
 public:
 	CONSTRUCT(Mandeldrop, "Mandeldrop", "Inverse Mandelbrot set, z:=z^2+c with z0' := 1/z0")
 
-	static inline void ITER2(Value& o_re, Value& o_im, Value& re2, Value& im2, Value& z_re, Value& z_im) {
+	template <typename MATH_T>
+	static inline void ITER2(MATH_T& o_re, MATH_T& o_im, MATH_T& re2, MATH_T& im2, MATH_T& z_re, MATH_T& z_im) {
 		re2 = z_re * z_re;
 		im2 = z_im * z_im;
 		z_im = 2.0 * z_re * z_im + o_im;
 		z_re = re2 - im2 + o_re;
 	}
-	virtual void plot_pixel(const int maxiter, PointData& out) const {
+	template <typename MATH_T>
+	static void plot_pixel_impl(const int maxiter, PointData& out) {
 		// Speed notes:
 		// Don't use Point in the actual calculation - using straight doubles and
 		// doing the complex maths by hand is about 6x faster for me.
 		int iter;
-		Value o_re = real(out.origin), o_im = imag(out.origin),
+		MATH_T o_re = real(out.origin), o_im = imag(out.origin),
 			   z_re = real(out.point), z_im = imag(out.point), re2, im2;
 
 		for (iter=out.iter; iter<maxiter; iter++) {
@@ -84,15 +87,17 @@ class Mandeldrop3 : public Mandeldrop_Generic {
 public:
 	CONSTRUCT(Mandeldrop3, "Mandeldrop^3", "z:=z^3+c with z0' := 1/z0")
 
-	static inline void ITER3(Value& o_re, Value& o_im, Value& re2, Value& im2, Value& z_re, Value& z_im) {
+	template <typename MATH_T>
+	static inline void ITER3(MATH_T& o_re, MATH_T& o_im, MATH_T& re2, MATH_T& im2, MATH_T& z_re, MATH_T& z_im) {
 		re2 = z_re * z_re;
 		im2 = z_im * z_im;
 		z_re = z_re * re2 - 3*z_re*im2 + o_re;
 		z_im = 3 * z_im * re2 - z_im * im2 + o_im;
 	}
-	virtual void plot_pixel(const int maxiter, PointData& out) const {
+	template <typename MATH_T>
+	static void plot_pixel_impl(const int maxiter, PointData& out) {
 		int iter;
-		Value o_re = real(out.origin), o_im = imag(out.origin),
+		MATH_T o_re = real(out.origin), o_im = imag(out.origin),
 				z_re = real(out.point), z_im = imag(out.point), re2, im2;
 		for (iter=out.iter; iter<maxiter; iter++) {
 			ITER3(o_re, o_im, re2, im2, z_re, z_im);
@@ -119,15 +124,17 @@ class Mandeldrop4 : public Mandeldrop_Generic {
 public:
 	CONSTRUCT(Mandeldrop4, "Mandeldrop^4", "z:=z^4+c with z0' := 1/z0")
 
-	static inline void ITER4(Value& o_re, Value& o_im, Value& re2, Value& im2, Value& z_re, Value& z_im) {
+	template <typename MATH_T>
+	static inline void ITER4(MATH_T& o_re, MATH_T& o_im, MATH_T& re2, MATH_T& im2, MATH_T& z_re, MATH_T& z_im) {
 		re2 = z_re * z_re;
 		im2 = z_im * z_im;
 		z_im = 4 * (re2*z_re*z_im - z_re*im2*z_im) + o_im;
 		z_re = re2*re2 - 6*re2*im2 + im2*im2 + o_re;
 	}
-	virtual void plot_pixel(const int maxiter, PointData& out) const {
+	template <typename MATH_T>
+	static void plot_pixel_impl(const int maxiter, PointData& out) {
 		int iter;
-		Value o_re = real(out.origin), o_im = imag(out.origin),
+		MATH_T o_re = real(out.origin), o_im = imag(out.origin),
 				z_re = real(out.point), z_im = imag(out.point), re2, im2;
 
 		for (iter=out.iter; iter<maxiter; iter++) {
@@ -155,7 +162,8 @@ class Mandeldrop5 : public Mandeldrop_Generic {
 public:
 	CONSTRUCT(Mandeldrop5, "Mandeldrop^5", "z:=z^5+c with z0' := 1/z0")
 
-	static inline void ITER5(Value& o_re, Value& o_im, Value& re2, Value& im2, Value& z_re, Value& z_im, Value& re4, Value& im4) {
+	template <typename MATH_T>
+	static inline void ITER5(MATH_T& o_re, MATH_T& o_im, MATH_T& re2, MATH_T& im2, MATH_T& z_re, MATH_T& z_im, MATH_T& re4, MATH_T& im4) {
 		re2 = z_re * z_re;
 		im2 = z_im * z_im;
 		re4 = re2 * re2;
@@ -164,9 +172,10 @@ public:
 		z_im = 5*re4*z_im - 10*re2*im2*z_im + im4*z_im + o_im;
 	}
 
-	virtual void plot_pixel(const int maxiter, PointData& out) const {
+	template <typename MATH_T>
+	static void plot_pixel_impl(const int maxiter, PointData& out) {
 		int iter;
-		Value o_re = real(out.origin), o_im = imag(out.origin),
+		MATH_T o_re = real(out.origin), o_im = imag(out.origin),
 				z_re = real(out.point), z_im = imag(out.point), re2, im2, re4, im4;
 
 		for (iter=out.iter; iter<maxiter; iter++) {
@@ -189,8 +198,8 @@ public:
 };
 
 #define REGISTER(cls) do { 		\
-	cls* cls##impl = new cls(); \
-	(void)cls##impl;			\
+	auto impl = new MathsMixin<cls>(); \
+	(void)impl;			\
 } while(0)
 
 void Fractal::load_Mandeldrop() {

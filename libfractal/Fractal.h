@@ -38,10 +38,48 @@ void load_Misc();
 
 typedef long double Value; // short for "fractal value"
 typedef std::complex<Value> Point; // "complex fractal point"
-#define MINIMUM_PIXEL_SIZE ((Fractal::Value)0.000000000000000444089209850062616169452667236328125)
-// This is 2^-51 : specific to long double; adjust for any future change.
 
-#define AXIS_LENGTH_PRECISION 4 // For decimal output.
+typedef enum {
+	v_double,
+	v_long_double,
+	// Remember to update smallest_min_pixel_size() !
+	v_max
+} value_e;
+
+extern const char* const value_names[];
+
+template<typename T> class value_traits {
+public:
+	/* The smallest pixel size we are prepared to render to.
+	 * At the moment this is the size of epsilon at 3.0
+	 * i.e. (the next double above 3.0) - 3.0.
+	 */
+	static T min_pixel_size();
+
+	// ops maybe required for Value:
+	// << into a stream
+	// >> from a stream
+};
+
+template<> class value_traits<double> {
+public:
+	static inline double min_pixel_size() {
+		return 0.00000000000000044408920985006L;
+		// 4.44e-16
+	}
+};
+
+template<> class value_traits<long double> {
+public:
+	static inline long double min_pixel_size() {
+		return 0.0000000000000000002168404345L;
+		// 2.16e-19
+	}
+};
+
+static inline Value smallest_min_pixel_size() {
+	return value_traits<long double>::min_pixel_size();
+}
 
 class Consts {
 public:
@@ -82,9 +120,10 @@ protected:
 	static bool base_loaded;
 };
 
-
-// Base fractal definition. An instance knows all about a fractal _type_
-// but nothing about an individual _plot_ of it (meta-instance?)
+/*
+ * Base fractal definition. An instance knows all about a fractal _type_
+ * but nothing about an individual _plot_ of it (meta-instance?)
+ */
 class FractalImpl {
 public:
 	FractalImpl(std::string _name, std::string _desc,
@@ -101,11 +140,16 @@ public:
 	const std::string name;
 	const std::string description;
 
-	Value xmin, xmax, ymin, ymax; // Maximum useful complex area
+	const Value xmin, xmax, ymin, ymax; // Maximum useful complex area
+
+	/* Fractal menu sort order group.
+	 * Items with the same group are sorted together,
+	 * then alphabetically within the group.
+	 */
+	const unsigned sortorder;
 
 	/* Pixel initialisation. This is supposed to be quick and straightforward,
 	 * setting up for the first iteration and performing any shortcut checks.
-	 * The pixel we are interested in.
 	 */
 	virtual void prepare_pixel(const Point coords, PointData& out) const = 0;
 
@@ -116,13 +160,7 @@ public:
 	 * If a pixel escapes, perform any final computation on the result and set up
 	 * _out_ accordingly.
 	 */
-	virtual void plot_pixel(const int maxiter, PointData& out) const = 0;
-
-	/* Fractal menu sort order group.
-	 * Items with the same group are sorted together,
-	 * then alphabetically within the group.
-	 */
-	const unsigned sortorder;
+	virtual void plot_pixel(const int maxiter, PointData& out, value_e type) const = 0;
 
 private:
 	bool isRegistered;
@@ -132,6 +170,34 @@ private:
 		if (isRegistered)
 			FractalCommon::registry.dereg(name);
 		isRegistered = false;
+	}
+};
+
+/*
+ * Mixin helper class. This enables a single templated fractal definition
+ * class to write the iteration code once and have it reused multiple times
+ * with different maths types.
+ */
+template <class IMPL>
+class MathsMixin : public IMPL {
+public:
+	virtual ~MathsMixin() {}
+
+	virtual void prepare_pixel(const Point coords, PointData& out) const {
+		IMPL::prepare_pixel_impl(coords,out);
+	}
+
+	virtual void plot_pixel(int maxiter, PointData& out, value_e type) const {
+		switch(type) {
+		case v_double:
+			IMPL::template plot_pixel_impl<double>(maxiter,out);
+			break;
+		case v_long_double:
+			IMPL::template plot_pixel_impl<long double>(maxiter,out);
+			break;
+		default:
+			throw "Unhandled value type";
+		}
 	}
 };
 

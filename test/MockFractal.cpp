@@ -36,7 +36,7 @@ void MockFractal::prepare_pixel(const Point coords, PointData& out) const
 	out.point = coords;
 }
 
-void MockFractal::plot_pixel(const int maxiter, PointData& out) const
+void MockFractal::plot_pixel(const int maxiter, PointData& out, value_e) const
 {
 	out.point += out.origin;
 	if (_iters==0) {

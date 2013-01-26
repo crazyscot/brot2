@@ -27,7 +27,8 @@ public:
 	Misc_Generic(std::string name_, std::string desc_, Value xmin_=-3.0, Value xmax_=3.0, Value ymin_=-3.0, Value ymax_=3.0) : FractalImpl(name_, desc_, xmin_, xmax_, ymin_, ymax_, 40) {};
 	~Misc_Generic() {};
 
-	virtual void prepare_pixel(const Point coords, PointData& out) const {
+protected:
+	static void prepare_pixel_impl(const Point coords, PointData& out) {
 		// This fractal is "upside-down" in this co-ordinate system, so invert it.
 		// The first iteration is easy, 0^k + origin = origin
 		out.point = Point(real(coords), -imag(coords));
@@ -45,15 +46,17 @@ class BurningShip : public Misc_Generic {
 public:
 	CONSTRUCT(BurningShip, "Burning Ship", "z:=(|Re(z)|+i|Im(z)|)^2+c")
 
-	static inline void ITER2(Value& o_re, Value& o_im, Value& re2, Value& im2, Value& z_re, Value& z_im) {
+	template <typename MATH_T>
+	static inline void ITER2(MATH_T& o_re, MATH_T& o_im, MATH_T& re2, MATH_T& im2, MATH_T& z_re, MATH_T& z_im) {
 		re2 = z_re * z_re;
 		im2 = z_im * z_im;
 		z_im = 2.0 * fabsl(z_re * z_im) + o_im;
 		z_re = re2 - im2 + o_re;
 	}
-	virtual void plot_pixel(const int maxiter, PointData& out) const {
+	template <typename MATH_T>
+	static void plot_pixel_impl(const int maxiter, PointData& out) {
 		int iter;
-		Value o_re = real(out.origin), o_im = imag(out.origin),
+		MATH_T o_re = real(out.origin), o_im = imag(out.origin),
 			   z_re = real(out.point), z_im = imag(out.point), re2, im2;
 
 		for (iter=out.iter; iter<maxiter; iter++) {
@@ -81,15 +84,17 @@ class Celtic : public Misc_Generic {
 public:
 	CONSTRUCT(Celtic, "Generalised Celtic", "z:=(|Re(z)|+i.Im(z))^2+c")
 
-	static inline void ITER2(Value& o_re, Value& o_im, Value& re2, Value& im2, Value& z_re, Value& z_im) {
+	template <typename MATH_T>
+	static inline void ITER2(MATH_T& o_re, MATH_T& o_im, MATH_T& re2, MATH_T& im2, MATH_T& z_re, MATH_T& z_im) {
 		re2 = z_re * z_re;
 		im2 = z_im * z_im;
 		z_im = 2.0 * z_re * z_im + o_im;
 		z_re = fabsl(re2 - im2) + o_re;
 	}
-	virtual void plot_pixel(const int maxiter, PointData& out) const {
+	template <typename MATH_T>
+	static void plot_pixel_impl(const int maxiter, PointData& out) {
 		int iter;
-		Value o_re = real(out.origin), o_im = imag(out.origin),
+		MATH_T o_re = real(out.origin), o_im = imag(out.origin),
 			   z_re = real(out.point), z_im = imag(out.point), re2, im2;
 
 		for (iter=out.iter; iter<maxiter; iter++) {
@@ -117,7 +122,8 @@ class Variant : public Misc_Generic {
 public:
 	CONSTRUCT(Variant, "The Variant", "z:=z^2+c with Re(z):=|Re(z)| on odd iterations")
 
-	static inline void ITER2(Value& o_re, Value& o_im, Value& re2, Value& im2, Value& z_re, Value& z_im, const int iter) {
+	template <typename MATH_T>
+	static inline void ITER2(MATH_T& o_re, MATH_T& o_im, MATH_T& re2, MATH_T& im2, MATH_T& z_re, MATH_T& z_im, const int iter) {
 		re2 = z_re * z_re;
 		im2 = z_im * z_im;
 		z_im = 2.0 * z_re * z_im + o_im;
@@ -126,9 +132,10 @@ public:
 		else
 			z_re = re2 - im2 + o_re;
 	}
-	virtual void plot_pixel(const int maxiter, PointData& out) const {
+	template <typename MATH_T>
+	static void plot_pixel_impl(const int maxiter, PointData& out) {
 		int iter;
-		Value o_re = real(out.origin), o_im = imag(out.origin),
+		MATH_T o_re = real(out.origin), o_im = imag(out.origin),
 			   z_re = real(out.point), z_im = imag(out.point), re2, im2;
 
 		for (iter=out.iter; iter<maxiter; iter++) {
@@ -156,15 +163,17 @@ class BirdOfPrey : public Misc_Generic {
 public:
 	CONSTRUCT(BirdOfPrey, "Bird Of Prey", "z:=(Re(z)+i|Im(z)|)^2+c")
 
-	static inline void ITER2(Value& o_re, Value& o_im, Value& re2, Value& im2, Value& z_re, Value& z_im) {
+	template <typename MATH_T>
+	static inline void ITER2(MATH_T& o_re, MATH_T& o_im, MATH_T& re2, MATH_T& im2, MATH_T& z_re, MATH_T& z_im) {
 		re2 = z_re * z_re;
 		im2 = z_im * z_im;
 		z_im = 2.0 * z_re * fabsl(z_im) + o_im;
 		z_re = re2 - im2 + o_re;
 	}
-	virtual void plot_pixel(const int maxiter, PointData& out) const {
+	template <typename MATH_T>
+	static void plot_pixel_impl(const int maxiter, PointData& out) {
 		int iter;
-		Value o_re = real(out.origin), o_im = imag(out.origin),
+		MATH_T o_re = real(out.origin), o_im = imag(out.origin),
 			   z_re = real(out.point), z_im = imag(out.point), re2, im2;
 
 		for (iter=out.iter; iter<maxiter; iter++) {
@@ -189,8 +198,8 @@ public:
 // --------------------------------------------------------------------
 
 #define REGISTER(cls) do { 		\
-	cls* cls##impl = new cls(); \
-	(void)cls##impl;			\
+	auto impl = new MathsMixin<cls>(); \
+	(void)impl;			\
 } while(0)
 
 void Fractal::load_Misc() {

@@ -50,7 +50,7 @@ class ZoomControl : public Gtk::Frame {
 		void set(Fractal::Value v, mode_t m) {
 			shadow = v;
 			mode = m;
-			field->update(v, AXIS_LENGTH_PRECISION*2);
+			field->update(v);
 		}
 
 		bool get_raw (Fractal::Value& res) const {

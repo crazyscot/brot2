@@ -296,12 +296,12 @@ void MainWindow::do_plot(bool is_same_plot)
 		size.imag(real(size)/aspect);
 		aspectfix=true;
 	}
-	if (fabs(real(size)/rwidth) <= MINIMUM_PIXEL_SIZE) {
-		size.real(MINIMUM_PIXEL_SIZE*rwidth);
+	if (fabsl(real(size)/rwidth) <= Fractal::smallest_min_pixel_size()) {
+		size.real(Fractal::smallest_min_pixel_size()*rwidth);
 		at_max_zoom = true;
 	}
-	if (fabs(imag(size)/rheight) <= MINIMUM_PIXEL_SIZE) {
-		size.imag(MINIMUM_PIXEL_SIZE*rheight);
+	if (fabsl(imag(size)/rheight) <= Fractal::smallest_min_pixel_size()) {
+		size.imag(Fractal::smallest_min_pixel_size()*rheight);
 		at_max_zoom = true;
 	}
 
@@ -338,7 +338,12 @@ void MainWindow::do_plot(bool is_same_plot)
 	render_prep(-1);
 	if (draw_hud)
 		hud.draw(plot, rwidth, rheight);
-	plot->start();
+	try {
+		plot->start();
+	} catch (BrotException e) {
+		progbar->set_text("Plot failed to start!");
+		std::cerr << e.detail() << std::endl;
+	}
 	// TODO try/catch (and in do_resume) - report failure. Is gtkmm exception-safe?
 }
 

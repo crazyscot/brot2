@@ -37,7 +37,8 @@ namespace ChunkDivider {
 		virtual void dividePlot(std::list<Plot3Chunk*>& list_o,
 				IPlot3DataSink* s, const Fractal::FractalImpl& f,
 				Fractal::Point centre, Fractal::Point size,
-				unsigned width, unsigned height, unsigned max_passes) const = 0;
+				unsigned width, unsigned height, unsigned max_passes,
+				Fractal::value_e ty) const = 0;
 
 		virtual ~Base() {}
 	};
@@ -48,7 +49,8 @@ namespace ChunkDivider {
 		virtual void dividePlot(std::list<Plot3Chunk*>& list_o,			\
 				IPlot3DataSink* s, const Fractal::FractalImpl& f,		\
 				Fractal::Point centre, Fractal::Point size,				\
-				unsigned width, unsigned height, unsigned max_passes) const;	\
+				unsigned width, unsigned height, unsigned max_passes, 	\
+				Fractal::value_e ty ) const;	\
 	}
 
 	/* NOTE: Chunks must always be an even number of pixels high! */
@@ -65,7 +67,8 @@ namespace ChunkDivider {
 		virtual void dividePlot(std::list<Plot3Chunk*>& list_o,
 			IPlot3DataSink* s, const Fractal::FractalImpl& f,
 			Fractal::Point centre, Fractal::Point size,
-			unsigned width, unsigned height, unsigned max_passes) const;
+			unsigned width, unsigned height,
+			unsigned max_passes, Fractal::value_e ty) const;
 	};
 
 	// Single-type instantiator for testing
