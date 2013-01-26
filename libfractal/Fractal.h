@@ -122,9 +122,10 @@ protected:
 	static bool base_loaded;
 };
 
-
-// Base fractal definition. An instance knows all about a fractal _type_
-// but nothing about an individual _plot_ of it (meta-instance?)
+/*
+ * Base fractal definition. An instance knows all about a fractal _type_
+ * but nothing about an individual _plot_ of it (meta-instance?)
+ */
 class FractalImpl {
 public:
 	FractalImpl(std::string _name, std::string _desc,
@@ -141,11 +142,16 @@ public:
 	const std::string name;
 	const std::string description;
 
-	Value xmin, xmax, ymin, ymax; // Maximum useful complex area
+	const Value xmin, xmax, ymin, ymax; // Maximum useful complex area
+
+	/* Fractal menu sort order group.
+	 * Items with the same group are sorted together,
+	 * then alphabetically within the group.
+	 */
+	const unsigned sortorder;
 
 	/* Pixel initialisation. This is supposed to be quick and straightforward,
 	 * setting up for the first iteration and performing any shortcut checks.
-	 * The pixel we are interested in.
 	 */
 	virtual void prepare_pixel(const Point coords, PointData& out) const = 0;
 
@@ -158,12 +164,6 @@ public:
 	 */
 	virtual void plot_pixel(const int maxiter, PointData& out, value_e type) const = 0;
 
-	/* Fractal menu sort order group.
-	 * Items with the same group are sorted together,
-	 * then alphabetically within the group.
-	 */
-	const unsigned sortorder;
-
 private:
 	bool isRegistered;
 	void reg() { FractalCommon::registry.reg(name, this); isRegistered = 1; }
@@ -172,6 +172,34 @@ private:
 		if (isRegistered)
 			FractalCommon::registry.dereg(name);
 		isRegistered = false;
+	}
+};
+
+/*
+ * Mixin helper class. This enables a single templated fractal definition
+ * class to write the iteration code once and have it reused multiple times
+ * with different maths types.
+ */
+template <class IMPL>
+class MathsMixin : public IMPL {
+public:
+	virtual ~MathsMixin() {}
+
+	virtual void prepare_pixel(const Point coords, PointData& out) const {
+		IMPL::prepare_pixel_impl(coords,out);
+	}
+
+	virtual void plot_pixel(int maxiter, PointData& out, value_e type) const {
+		switch(type) {
+		case v_double:
+			IMPL::template plot_pixel_impl<double>(maxiter,out);
+			break;
+		case v_long_double:
+			IMPL::template plot_pixel_impl<long double>(maxiter,out);
+			break;
+		default:
+			throw "Unhandled value type";
+		}
 	}
 };
 

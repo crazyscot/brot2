@@ -21,6 +21,7 @@
 using namespace std;
 using namespace Fractal;
 
+#if 0
 // Abstract base class for common unoptimized code
 class Mandelbrot_Generic : public FractalImpl {
 public:
@@ -43,12 +44,21 @@ public:
 #define CONSTRUCT(cls, name, desc) 			  \
 	cls(): Mandelbrot_Generic(name, desc) {}; \
 	~cls() {};
+#endif
 
-DECLARE(Mandelbrot) {
+#define DECLARE(cls) \
+	class cls : public FractalImpl
+
+#define CONSTRUCT(cls, name, desc) 			  \
+	cls(): FractalImpl(name, desc, -3.0, 3.0, -3.0, 3.0, 10) {} \
+	~cls() {}
+
+DECLARE(Mandelbrot)
+{
 public:
 	CONSTRUCT(Mandelbrot, "Mandelbrot", "The original Mandelbrot set, z:=z^2+c")
 
-	virtual void prepare_pixel(const Point coords, PointData& out) const {
+	static void prepare_pixel_impl(const Point coords, PointData& out) {
 		Value o_re = real(coords), o_im = imag(coords);
 
 		// Cardioid check:
@@ -71,23 +81,23 @@ public:
 		out.mark_infinite();
 	}
 
-	template<typename T>
-	static inline void ITER2(T& o_re, T& o_im, T& re2, T& im2, T& z_re, T& z_im) {
+	template <typename MATH_T>
+	static inline void ITER2(MATH_T& o_re, MATH_T& o_im, MATH_T& re2, MATH_T& im2, MATH_T& z_re, MATH_T& z_im) {
 		re2 = z_re * z_re;
 		im2 = z_im * z_im;
 		z_im = 2 * z_re * z_im + o_im;
 		z_re = re2 - im2 + o_re;
 	}
 
-	template<typename T>
-	void plot_generic(const int maxiter, PointData& out) const {
+	template <typename MATH_T>
+	static void plot_pixel_impl(const int maxiter, PointData& out) {
 		int iter;
-		T o_re = real(out.origin), o_im = imag(out.origin),
-		  z_re = real(out.point), z_im = imag(out.point), re2, im2;
+		MATH_T	o_re = real(out.origin), o_im = imag(out.origin),
+				z_re = real(out.point), z_im = imag(out.point), re2, im2;
 
 		for (iter=out.iter; iter<maxiter; iter++) {
 			ITER2(o_re, o_im, re2, im2, z_re, z_im);
-			if (re2 + im2 > T(4.0)) {
+			if (re2 + im2 > MATH_T(4.0)) {
 				// Fractional escape count: See http://linas.org/art-gallery/escape/escape.html
 				ITER2(o_re, o_im, re2, im2, z_re, z_im);
 				ITER2(o_re, o_im, re2, im2, z_re, z_im);
@@ -101,19 +111,6 @@ public:
 		}
 		out.iter = iter;
 		out.point = Point(z_re,z_im);
-	}
-
-	virtual void plot_pixel(const int maxiter, PointData& out, value_e type) const {
-		switch(type) {
-		case v_double:
-			plot_generic<double>(maxiter,out);
-			break;
-		case v_long_double:
-			plot_generic<long double>(maxiter,out);
-			break;
-		default:
-			throw "Unhandled value type";
-		}
 	}
 };
 
@@ -230,8 +227,8 @@ public:
 #endif
 
 #define REGISTER(cls) do { 		\
-	cls* cls##impl = new cls(); \
-	(void)cls##impl;			\
+	auto impl = new MathsMixin<cls>(); \
+	(void)impl;			\
 } while(0)
 
 void Fractal::load_Mandelbrot() {
