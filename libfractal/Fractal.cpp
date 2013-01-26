@@ -38,10 +38,8 @@ void Fractal::FractalCommon::load_base() {
 	base_loaded = true;
 	load_Mandelbrot();
 	load_Mandelbar();
-#if 0 // Temp disable
 	load_Mandeldrop();
 	load_Misc();
-#endif
 }
 
 const char* const Fractal::value_names[] = {
