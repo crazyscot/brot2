@@ -108,20 +108,22 @@ public:
 
 // --------------------------------------------------------------------
 
-#if 0 // Temp disable
 DECLARE(Mandel3) {
 public:
 	CONSTRUCT(Mandel3, "Mandelbrot^3", "z:=z^3+c")
 
-	static inline void ITER3(Value& o_re, Value& o_im, Value& re2, Value& im2, Value& z_re, Value& z_im) {
+	template <typename MATH_T>
+	static inline void ITER3(MATH_T& o_re, MATH_T& o_im, MATH_T& re2, MATH_T& im2, MATH_T& z_re, MATH_T& z_im) {
 		re2 = z_re * z_re;
 		im2 = z_im * z_im;
 		z_re = z_re * re2 - 3*z_re*im2 + o_re;
 		z_im = 3 * z_im * re2 - z_im * im2 + o_im;
 	}
-	virtual void plot_pixel(const int maxiter, PointData& out) const {
+
+	template <typename MATH_T>
+	static void plot_pixel_impl(const int maxiter, PointData& out) {
 		int iter;
-		Value o_re = real(out.origin), o_im = imag(out.origin),
+		MATH_T	o_re = real(out.origin), o_im = imag(out.origin),
 				z_re = real(out.point), z_im = imag(out.point), re2, im2;
 		for (iter=out.iter; iter<maxiter; iter++) {
 			ITER3(o_re, o_im, re2, im2, z_re, z_im);
@@ -148,15 +150,17 @@ DECLARE(Mandel4) {
 public:
 	CONSTRUCT(Mandel4, "Mandelbrot^4", "z:=z^4+c")
 
-	static inline void ITER4(Value& o_re, Value& o_im, Value& re2, Value& im2, Value& z_re, Value& z_im) {
+	template <typename MATH_T>
+	static inline void ITER4(MATH_T& o_re, MATH_T& o_im, MATH_T& re2, MATH_T& im2, MATH_T& z_re, MATH_T& z_im) {
 		re2 = z_re * z_re;
 		im2 = z_im * z_im;
 		z_im = 4 * (re2*z_re*z_im - z_re*im2*z_im) + o_im;
 		z_re = re2*re2 - 6*re2*im2 + im2*im2 + o_re;
 	}
-	virtual void plot_pixel(const int maxiter, PointData& out) const {
+	template <typename MATH_T>
+	static void plot_pixel_impl(const int maxiter, PointData& out) {
 		int iter;
-		Value o_re = real(out.origin), o_im = imag(out.origin),
+		MATH_T o_re = real(out.origin), o_im = imag(out.origin),
 				z_re = real(out.point), z_im = imag(out.point), re2, im2;
 
 		for (iter=out.iter; iter<maxiter; iter++) {
@@ -184,7 +188,8 @@ DECLARE(Mandel5) {
 public:
 	CONSTRUCT(Mandel5, "Mandelbrot^5", "z:=z^5+c")
 
-	static inline void ITER5(Value& o_re, Value& o_im, Value& re2, Value& im2, Value& z_re, Value& z_im, Value& re4, Value& im4) {
+	template <typename MATH_T>
+	static inline void ITER5(MATH_T& o_re, MATH_T& o_im, MATH_T& re2, MATH_T& im2, MATH_T& z_re, MATH_T& z_im, MATH_T& re4, MATH_T& im4) {
 		re2 = z_re * z_re;
 		im2 = z_im * z_im;
 		re4 = re2 * re2;
@@ -193,9 +198,10 @@ public:
 		z_im = 5*re4*z_im - 10*re2*im2*z_im + im4*z_im + o_im;
 	}
 
-	virtual void plot_pixel(const int maxiter, PointData& out) const {
+	template <typename MATH_T>
+	static void plot_pixel_impl(const int maxiter, PointData& out) {
 		int iter;
-		Value o_re = real(out.origin), o_im = imag(out.origin),
+		MATH_T o_re = real(out.origin), o_im = imag(out.origin),
 				z_re = real(out.point), z_im = imag(out.point), re2, im2, re4, im4;
 
 		for (iter=out.iter; iter<maxiter; iter++) {
@@ -216,7 +222,6 @@ public:
 		out.point = Point(z_re,z_im);
 	};
 };
-#endif
 
 #define REGISTER(cls) do { 		\
 	auto impl = new MathsMixin<cls>(); \
@@ -225,10 +230,7 @@ public:
 
 void Fractal::load_Mandelbrot() {
 	REGISTER(Mandelbrot);
-#if 0 // Temp disable
 	REGISTER(Mandel3);
 	REGISTER(Mandel4);
 	REGISTER(Mandel5);
-#endif
 }
-
