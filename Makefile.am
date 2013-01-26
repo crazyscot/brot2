@@ -142,3 +142,15 @@ libhayai_a_SOURCES= hayai/hayai.hpp hayai/hayai-posixmain.cpp \
 	hayai/hayai-test.hpp
 
 ################################################################
+
+check_PROGRAMS+=b2benchmark
+b2benchmark_SOURCES=benchmark/benchmark.cpp
+
+b2benchmark_LDADD= libhayai.a $(all_ldadd)
+b2benchmark_DEPENDENCIES= libhayai.a $(all_libs)
+b2benchmark_CPPFLAGS=$(AM_CPPFLAGS)
+
+benchmark: b2benchmark
+	./b2benchmark
+
+################################################################
