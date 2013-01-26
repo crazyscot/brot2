@@ -35,6 +35,8 @@ using namespace BrotPrefs;
 #define DEBUG_LIVECOUNT(x)
 #endif
 
+//#define DEBUG_ARITH_SELECTION
+
 /* Judging the number of iterations and how to scale it on successive passes
  * is really tricky. Too many and it takes too long to get that first pass home;
  * too few (too slow growth) and you're wasting cycles keeping track of the
@@ -153,7 +155,7 @@ string Plot3Plot::info_zoom(bool show_legend) const {
 	return rs;
 }
 
-/* Starts a plot. The actual work happens in the background. */
+/* Starts a plot. This version autodetects the maths type to use. */
 void Plot3Plot::start() {
 	value_e arithtype = v_max;
 	Value pixsize = MAX(real(size),imag(size)) / (Value)MAX(width,height);
@@ -163,16 +165,21 @@ void Plot3Plot::start() {
 		arithtype = v_long_double;
 
 	if (arithtype==v_max) {
-#if 0
+#ifdef DEBUG_ARITH_SELECTION
 		std::cout << "pixsize is " << pixsize << ", limit is " << smallest_min_pixel_size() << std::endl;
 #endif
 		THROW(BrotException,"Pixels are too small for all known types");
 	}
 
-#if 0
+#ifdef DEBUG_ARITH_SELECTION
 	std::cout << "Selecting value type " << value_names[arithtype] << std::endl;
 #endif
 
+	start(arithtype);
+}
+
+/* Starts a plot. The actual work happens in the background. */
+void Plot3Plot::start(Fractal::value_e arithtype) {
 	divider.dividePlot(_chunks, sink, fract, centre, size, width, height, passes_max, arithtype);
 	std::unique_lock<std::mutex> lock(_lock);
 	_running = true;

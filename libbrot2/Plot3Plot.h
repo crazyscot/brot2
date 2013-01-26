@@ -64,9 +64,14 @@ public:
 			Fractal::Point centre, Fractal::Point size, unsigned width, unsigned height, unsigned max_passes=0);
 	virtual ~Plot3Plot();
 
-	/* Starts a plot. The real work goes on asynchronously. */
+	/* Starts a plot. The real work goes on asynchronously.
+	 * The maths type to use is automatically determined
+	 * from the plot centre and size. */
 	void start();
 	// Could maybe do a resume() - or is it part of start()?
+
+	/* Starts a plot with an explicit maths type. */
+	void start(Fractal::value_e arith);
 
 	/* Instructs the running plot to stop what it's doing ASAP.
 	 * Does NOT block; the plot may carry on for a little while. */
