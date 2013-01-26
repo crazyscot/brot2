@@ -21,7 +21,6 @@
 using namespace std;
 using namespace Fractal;
 
-#if 0
 // Abstract base class for common unoptimized code
 class Mandelbrot_Generic : public FractalImpl {
 public:
@@ -30,7 +29,8 @@ public:
 				FractalImpl(name, desc, xmin_, xmax_, ymin_, ymax_, 10) {}
 	~Mandelbrot_Generic() {}
 
-	virtual void prepare_pixel(const Point coords, PointData& out) const {
+protected:
+	static void prepare_pixel_impl(const Point coords, PointData& out) {
 		// The first iteration is easy, 0^k + origin = origin
 		out.origin = out.point = Point(coords);
 		out.iter = 1;
@@ -44,14 +44,6 @@ public:
 #define CONSTRUCT(cls, name, desc) 			  \
 	cls(): Mandelbrot_Generic(name, desc) {}; \
 	~cls() {};
-#endif
-
-#define DECLARE(cls) \
-	class cls : public FractalImpl
-
-#define CONSTRUCT(cls, name, desc) 			  \
-	cls(): FractalImpl(name, desc, -3.0, 3.0, -3.0, 3.0, 10) {} \
-	~cls() {}
 
 DECLARE(Mandelbrot)
 {
