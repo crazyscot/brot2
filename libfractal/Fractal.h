@@ -24,6 +24,7 @@
 #include <map>
 #include <iostream>
 #include "Registry.h"
+#include "config.h"
 
 namespace Fractal {
 
@@ -40,12 +41,24 @@ void load_Misc();
 typedef long double Value; // short for "fractal value"
 typedef std::complex<Value> Point; // "complex fractal point"
 
+#ifdef ENABLE_DOUBLE
+#define MAYBE_DO_DOUBLE(_DO) _DO(double,Double,0.00000000000000044408920985006L /* 4.44e-16 */)
+#else
+#define MAYBE_DO_DOUBLE(_DO)
+#endif
+
+#ifdef ENABLE_FLOAT
+#define MAYBE_DO_FLOAT(_DO) _DO(float, Float, 0.0000002384185791016)
+#else
+#define MAYBE_DO_FLOAT(_DO)
+#endif
+
 // Master list of all maths types we know about.
 // Format: _DO(type name, enum name, minimum pixel size)
-#define ALL_MATHS_TYPES(_DO) \
-	_DO(double,Double,0.00000000000000044408920985006L /* 4.44e-16 */)				\
+#define ALL_MATHS_TYPES(_DO)	\
+	MAYBE_DO_FLOAT(_DO) 		\
+	MAYBE_DO_DOUBLE(_DO) 		\
 	_DO(long double, LongDouble, 0.0000000000000000002168404345L /* 2.16e-19 */)	\
-	_DO(float, Float, 0.0000002384185791016)										\
 
 
 class Maths {

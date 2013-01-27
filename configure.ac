@@ -30,6 +30,37 @@ PKG_CHECK_MODULES([brot2gui],[glibmm-2.4 gtkmm-2.4 gdkmm-2.4 pangocairo cairo pa
 GTEST_SRC_CHECK
 VALGRIND_CHECK
 
+case $host_cpu in
+  x86_64 )
+	default_float=no
+	default_double=no
+	;;
+  *)
+	default_float=yes
+	default_double=yes
+	# Argh, the epsilon values are likely wrong :-/
+	;;
+esac
+
+AC_ARG_ENABLE([float],
+	[AS_HELP_STRING([--enable-float],
+		[Enable use of the `float' type.])],
+	[enable_float=${enableval}],
+	[enable_float=${default_float}])
+
+AC_ARG_ENABLE([double],
+	[AS_HELP_STRING([--enable-double],
+		[Enable use of the `double' type.])],
+	[enable_double=${enableval}],
+	[enable_double=${default_double}])
+
+if test "x$enable_float" != xno; then
+	AC_DEFINE([ENABLE_FLOAT], [1], [enable use of the `float' type])
+fi
+if test "x$enable_double" != xno; then
+	AC_DEFINE([ENABLE_DOUBLE], [1], [enable use of the `double' type])
+fi
+
 AC_SUBST([BROT2_CFLAGS], [${pkg_cflags}])
 AC_SUBST([BROT2_CXXFLAGS], [${pkg_cxxflags}])
 
