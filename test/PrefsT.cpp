@@ -81,7 +81,7 @@ TEST(prefs,ReadOutAllItems) {
 	p->mouseActions(ma);
 	ScrollActions sa = p->scrollActions();
 	p->scrollActions(sa);
-	p->commit();
+	//p->commit();
 	for (int i=1; i<=ma.MAX; i++)
 		ma[i];
 	//cout << "action "<<i<<" is " << (std::string) ma[i] << endl;

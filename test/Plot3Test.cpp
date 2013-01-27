@@ -142,12 +142,14 @@ public:
 		// This is a critical section when called in parallel.
 		std::unique_lock<std::mutex> lock(_lock);
 
+		ASSERT_GT(real(job->_size), 0);
+		ASSERT_GT(imag(job->_size), 0);
+
 		const Fractal::PointData* pp = job->get_data();
 		for (unsigned i=0; i<job->pixel_count(); i++) {
 			pointCheck(job, pp[i]);
-			ASSERT_GT(real(job->_size), 0);
-			ASSERT_GT(imag(job->_size), 0);
 		}
+
 		{
 			Fractal::Point TL = job->_origin;
 			Fractal::Point BR = job->_origin+job->_size;
@@ -273,8 +275,8 @@ TEST_F(ChunkTest, ReuseChunk) {
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 TEST_F(ChunkTest,WorksOnThreadPool) {
-	TestPlot3Chunk chunk(100,100,0,0);
-	sink.reset(100,100);
+	TestPlot3Chunk chunk(10,10,0,0);
+	sink.reset(10,10);
 	ThreadPool tp(1);
 	// A std::future for... nothing?! But it seems to work:
 	auto res = tp.enqueue<void>([&]{chunk.run();});
@@ -283,15 +285,15 @@ TEST_F(ChunkTest,WorksOnThreadPool) {
 
 TEST_F(ChunkTest,ParallelThreadsWork) {
 	ThreadPool tp(2);
-	sink.reset(100,100);
+	sink.reset(20,20);
 	list<TestPlot3Chunk> jobs;
 	list<future<void> > results;
 
 #define CHUNK(a,b,c,d) jobs.push_back(TestPlot3Chunk(a,b,c,d))
-	CHUNK(50,50, 0, 0);
-	CHUNK(50,50,50, 0);
-	CHUNK(50,50, 0,50);
-	CHUNK(50,50,50,50);
+	CHUNK(10,10, 0, 0);
+	CHUNK(10,10,10, 0);
+	CHUNK(10,10, 0,10);
+	CHUNK(10,10,10,10);
 #undef CHUNK
 
 	for (auto it = jobs.begin(); it != jobs.end(); it++) {
@@ -378,7 +380,7 @@ TEST_F(Plot3PassTest, BasicConcurrencyCheck) {
 	// returning before all the chunks are cooked.
 	sink.reset(2,2);
 	TestPlot3Chunk tmpl(2,2,0,0);
-	SlowChunk chunk(tmpl,100);
+	SlowChunk chunk(tmpl,50);
 
 	std::list<Plot3Chunk*> list;
 	list.push_back(&chunk);
@@ -572,13 +574,13 @@ class ChunkDividerTest : public ::testing::Test {
 	virtual ~ChunkDividerTest() {}
 };
 
-typedef ::testing::Types<OneChunk, Horizontal10px, Horizontal2px, Vertical10px, SuperpixelInstance<8>, SuperpixelInstance<16>, SuperpixelInstance<32> > ChunkTypes;
+typedef ::testing::Types<OneChunk, Horizontal10px, Horizontal2px, Vertical10px, SuperpixelInstance<8>, /*SuperpixelInstance<16>,*/ SuperpixelInstance<32> > ChunkTypes;
 TYPED_TEST_CASE(ChunkDividerTest, ChunkTypes);
 
 #define CHUNK_DIVIDER_TEST(xx,yy) \
 TYPED_TEST(ChunkDividerTest, Check_##xx##_##yy) { this->test(xx,yy); }
 
-CHUNK_DIVIDER_TEST(101,199);
+CHUNK_DIVIDER_TEST(29,31); // two primes
 // edge cases:
 CHUNK_DIVIDER_TEST(1,101)
 CHUNK_DIVIDER_TEST(199,1)
