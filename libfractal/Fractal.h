@@ -45,6 +45,7 @@ typedef std::complex<Value> Point; // "complex fractal point"
 #define ALL_MATHS_TYPES(_DO) \
 	_DO(double,Double,0.00000000000000044408920985006L /* 4.44e-16 */)				\
 	_DO(long double, LongDouble, 0.0000000000000000002168404345L /* 2.16e-19 */)	\
+	_DO(float, Float, 0.0000002384185791016)										\
 
 
 class Maths {
