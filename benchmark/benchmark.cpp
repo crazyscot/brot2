@@ -35,20 +35,20 @@ public:
 		/* A point (found by experiment) that's in the set but not
 		 * in the special-case cut-off regions */
 		coords = { -0.1586536, 1.034804 };
-
-		impl->prepare_pixel(coords, data);
+		// coords = { -1.563, -0.0625 }; // Mandeldrop
 }
 
 	void doit(Maths::MathsType ty) {
-		impl->plot_pixel(16777216, data, ty);
+		impl->prepare_pixel(coords, data);
+		impl->plot_pixel(1048576, data, ty);
 		/* Note that plot_pixel converts the point data from the base type
 		 * to the templated type - but only once per call. */
 	}
 };
 
 #define DO_BENCHMARK(type,name,minpix)	\
-BENCHMARK_F(FractalBM, name, 10, 1) { 	\
-		doit(Maths::MathsType::name);	\
+BENCHMARK_F(FractalBM, name, 10, 16) { 	\
+	doit(Maths::MathsType::name);		\
 }
 
 ALL_MATHS_TYPES(DO_BENCHMARK)
