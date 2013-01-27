@@ -44,6 +44,16 @@ void Fractal::FractalCommon::load_base() {
 	load_Misc();
 }
 
+void Fractal::FractalCommon::unload_registry() {
+	auto all = registry.names();
+	for (auto it : all) {
+		auto f = registry.get(it);
+		registry.dereg(it);
+		delete f;
+	}
+	base_loaded = false;
+}
+
 struct MathsInfo {
 	Maths::MathsType val;
 	const char* name;

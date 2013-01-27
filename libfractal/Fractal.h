@@ -113,6 +113,9 @@ public:
 	// Call on startup to load the base fractals.
 	static void load_base();
 
+	// Unloads the fractal registry, if this is somehow useful (e.g. valgrind tests)
+	static void unload_registry();
+
 	// What is the most appropriate maths type to use for this pixel size?
 	// Returns v_max if nothing suits.
 	static Maths::MathsType select_maths_type(Fractal::Value pixsize);

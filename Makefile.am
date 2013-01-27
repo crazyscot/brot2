@@ -124,7 +124,8 @@ b2test_SOURCES=test/b2test.cpp \
 					test/MockFractal.h test/MockFractal.cpp \
 					test/MockPalette.h \
 					test/MockPrefs.h test/MockPrefs.cpp \
-					test/Plot3Test.cpp test/Render2Test.cpp
+					test/Plot3Test.cpp test/Render2Test.cpp \
+					test/FractalKAT.cpp
 
 b2test_LDADD= libgtest.a $(all_ldadd)
 b2test_DEPENDENCIES= libgtest.a $(all_libs)
