@@ -28,7 +28,7 @@ namespace Plot3 {
 Plot3Chunk::Plot3Chunk(IPlot3DataSink* sink, const Fractal::FractalImpl& f,
 		unsigned width, unsigned height, unsigned offX, unsigned offY,
 		const Fractal::Point origin, const Fractal::Point size,
-		value_e ty, unsigned max_passes) :
+		Maths::MathsType ty, unsigned max_passes) :
 		_sink(sink), _data(NULL), _running(false), _prepared(false),
 		_plotted_passes(0), _live_pixels(0), _max_passes(max_passes),
 		_fract(f),

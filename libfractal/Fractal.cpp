@@ -18,6 +18,7 @@
 
 #include <string>
 #include <map>
+#include <vector>
 #include <glib/gmacros.h>
 #include "Fractal.h"
 
@@ -43,21 +44,59 @@ void Fractal::FractalCommon::load_base() {
 	load_Misc();
 }
 
-const char* const Fractal::value_names[] = {
-	"double",
-	"long double",
+struct MathsInfo {
+	Maths::MathsType val;
+	const char* name;
+	Value min_pixel_size;
+
+	MathsInfo(Maths::MathsType _v, const char* _name, Value _minpix) :
+		val(_v), name(_name), min_pixel_size(_minpix) {}
+};
+#define DO_DECLARE(type,name,minpix) MathsInfo(Maths::MathsType::name, #name, minpix),
+
+static std::vector<MathsInfo> maths_info {
+	ALL_MATHS_TYPES(DO_DECLARE)
 };
 
-value_e Fractal::FractalCommon::select_maths_type(Value pixsize) {
-	value_e arithtype = v_max;
-	if (pixsize >= value_traits<double>::min_pixel_size())
-		arithtype = v_double;
-	else if (pixsize >= value_traits<long double>::min_pixel_size())
-		arithtype = v_long_double;
-	return arithtype;
+const char* Maths::name(Maths::MathsType t) {
+	for (auto it = maths_info.cbegin(); it != maths_info.cend(); it++) {
+		if (it->val == t)
+			return it->name;
+	}
+	throw "Unhandled maths type!";
 }
 
-value_e Fractal::FractalCommon::select_maths_type(Point plot_size, unsigned width, unsigned height) {
+Value Maths::min_pixel_size(MathsType t) {
+	for (auto it = maths_info.cbegin(); it != maths_info.cend(); it++) {
+		if (it->val == t)
+			return it->min_pixel_size;
+	}
+	throw "Unhandled maths type!";
+}
+
+Value Maths::smallest_min_pixel_size() {
+	Value rv = 1.0;
+	for (auto it = maths_info.cbegin(); it != maths_info.cend(); it++) {
+		if (rv > it->min_pixel_size)
+			rv = it->min_pixel_size;
+	}
+	return rv;
+}
+
+Maths::MathsType Fractal::FractalCommon::select_maths_type(Value pixsize) {
+	// Now we want the LARGEST pixel that fits...
+	Maths::MathsType rv = Maths::MathsType::MAX;
+	Value best = -1.0;
+	for (auto it = maths_info.cbegin(); it != maths_info.cend(); it++) {
+		if (it->min_pixel_size > best  &&  pixsize >= it->min_pixel_size) {
+			rv = it->val;
+			best = it->min_pixel_size;
+		}
+	}
+	return rv;
+}
+
+Maths::MathsType Fractal::FractalCommon::select_maths_type(Point plot_size, unsigned width, unsigned height) {
 	Value pixsize = MAX(real(plot_size),imag(plot_size)) / (Value)MAX(width,height);
 	return select_maths_type(pixsize);
 }

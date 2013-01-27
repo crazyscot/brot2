@@ -39,19 +39,16 @@ public:
 		impl->prepare_pixel(coords, data);
 }
 
-	void doit(value_e ty) {
+	void doit(Maths::MathsType ty) {
 		impl->plot_pixel(16777216, data, ty);
 		/* Note that plot_pixel converts the point data from the base type
 		 * to the templated type - but only once per call. */
 	}
 };
 
-BENCHMARK_F(FractalBM, double, 10, 1)
-{
-	doit(v_double);
+#define DO_BENCHMARK(type,name,minpix)	\
+BENCHMARK_F(FractalBM, name, 10, 1) { 	\
+		doit(Maths::MathsType::name);	\
 }
 
-BENCHMARK_F(FractalBM, longdouble, 10, 1)
-{
-	doit(v_long_double);
-}
+ALL_MATHS_TYPES(DO_BENCHMARK)

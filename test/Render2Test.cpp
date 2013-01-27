@@ -87,7 +87,7 @@ protected:
 };
 
 TEST_P(Render2MemoryFormatP, AllMemTouched) {
-	Plot3Chunk chunk(NULL, _fract, _TestW, _TestH, 0, 0, _origin, _size, Fractal::v_long_double, 10);
+	Plot3Chunk chunk(NULL, _fract, _TestW, _TestH, 0, 0, _origin, _size, Fractal::Maths::MathsType::LongDouble, 10);
 	chunk.run();
 	_render->process(chunk);
 }
@@ -124,7 +124,7 @@ TEST_F(R2Memory, ChunkOffsetsWork) {
 	 */
 	std::list<Plot3Chunk> chunks;
 	std::list<Plot3Chunk>::iterator it;
-#define CHUNK(X,Y,W,H) chunks.push_back(Plot3Chunk(NULL, _fract, W,H, X,Y, _origin, _size, Fractal::v_long_double, 10))
+#define CHUNK(X,Y,W,H) chunks.push_back(Plot3Chunk(NULL, _fract, W,H, X,Y, _origin, _size, Fractal::Maths::MathsType::LongDouble, 10))
 	CHUNK(0,0,                 _TestW-10, _TestH-15);
 	CHUNK(_TestW-10,0,         10, _TestH-15);
 
@@ -147,7 +147,7 @@ public:
 };
 
 TEST_F(R2MemoryAntiAlias, Works) {
-	Plot3Chunk chunk(NULL, _fract, 2*_TestW, 2*_TestH, 0, 0, _origin, _size, Fractal::v_long_double, 10);
+	Plot3Chunk chunk(NULL, _fract, 2*_TestW, 2*_TestH, 0, 0, _origin, _size, Fractal::Maths::MathsType::LongDouble, 10);
 	chunk.run();
 	_render->process(chunk);
 }
@@ -163,7 +163,7 @@ TEST_F(R2MemoryAntiAlias, ChunkOffsetsWork) {
 	 */
 	std::list<Plot3Chunk> chunks;
 	std::list<Plot3Chunk>::iterator it;
-#define CHUNK(X,Y,W,H) chunks.push_back(Plot3Chunk(NULL, _fract, 2*(W),2*(H), 2*(X),2*(Y), _origin, _size, Fractal::v_long_double, 10))
+#define CHUNK(X,Y,W,H) chunks.push_back(Plot3Chunk(NULL, _fract, 2*(W),2*(H), 2*(X),2*(Y), _origin, _size, Fractal::Maths::MathsType::LongDouble, 10))
 	CHUNK(0,0,                 _TestW-10, _TestH-15);
 	CHUNK(_TestW-10,0,         10, _TestH-15);
 
@@ -180,12 +180,12 @@ TEST_F(R2MemoryAntiAlias, ChunkOffsetsWork) {
 TEST_F(R2MemoryAntiAlias, OddWidthAsserts) {
 	ASSERT_GT(_TestW, 5);
 	{
-		Plot3Chunk chunk(NULL, _fract, 5, 2*_TestH, 0, 0, _origin, _size, Fractal::v_long_double, 10);
+		Plot3Chunk chunk(NULL, _fract, 5, 2*_TestH, 0, 0, _origin, _size, Fractal::Maths::MathsType::LongDouble, 10);
 		chunk.run();
 		EXPECT_THROW(_render->process(chunk), BrotAssert);
 	}
 	{
-		Plot3Chunk chunk2(NULL, _fract, 2*_TestW, 2*_TestH, 0, 0, _origin, _size, Fractal::v_long_double, 10);
+		Plot3Chunk chunk2(NULL, _fract, 2*_TestW, 2*_TestH, 0, 0, _origin, _size, Fractal::Maths::MathsType::LongDouble, 10);
 		chunk2.run();
 		_render->process(chunk2);
 	}
@@ -194,12 +194,12 @@ TEST_F(R2MemoryAntiAlias, OddWidthAsserts) {
 TEST_F(R2MemoryAntiAlias, OddHeightAsserts) {
 	ASSERT_GT(_TestH, 5);
 	{
-		Plot3Chunk chunk(NULL, _fract, 2*_TestW, 5, 0, 0, _origin, _size, Fractal::v_long_double, 10);
+		Plot3Chunk chunk(NULL, _fract, 2*_TestW, 5, 0, 0, _origin, _size, Fractal::Maths::MathsType::LongDouble, 10);
 		chunk.run();
 		EXPECT_THROW(_render->process(chunk), BrotAssert);
 	}
 	{
-		Plot3Chunk chunk2(NULL, _fract, 2*_TestW, 2*_TestH, 0, 0, _origin, _size, Fractal::v_long_double, 10);
+		Plot3Chunk chunk2(NULL, _fract, 2*_TestW, 2*_TestH, 0, 0, _origin, _size, Fractal::Maths::MathsType::LongDouble, 10);
 		chunk2.run();
 		_render->process(chunk2);
 	}
@@ -240,7 +240,7 @@ protected:
 };
 
 TEST_F(Render2PNG, Works) {
-	Plot3Chunk chunk(NULL, _fract, _TestW, _TestH, 0, 0, _origin, _size, Fractal::v_long_double, 10);
+	Plot3Chunk chunk(NULL, _fract, _TestW, _TestH, 0, 0, _origin, _size, Fractal::Maths::MathsType::LongDouble, 10);
 	chunk.run();
 	_png.process(chunk);
 }
@@ -256,7 +256,7 @@ TEST_F(Render2PNG, ChunkOffsetsWork) {
 	 */
 	std::list<Plot3Chunk> chunks;
 	std::list<Plot3Chunk>::iterator it;
-#define CHUNK(X,Y,W,H) chunks.push_back(Plot3Chunk(NULL, _fract, W,H, X,Y, _origin, _size, Fractal::v_long_double, 10))
+#define CHUNK(X,Y,W,H) chunks.push_back(Plot3Chunk(NULL, _fract, W,H, X,Y, _origin, _size, Fractal::Maths::MathsType::LongDouble, 10))
 	CHUNK(0,0,                 _TestW-10, _TestH-15);
 	CHUNK(_TestW-10,0,         10, _TestH-15);
 
@@ -362,7 +362,7 @@ protected:
 };
 
 TEST_F(PNGAntiAlias, Works) {
-	Plot3Chunk chunk(NULL, _fract, 2*_TestW, 2*_TestH, 0, 0, _origin, _size, Fractal::v_long_double, 10);
+	Plot3Chunk chunk(NULL, _fract, 2*_TestW, 2*_TestH, 0, 0, _origin, _size, Fractal::Maths::MathsType::LongDouble, 10);
 	chunk.run();
 	_png.process(chunk);
 }
@@ -378,7 +378,7 @@ TEST_F(PNGAntiAlias, ChunkOffsetsWork) {
 	 */
 	std::list<Plot3Chunk> chunks;
 	std::list<Plot3Chunk>::iterator it;
-#define CHUNK(X,Y,W,H) chunks.push_back(Plot3Chunk(NULL, _fract, 2*(W),2*(H), 2*(X),2*(Y), _origin, _size, Fractal::v_long_double, 10))
+#define CHUNK(X,Y,W,H) chunks.push_back(Plot3Chunk(NULL, _fract, 2*(W),2*(H), 2*(X),2*(Y), _origin, _size, Fractal::Maths::MathsType::LongDouble, 10))
 	CHUNK(0,0,                 _TestW-10, _TestH-15);
 	CHUNK(_TestW-10,0,         10, _TestH-15);
 
@@ -395,12 +395,12 @@ TEST_F(PNGAntiAlias, ChunkOffsetsWork) {
 TEST_F(PNGAntiAlias, OddWidthAsserts) {
 	ASSERT_GT(_TestW, 5);
 	{
-		Plot3Chunk chunk(NULL, _fract, 5, 2*_TestH, 0, 0, _origin, _size, Fractal::v_long_double, 10);
+		Plot3Chunk chunk(NULL, _fract, 5, 2*_TestH, 0, 0, _origin, _size, Fractal::Maths::MathsType::LongDouble, 10);
 		chunk.run();
 		EXPECT_THROW(_png.process(chunk), BrotAssert);
 	}
 	{
-		Plot3Chunk chunk2(NULL, _fract, 2*_TestW, 2*_TestH, 0, 0, _origin, _size, Fractal::v_long_double, 10);
+		Plot3Chunk chunk2(NULL, _fract, 2*_TestW, 2*_TestH, 0, 0, _origin, _size, Fractal::Maths::MathsType::LongDouble, 10);
 		chunk2.run();
 		_png.process(chunk2);
 	}
@@ -409,12 +409,12 @@ TEST_F(PNGAntiAlias, OddWidthAsserts) {
 TEST_F(PNGAntiAlias, OddHeightAsserts) {
 	ASSERT_GT(_TestH, 5);
 	{
-		Plot3Chunk chunk(NULL, _fract, 2*_TestW, 5, 0, 0, _origin, _size, Fractal::v_long_double, 10);
+		Plot3Chunk chunk(NULL, _fract, 2*_TestW, 5, 0, 0, _origin, _size, Fractal::Maths::MathsType::LongDouble, 10);
 		chunk.run();
 		EXPECT_THROW(_png.process(chunk), BrotAssert);
 	}
 	{
-		Plot3Chunk chunk2(NULL, _fract, 2*_TestW, 2*_TestH, 0, 0, _origin, _size, Fractal::v_long_double, 10);
+		Plot3Chunk chunk2(NULL, _fract, 2*_TestW, 2*_TestH, 0, 0, _origin, _size, Fractal::Maths::MathsType::LongDouble, 10);
 		chunk2.run();
 		_png.process(chunk2);
 	}

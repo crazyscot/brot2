@@ -38,7 +38,7 @@ namespace ChunkDivider {
 				IPlot3DataSink* s, const Fractal::FractalImpl& f,
 				Fractal::Point centre, Fractal::Point size,
 				unsigned width, unsigned height, unsigned max_passes,
-				Fractal::value_e ty) const = 0;
+				Fractal::Maths::MathsType ty) const = 0;
 
 		virtual ~Base() {}
 	};
@@ -50,7 +50,7 @@ namespace ChunkDivider {
 				IPlot3DataSink* s, const Fractal::FractalImpl& f,		\
 				Fractal::Point centre, Fractal::Point size,				\
 				unsigned width, unsigned height, unsigned max_passes, 	\
-				Fractal::value_e ty ) const;	\
+				Fractal::Maths::MathsType ty ) const;	\
 	}
 
 	/* NOTE: Chunks must always be an even number of pixels high! */
@@ -68,7 +68,7 @@ namespace ChunkDivider {
 			IPlot3DataSink* s, const Fractal::FractalImpl& f,
 			Fractal::Point centre, Fractal::Point size,
 			unsigned width, unsigned height,
-			unsigned max_passes, Fractal::value_e ty) const;
+			unsigned max_passes, Fractal::Maths::MathsType ty) const;
 	};
 
 	// Single-type instantiator for testing

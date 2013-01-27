@@ -71,7 +71,7 @@ public:
 	// Could maybe do a resume() - or is it part of start()?
 
 	/* Starts a plot with an explicit maths type. */
-	void start(Fractal::value_e arith);
+	void start(Fractal::Maths::MathsType arith);
 
 	/* Instructs the running plot to stop what it's doing ASAP.
 	 * Does NOT block; the plot may carry on for a little while. */

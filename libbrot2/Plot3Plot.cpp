@@ -157,20 +157,20 @@ string Plot3Plot::info_zoom(bool show_legend) const {
 
 /* Starts a plot. This version autodetects the maths type to use. */
 void Plot3Plot::start() {
-	value_e arithtype = Fractal::FractalCommon::select_maths_type(size, width, height);
-	if (arithtype==v_max) {
+	Maths::MathsType arithtype = Fractal::FractalCommon::select_maths_type(size, width, height);
+	if (arithtype==Maths::MathsType::MAX) {
 		THROW(BrotException,"Pixels are too small for all known types");
 	}
 
 #ifdef DEBUG_ARITH_SELECTION
-	std::cout << "Selecting value type " << value_names[arithtype] << std::endl;
+	std::cout << "Selecting value type " << Maths::name(arithtype) << std::endl;
 #endif
 
 	start(arithtype);
 }
 
 /* Starts a plot. The actual work happens in the background. */
-void Plot3Plot::start(Fractal::value_e arithtype) {
+void Plot3Plot::start(Fractal::Maths::MathsType arithtype) {
 	divider.dividePlot(_chunks, sink, fract, centre, size, width, height, passes_max, arithtype);
 	std::unique_lock<std::mutex> lock(_lock);
 	_running = true;

@@ -23,7 +23,7 @@
 			IPlot3DataSink* s, const Fractal::FractalImpl& f,		\
 			Fractal::Point centre, Fractal::Point size,				\
 			unsigned width, unsigned height, unsigned max_passes,	\
-			value_e ty) const
+			Fractal::Maths::MathsType ty) const
 	/*
 	 * e.g.
 	 * _CD__BODY(foo) {
@@ -197,7 +197,7 @@ namespace ChunkDivider {
 			IPlot3DataSink* s, const Fractal::FractalImpl& f,
 			Fractal::Point centre, Fractal::Point size,
 			unsigned width, unsigned height,
-			unsigned max_passes, value_e ty) const {
+			unsigned max_passes, Fractal::Maths::MathsType ty) const {
 
 		unsigned nX = (width-1) / SIZE, nY = (height-1) / SIZE;
 		unsigned lastXsize = width - SIZE*nX, lastYsize = height - SIZE*nY;

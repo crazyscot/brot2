@@ -34,7 +34,7 @@ public:
 	void set_iters (int iters) { _iters = iters; }
 
 	virtual void prepare_pixel(const Fractal::Point coords, Fractal::PointData& out) const;
-	virtual void plot_pixel(const int maxiter, Fractal::PointData& out, Fractal::value_e type) const;
+	virtual void plot_pixel(const int maxiter, Fractal::PointData& out, Fractal::Maths::MathsType type) const;
 };
 
 #endif /* MOCKFRACTAL_H_ */

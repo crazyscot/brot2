@@ -31,7 +31,7 @@ public:
 	Plot3Chunk(IPlot3DataSink* sink, const Fractal::FractalImpl& f,
 			unsigned width, unsigned height, unsigned offX, unsigned offY,
 			const Fractal::Point origin, const Fractal::Point size,
-			Fractal::value_e ty, unsigned max_passes=0);
+			Fractal::Maths::MathsType ty, unsigned max_passes=0);
 	Plot3Chunk(const Plot3Chunk& other);
 	virtual ~Plot3Chunk();
 
@@ -58,7 +58,7 @@ public:
 	const Fractal::Point _origin, _size; // Origin co-ordinates; axis length (cannot be 0 in either dimension)
 	const unsigned _width, _height; // plot size in pixels, starting from 0
 	const unsigned _offX, _offY; // This chunk's pixel offset into the plot
-	const Fractal::value_e _valtype; // What size of arithmetic are we doing?
+	const Fractal::Maths::MathsType _valtype; // What size of arithmetic are we doing?
 
 	unsigned pixel_count() const { return _width * _height; }
 	const Fractal::Point centre() const { return _origin + _size/(Fractal::Value)2.0; }

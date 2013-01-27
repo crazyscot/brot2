@@ -34,52 +34,33 @@ void load_Mandelbar();
 void load_Mandeldrop();
 void load_Misc();
 
-// Maths types etc
+////////////////////////////////////////////////////////////////////////////
+// Maths types and traits
 
 typedef long double Value; // short for "fractal value"
 typedef std::complex<Value> Point; // "complex fractal point"
 
-typedef enum {
-	v_double,
-	v_long_double,
-	// Remember to update smallest_min_pixel_size() !
-	v_max
-} value_e;
+// Master list of all maths types we know about.
+// Format: _DO(type name, enum name, minimum pixel size)
+#define ALL_MATHS_TYPES(_DO) \
+	_DO(double,Double,0.00000000000000044408920985006L /* 4.44e-16 */)				\
+	_DO(long double, LongDouble, 0.0000000000000000002168404345L /* 2.16e-19 */)	\
 
-extern const char* const value_names[];
 
-template<typename T> class value_traits {
+class Maths {
 public:
-	/* The smallest pixel size we are prepared to render to.
-	 * At the moment this is the size of epsilon at 3.0
-	 * i.e. (the next double above 3.0) - 3.0.
-	 */
-	static T min_pixel_size();
+	enum class MathsType {
+#define DO_ENUM(type,name,minpix) name,
+		ALL_MATHS_TYPES(DO_ENUM)
+		MAX,
+	};
 
-	// ops maybe required for Value:
-	// << into a stream
-	// >> from a stream
+	static const char* name(MathsType t); // Enum to name conversion
+	static Value min_pixel_size(MathsType t); // Minimum pixel size lookup
+	static Value smallest_min_pixel_size();
 };
 
-template<> class value_traits<double> {
-public:
-	static inline double min_pixel_size() {
-		return 0.00000000000000044408920985006L;
-		// 4.44e-16
-	}
-};
-
-template<> class value_traits<long double> {
-public:
-	static inline long double min_pixel_size() {
-		return 0.0000000000000000002168404345L;
-		// 2.16e-19
-	}
-};
-
-static inline Value smallest_min_pixel_size() {
-	return value_traits<long double>::min_pixel_size();
-}
+////////////////////////////////////////////////////////////////////////////
 
 class Consts {
 public:
@@ -88,6 +69,8 @@ public:
 	static const Value log4;
 	static const Value log5;
 };
+
+////////////////////////////////////////////////////////////////////////////
 
 class PointData {
 public:
@@ -118,10 +101,10 @@ public:
 
 	// What is the most appropriate maths type to use for this pixel size?
 	// Returns v_max if nothing suits.
-	static Fractal::value_e select_maths_type(Fractal::Value pixsize);
+	static Maths::MathsType select_maths_type(Fractal::Value pixsize);
 	// What is the most appropriate maths type to use for this plot?
 	// Returns v_max if nothing suits.
-	static Fractal::value_e select_maths_type(Fractal::Point plot_size, unsigned width, unsigned height);
+	static Maths::MathsType select_maths_type(Fractal::Point plot_size, unsigned width, unsigned height);
 protected:
 	// Set when the base set has been loaded.
 	static bool base_loaded;
@@ -167,7 +150,7 @@ public:
 	 * If a pixel escapes, perform any final computation on the result and set up
 	 * _out_ accordingly.
 	 */
-	virtual void plot_pixel(const int maxiter, PointData& out, value_e type) const = 0;
+	virtual void plot_pixel(const int maxiter, PointData& out, Maths::MathsType type) const = 0;
 
 private:
 	bool isRegistered;
@@ -194,15 +177,15 @@ public:
 		IMPL::prepare_pixel_impl(coords,out);
 	}
 
-	virtual void plot_pixel(int maxiter, PointData& out, value_e type) const {
+#define DO_PLOT(type,name,minpix) 	\
+	case Maths::MathsType::name: 	\
+	IMPL::template plot_pixel_impl<type>(maxiter,out); \
+	break;
+
+	virtual void plot_pixel(int maxiter, PointData& out, Maths::MathsType type) const {
 		switch(type) {
-		case v_double:
-			IMPL::template plot_pixel_impl<double>(maxiter,out);
-			break;
-		case v_long_double:
-			IMPL::template plot_pixel_impl<long double>(maxiter,out);
-			break;
-		default:
+			ALL_MATHS_TYPES(DO_PLOT)
+		case Maths::MathsType::MAX:
 			throw "Unhandled value type";
 		}
 	}
