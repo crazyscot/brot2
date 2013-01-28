@@ -19,7 +19,7 @@
 #include <string>
 #include <map>
 #include <vector>
-#include <glib/gmacros.h>
+#include <glib.h>
 #include "Fractal.h"
 
 using namespace Fractal;
