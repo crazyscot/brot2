@@ -119,7 +119,7 @@
    fun:dl_main
    fun:_dl_sysdep_start
    fun:_dl_start
-   obj:/lib/x86_64-linux-gnu/ld-2.16.so
+   obj:/lib/x86_64-linux-gnu/ld-2.*
 }
 
 {
