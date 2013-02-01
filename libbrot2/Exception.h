@@ -22,9 +22,9 @@
 #include <string>
 #include <iostream>
 #include <sstream>
-#include <exception>
+#include <stdexcept>
 
-struct BrotException : std::exception {
+struct BrotException : public std::exception {
 	const std::string msg;
 	const std::string file;
 	const int line;
@@ -42,6 +42,9 @@ struct BrotException : std::exception {
 	}
 	virtual operator const std::string() const {
 		return detail();
+	}
+	virtual const char* what() const throw() {
+		return detail().c_str();
 	}
 	virtual ~BrotException() throw() {}
 };
