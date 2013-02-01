@@ -17,6 +17,7 @@
 
 #include "Fractal.h"
 #include <hayai/hayai.hpp>
+#include "Exception.h"
 
 using namespace Fractal;
 
@@ -30,7 +31,7 @@ public:
 	virtual void SetUp() {
 		FractalCommon::load_base();
 		impl = FractalCommon::registry.get("Mandelbrot");
-		if (impl==0) throw "Cannot find my fractal!";
+		if (impl==0) THROW(BrotFatalException, "Cannot find my fractal!");
 
 		/* A point (found by experiment) that's in the set but not
 		 * in the special-case cut-off regions */

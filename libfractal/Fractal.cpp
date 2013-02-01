@@ -21,6 +21,7 @@
 #include <vector>
 #include <glib.h>
 #include "Fractal.h"
+#include "Exception.h"
 #include "Fractal-internals.h"
 
 using namespace Fractal;
@@ -87,7 +88,7 @@ const char* Maths::name(Maths::MathsType t) {
 		if (it->val == t)
 			return it->name;
 	}
-	throw "Unhandled maths type!";
+	THROW(BrotFatalException, "Unhandled maths type!");
 }
 
 Value Maths::min_pixel_size(MathsType t) {
@@ -95,7 +96,7 @@ Value Maths::min_pixel_size(MathsType t) {
 		if (it->val == t)
 			return it->min_pixel_size;
 	}
-	throw "Unhandled maths type!";
+	THROW(BrotFatalException, "Unhandled maths type!");
 }
 
 Value Maths::smallest_min_pixel_size() {

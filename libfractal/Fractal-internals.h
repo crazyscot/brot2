@@ -19,6 +19,7 @@
 #define FRACTAL_INTERNALS_H_
 
 #include "FractalMaths.h"
+#include "Exception.h"
 
 namespace Fractal {
 
@@ -61,7 +62,7 @@ public:
 		switch(type) {
 			ALL_MATHS_TYPES(DO_PLOT)
 		case Maths::MathsType::MAX:
-			throw "Unhandled value type";
+			THROW(BrotFatalException, "Unhandled maths type!");
 		}
 	}
 };

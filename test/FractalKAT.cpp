@@ -17,6 +17,7 @@
 
 #include <gtest/gtest.h>
 #include "Fractal.h"
+#include "Exception.h"
 
 using namespace Fractal;
 
@@ -44,7 +45,7 @@ public:
 	virtual void SetUp() {
 		FractalCommon::load_base();
 		impl = FractalCommon::registry.get("Mandelbrot");
-		if (impl==0) throw "Cannot find my fractal!";
+		if (impl==0) THROW(BrotFatalException,"Cannot find my fractal!");
 	}
 	virtual void TearDown() {
 		FractalCommon::unload_registry();
