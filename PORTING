@@ -1,0 +1,15 @@
+I have not run this code on anything other than linux on x86_64 (amd64).
+
+On any other architecture the smallest minimum pixel sizes for the maths
+types encoded in FractalMaths.h are likely wrong; you'll have to experiment.
+
+What worked for me was computing the size of _epsilon_ at 3.0 (being the
+edge of the field for most fractals).
+
+A little C or C++ code (horribly architecture-specific, so I can't usefully
+provide actual code) works this out:
+1. Store 3.0 in the floating-point type of choice
+2. Take its pointer, cast to an array of uint8_t
+3. Increment the least significant byte of the mantissa by 1
+4. Deduct 3 from the modified floater; there's your answer.
+

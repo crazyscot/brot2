@@ -38,7 +38,7 @@ case $host_cpu in
   *)
 	default_float=yes
 	default_double=yes
-	# Argh, the epsilon values are likely wrong :-/
+	AC_WARN([Floating point limits are untested on this architecture; see PORTING])
 	;;
 esac
 
