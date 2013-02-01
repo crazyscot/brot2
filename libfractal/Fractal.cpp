@@ -21,6 +21,7 @@
 #include <vector>
 #include <glib.h>
 #include "Fractal.h"
+#include "Fractal-internals.h"
 
 using namespace Fractal;
 
@@ -53,6 +54,19 @@ void Fractal::FractalCommon::unload_registry() {
 	}
 	base_loaded = false;
 }
+
+void Fractal::FractalImpl::reg() {
+	FractalCommon::registry.reg(name, this);
+	isRegistered = 1;
+}
+
+void Fractal::FractalImpl::dereg()
+{
+	if (isRegistered)
+		FractalCommon::registry.dereg(name);
+	isRegistered = false;
+}
+
 
 struct MathsInfo {
 	Maths::MathsType val;

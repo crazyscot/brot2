@@ -17,6 +17,7 @@
 */
 
 #include "Fractal.h"
+#include "Fractal-internals.h"
 #include <iostream>
 
 using namespace std;

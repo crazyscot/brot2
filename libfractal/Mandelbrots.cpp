@@ -17,6 +17,7 @@
 */
 
 #include "Fractal.h"
+#include "Fractal-internals.h"
 
 using namespace std;
 using namespace Fractal;
