@@ -132,11 +132,29 @@ void MainWindow::zoom_mechanics(enum Zoom type) {
 	switch (type) {
 	case ZOOM_IN:
 		size /= ZOOM_FACTOR;
-		at_min_zoom = false;
+		at_min_zoom = at_max_zoom = false;
+		{
+			/* Don't allow the user to zoom into somewhere we can't do an
+			 * antialiased plot.
+			 * I found that a limit of 2.0*rwidth*smallest_min didn't work,
+			 * presumably this is another precision issue. -wry */
+			Fractal::Value d = fabsl(real(size)),
+					limit = 2.1 * rwidth * Fractal::Maths::smallest_min_pixel_size();
+			if (d < limit) {
+				size.real(limit);
+				at_max_zoom = true;
+			}
+			d = fabsl(imag(size));
+			limit = 2.1 * rheight * Fractal::Maths::smallest_min_pixel_size();
+			if (d < limit) {
+				size.imag(limit);
+				at_max_zoom = true;
+			}
+		}
 		break;
 	case ZOOM_OUT:
 		size *= ZOOM_FACTOR;
-		at_min_zoom = false;
+		at_max_zoom = at_min_zoom = false;
 		{
 			Fractal::Value d = real(size), lim = fractal->xmax - fractal->xmin;
 			if (d > lim) {
@@ -291,19 +309,11 @@ void MainWindow::do_plot(bool is_same_plot)
 
 	double aspect;
 
-	aspectfix = at_max_zoom = false;
+	aspectfix = false;
 	aspect = (double)rwidth / rheight;
 	if (imag(size) * aspect != real(size)) {
 		size.imag(real(size)/aspect);
 		aspectfix=true;
-	}
-	if (fabsl(real(size)/rwidth) <= Fractal::Maths::smallest_min_pixel_size()) {
-		size.real(Fractal::Maths::smallest_min_pixel_size()*rwidth);
-		at_max_zoom = true;
-	}
-	if (fabsl(imag(size)/rheight) <= Fractal::Maths::smallest_min_pixel_size()) {
-		size.imag(Fractal::Maths::smallest_min_pixel_size()*rheight);
-		at_max_zoom = true;
 	}
 
 	// N.B. This (gtk/gdk lib calls from non-main thread) will not work at all on win32; will need to refactor if I ever port.
