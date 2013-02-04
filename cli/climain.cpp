@@ -275,7 +275,13 @@ int main (int argc, char**argv)
 	sink.set_plot(&plot);
 	plot.set_prefs(prefs);
 
-	plot.start();
+	try {
+		plot.start();
+	} catch (BrotException e) {
+		// Usually means the pixels are too small for all known types.
+		std::cerr << "Plot failed to start: " << e.msg << std::endl;
+		return 4;
+	}
 	plot.wait();
 	if (!quiet)
 		std::cerr << std::endl << "Complete!" << std::endl;
