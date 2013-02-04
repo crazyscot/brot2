@@ -97,6 +97,8 @@ void Plot3Chunk::prepare()
 	for (j=0; j<_height; j++) {
 		for (i=0; i<_width; i++) {
 			_fract.prepare_pixel(render_point, _data[out_index]);
+			if (_data[out_index].nomore)
+				--_live_pixels;
 			++out_index;
 			render_point += colstep;
 		}
