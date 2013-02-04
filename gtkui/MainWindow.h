@@ -171,6 +171,7 @@ private:
 	bool on_timer();
 	void png_save_completion();
 	void destroy_image();
+	void real_plot_complete();
 
 	ThreadPool _threadpool;
 public:

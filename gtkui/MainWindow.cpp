@@ -258,11 +258,12 @@ void MainWindow::do_resize(unsigned width, unsigned height)
 
 		{
 			// It doesn't make sense to allow undo through a size change.
-			gdk_threads_leave();
-			delete plot_prev;
+			Plot3Plot *del1 = plot_prev, *del2 = plot;
 			plot_prev = 0;
-			delete plot;
 			plot = 0;
+			gdk_threads_leave();
+			delete del1;
+			delete del2;
 			gdk_threads_enter();
 		}
 
@@ -386,9 +387,17 @@ void MainWindow::pass_complete(std::string& commentary)
 
 void MainWindow::plot_complete()
 {
+	gdk_threads_enter();
+	real_plot_complete();
+	gdk_threads_leave();
+}
+
+void MainWindow::real_plot_complete()
+{
 	struct timeval tv_after, tv_diff;
 
-	gdk_threads_enter();
+	if (!plot) return;
+
 	progbar->pulse();
 	gettimeofday(&tv_after,0);
 
@@ -416,7 +425,6 @@ void MainWindow::plot_complete()
 
 	queue_draw();
 	gdk_flush();
-	gdk_threads_leave();
 }
 
 void MainWindow::recolour()
