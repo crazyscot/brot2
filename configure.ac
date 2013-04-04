@@ -1,7 +1,7 @@
 AC_INIT([brot2], [1.1+])
 AC_CONFIG_AUX_DIR([config.aux])
 AM_INIT_AUTOMAKE([no-define silent-rules])
-AM_SILENT_RULES([yes])
+AM_SILENT_RULES
 AC_CONFIG_SRCDIR([libbrot2/Plot3Plot.cpp])
 AM_CONFIG_HEADER([config.h])
 AC_CANONICAL_HOST
@@ -13,6 +13,9 @@ AM_PROG_AS
 AC_PROG_RANLIB
 AC_SET_MAKE
 AM_MAINTAINER_MODE([enable])
+AC_CHECK_LIB(X11, XInitThreads)
+AC_CHECK_LIB(pthread, pthread_create)
+
 
 pkg_cflags=""
 pkg_cxxflags="-std=c++0x"
