@@ -146,10 +146,10 @@ libhayai_a_SOURCES= hayai/hayai.hpp hayai/hayai-posixmain.cpp \
 ################################################################
 
 check_PROGRAMS+=b2benchmark
-b2benchmark_SOURCES=benchmark/benchmark.cpp
+b2benchmark_SOURCES=benchmark/benchmark2.cpp benchmark/Benchmarkable.cpp
 
-b2benchmark_LDADD= libhayai.a libfractal.a
-b2benchmark_DEPENDENCIES= libhayai.a libfractal.a
+b2benchmark_LDADD= libfractal.a
+b2benchmark_DEPENDENCIES= libfractal.a
 b2benchmark_CPPFLAGS=$(AM_CPPFLAGS)
 
 benchmark: b2benchmark
