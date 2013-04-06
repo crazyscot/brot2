@@ -98,6 +98,7 @@ check_LIBRARIES+=libgtest.a
 nodist_libgtest_a_SOURCES= $(GTEST)/gtest_main.cc $(GTEST)/gtest-all.cc
 
 libgtest_a_CPPFLAGS= -I$(GTEST_INC) -I$(GTEST_SRC)
+libgtest_a_CXXFLAGS= $(AM_CPPFLAGS) -Wno-undef
 # Yes, include GTEST_SRC, because gtest-all includes some .cc files ...
 endif
 
