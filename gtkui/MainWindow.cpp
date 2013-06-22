@@ -592,6 +592,7 @@ void MainWindow::png_save_completion()
 		SaveAsPNG::to_png(this, pngplot.width/png->aafactor, pngplot.height/png->aafactor, &pngplot, png->pal, png->aafactor == 2, png->filename);
 		//gdk_threads_enter();
 	} else {
+		progbar->set_text("Save complete");
 	}
 }
 
