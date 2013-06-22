@@ -187,7 +187,7 @@ void MainWindow::do_zoom(enum Zoom type, const Fractal::Point& newcentre) {
 	// LP#1033910: Go ahead with a recentring zoom if at max, as we need to replot anyway
 	// (but won't actually zoom).
 	zoom_mechanics(type);
-	new_centre_checked(newcentre);
+	new_centre_checked(newcentre, true);
 	do_plot(false);
 }
 
@@ -495,16 +495,20 @@ void MainWindow::do_more_iters()
 void MainWindow::update_params(Fractal::Point& ncentre, Fractal::Point& nsize)
 {
 	size = nsize;
-	new_centre_checked(ncentre);
+	new_centre_checked(ncentre, false);
 }
 
-void MainWindow::new_centre_checked(const Fractal::Point& ncentre)
+void MainWindow::new_centre_checked(const Fractal::Point& ncentre, bool is_zoom)
 {
 	centre = ncentre;
 	Fractal::Point halfsize = size/2.0;
 	Fractal::Point TR = centre + halfsize,
 				   BL = centre - halfsize;
 	bool clipped = false;
+
+	if (!is_zoom)
+		at_min_zoom = at_max_zoom = false;
+	// if is_zoom, those mechanics check and update the min/max flags.
 
 	if (real(TR) > fractal->xmax) {
 		Fractal::Point shift(fractal->xmax-real(TR), 0);

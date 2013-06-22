@@ -113,7 +113,7 @@ public:
 	bool is_aspect_fixed() const { return aspectfix; }
 
 	void update_params(Fractal::Point& centre, Fractal::Point& size);
-	void new_centre_checked(const Fractal::Point& centre);
+	void new_centre_checked(const Fractal::Point& centre, bool is_zoom);
 
     void do_zoom(enum Zoom z);
     void do_zoom(enum Zoom z, const Fractal::Point& newcentre);

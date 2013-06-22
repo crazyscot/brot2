@@ -146,7 +146,7 @@ bool Canvas::end_dragrect(gdouble x, gdouble y) {
 		Fractal::Point newcentre = (TR+BL)/(Fractal::Value)2.0;
 		Fractal::Point newsize = TR-BL;
 		main->update_params(newcentre, newsize);
-		main->new_centre_checked( newcentre );
+		main->new_centre_checked( newcentre, false );
 		main->do_plot(false);
 	}
 	return true;
