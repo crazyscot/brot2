@@ -3,6 +3,9 @@
 *~
 *.a
 brot2
+brot2cli
+b2benchmark
+b2test
 debian/brot2.debhelper.log
 debian/brot2.postinst.debhelper
 debian/brot2.postrm.debhelper

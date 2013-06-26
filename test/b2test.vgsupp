@@ -189,6 +189,24 @@
 }
 
 {
+   <fakeroot-keyfile-fxstat-param-2>
+   Memcheck:Param
+   msgsnd(msgp->mtext)
+   obj:*/libc-*
+   fun:send_fakem
+   fun:send_get_fakem
+   fun:send_get_stat
+   fun:__fxstat
+   obj:*/libglib-*
+   fun:g_key_file_load_from_file
+   fun:_ZN4Glib7KeyFile14load_from_fileERKSsNS_12KeyFileFlagsE
+   fun:_ZN9BrotPrefs12KeyfilePrefs10initialiseEv
+   fun:_ZN9BrotPrefs12KeyfilePrefs6rereadEv
+   fun:_ZN9BrotPrefs12KeyfilePrefs6commitEv
+   fun:_ZN51prefs_CommitAffectsMasterAndSubsequentChildren_Test8TestBodyEv
+}
+
+{
    <fakeroot-keyfile-unlink-param>
    Memcheck:Param
    msgsnd(msgp->mtext)
@@ -199,6 +217,24 @@
    fun:_ZN19TestingKeyfilePrefsD1Ev
    fun:_ZN19TestingKeyfilePrefsD0Ev
    fun:_ZN26prefs_ReadOutAllItems_Test8TestBodyEv
+   fun:_ZN7testing8internal35HandleExceptionsInMethodIfSupportedINS_4TestEvEET0_PT_MS4_FS3_vEPKc
+   fun:_ZN7testing4Test3RunEv
+   fun:_ZN7testing8TestInfo3RunEv
+   fun:_ZN7testing8TestCase3RunEv
+   fun:_ZN7testing8internal12UnitTestImpl11RunAllTestsEv
+}
+
+{
+   <fakeroot-keyfile-unlink-param-2>
+   Memcheck:Param
+   msgsnd(msgp->mtext)
+   obj:/lib/x86_64-linux-gnu/libc-2.15.so
+   fun:send_fakem
+   fun:send_stat64
+   fun:unlink
+   fun:_ZN19TestingKeyfilePrefsD1Ev
+   fun:_ZN19TestingKeyfilePrefsD0Ev
+   fun:_ZN51prefs_CommitAffectsMasterAndSubsequentChildren_Test8TestBodyEv
    fun:_ZN7testing8internal35HandleExceptionsInMethodIfSupportedINS_4TestEvEET0_PT_MS4_FS3_vEPKc
    fun:_ZN7testing4Test3RunEv
    fun:_ZN7testing8TestInfo3RunEv
