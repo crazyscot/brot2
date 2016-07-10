@@ -4,9 +4,10 @@ brot2 (1.2~unreleased) UNRELEASED; urgency=low
   * Refactor fractal maths machinery to be traits-based, have it auto-select
   between the available types based on zoom depth, make float/double types
   selectable at configure time.
-  * Add benchmarker (`make benchmark') using Nick Bruun's `hayai'.
+  * Add benchmarker (`make benchmark')
+  * Update build machinery for automake 1.15 & gcc 5.3
 
- -- Ross Younger <0ryoungerk.launchpad@coriolis.greenend.org.uk>  Sun, 27 Jan 2013 22:14:45 +1300
+ -- Ross Younger <0ryoungerk.launchpad@coriolis.greenend.org.uk>  Sun, 10 Jul 2016 20:29:10 +1200
 
 brot2 (1.1) precise; urgency=low
 
