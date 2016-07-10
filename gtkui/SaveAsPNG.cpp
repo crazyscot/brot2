@@ -160,6 +160,12 @@ void SaveAsPNG::do_save(MainWindow *mw)
 	int newx=0, newy=0;
 	bool do_extra = false, do_antialias = false;
 
+	if(mw->get_plot().is_running()) {
+        std::ostringstream str;
+        str << "Cannot save while a plot is working";
+        Util::alert(mw, str.str());
+        return;
+    }
 	{
 		Gtk::FileChooserDialog dialog(*mw, "Save File", Gtk::FileChooserAction::FILE_CHOOSER_ACTION_SAVE);
 		dialog.set_do_overwrite_confirmation(true);
