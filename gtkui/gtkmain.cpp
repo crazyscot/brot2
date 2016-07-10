@@ -52,7 +52,7 @@ static int realmain(int argc, char**argv)
 	octx.set_ignore_unknown_options(false);
 	octx.set_main_group(options);
 
-	std::auto_ptr<Gtk::Main> gmain;
+	std::unique_ptr<Gtk::Main> gmain;
 	try {
 		gmain.reset(new Gtk::Main(argc, argv, octx));
 	} catch(Glib::Exception& e) {
