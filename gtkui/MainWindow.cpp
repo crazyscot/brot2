@@ -65,6 +65,7 @@ MainWindow::MainWindow() : Gtk::Window(),
 			initializing(true),
 			aspectfix(false), at_max_zoom(false), at_min_zoom(false), recolour_when_done(false),
 			divider(new Plot3::ChunkDivider::Superpixel(64)),
+            _chunks_this_pass(0),
 			dragrect(*this),
 			_threadpool(BrotPrefs::threadpool_size(prefs()))
 {
@@ -377,6 +378,7 @@ void MainWindow::chunk_done(Plot3Chunk* job)
 		renderer->process(*job);
 
 	float workdone = (float) _chunks_this_pass / plot->chunks_total();
+    ASSERT(workdone >= 0.0);
 	ASSERT(workdone <= 1.0);
 	gdk_threads_enter();
 	progbar->set_fraction(workdone);
