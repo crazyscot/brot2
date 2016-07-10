@@ -95,12 +95,11 @@ GTEST=@GTEST_SRC@/src
 
 check_LIBRARIES+=libgtest.a
 
-nodist_libgtest_a_SOURCES= gtest/gtest_main.cc gtest/gtest-all.cc
+nodist_libgtest_a_SOURCES= gtest/src/gtest_main.cc gtest/src/gtest-all.cc
 
-gtest/gtest_main.cc: $(GTEST_SRC)/src/gtest_main.cc
-	ln -sf $(GTEST_SRC)/src/gtest_main.cc gtest/
-gtest/gtest-all.cc: $(GTEST_SRC)/src/gtest-all.cc
-	ln -sf $(GTEST_SRC)/src/gtest-all.cc gtest/
+gtest/src/%: $(GTEST_SRC)/src/%
+	mkdir -p gtest/src
+	cp -af $(GTEST_SRC)/src/* gtest/src/
 
 libgtest_a_CPPFLAGS= -I$(GTEST_INC) -I$(GTEST_SRC)
 libgtest_a_CXXFLAGS= $(AM_CPPFLAGS) -Wno-undef
