@@ -1,16 +1,16 @@
 EXTRA_DIST=debian misc
 
-AM_CPPFLAGS=@libbrot2_CFLAGS@ \
+AM_CPPFLAGS=@BROT2_GLOBAL_CPPFLAGS@ \
 			-I$(top_srcdir) -I$(top_srcdir)/libfractal \
 			-I$(top_srcdir)/libbrot2
-AM_CFLAGS=@BROT2_CFLAGS@
-AM_CXXFLAGS=@BROT2_CXXFLAGS@
+AM_CFLAGS=@BROT2_GLOBAL_CFLAGS@
+AM_CXXFLAGS=@BROT2_GLOBAL_CXXFLAGS@
 
 all_libs= \
-		  $(top_builddir)/libfractal.a \
-		  $(top_builddir)/libbrot2.a
+		  libfractal.a \
+		  libbrot2.a
 
-all_ldadd=$(all_libs) @libbrot2_LIBS@ -lm
+all_ldadd=$(all_libs) @libbrot2_a_LIBS@ -lm
 
 noinst_LIBRARIES=
 bin_PROGRAMS=
@@ -36,7 +36,7 @@ noinst_LIBRARIES+=libbrot2.a
 
 libbrot2_a_SOURCES= \
 	libbrot2/Exception.h \
-	libbrot2/logo.h $(top_builddir)/logo_auto.c \
+	libbrot2/logo.h logo_auto.c \
 	libbrot2/palette.cpp libbrot2/palette.h \
 	libbrot2/Plot3Plot.cpp libbrot2/Plot3Plot.h \
 	libbrot2/Plot3Chunk.cpp libbrot2/Plot3Chunk.h \
@@ -48,12 +48,12 @@ libbrot2_a_SOURCES= \
 	libbrot2/Prefs.h libbrot2/Prefs.cpp \
 	libbrot2/PrefsRegistry.h libbrot2/PrefsRegistry.cpp
 
-AUTOGEN+=$(top_builddir)/logo_auto.c
+AUTOGEN+=logo_auto.c
 CLEANFILES+=$(AUTOGEN)
 
 LOGO_IN=$(top_srcdir)/misc/brot2.png
 
-$(top_builddir)/logo_auto.c: $(LOGO_IN)
+logo_auto.c: $(LOGO_IN)
 	@mkdir -p $(@D)
 	$(AM_V_at) echo '#include "logo.h"' > $@.new
 	$(AM_V_GEN) gdk-pixbuf-csource --raw --extern --name=brot2_logo $(LOGO_IN) >> $@.new
@@ -95,7 +95,12 @@ GTEST=@GTEST_SRC@/src
 
 check_LIBRARIES+=libgtest.a
 
-nodist_libgtest_a_SOURCES= $(GTEST)/gtest_main.cc $(GTEST)/gtest-all.cc
+nodist_libgtest_a_SOURCES= gtest/gtest_main.cc gtest/gtest-all.cc
+
+gtest/gtest_main.cc: $(GTEST_SRC)/src/gtest_main.cc
+	ln -sf $(GTEST_SRC)/src/gtest_main.cc gtest/
+gtest/gtest-all.cc: $(GTEST_SRC)/src/gtest-all.cc
+	ln -sf $(GTEST_SRC)/src/gtest-all.cc gtest/
 
 libgtest_a_CPPFLAGS= -I$(GTEST_INC) -I$(GTEST_SRC)
 libgtest_a_CXXFLAGS= $(AM_CPPFLAGS) -Wno-undef

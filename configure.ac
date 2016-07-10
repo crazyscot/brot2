@@ -1,13 +1,12 @@
 AC_INIT([brot2], [1.1+])
 AC_CONFIG_AUX_DIR([config.aux])
-AM_INIT_AUTOMAKE([no-define silent-rules])
+AM_INIT_AUTOMAKE([no-define silent-rules subdir-objects])
 AM_SILENT_RULES
 AC_CONFIG_SRCDIR([libbrot2/Plot3Plot.cpp])
 AM_CONFIG_HEADER([config.h])
 AC_CANONICAL_HOST
 AC_LANG([C++])
 AC_PROG_CC
-AM_PROG_CC_C_O
 AC_PROG_CXX
 AM_PROG_AS
 AC_PROG_RANLIB
@@ -15,20 +14,25 @@ AC_SET_MAKE
 AM_MAINTAINER_MODE([enable])
 AC_CHECK_LIB(X11, XInitThreads)
 AC_CHECK_LIB(pthread, pthread_create)
+AC_GNU_SOURCE
 
-
-pkg_cflags=""
-pkg_cxxflags="-std=c++0x"
-AC_DEFINE([_GNU_SOURCE], [1], [use GNU extensions])
+pkg_cflags="-std=c11"
+pkg_cxxflags="-std=c++11"
 if test "x$GXX" = xyes; then
-	pkg_cxxflags="${pkg_cxxflags} -Wall -Wextra -Werror -Wpointer-arith -Wwrite-strings -Woverloaded-virtual -Wnon-virtual-dtor -Wctor-dtor-privacy -Wstrict-null-sentinel -Wnon-template-friend -Woverloaded-virtual -Wpmf-conversions -Wsign-promo -Wundef"
+	pkg_cxxflags="${pkg_cxxflags} -Wall -Wextra -Werror -Wpointer-arith -Wwrite-strings -Woverloaded-virtual -Wnon-virtual-dtor -Wno-ctor-dtor-privacy -Wstrict-null-sentinel -Wnon-template-friend -Woverloaded-virtual -Wpmf-conversions -Wsign-promo -Wundef"
+    # libsigc++ can't be included with -Wctor-dtor-privacy at the present time
 fi
 if test "x$GCC" = xyes; then
 	pkg_cflags="${pkg_cflags} -Wall -Wextra -Werror -Wpointer-arith -Wwrite-strings"
 fi
 
-PKG_CHECK_MODULES([libbrot2],[glibmm-2.4 libpng12 sigc++-2.0])
+PKG_CHECK_MODULES([libbrot2_a],[glibmm-2.4 libpng12 sigc++-2.0])
 PKG_CHECK_MODULES([brot2gui],[glibmm-2.4 gtkmm-2.4 gdkmm-2.4 pangocairo cairo pango libpng12 sigc++-2.0])
+AC_SUBST([libbrot2_a_CXXFLAGS], [${libbrot2_a_CFLAGS}])
+PKG_CHECK_MODULES([libfractal_a],[glibmm-2.4])
+AC_SUBST([libfractal_a_CXXFLAGS], [${libfractal_a_CFLAGS}])
+AC_SUBST([brot2cli_CXXFLAGS], [${libfractal_a_CFLAGS}])
+AC_SUBST([b2test_CXXFLAGS], [${libfractal_a_CFLAGS}])
 
 GTEST_SRC_CHECK
 VALGRIND_CHECK
@@ -64,8 +68,9 @@ if test "x$enable_double" != xno; then
 	AC_DEFINE([ENABLE_DOUBLE], [1], [enable use of the `double' type])
 fi
 
-AC_SUBST([BROT2_CFLAGS], [${pkg_cflags}])
-AC_SUBST([BROT2_CXXFLAGS], [${pkg_cxxflags}])
+AC_SUBST([BROT2_GLOBAL_CFLAGS], [${pkg_cflags}])
+AC_SUBST([BROT2_GLOBAL_CXXFLAGS], [${pkg_cxxflags}])
+AC_SUBST([BROT2_GLOBAL_CPPFLAGS], [${pkg_cppflags}])
 
 AC_CONFIG_FILES([Makefile])
 AC_OUTPUT
