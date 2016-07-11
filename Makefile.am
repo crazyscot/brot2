@@ -104,6 +104,8 @@ gtest/src/%: $(GTEST_SRC)/src/%
 libgtest_a_CPPFLAGS= -I$(GTEST_INC) -I$(GTEST_SRC)
 libgtest_a_CXXFLAGS= $(AM_CPPFLAGS) -Wno-undef
 # Yes, include GTEST_SRC, because gtest-all includes some .cc files ...
+
+CLEANFILES+=gtest/src/*.cc
 endif
 
 ################################################################
