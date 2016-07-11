@@ -266,9 +266,9 @@
     match-leak-kinds: possible
     fun:calloc
     fun:g_malloc0
-    obj:/usr/lib/x86_64-linux-gnu/libgobject-2.0.so.0.4800.1
-    obj:/usr/lib/x86_64-linux-gnu/libgobject-2.0.so.0.4800.1
-    obj:/usr/lib/x86_64-linux-gnu/libgobject-2.0.so.0.4800.1
+    obj:/usr/lib/*/libgobject-2.0.so.0.4800.1
+    obj:/usr/lib/*/libgobject-2.0.so.0.4800.1
+    obj:/usr/lib/*/libgobject-2.0.so.0.4800.1
     fun:call_init.part.0
     fun:call_init
     fun:_dl_init
