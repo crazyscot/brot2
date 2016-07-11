@@ -92,6 +92,11 @@ namespace BrotPrefs {
 		HUDShowZoom("HUD show 'zoom'",
 				"Show the legend 'Zoom:' in the HUD?",
 				true, Groups::HUD, "show_zoom_legend"),
+
+		LastSaveDir("Last save directory",
+				"Last directory we saved a PNG in",
+				"",
+				Groups::UI, "lastsavedir"),
 		end()
 	{ }
 

@@ -7,8 +7,9 @@ brot2 (1.2~unreleased) UNRELEASED; urgency=low
   * Add benchmarker (`make benchmark')
   * Update build machinery for automake 1.15 & gcc 5.3
   * Fix default save directory (LP#1600657)
+  * Remember the last directory we saved in (LP#1600568)
 
- -- Ross Younger <0ryoungerk.launchpad@coriolis.greenend.org.uk>  Sun, 10 Jul 2016 20:29:10 +1200
+ -- Ross Younger <0ryoungerk.launchpad@coriolis.greenend.org.uk>  Mon, 11 Jul 2016 13:10:02 +1200
 
 brot2 (1.1) precise; urgency=low
 

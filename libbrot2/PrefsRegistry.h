@@ -75,6 +75,8 @@ typedef Base<std::string> String;
 	DO(Int,HUDFontSize)\
 	DO(Boolean,HUDOutlineText)\
 	DO(Boolean,HUDShowZoom)\
+    \
+    DO(String,LastSaveDir)\
 
 struct Registry {
 #define DO(type,name) BrotPrefs::type name;

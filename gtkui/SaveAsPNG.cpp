@@ -163,6 +163,7 @@ void SaveAsPNG::do_save(MainWindow *mw)
 	std::string filename;
 	int newx=0, newy=0;
 	bool do_extra = false, do_antialias = false;
+    std::shared_ptr<const Prefs> prefs = Prefs::getMaster();
 
 	if(mw->get_plot().is_running()) {
         std::ostringstream str;
@@ -180,6 +181,9 @@ void SaveAsPNG::do_save(MainWindow *mw)
 					mw->get_rwidth(), mw->get_rheight() ));
 		dialog.set_extra_widget(*extra);
 
+		if (!last_saved_dirname.length()) {
+            last_saved_dirname = prefs->get(PREF(LastSaveDir));
+        }
 		if (!last_saved_dirname.length()) {
             const char *homedir;
             if ((homedir = getenv("HOME")) == NULL) {
@@ -227,7 +231,11 @@ void SaveAsPNG::do_save(MainWindow *mw)
 	int spos = last_saved_dirname.rfind('/');
 	if (spos >= 0)
 		last_saved_dirname.erase(spos+1);
-
+    {
+        std::shared_ptr<Prefs> prefs2 = prefs->getWorkingCopy();
+        prefs2->set(PREF(LastSaveDir), last_saved_dirname);
+        prefs2->commit();
+    }
 
 	if (do_extra) {
 		// HARD CASE: Launch a new job in the background to rerender.
