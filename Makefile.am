@@ -99,7 +99,7 @@ nodist_libgtest_a_SOURCES= gtest/src/gtest_main.cc gtest/src/gtest-all.cc
 
 gtest/src/%: $(GTEST_SRC)/src/%
 	mkdir -p gtest/src
-	cp -af $(GTEST_SRC)/src/* gtest/src/
+	cp -a --remove-destination $(GTEST_SRC)/src/* gtest/src/
 
 libgtest_a_CPPFLAGS= -I$(GTEST_INC) -I$(GTEST_SRC)
 libgtest_a_CXXFLAGS= $(AM_CPPFLAGS) -Wno-undef
