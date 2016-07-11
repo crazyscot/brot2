@@ -32,6 +32,10 @@
 #include <iostream>
 #include <fstream>
 
+#include <unistd.h>
+#include <sys/types.h>
+#include <pwd.h>
+
 using namespace std;
 using namespace Plot3;
 using namespace BrotPrefs;
@@ -177,8 +181,19 @@ void SaveAsPNG::do_save(MainWindow *mw)
 		dialog.set_extra_widget(*extra);
 
 		if (!last_saved_dirname.length()) {
+            const char *homedir;
+            if ((homedir = getenv("HOME")) == NULL) {
+                homedir = getpwuid(getuid())->pw_dir;
+            }
+            // Try $HOME/Documents
 			std::ostringstream str;
-			str << "/home/" << getenv("USERNAME") << "/Documents/";
+			str << homedir << "/Documents/";
+            if (Glib::file_test(str.str(), Glib::FILE_TEST_IS_DIR)) {
+                // use str as-is
+            } else {
+                str.flush();
+                str << homedir;
+            }
 			dialog.set_current_folder(str.str().c_str());
 		} else {
 			dialog.set_current_folder(last_saved_dirname.c_str());
