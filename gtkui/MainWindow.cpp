@@ -472,6 +472,10 @@ void MainWindow::do_undo()
 	size = plot->size;
 	rwidth = plot->width;
 	rheight = plot->height;
+    if (antialias) {
+        rwidth /= 2;
+        rheight /= 2;
+    }
 
 	recolour();
 	//progbar->set_text(""); // For some reason this breaks the undo. Boggle.
