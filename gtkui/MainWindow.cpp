@@ -575,6 +575,16 @@ void MainWindow::toggle_antialias()
 	safe_stop_plot();
 	antialias = !antialias;
 	destroy_image();
+    {
+        // It doesn't make sense to allow undo through an antialias toggle.
+        Plot3Plot *del1 = plot_prev, *del2 = plot;
+        plot_prev = 0;
+        plot = 0;
+        gdk_threads_leave();
+        delete del1;
+        delete del2;
+        gdk_threads_enter();
+    }
 	do_plot(false);
 }
 
