@@ -239,6 +239,11 @@ void MainWindow::render_buffer_tidyup() {
 	render(-1, false, true);
 }
 
+static gboolean idle_queue_draw(gpointer data) {
+    ((MainWindow*)(data))->queue_draw();
+    return FALSE; // i.e. we're done, remove us from the queue
+}
+
 void MainWindow::render(int local_inf, bool do_reprocess, bool may_do_hud) {
 	// TODO: autolock on gctx ? and everything that accessess gctx->(surfaces)?
 	if (!canvas->surface)
@@ -259,7 +264,7 @@ void MainWindow::render(int local_inf, bool do_reprocess, bool may_do_hud) {
 
 	canvas->surface->mark_dirty();
 	canvas->surface->unreference();
-	queue_draw();
+    gdk_threads_add_idle(idle_queue_draw, this);
 }
 
 
