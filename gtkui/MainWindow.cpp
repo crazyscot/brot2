@@ -231,8 +231,8 @@ void MainWindow::render_prep(int local_inf) {
 	}
 }
 
-void MainWindow::render_buffer_updated() {
-	render(-1, false, false);
+void MainWindow::render_buffer_updated(Plot3Chunk *job) {
+	render(-1, false, false, job);
 }
 
 void MainWindow::render_buffer_tidyup() {
@@ -244,7 +244,7 @@ static gboolean idle_queue_draw(gpointer data) {
     return FALSE; // i.e. we're done, remove us from the queue
 }
 
-void MainWindow::render(int local_inf, bool do_reprocess, bool may_do_hud) {
+void MainWindow::render(int local_inf, bool do_reprocess, bool may_do_hud, Plot3Chunk *job) {
 	// TODO: autolock on gctx ? and everything that accessess gctx->(surfaces)?
 	if (!canvas->surface)
 		return;
@@ -262,7 +262,10 @@ void MainWindow::render(int local_inf, bool do_reprocess, bool may_do_hud) {
 	if (may_do_hud && draw_hud)
 		hud.draw(plot, rwidth, rheight);
 
-	canvas->surface->mark_dirty();
+    if (job)
+        canvas->surface->mark_dirty(job->_offX, job->_offY, job->_width, job->_height);
+    else
+        canvas->surface->mark_dirty();
 	canvas->surface->unreference();
     gdk_threads_add_idle(idle_queue_draw, this);
 }
@@ -388,7 +391,7 @@ void MainWindow::chunk_done(Plot3Chunk* job)
 	gdk_threads_enter();
 	progbar->set_fraction(workdone);
 	if (renderer)
-		render_buffer_updated();
+		render_buffer_updated(job);
 	gdk_threads_leave();
 }
 

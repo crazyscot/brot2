@@ -122,13 +122,13 @@ public:
     void render_prep(int local_inf);
 
     // Call after processing a chunk.
-    void render_buffer_updated();
+    void render_buffer_updated(Plot3::Plot3Chunk *job);
 
     // Call after a plot is finished, will redraw the HUD if approprate
     void render_buffer_tidyup();
 
-    // Pushes the render buffer out to the display. Optionally reprocesses all chunks (only use after the plot is complete, e.g. to change the palette).
-    void render(int local_inf, bool do_reprocess, bool may_do_hud);
+    // Pushes the render buffer out to the display. Optionally reprocesses all chunks (only use after the plot is complete, e.g. to change the palette). If a job is provided, only marks the relevant part of the window as dirty.
+    void render(int local_inf, bool do_reprocess, bool may_do_hud, Plot3::Plot3Chunk *job = NULL);
 
     void recolour();
     void do_undo();
