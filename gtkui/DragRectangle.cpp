@@ -73,29 +73,23 @@ void DragRectangle::invalidate_dashed(Util::xy &origin, Util::xy &other) {
 }
 
 void DragRectangle::draw(int x, int y) {
-	Util::xy prev(current);
+	Util::xy previous(current);
 	current.reinit(x,y);
-	draw_internal(&prev);
-}
 
-void DragRectangle::draw_internal(Util::xy *previous) {
 	if (!surface) {
 		Glib::RefPtr<Gdk::Window> w = parent.get_window();
 		surface = w->create_similar_surface(Cairo::CONTENT_COLOR_ALPHA, parent.get_rwidth(), parent.get_rheight());
 	}
 
 	ASSERT(active);
-
-	if (active) {
+	{
 		if (!current_cairo)
 			current_cairo = Cairo::Context::create(surface);
 
 		Cairo::RefPtr<Cairo::Context> cr (current_cairo);
 
 		this->clear();
-		if (previous) {
-			invalidate_dashed(origin, *previous);
-		}
+		invalidate_dashed(origin, previous); // This is OK if we're in a new draw situation, previous is reinitialised to origin by activate().
 
 		int x = origin.x, y = origin.y,
 			width = current.x - origin.x, height = current.y - origin.y;
@@ -127,11 +121,12 @@ void DragRectangle::draw_internal(Util::xy *previous) {
 
 		cr->restore();
 		invalidate_dashed(origin, current);
-	} else {
-		if (current_cairo)
-			current_cairo.clear();
-		parent.queue_draw();
 	}
+}
+
+void DragRectangle::draw_internal(Util::xy *previous) {
+	ASSERT(1==0);
+	(void)previous;
 }
 
 void DragRectangle::clear() {
