@@ -59,6 +59,7 @@ typedef Base<std::string> String;
 // Second-order macro to provide an all-known-prefs function.
 #define ALL_PREFS(DO) \
 	DO(Boolean,ShowControls) \
+    DO(Int,TileSize) \
 	\
 	DO(Int,InitialMaxIter)\
 	DO(Float,LiveThreshold)\

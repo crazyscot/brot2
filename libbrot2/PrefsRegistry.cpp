@@ -35,6 +35,8 @@ namespace BrotPrefs {
 		ShowControls("Show controls window",
 				"Shows the controls window", // sigh
 				true, Groups::UI, "show_controls"),
+        TileSize("Render tile size", "Size of tiles to render",
+                10, 64, INT_MAX, Groups::UI, "render_tile_size"),
 
 		InitialMaxIter("Initial maxiter",
 				"First pass iteration limit (minimum 2)",
