@@ -124,11 +124,6 @@ void DragRectangle::draw(int x, int y) {
 	}
 }
 
-void DragRectangle::draw_internal(Util::xy *previous) {
-	ASSERT(1==0);
-	(void)previous;
-}
-
 void DragRectangle::clear() {
 	Cairo::RefPtr<Cairo::Context> cr (current_cairo);
 	cr->save();

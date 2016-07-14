@@ -36,8 +36,6 @@ protected:
 	Util::xy origin /* where did they first click */,
 		current /* where the pointer is now */;
 
-	void draw_internal(Util::xy *previous);
-
 	Cairo::RefPtr<Cairo::Context> current_cairo;
 
 	void invalidate_dashed(Util::xy &origin, Util::xy &other);
