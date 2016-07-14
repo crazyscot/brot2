@@ -195,13 +195,16 @@ namespace PrefsDialogBits {
 		public:
 		// Editable fields:
 		Util::HandyEntry<int> *f_max_threads;
+		Util::HandyEntry<int> *f_tile_size;
 
 		MiscFrame() : Gtk::Frame("Miscellaneous") {
 			f_max_threads = Gtk::manage(new Util::HandyEntry<int>());
 			f_max_threads->set_activates_default(true);
+            f_tile_size = Gtk::manage(new Util::HandyEntry<int>());
+			f_tile_size->set_activates_default(true);
 
 			set_border_width(10);
-			Gtk::Table *tbl = Gtk::manage(new Gtk::Table(1/*r*/, 2/*c*/, false));
+			Gtk::Table *tbl = Gtk::manage(new Gtk::Table(2/*r*/, 2/*c*/, false));
 			Gtk::Label *lbl;
 
 			lbl = Gtk::manage(new Gtk::Label(PREFNAME(MaxPlotThreads)));
@@ -210,15 +213,23 @@ namespace PrefsDialogBits {
 			tbl->attach(*lbl, 0, 1, 0, 1);
 			tbl->attach(*f_max_threads, 1, 2, 0, 1);
 
+			lbl = Gtk::manage(new Gtk::Label(PREFNAME(TileSize)));
+			lbl->set_tooltip_text(PREFDESC(TileSize));
+			f_tile_size->set_tooltip_text(PREFDESC(TileSize));
+			tbl->attach(*lbl, 0, 1, 1, 2);
+			tbl->attach(*f_tile_size, 1, 2, 1, 2);
+
 			add(*tbl);
 		}
 
 		void prepare(const Prefs& prefs) {
 			f_max_threads->update(prefs.get(PREF(MaxPlotThreads)));
+            f_tile_size->update(prefs.get(PREF(TileSize)));
 		}
 
 		void defaults() {
 			f_max_threads->update(PREF(MaxPlotThreads)._default);
+			f_tile_size->update(PREF(TileSize)._default);
 		}
 
 		void readout(Prefs& prefs) throw(PrefsException) {
@@ -231,6 +242,13 @@ namespace PrefsDialogBits {
 				THROW(PrefsException,"Max CPU threads must be at least 0");
 			tmpu = tmpi;
 			prefs.set(PREF(MaxPlotThreads), tmpu);
+
+			if (!f_tile_size->read(tmpi))
+				THROW(PrefsException,"Sorry, I don't understand your render tile size");
+			if ((tmpi < PREF(TileSize)._min) || (tmpi > PREF(TileSize)._max))
+				THROW(PrefsException,"Tile size must be at least 10");
+			tmpu = tmpi;
+			prefs.set(PREF(TileSize), tmpu);
 		}
 	};
 
