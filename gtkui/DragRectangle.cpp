@@ -55,9 +55,13 @@ void DragRectangle::draw_internal() {
 		surface = w->create_similar_surface(Cairo::CONTENT_COLOR_ALPHA, parent.get_rwidth(), parent.get_rheight());
 	}
 
-	Cairo::RefPtr<Cairo::Context> cr = Cairo::Context::create(surface);
-	clear(cr);
 	if (active) {
+		if (!current_cairo)
+			current_cairo = Cairo::Context::create(surface);
+
+		Cairo::RefPtr<Cairo::Context> cr (current_cairo);
+		this->clear();
+
 		int x = origin.x, y = origin.y,
 			width = current.x - origin.x, height = current.y - origin.y;
 
@@ -87,11 +91,15 @@ void DragRectangle::draw_internal() {
 		cr->stroke();
 
 		cr->restore();
+	} else {
+		if (current_cairo)
+			current_cairo.clear();
 	}
 	parent.queue_draw();
 }
 
-void DragRectangle::clear(Cairo::RefPtr<Cairo::Context> cr) {
+void DragRectangle::clear() {
+	Cairo::RefPtr<Cairo::Context> cr (current_cairo);
 	cr->save();
 	cr->set_source_rgba(0,0,0,0);
 	cr->set_operator(Cairo::Operator::OPERATOR_SOURCE);

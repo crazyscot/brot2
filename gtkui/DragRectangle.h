@@ -30,12 +30,14 @@ protected:
 	MainWindow &parent;
 	Cairo::RefPtr<Cairo::Surface> surface;
 
-	void clear(Cairo::RefPtr<Cairo::Context> cr);
+	void clear();
 
 	bool active;
 	Util::xy origin, current;
 
 	void draw_internal();
+
+	Cairo::RefPtr<Cairo::Context> current_cairo;
 
 public:
 	DragRectangle(MainWindow &w);
