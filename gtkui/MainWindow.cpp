@@ -64,7 +64,7 @@ MainWindow::MainWindow() : Gtk::Window(),
 			draw_hud(true), antialias(false),
 			initializing(true),
 			aspectfix(false), at_max_zoom(false), at_min_zoom(false), recolour_when_done(false),
-			divider(new Plot3::ChunkDivider::Superpixel(64)),
+			divider(new Plot3::ChunkDivider::SuperpixelVariable(prefs())),
             _chunks_this_pass(0),
 			dragrect(*this),
 			_threadpool(BrotPrefs::threadpool_size(prefs()))
