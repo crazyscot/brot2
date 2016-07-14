@@ -305,14 +305,7 @@ void MainWindow::do_plot(bool is_same_plot)
 	if (initializing) return;
 	safe_stop_plot();
 
-	if (!canvas) {
-		// First time? Grey it all out.
-		Glib::RefPtr<Gdk::Window> window = get_window();
-		if (!window) return; // no window yet?
-		Cairo::RefPtr<Cairo::Context> cr = window->create_cairo_context();
-		cr->set_source_rgb(0.5, 0.5, 0.5);
-		cr->paint();
-	}
+	ASSERT(canvas); // Initialised in MainWindow()
 
 	progbar->set_text("Plotting pass 1...");
 
