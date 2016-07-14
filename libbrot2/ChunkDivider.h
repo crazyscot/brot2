@@ -22,6 +22,7 @@
 #include <list>
 #include "Plot3Chunk.h"
 #include "Fractal.h"
+#include "Prefs.h"
 
 namespace Plot3 {
 
@@ -38,7 +39,7 @@ namespace ChunkDivider {
 				IPlot3DataSink* s, const Fractal::FractalImpl& f,
 				Fractal::Point centre, Fractal::Point size,
 				unsigned width, unsigned height, unsigned max_passes,
-				Fractal::Maths::MathsType ty) const = 0;
+				Fractal::Maths::MathsType ty) = 0;
 
 		virtual ~Base() {}
 	};
@@ -50,7 +51,7 @@ namespace ChunkDivider {
 				IPlot3DataSink* s, const Fractal::FractalImpl& f,		\
 				Fractal::Point centre, Fractal::Point size,				\
 				unsigned width, unsigned height, unsigned max_passes, 	\
-				Fractal::Maths::MathsType ty ) const;	\
+				Fractal::Maths::MathsType ty );	\
 	}
 
 	/* NOTE: Chunks must always be an even number of pixels high! */
@@ -60,15 +61,30 @@ namespace ChunkDivider {
 	_CD_INSTANCE(Vertical10px); // Vertical stripes, 10pixels wide
 
 	class Superpixel: public Base {
+	protected:
+		unsigned SIZE;
 	public:
 		Superpixel(unsigned s) : SIZE(s) {}
-		const unsigned SIZE;
 
 		virtual void dividePlot(std::list<Plot3Chunk*>& list_o,
 			IPlot3DataSink* s, const Fractal::FractalImpl& f,
 			Fractal::Point centre, Fractal::Point size,
 			unsigned width, unsigned height,
-			unsigned max_passes, Fractal::Maths::MathsType ty) const;
+			unsigned max_passes, Fractal::Maths::MathsType ty);
+	};
+
+	class SuperpixelVariable: public Superpixel {
+		/* A variant which reads its SIZE from the preferences engine every time */
+	private:
+		std::shared_ptr<const BrotPrefs::Prefs> _prefs;
+	public:
+		SuperpixelVariable(std::shared_ptr<const BrotPrefs::Prefs> prefs) : Superpixel(0), _prefs(prefs) {}
+
+		virtual void dividePlot(std::list<Plot3Chunk*>& list_o,
+			IPlot3DataSink* s, const Fractal::FractalImpl& f,
+			Fractal::Point centre, Fractal::Point size,
+			unsigned width, unsigned height,
+			unsigned max_passes, Fractal::Maths::MathsType ty);
 	};
 
 	// Single-type instantiator for testing

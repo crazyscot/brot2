@@ -17,13 +17,14 @@
 */
 
 #include "ChunkDivider.h"
+#include "PrefsRegistry.h"
 
 #define _CD__BODY(_NAME)		\
 	void _NAME::dividePlot(std::list<Plot3Chunk*>& list_o,			\
 			IPlot3DataSink* s, const Fractal::FractalImpl& f,		\
 			Fractal::Point centre, Fractal::Point size,				\
 			unsigned width, unsigned height, unsigned max_passes,	\
-			Fractal::Maths::MathsType ty) const
+			Fractal::Maths::MathsType ty)
 	/*
 	 * e.g.
 	 * _CD__BODY(foo) {
@@ -197,7 +198,7 @@ namespace ChunkDivider {
 			IPlot3DataSink* s, const Fractal::FractalImpl& f,
 			Fractal::Point centre, Fractal::Point size,
 			unsigned width, unsigned height,
-			unsigned max_passes, Fractal::Maths::MathsType ty) const {
+			unsigned max_passes, Fractal::Maths::MathsType ty) {
 
 		unsigned nX = (width-1) / SIZE, nY = (height-1) / SIZE;
 		unsigned lastXsize = width - SIZE*nX, lastYsize = height - SIZE*nY;
@@ -245,6 +246,15 @@ namespace ChunkDivider {
 			origin += stepY;
 		}
 	}
+
+	void SuperpixelVariable::dividePlot(std::list<Plot3Chunk*>& list_o,
+			IPlot3DataSink* s, const Fractal::FractalImpl& f,
+			Fractal::Point centre, Fractal::Point size,
+			unsigned width, unsigned height,
+			unsigned max_passes, Fractal::Maths::MathsType ty) {
+        SIZE = _prefs->get(PREF(TileSize));
+        Superpixel::dividePlot(list_o, s, f, centre, size, width, height, max_passes, ty);
+    }
 
 } // Plot3::ChunkDivider
 } // Plot3

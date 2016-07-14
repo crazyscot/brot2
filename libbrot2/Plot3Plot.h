@@ -39,7 +39,7 @@ public:
 	ThreadPool& _pool;
 	IPlot3DataSink* sink;
 	const Fractal::FractalImpl& fract;
-	const ChunkDivider::Base& divider;
+	ChunkDivider::Base& divider;
 
 	const Fractal::Point centre, size; // Centre co-ordinates; axis length
 	const unsigned width, height; // plot size in pixels
