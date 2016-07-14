@@ -41,13 +41,9 @@ void DragRectangle::activate(int x, int y) {
 
 void DragRectangle::draw() {
 	active = false;
-	draw_internal(NULL);
-}
-
-void DragRectangle::draw(int x, int y) {
-	Util::xy prev(current);
-	current.reinit(x,y);
-	draw_internal(&prev);
+	if (current_cairo)
+		current_cairo.clear();
+	invalidate_dashed(origin, current);
 }
 
 void DragRectangle::invalidate_dashed(Util::xy &origin, Util::xy &other) {
@@ -76,11 +72,19 @@ void DragRectangle::invalidate_dashed(Util::xy &origin, Util::xy &other) {
 	parent.queue_draw_area(x1, y2, 2+x2-x1, 2);
 }
 
+void DragRectangle::draw(int x, int y) {
+	Util::xy prev(current);
+	current.reinit(x,y);
+	draw_internal(&prev);
+}
+
 void DragRectangle::draw_internal(Util::xy *previous) {
 	if (!surface) {
 		Glib::RefPtr<Gdk::Window> w = parent.get_window();
 		surface = w->create_similar_surface(Cairo::CONTENT_COLOR_ALPHA, parent.get_rwidth(), parent.get_rheight());
 	}
+
+	ASSERT(active);
 
 	if (active) {
 		if (!current_cairo)
