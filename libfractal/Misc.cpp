@@ -69,7 +69,6 @@ public:
 				iter+=2;
 				out.iter = iter;
 				out.iterf = iter - log(log(re2 + im2)) / Consts::log2;
-				out.arg = atan2(z_im, z_re);
 				out.nomore = true;
 				return;
 			}
@@ -107,7 +106,6 @@ public:
 				iter+=2;
 				out.iter = iter;
 				out.iterf = iter - log(log(re2 + im2)) / Consts::log2;
-				out.arg = atan2(z_im, z_re);
 				out.nomore = true;
 				return;
 			}
@@ -147,7 +145,6 @@ public:
 				ITER2(o_re, o_im, re2, im2, z_re, z_im,++iter);
 				out.iter = iter;
 				out.iterf = iter - log(log(re2 + im2)) / Consts::log2;
-				out.arg = atan2(z_im, z_re);
 				out.nomore = true;
 				return;
 			}
@@ -186,7 +183,6 @@ public:
 				iter+=2;
 				out.iter = iter;
 				out.iterf = iter - log(log(re2 + im2)) / Consts::log2;
-				out.arg = atan2(z_im, z_re);
 				out.nomore = true;
 				return;
 			}

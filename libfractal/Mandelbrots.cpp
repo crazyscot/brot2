@@ -97,7 +97,6 @@ public:
 				iter+=2;
 				out.iter = iter;
 				out.iterf = iter - logl(logl(re2 + im2)) / Consts::log2;
-				out.arg = atan2l(z_im, z_re);
 				out.nomore = true;
 				return;
 			}
@@ -135,7 +134,6 @@ public:
 				iter+=2;
 				out.iter = iter;
 				out.iterf = iter - log(log(re2 + im2)) / Consts::log3;
-				out.arg = atan2(z_im, z_re);
 				out.nomore = true;
 				return;
 			}
@@ -173,7 +171,6 @@ public:
 				iter+=2;
 				out.iter = iter;
 				out.iterf = iter - log(log(re2 + im2)) / Consts::log4;
-				out.arg = atan2(z_im, z_re);
 				out.nomore = true;
 				return;
 			}
@@ -214,7 +211,6 @@ public:
 				iter+=2;
 				out.iter = iter;
 				out.iterf = iter - log(log(re2 + im2)) / Consts::log5;
-				out.arg = atan2(z_im, z_re);
 				out.nomore = true;
 				return;
 			}
