@@ -248,18 +248,6 @@ public:
 	};
 };
 
-class LogSmoothedRays : public LogSmoothed {
-public:
-	// nasty hack: two spaces to sort this one next to the plain log rainbow.
-	LogSmoothedRays() : LogSmoothed("Logarithmic rainbow  with rays") {};
-
-	rgb get(const PointData &pt) const {
-		hsvf rv = get_hsvf(pt);
-		rv.s = 0.5 + cos(pt.arg) / 2.0;
-		return rv;
-	};
-};
-
 class FastLogSmoothed : public SmoothPalette {
 public:
 	/* What to call it? I originally called it _fast_, but it could mislead as
@@ -430,7 +418,6 @@ void SmoothPalette::register_base() {
 	REGISTER(HueCycle, "Linear rainbow", 32, hsvf(0.5,1,1), hsvf(1.5,1,1));
 
 	REGISTER(LogSmoothed);
-	REGISTER(LogSmoothedRays);
 	REGISTER(FastLogSmoothed);
 
 	REGISTER(SinLogSmoothed);
