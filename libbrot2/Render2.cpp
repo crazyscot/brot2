@@ -79,8 +79,6 @@ void Base::process_antialias(const Plot3Chunk& chunk)
 				   outOffX = chunk._offX / 2,
 				   outOffY = chunk._offY / 2;
 
-	std::vector<rgb> allpix;
-
 	ASSERT( chunk._width % 2 == 0);
 	ASSERT( chunk._height % 2 == 0);
 	ASSERT( chunk._offX + chunk._width <= _width*2 );
@@ -90,23 +88,17 @@ void Base::process_antialias(const Plot3Chunk& chunk)
 
 	for (j=0; j<outH; j++) {
 		for (i=0; i<outW; i++) {
-			allpix.clear();
-			rgb pix;
+			rgb pix[4];
 
 			const Fractal::PointData * base = &data[2*j*chunk._width];
-			pix = render_pixel(base[2*i], _local_inf, _pal);
-			allpix.push_back(pix);
-			pix = render_pixel(base[2*i+1], _local_inf, _pal);
-			allpix.push_back(pix);
+			pix[0] = render_pixel(base[2*i], _local_inf, _pal);
+			pix[1] = render_pixel(base[2*i+1], _local_inf, _pal);
 
 			base = &data[(1+2*j)*chunk._width];
-			pix = render_pixel(base[2*i], _local_inf, _pal);
-			allpix.push_back(pix);
-			pix = render_pixel(base[2*i+1], _local_inf, _pal);
-			allpix.push_back(pix);
+			pix[2] = render_pixel(base[2*i], _local_inf, _pal);
+			pix[3] = render_pixel(base[2*i+1], _local_inf, _pal);
 
-			rgb aapix = antialias_pixel(allpix);
-			pixel_done(i+outOffX, _height-(1+j+outOffY), aapix);
+			pixel_done(i+outOffX, _height-(1+j+outOffY), antialias_pixel4(pix));
 		}
 	}
 }

@@ -50,7 +50,7 @@ inline rgb render_pixel(const Fractal::PointData data, const int local_inf, cons
 	}
 }
 
-inline rgb antialias_pixel(std::vector<rgb> const& pix) {
+inline rgb antialias_pixel(std::vector<rgb> const& pix) { // This is really quite slow with the vector
 	unsigned R=0,G=0,B=0,npix=0;
 	for (auto it = pix.cbegin(); it != pix.cend(); it++) {
 		R += (*it).r;
@@ -59,6 +59,16 @@ inline rgb antialias_pixel(std::vector<rgb> const& pix) {
 		++npix;
 	}
 	return rgb(R/npix,G/npix,B/npix);
+}
+
+inline rgb antialias_pixel4(const rgb * const pix) { // Assumes pix array length 4
+	unsigned R=0,G=0,B=0;
+	for (int i=0; i<4; i++) {
+		R+=pix[i].r;
+		G+=pix[i].g;
+		B+=pix[i].b;
+	}
+	return rgb(R/4, G/4, B/4);
 }
 
 class Base {
