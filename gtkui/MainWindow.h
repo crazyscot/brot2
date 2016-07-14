@@ -141,7 +141,7 @@ public:
 	void toggle_hud();
 	void toggle_antialias();
 	bool is_antialias() const { return antialias; }
-
+	unsigned get_menubar_height();
 
 	Cairo::RefPtr<Cairo::Surface>& get_hud_surface() {
 		return hud.get_surface();

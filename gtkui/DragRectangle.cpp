@@ -41,15 +41,42 @@ void DragRectangle::activate(int x, int y) {
 
 void DragRectangle::draw() {
 	active = false;
-	draw_internal();
+	draw_internal(NULL);
 }
 
 void DragRectangle::draw(int x, int y) {
+	Util::xy prev(current);
 	current.reinit(x,y);
-	draw_internal();
+	draw_internal(&prev);
 }
 
-void DragRectangle::draw_internal() {
+void DragRectangle::invalidate_dashed(Util::xy &origin, Util::xy &other) {
+	int x1,x2, y1,y2;
+	if (origin.x > other.x) {
+		x1 = other.x;
+		x2 = origin.x;
+	} else {
+		x1 = origin.x;
+		x2 = other.x;
+	}
+	if (origin.y > other.y) {
+		y1 = other.y;
+		y2 = origin.y;
+	} else {
+		y1 = origin.y;
+		y2 = other.y;
+	}
+	/* These given points are relative to the main widget but we need to compensate for the menubar */
+	y1 += parent.get_menubar_height();
+	y2 += parent.get_menubar_height();
+
+	parent.queue_draw_area(x1, y1, 2+x2-x1, 2);
+	parent.queue_draw_area(x2, y1, 2, 2+y2-y1);
+	parent.queue_draw_area(x1, y1, 2, 2+y2-y1);
+	parent.queue_draw_area(x1, y2, 2+x2-x1, 2);
+}
+
+void DragRectangle::draw_internal(Util::xy *previous) {
 	if (!surface) {
 		Glib::RefPtr<Gdk::Window> w = parent.get_window();
 		surface = w->create_similar_surface(Cairo::CONTENT_COLOR_ALPHA, parent.get_rwidth(), parent.get_rheight());
@@ -60,7 +87,11 @@ void DragRectangle::draw_internal() {
 			current_cairo = Cairo::Context::create(surface);
 
 		Cairo::RefPtr<Cairo::Context> cr (current_cairo);
+
 		this->clear();
+		if (previous) {
+			invalidate_dashed(origin, *previous);
+		}
 
 		int x = origin.x, y = origin.y,
 			width = current.x - origin.x, height = current.y - origin.y;
@@ -91,11 +122,12 @@ void DragRectangle::draw_internal() {
 		cr->stroke();
 
 		cr->restore();
+		invalidate_dashed(origin, current);
 	} else {
 		if (current_cairo)
 			current_cairo.clear();
+		parent.queue_draw();
 	}
-	parent.queue_draw();
 }
 
 void DragRectangle::clear() {

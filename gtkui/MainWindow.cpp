@@ -629,3 +629,9 @@ ThreadPool& MainWindow::get_threadpool()
 {
 	return _threadpool;
 }
+
+unsigned MainWindow::get_menubar_height() {
+	if (!menubar)
+		return 0;
+	return menubar->get_height();
+}
