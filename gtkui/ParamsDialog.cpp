@@ -21,6 +21,7 @@
 #include "MainWindow.h"
 #include "Fractal.h"
 #include "misc.h"
+#include "Exception.h"
 #include <gtkmm/dialog.h>
 #include <gtkmm/table.h>
 #include <gtkmm/box.h>
@@ -58,6 +59,12 @@ class ZoomControl : public Gtk::Frame {
 		}
 
 	public:
+		class BadValue : public BrotException {
+			public:
+				BadValue(const std::string& m) : BrotException(m) {}
+				virtual std::string detail() const { return msg; }
+		};
+
 		// sets, as real axis length.
 		void set(Fractal::Value v) {
 			set(v, RE_AX);
@@ -68,9 +75,10 @@ class ZoomControl : public Gtk::Frame {
 		bool get (Fractal::Value& res) const {
 			Fractal::Value t = 0;
 			if (!get_raw(t))
-				return false;
+				throw BadValue("Sorry, could not parse zoom control value");
 
 			switch(mode) {
+				// TODO: Sanity check here.
 				case RE_AX:  res = t; break;
 				case IM_AX:  res = im_to_re(t); break;
 				case RE_PIX: res = pix_to_ax(t); break;
@@ -289,12 +297,15 @@ int ParamsDialog::run() {
 					Util::alert(this, "Sorry, I could not parse that imaginary centre.");
 				error=true;
 			}
-			if (zc->get(res)) {
-				new_size.real(res);
-			} else {
+			try {
+				if (zc->get(res))
+					new_size.real(res);
+				// else it throws
+			} catch (ZoomControl::BadValue& e) {
+				std::string msg(e.detail());
 				if (!error) // don't flood too many messages
-					Util::alert(this, "Sorry, I could not parse that zoom factor.");
-				error=true;
+					Util::alert(this, msg);
+				error = true;
 			}
 
 			if (!error)
