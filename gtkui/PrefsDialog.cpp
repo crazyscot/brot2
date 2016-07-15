@@ -23,6 +23,7 @@
 #include "Prefs.h"
 #include "Exception.h"
 #include "ColourPanel.h"
+#include "BaseHUD.h"
 
 #include <gtkmm/dialog.h>
 #include <gtkmm/table.h>
@@ -88,7 +89,7 @@ namespace PrefsDialogBits {
 			str << "<span" <<
 				" foreground=\"#" << FG << "\"" <<
 				" background=\"#" << BG << "\"" <<
-				" font_family=\"" << HUD::font_name << "\"" <<
+				" font_family=\"" << BaseHUD::font_name << "\"" <<
 				" size=\"" << fontsz->get_value()*PANGO_SCALE << "\"" <<
 				" weight=\"bold\"" <<
 				"> Sample 0123 </span>";

@@ -51,14 +51,6 @@ public:
 	void draw(Plot3::Plot3Plot* plot, const int rwidth, const int rheight);
 	void erase();
 	Cairo::RefPtr<Cairo::Surface> & get_surface() { return surface; }
-
-	static const std::string font_name;
-
-	static void retrieve_prefs(std::shared_ptr<const BrotPrefs::Prefs> prefs,
-			Gdk::Color& fg, Gdk::Color& bg, double& alpha,
-			int& xpos, int& ypos, int& xright, int& fontsize);
-
-	static unsigned compute_layout_height(Glib::RefPtr<Pango::Layout> lyt);
 };
 
 #endif /* HUD_H_ */

@@ -46,6 +46,7 @@ libbrot2_a_SOURCES= \
 	libbrot2/ChunkDivider.h libbrot2/ChunkDivider.cpp \
 	libbrot2/Render2.h libbrot2/Render2.cpp \
 	libbrot2/Prefs.h libbrot2/Prefs.cpp \
+	libbrot2/BaseHUD.h libbrot2/BaseHUD.cpp \
 	libbrot2/PrefsRegistry.h libbrot2/PrefsRegistry.cpp
 
 AUTOGEN+=logo_auto.c
