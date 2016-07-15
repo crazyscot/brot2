@@ -90,9 +90,8 @@ unsigned HUD::compute_layout_height(Glib::RefPtr<Pango::Layout> lyt)
 	return ytotal;
 }
 
-void HUD::draw(Plot3::Plot3Plot* plot, const int rwidth, const int rheight)
+void basehud_draw(Cairo::RefPtr<Cairo::Surface> surface, std::shared_ptr<const BrotPrefs::Prefs> prefs, Plot3::Plot3Plot* plot, const int rwidth, const int rheight, bool is_max, bool is_min)
 {
-	std::unique_lock<std::mutex> lock(mux);
 	if (!plot) return; // race condition trap
 
 	int xpos, ypos, xright, fontsize;
@@ -100,30 +99,23 @@ void HUD::draw(Plot3::Plot3Plot* plot, const int rwidth, const int rheight)
 	double alpha;
 
 	std::string info = plot->info_zoom(prefs->get(PREF(HUDShowZoom)));
-	if (parent.is_at_max_zoom())
+	if (is_max)
 		info.append(" (max!)");
-	if (parent.is_at_min_zoom())
+	if (is_min)
 		info.append(" (min!)");
 
-	retrieve_prefs(prefs,fg_gdk,bg_gdk,alpha,xpos,ypos,xright,fontsize);
+	HUD::retrieve_prefs(prefs,fg_gdk,bg_gdk,alpha,xpos,ypos,xright,fontsize);
 	const rgb_double fg(fg_gdk), bg(bg_gdk);
 	const int hudwidthpct = MAX(xright - xpos, 1);
-
-	ensure_surface_locked(rwidth, rheight);
-
-	Cairo::RefPtr<Cairo::Context> cr = Cairo::Context::create(surface);
-	clear_locked(cr);
-
-	last_drawn_w = rwidth;
-	last_drawn_h = rheight;
 
 	const int XOFFSET = xpos * rwidth / 100;
 	const int WIDTH_PIXELS = hudwidthpct * rwidth / 100;
 
-	Pango::FontDescription fontdesc(font_name);
+	Pango::FontDescription fontdesc(HUD::font_name);
 	fontdesc.set_size(fontsize);
 	fontdesc.set_weight(Pango::Weight::WEIGHT_BOLD);
 
+	Cairo::RefPtr<Cairo::Context> cr = Cairo::Context::create(surface);
 	Glib::RefPtr<Pango::Layout> lyt = Pango::Layout::create(cr);
 	lyt->set_font_description(fontdesc);
 	lyt->set_markup(info);
@@ -131,7 +123,7 @@ void HUD::draw(Plot3::Plot3Plot* plot, const int rwidth, const int rheight)
 	lyt->set_wrap(Pango::WRAP_WORD_CHAR);
 
 	// Make sure we fit.
-	const int YOFFSET = ypos * (rheight - compute_layout_height(lyt)) / 100;
+	const int YOFFSET = ypos * (rheight - HUD::compute_layout_height(lyt)) / 100;
 
 	if (prefs->get(PREF(HUDOutlineText))) {
 		// Outline text effect
@@ -172,6 +164,18 @@ void HUD::draw(Plot3::Plot3Plot* plot, const int rwidth, const int rheight)
 	cr->set_operator(Cairo::Operator::OPERATOR_OVER);
 	cr->set_source_rgba(fg.r, fg.g, fg.b, alpha);
 	lyt->show_in_cairo_context(cr);
+}
+
+void HUD::draw(Plot3::Plot3Plot* plot, const int rwidth, const int rheight) {
+	std::unique_lock<std::mutex> lock(mux);
+	ensure_surface_locked(rwidth, rheight);
+	Cairo::RefPtr<Cairo::Context> cr = Cairo::Context::create(surface);
+	clear_locked(cr);
+
+	basehud_draw(surface, prefs, plot, rwidth, rheight, parent.is_at_max_zoom(), parent.is_at_min_zoom());
+
+	last_drawn_w = rwidth;
+	last_drawn_h = rheight;
 }
 
 // Must hold the lock before calling.
