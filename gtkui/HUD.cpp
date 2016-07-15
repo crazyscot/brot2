@@ -38,7 +38,7 @@ struct rgb_double {
 	}
 };
 
-HUD::HUD(MainWindow &window) : parent(window), last_drawn_w(0), last_drawn_h(0) {
+HUD::HUD(MainWindow &window, std::shared_ptr<const BrotPrefs::Prefs> _prefs) : parent(window), prefs(_prefs), last_drawn_w(0), last_drawn_h(0) {
 }
 
 const std::string HUD::font_name = "sans-serif";
@@ -95,7 +95,6 @@ void HUD::draw(Plot3::Plot3Plot* plot, const int rwidth, const int rheight)
 	std::unique_lock<std::mutex> lock(mux);
 	if (!plot) return; // race condition trap
 
-	std::shared_ptr<const BrotPrefs::Prefs> prefs = parent.prefs();
 	int xpos, ypos, xright, fontsize;
 	Gdk::Color fg_gdk, bg_gdk;
 	double alpha;

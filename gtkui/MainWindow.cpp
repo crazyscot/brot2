@@ -57,7 +57,7 @@ static inline void surface_error_check(MainWindow& mw, Cairo::RefPtr<Cairo::Imag
 }
 
 MainWindow::MainWindow() : Gtk::Window(),
-			hud(*this),
+			hud(*this, prefs()),
 			controlsWin(*this, prefs()),
 			imgbuf(0), plot(0), plot_prev(0), renderer(0),
 			rwidth(0), rheight(0),

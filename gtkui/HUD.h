@@ -33,6 +33,7 @@ class MainWindow;
 class HUD {
 protected:
 	MainWindow &parent;
+	std::shared_ptr<const BrotPrefs::Prefs> prefs;
 	Cairo::RefPtr<Cairo::Surface> surface;
 	int last_drawn_w, last_drawn_h; // Last size we drew to
 	std::mutex mux; // Protects all contents
@@ -50,7 +51,7 @@ protected:
 	unsigned compute_layout_height(Glib::RefPtr<Pango::Layout> lyt);
 
 public:
-	HUD(MainWindow &w);
+	HUD(MainWindow &w, std::shared_ptr<const BrotPrefs::Prefs> _prefs);
 
 	void draw(Plot3::Plot3Plot* plot, const int rwidth, const int rheight);
 	void erase();
