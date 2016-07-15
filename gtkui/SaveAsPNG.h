@@ -49,7 +49,7 @@ class SaveAsPNG {
 	friend class PNGProgressWindow;
 
 	// Private constructor! Called by do_save().
-	SaveAsPNG(MainWindow* mw, Plot3::Plot3Plot& oldplot, unsigned width, unsigned height, bool antialias, std::string&name);
+	SaveAsPNG(MainWindow* mw, Fractal::Point centre, Fractal::Point size, unsigned width, unsigned height, bool antialias, std::string&name);
 
 	// Interface for MainWindow to trigger save actions.
 	// An instance of this class is an outstanding PNG-save job.

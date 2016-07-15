@@ -240,7 +240,8 @@ void SaveAsPNG::do_save(MainWindow *mw)
 	if (do_extra) {
 		// HARD CASE: Launch a new job in the background to rerender.
 
-		SaveAsPNG* job = new SaveAsPNG(mw, mw->get_plot(), newx, newy, do_antialias, filename);
+		Plot3::Plot3Plot& plot = mw->get_plot();
+		SaveAsPNG* job = new SaveAsPNG(mw, plot.centre, plot.size, newx, newy, do_antialias, filename);
 
 		job->start();
 		// and commit it to the four winds. Will be deleted later by mw...
@@ -253,9 +254,9 @@ void SaveAsPNG::do_save(MainWindow *mw)
 	}
 }
 
-SaveAsPNG::SaveAsPNG(MainWindow* mw, Plot3Plot& oldplot, unsigned width, unsigned height, bool antialias, string& name) :
+SaveAsPNG::SaveAsPNG(MainWindow* mw, Fractal::Point centre, Fractal::Point size, unsigned width, unsigned height, bool antialias, string& name) :
 		reporter(*mw,*this), divider(new Plot3::ChunkDivider::Horizontal10px()), aafactor(antialias ? 2 : 1),
-		plot(mw->get_threadpool(), &reporter, *mw->fractal, *divider, oldplot.centre, oldplot.size, width*aafactor, height*aafactor, 0),
+		plot(mw->get_threadpool(), &reporter, *mw->fractal, *divider, centre, size, width*aafactor, height*aafactor, 0),
 		pal(mw->pal), filename(name)
 {
 	std::shared_ptr<const Prefs> pp = mw->prefs();
