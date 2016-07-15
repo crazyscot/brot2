@@ -78,13 +78,18 @@ class ZoomControl : public Gtk::Frame {
 				throw BadValue("Sorry, could not parse zoom control value");
 
 			switch(mode) {
-				// TODO: Sanity check here.
 				case RE_AX:  res = t; break;
 				case IM_AX:  res = im_to_re(t); break;
 				case RE_PIX: res = pix_to_ax(t); break;
 				case IM_PIX: res = pix_to_ax(im_to_re(t)); break;
 				case ZOOM:   res = zoom_to_ax(t); break;
 			}
+			// At this point res is the requested real axis length. Use the same limit (more or less) as MainWindow applies.
+			if (std::isinf(res)) // zoom factor 0
+				throw BadValue("Sorry, that zoom is not valid");
+			Fractal::Value limit = 2.099 * _mw->get_rwidth() * Fractal::Maths::smallest_min_pixel_size();
+			if (res < limit)
+				throw BadValue("Sorry, that zoom is too deep, pixels would be smaller than the resolution limit");
 			return true;
 		}
 
