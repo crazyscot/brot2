@@ -240,8 +240,15 @@ void SaveAsPNG::do_save(MainWindow *mw)
 	if (do_extra) {
 		// HARD CASE: Launch a new job in the background to rerender.
 
+		/* LP#1600574 Aspect ratio fix */
+		double aspect = (double) newx / (double) newy;
 		Plot3::Plot3Plot& plot = mw->get_plot();
-		SaveAsPNG* job = new SaveAsPNG(mw, plot.centre, plot.size, newx, newy, do_antialias, filename);
+		Fractal::Point centre = plot.centre,
+			size = plot.size;
+		if (imag(size) * aspect != real(size))
+			size.imag(real(size) / aspect);
+
+		SaveAsPNG* job = new SaveAsPNG(mw, centre, size, newx, newy, do_antialias, filename);
 
 		job->start();
 		// and commit it to the four winds. Will be deleted later by mw...
