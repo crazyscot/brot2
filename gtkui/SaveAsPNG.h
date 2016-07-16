@@ -57,6 +57,7 @@ private:
 	static void to_png(MainWindow *mw, unsigned rwidth, unsigned rheight,
 			Plot3::Plot3Plot* plot, BasePalette* pal, bool antialias,
 			std::string& filename);
+	void instance_to_png(MainWindow *mw);
 
 	// Delete on destruct:
 	PNGProgressWindow reporter;
@@ -67,6 +68,8 @@ private:
 	// do NOT delete:
 	BasePalette *pal;
 	std::string filename;
+	const unsigned _width, _height;
+	const bool _do_antialias;
 
 	void start(); // ->plot.start()
 	void wait(); // -> plot.wait()

@@ -606,7 +606,7 @@ void MainWindow::png_save_completion()
 		//gdk_threads_leave(); // Don't do this, it deadlocks.
 		Plot3Plot& pngplot = png->plot;
 		pngplot.wait();
-		SaveAsPNG::to_png(this, pngplot.width/png->aafactor, pngplot.height/png->aafactor, &pngplot, png->pal, png->aafactor == 2, png->filename);
+		png->instance_to_png(this);
 		//gdk_threads_enter();
 	} else {
 	}

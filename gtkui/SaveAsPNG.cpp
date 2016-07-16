@@ -42,6 +42,11 @@ using namespace BrotPrefs;
 
 std::string SaveAsPNG::last_saved_dirname = "";
 
+void SaveAsPNG::instance_to_png(MainWindow *mw)
+{
+	SaveAsPNG::to_png(mw, _width, _height, &plot, pal, _do_antialias, filename);
+}
+
 void SaveAsPNG::to_png(MainWindow *mw, unsigned rwidth, unsigned rheight,
 		Plot3Plot* plot, BasePalette* pal, bool antialias,
 		std::string& filename)
@@ -264,7 +269,7 @@ void SaveAsPNG::do_save(MainWindow *mw)
 SaveAsPNG::SaveAsPNG(MainWindow* mw, Fractal::Point centre, Fractal::Point size, unsigned width, unsigned height, bool antialias, string& name) :
 		reporter(*mw,*this), divider(new Plot3::ChunkDivider::Horizontal10px()), aafactor(antialias ? 2 : 1),
 		plot(mw->get_threadpool(), &reporter, *mw->fractal, *divider, centre, size, width*aafactor, height*aafactor, 0),
-		pal(mw->pal), filename(name)
+		pal(mw->pal), filename(name), _width(width), _height(height), _do_antialias(antialias)
 {
 	std::shared_ptr<const Prefs> pp = mw->prefs();
 	plot.set_prefs(pp);
