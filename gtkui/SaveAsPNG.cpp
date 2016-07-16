@@ -120,7 +120,7 @@ class FileChooserExtra : public Gtk::VBox {
 		FileChooserExtra(int init_x, int init_y) {
 			Gtk::Label *lbl;
 
-			resize = Gtk::manage(new Gtk::CheckButton("Save at a different size (requires re-render)"));
+			resize = Gtk::manage(new Gtk::CheckButton("Save options (requires re-render)"));
 			resize->set_active(false);
 			pack_start(*resize);
 			resize->signal_toggled().connect(sigc::mem_fun(*this, &FileChooserExtra::do_toggle));
