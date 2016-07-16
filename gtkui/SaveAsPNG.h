@@ -49,14 +49,14 @@ class SaveAsPNG {
 	friend class PNGProgressWindow;
 
 	// Private constructor! Called by do_save().
-	SaveAsPNG(MainWindow* mw, Fractal::Point centre, Fractal::Point size, unsigned width, unsigned height, bool antialias, std::string&name);
+	SaveAsPNG(MainWindow* mw, Fractal::Point centre, Fractal::Point size, unsigned width, unsigned height, bool antialias, bool do_hud, std::string&name);
 
 	// Interface for MainWindow to trigger save actions.
 	// An instance of this class is an outstanding PNG-save job.
 private:
 	static void to_png(MainWindow *mw, unsigned rwidth, unsigned rheight,
 			Plot3::Plot3Plot* plot, BasePalette* pal, bool antialias,
-			std::string& filename);
+			bool show_hud, std::string& filename);
 	void instance_to_png(MainWindow *mw);
 
 	// Delete on destruct:
@@ -69,7 +69,7 @@ private:
 	BasePalette *pal;
 	std::string filename;
 	const unsigned _width, _height;
-	const bool _do_antialias;
+	const bool _do_antialias, _do_hud;
 
 	void start(); // ->plot.start()
 	void wait(); // -> plot.wait()

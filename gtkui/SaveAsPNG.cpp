@@ -22,6 +22,7 @@
 #include "libbrot2/Render2.h"
 #include "libbrot2/ChunkDivider.h"
 #include "misc.h"
+#include "BaseHUD.h"
 
 #include "MainWindow.h"
 #include <gtkmm/filechooserdialog.h>
@@ -44,17 +45,21 @@ std::string SaveAsPNG::last_saved_dirname = "";
 
 void SaveAsPNG::instance_to_png(MainWindow *mw)
 {
-	SaveAsPNG::to_png(mw, _width, _height, &plot, pal, _do_antialias, filename);
+	SaveAsPNG::to_png(mw, _width, _height, &plot, pal, _do_antialias, _do_hud, filename);
 }
 
 void SaveAsPNG::to_png(MainWindow *mw, unsigned rwidth, unsigned rheight,
-		Plot3Plot* plot, BasePalette* pal, bool antialias,
+		Plot3Plot* plot, BasePalette* pal, bool antialias, bool show_hud,
 		std::string& filename)
 {
+    std::shared_ptr<const Prefs> prefs = Prefs::getMaster();
 	ofstream f(filename, ios::out | ios::trunc | ios::binary);
 	if (f.is_open()) {
 		Render2::PNG png(rwidth, rheight, *pal, -1, antialias);
 		png.process(plot->get_chunks__only_after_completion());
+		if (show_hud) {
+			BaseHUD::apply(png, prefs, plot, false, false);
+		}
 		png.write(filename);
 		if (f.bad()) {
 			Util::alert(mw, "Writing failed");
@@ -108,7 +113,7 @@ void PNGProgressWindow::plot_complete() {
 
 class FileChooserExtra : public Gtk::VBox {
 	public:
-		Gtk::CheckButton *resize, *antialias;
+		Gtk::CheckButton *resize, *antialias, *do_hud;
 		Gtk::HBox *inner;
 		Util::HandyEntry<int> *f_x, *f_y;
 
@@ -137,6 +142,10 @@ class FileChooserExtra : public Gtk::VBox {
 			antialias = Gtk::manage(new Gtk::CheckButton("Antialias"));
 			antialias->set_active(false);
 			inner->pack_start(*antialias);
+
+			do_hud = Gtk::manage(new Gtk::CheckButton("Render HUD"));
+			do_hud->set_active(false);
+			inner->pack_start(*do_hud);
 
 			f_x->update(init_x);
 			f_y->update(init_y);
@@ -167,7 +176,7 @@ void SaveAsPNG::do_save(MainWindow *mw)
 {
 	std::string filename;
 	int newx=0, newy=0;
-	bool do_extra = false, do_antialias = false;
+	bool do_extra = false, do_antialias = false, do_hud = false;
     std::shared_ptr<const Prefs> prefs = Prefs::getMaster();
 
 	if(mw->get_plot().is_running()) {
@@ -226,6 +235,7 @@ void SaveAsPNG::do_save(MainWindow *mw)
 					continue;
 				}
 				do_antialias = extra->antialias->get_active();
+				do_hud = extra->do_hud->get_active();
 			}
 			filename = dialog.get_filename();
 		} while(0);
@@ -253,7 +263,7 @@ void SaveAsPNG::do_save(MainWindow *mw)
 		if (imag(size) * aspect != real(size))
 			size.imag(real(size) / aspect);
 
-		SaveAsPNG* job = new SaveAsPNG(mw, centre, size, newx, newy, do_antialias, filename);
+		SaveAsPNG* job = new SaveAsPNG(mw, centre, size, newx, newy, do_antialias, do_hud, filename);
 
 		job->start();
 		// and commit it to the four winds. Will be deleted later by mw...
@@ -261,15 +271,15 @@ void SaveAsPNG::do_save(MainWindow *mw)
 		// EASY CASE: Just save out of the current plot.
 		mw->get_progbar()->set_text("Saving...");
 		to_png(mw, mw->get_rwidth(), mw->get_rheight(), &mw->get_plot(),
-				mw->pal, mw->is_antialias(), filename);
+				mw->pal, mw->is_antialias(), false, filename);
 		mw->get_progbar()->set_text("Save complete");
 	}
 }
 
-SaveAsPNG::SaveAsPNG(MainWindow* mw, Fractal::Point centre, Fractal::Point size, unsigned width, unsigned height, bool antialias, string& name) :
+SaveAsPNG::SaveAsPNG(MainWindow* mw, Fractal::Point centre, Fractal::Point size, unsigned width, unsigned height, bool antialias, bool do_hud, string& name) :
 		reporter(*mw,*this), divider(new Plot3::ChunkDivider::Horizontal10px()), aafactor(antialias ? 2 : 1),
 		plot(mw->get_threadpool(), &reporter, *mw->fractal, *divider, centre, size, width*aafactor, height*aafactor, 0),
-		pal(mw->pal), filename(name), _width(width), _height(height), _do_antialias(antialias)
+		pal(mw->pal), filename(name), _width(width), _height(height), _do_antialias(antialias), _do_hud(do_hud)
 {
 	std::shared_ptr<const Prefs> pp = mw->prefs();
 	plot.set_prefs(pp);
