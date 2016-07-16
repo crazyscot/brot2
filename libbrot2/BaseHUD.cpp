@@ -168,11 +168,15 @@ void BaseHUD::apply(Render2::Base& target,
 		rgb current;
 		for (unsigned x = 0; x<rwidth; x++) {
 			// This is hard-coded for FORMAT_ARGB32.
-			// TODO: Cairo stores native-endian. Fix these to be endian-safe.
-			unsigned alpha = src[3];
+			// Cairo stores bytes native-endian.
+			uint32_t* src32 = (uint32_t*)src;
+			unsigned char alpha = (*src32) >> 24;
 			if (alpha != 0) {
 				target.pixel_get(x, y, current);
-				rgba overpix(src[2], src[1], src[0], alpha);
+				unsigned char rr = ((*src32)>>16) & 0xff,
+							  gg = ((*src32)>>8 ) & 0xff,
+							  bb = ((*src32)    ) & 0xff;
+				rgba overpix(rr,gg,bb, alpha);
 				current.overlay(overpix);
 				target.pixel_done(x, y, current);
 			}

@@ -15,6 +15,7 @@ AM_MAINTAINER_MODE([enable])
 AC_CHECK_LIB(X11, XInitThreads)
 AC_CHECK_LIB(pthread, pthread_create)
 AC_GNU_SOURCE
+AC_C_BIGENDIAN
 
 pkg_cflags="-std=c11"
 pkg_cxxflags="-std=c++11"

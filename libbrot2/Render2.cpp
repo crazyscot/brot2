@@ -22,6 +22,7 @@
 #include "Plot3Chunk.h"
 #include "palette.h"
 #include "Exception.h"
+#include "config.h"
 
 namespace Render2 {
 
@@ -153,10 +154,18 @@ void MemoryBuffer::pixel_done(unsigned X, unsigned Y, const rgb& pix)
 	switch(_fmt) {
 	case CAIRO_FORMAT_ARGB32:
 	case CAIRO_FORMAT_RGB24:
+	// Cairo stores its bytes native-endian...
+#ifdef WORDS_BIGENDIAN
+		dst[0] = 0xff;
+		dst[1] = pix.r;
+		dst[2] = pix.g;
+		dst[3] = pix.b;
+#else
 		dst[3] = 0xff;
 		dst[2] = pix.r;
 		dst[1] = pix.g;
 		dst[0] = pix.b;
+#endif
 		dst += _pixelstep; // 4
 		break;
 		// alpha=1.0 so these cases are the same.
