@@ -113,6 +113,10 @@ public:
 	 * Retrieves a pixel
 	 */
 	virtual void pixel_get(unsigned X, unsigned Y, rgb& p) = 0;
+	/**
+	 * Overlays an alpha-blended pixel
+	 */
+	virtual void pixel_overlay(unsigned X, unsigned Y, const rgba& other);
 };
 
 class MemoryBuffer : public Base {

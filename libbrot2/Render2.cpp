@@ -111,6 +111,13 @@ void Base::fresh_palette(const BasePalette& pal) {
 	_pal = &pal;
 }
 
+void Base::pixel_overlay(unsigned X, unsigned Y, const rgba& other)
+{
+	rgb pixel;
+	this->pixel_get(X,Y,pixel);
+	pixel.overlay(other);
+	this->pixel_done(X, Y, pixel);
+}
 
 /////////////////////////////////////////////////////////////////////////////////////////////
 
