@@ -87,6 +87,9 @@ public:
 	virtual void fresh_local_inf(unsigned local_inf);
 	virtual void fresh_palette(const BasePalette& pal);
 
+	unsigned width() { return _width; }
+	unsigned height() { return _height; }
+
 protected:
 	unsigned _width, _height, _local_inf;
 	bool _antialias;
