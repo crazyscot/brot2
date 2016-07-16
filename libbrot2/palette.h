@@ -26,6 +26,7 @@
 #include "Registry.h"
 
 class rgb;
+class rgba;
 
 extern const rgb white;
 extern const rgb black;
@@ -40,6 +41,19 @@ public:
 
 std::ostream& operator<<(std::ostream &stream, hsvf o);
 
+class rgba {
+	public:
+		unsigned char r,g,b,a;
+		rgba () : r(0),g(0),b(0),a(0) {};
+		rgba (unsigned char rr, unsigned char gg, unsigned char bb, unsigned char aa) : r(rr), g(gg), b(bb), a(aa) {};
+
+		bool operator==(const rgba& other) const {
+			return (r==other.r) && (g==other.g) && (b==other.b) && (a==other.a);
+		}
+};
+
+std::ostream& operator<<(std::ostream &stream, const rgba& o);
+
 class rgb {
 public:
 	unsigned char r,g,b;
@@ -48,6 +62,22 @@ public:
 
 	bool operator==(const rgb& other) const {
 		return (r==other.r) && (g==other.g) && (b==other.b);
+	}
+
+	/** Alpha-blends another pixel on top of this one */
+	inline void overlay(const rgba& other) {
+		if (other.a == 0) return;
+		if (other.a == 255) {
+			// Simple case - optimise
+			r = other.r;
+			g = other.g;
+			b = other.b;
+			return;
+		}
+		unsigned alpha = other.a, invalpha = 255 - other.a;
+		r = (other.r * alpha) / 255 + (r * invalpha) / 255;
+		g = (other.g * alpha) / 255 + (g * invalpha) / 255;
+		b = (other.b * alpha) / 255 + (b * invalpha) / 255;
 	}
 };
 

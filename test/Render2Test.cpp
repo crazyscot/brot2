@@ -450,3 +450,47 @@ TEST_F(PNGAntiAlias, OddHeightAsserts) {
 }
 
 // -----------------------------------------------------------------------------
+
+struct OverlayTestData {
+	rgb under;
+	rgba over;
+	rgb expect;
+	OverlayTestData(
+			unsigned char r1, unsigned char g1, unsigned char b1,
+			unsigned char r2, unsigned char g2, unsigned char b2, unsigned char a2,
+			unsigned char r3, unsigned char g3, unsigned char b3) : under(r1,g1,b1), over (r2,g2,b2,a2), expect(r3,g3,b3) {}
+};
+
+OverlayTestData overlay_vectors[] = {
+	// Case 1: Alpha=255 overlays entirely
+	OverlayTestData( 42,43,44,  81,82,83,255,  81,82,83 ),
+	// Case 2: Alpha=127 overlays halfway
+	OverlayTestData( 42,43,44,  82,83,84,127,  61,62,63 ),
+	// Case 3: Alpha=0 does nothing
+	OverlayTestData( 42,43,44,  81,82,83,0,  42,43,44 ),
+	// Case 4: Blacks at alpha=127
+	OverlayTestData( 42,43,44,  0,0,0,127,   21,21,22 ),
+	// Case 5: Whites at alpha=127
+	OverlayTestData( 42,43,44,  255,255,255,127,  148,148,149 ),
+};
+
+class OverlayKAT : public ::testing::Test {
+public:
+	void run_vector(OverlayTestData& v) {
+		rgb test(v.under);
+		test.overlay(v.over);
+		EXPECT_EQ(v.expect.r, test.r);
+		EXPECT_EQ(v.expect.g, test.g);
+		EXPECT_EQ(v.expect.b, test.b);
+	}
+	void run_vectors() {
+		for (unsigned i=0; i < sizeof(overlay_vectors)/sizeof(*overlay_vectors); i++)
+			run_vector(overlay_vectors[i]);
+	}
+};
+
+TEST_F(OverlayKAT, AnswersCorrect) {
+	run_vectors();
+}
+
+// -----------------------------------------------------------------------------

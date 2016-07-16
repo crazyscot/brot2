@@ -43,6 +43,11 @@ std::ostream& operator<<(std::ostream &stream, rgbf o) {
 	  return stream;
 }
 
+std::ostream& operator<<(std::ostream &stream, const rgba& o) {
+	  stream << "rgba(" << (int)o.r << "," << (int)o.g << "," << (int)o.b << "," << (int)o.a << ")";
+	  return stream;
+}
+
 // HSV->RGB conversion algorithm coded up from the formula on Wikipedia.
 hsvf::operator rgb() {
 	if (isnan(h)) {
