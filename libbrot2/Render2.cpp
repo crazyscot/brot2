@@ -162,6 +162,27 @@ void MemoryBuffer::pixel_done(unsigned X, unsigned Y, const rgb& pix)
 	}
 }
 
+void MemoryBuffer::pixel_get(unsigned X, unsigned Y, rgb& pix)
+{
+	unsigned char *dst = &_buf[ Y * _rowstride + X * _pixelstep];
+	switch(_fmt) {
+	case CAIRO_FORMAT_ARGB32:
+	case CAIRO_FORMAT_RGB24:
+		pix.r = dst[2];
+		pix.g = dst[1];
+		pix.b = dst[0];
+		dst += _pixelstep; // 4
+		break;
+		// alpha=1.0 so these cases are the same.
+	case pixpack_format::PACKED_RGB_24:
+		pix.r = dst[0];
+		pix.g = dst[1];
+		pix.b = dst[2];
+		dst += _pixelstep; // 3
+		break;
+	}
+}
+
 /////////////////////////////////////////////////////////////////////////////////////////////
 
 PNG::PNG(unsigned width, unsigned height,
@@ -177,6 +198,13 @@ PNG::~PNG()
 
 void PNG::pixel_done(unsigned X, unsigned Y, const rgb& pix) {
 	_png[Y][X] = png::rgb_pixel(pix.r, pix.g, pix.b);
+}
+
+void PNG::pixel_get(unsigned X, unsigned Y, rgb& pix) {
+	png::rgb_pixel p = _png[Y][X];
+	pix.r = p.red;
+	pix.g = p.green;
+	pix.b = p.blue;
 }
 
 

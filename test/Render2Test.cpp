@@ -138,6 +138,20 @@ TEST_F(R2Memory, ChunkOffsetsWork) {
 	}
 }
 
+TEST_F(R2Memory, GetWhatWePut) {
+	Plot3Chunk chunk(NULL, _fract, _TestW, _TestH, 0, 0, _origin, _size, Fractal::Maths::MathsType::LongDouble, 10);
+	chunk.run();
+	_render->process(chunk);
+
+	rgb pixel(1,2,3), pixel2;
+	_render->pixel_done(0,0,pixel);
+	_render->pixel_get(0,0,pixel2);
+	EXPECT_EQ(pixel, pixel2);
+
+	// Now restore it to white so the test harness TearDown doesn't complain.
+	rgb white(255,255,255);
+	_render->pixel_done(0,0,white);
+}
 ///////////////////////////////////////////////////
 
 class R2MemoryAntiAlias: public R2Memory {
@@ -268,6 +282,21 @@ TEST_F(Render2PNG, ChunkOffsetsWork) {
 		(*it).run();
 		_png.process(*it);
 	}
+}
+
+TEST_F(Render2PNG, GetWhatWePut) {
+	Plot3Chunk chunk(NULL, _fract, _TestW, _TestH, 0, 0, _origin, _size, Fractal::Maths::MathsType::LongDouble, 10);
+	chunk.run();
+	_png.process(chunk);
+
+	rgb pixel(1,2,3), pixel2;
+	_png.pixel_done(0,0,pixel);
+	_png.pixel_get(0,0,pixel2);
+	EXPECT_EQ(pixel, pixel2);
+
+	// Now restore it to white so the test harness TearDown doesn't complain.
+	rgb white(255,255,255);
+	_png.pixel_done(0,0,white);
 }
 
 // -----------------------------------------------------------------------------

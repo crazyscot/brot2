@@ -109,6 +109,10 @@ public:
 	 * The X and Y parameters are relative to the output width/height.
 	 */
 	virtual void pixel_done(unsigned X, unsigned Y, const rgb& p) = 0;
+	/**
+	 * Retrieves a pixel
+	 */
+	virtual void pixel_get(unsigned X, unsigned Y, rgb& p) = 0;
 };
 
 class MemoryBuffer : public Base {
@@ -146,6 +150,7 @@ public:
 	virtual ~MemoryBuffer();
 
 	virtual void pixel_done(unsigned X, unsigned Y, const rgb& p);
+	virtual void pixel_get(unsigned X, unsigned Y, rgb& p);
 };
 
 class PNG : public Base {
@@ -179,6 +184,7 @@ public:
 	void write(std::ostream& ostream);
 
 	virtual void pixel_done(unsigned X, unsigned Y, const rgb& p);
+	virtual void pixel_get(unsigned X, unsigned Y, rgb& p);
 };
 
 }; // namespace Render2
