@@ -21,6 +21,7 @@
 
 #include "Prefs.h"
 #include "Plot3Plot.h"
+#include "Render2.h"
 #include <memory>
 #include <cairomm/cairomm.h>
 #include <gdkmm/color.h>
@@ -39,11 +40,19 @@ class BaseHUD {
 
 	static unsigned compute_layout_height(Glib::RefPtr<Pango::Layout> lyt);
 
+	/* Draws the HUD onto the given surface */
 	static void draw(Cairo::RefPtr<Cairo::Surface> surface,
 			std::shared_ptr<const BrotPrefs::Prefs> prefs,
 			Plot3::Plot3Plot* plot,
 			const int rwidth,
 			const int rheight,
+			bool is_max,
+			bool is_min);
+
+	/* Draws the given HUD onto a dummy surface then applies it to the given target renderer */
+	static void apply(Render2::Base& target,
+			std::shared_ptr<const BrotPrefs::Prefs> prefs,
+			Plot3::Plot3Plot* plot,
 			bool is_max,
 			bool is_min);
 };

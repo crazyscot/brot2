@@ -18,6 +18,8 @@
 
 #include "BaseHUD.h"
 #include "Prefs.h"
+#include "Exception.h"
+#include <pangomm/init.h>
 
 using namespace BrotPrefs;
 
@@ -54,6 +56,7 @@ void BaseHUD::draw(Cairo::RefPtr<Cairo::Surface> surface, std::shared_ptr<const 
 	const int XOFFSET = xpos * rwidth / 100;
 	const int WIDTH_PIXELS = hudwidthpct * rwidth / 100;
 
+	Pango::init();
 	Pango::FontDescription fontdesc(BaseHUD::font_name);
 	fontdesc.set_size(fontsize);
 	fontdesc.set_weight(Pango::Weight::WEIGHT_BOLD);
@@ -140,3 +143,41 @@ unsigned BaseHUD::compute_layout_height(Glib::RefPtr<Pango::Layout> lyt)
 	return ytotal;
 }
 
+void BaseHUD::apply(Render2::Base& target,
+		std::shared_ptr<const BrotPrefs::Prefs> prefs,
+		Plot3::Plot3Plot* plot,
+		bool is_max,
+		bool is_min)
+{
+	int rwidth = target.width(),
+		rheight = target.height();
+	// We'll use alpha in our surface because the HUD is partially transparent.
+	Cairo::RefPtr<Cairo::ImageSurface> surface = Cairo::ImageSurface::create(Cairo::Format::FORMAT_ARGB32, rwidth, rheight);
+	// N.B. Cairo::ImageSurface docs say the new surface is initialised to (0,0,0,0).
+
+	BaseHUD::draw(surface, prefs, plot, rwidth, rheight, is_max, is_min);
+
+	surface->flush();
+	unsigned char * image_data = surface->get_data();
+	ASSERT(surface->get_stride() > 0);
+	ASSERT(surface->get_height() == rheight);
+	ASSERT(surface->get_width() == rwidth);
+	unsigned char *rowptr = image_data;
+	for (unsigned y = 0; y<rheight; y++) {
+		unsigned char *src = rowptr;
+		rgb current;
+		for (unsigned x = 0; x<rwidth; x++) {
+			// This is hard-coded for FORMAT_ARGB32.
+			// TODO: Cairo stores native-endian. Fix these to be endian-safe.
+			unsigned alpha = src[3];
+			if (alpha != 0) {
+				target.pixel_get(x, y, current);
+				rgba overpix(src[2], src[1], src[0], alpha);
+				current.overlay(overpix);
+				target.pixel_done(x, y, current);
+			}
+			src+=4;
+		}
+		rowptr += surface->get_stride();
+	}
+}
