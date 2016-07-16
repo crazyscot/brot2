@@ -37,11 +37,12 @@ const char *copyright_string = "(c) 2010-2013 Ross Younger";
 #include "libbrot2/Render2.h"
 #include "libbrot2/Prefs.h"
 #include "libbrot2/PrefsRegistry.h"
+#include "libbrot2/BaseHUD.h"
 
 using namespace Plot3;
 using namespace BrotPrefs;
 
-static bool do_version, do_list_fractals, do_list_palettes, quiet, do_antialias, do_info;
+static bool do_version, do_list_fractals, do_list_palettes, quiet, do_antialias, do_info, do_hud;
 static Glib::ustring c_re_x, c_im_y, length_x;
 static Glib::ustring entered_fractal = "Mandelbrot";
 static Glib::ustring entered_palette = "Linear rainbow";
@@ -73,6 +74,7 @@ static void setup_options(Glib::OptionGroup& options)
 	OPTION('w', "width", "Width of the output in pixels", output_w);
 
 	OPTION('o', "output", "The filename to write to (or '-' for stdout)", filename);
+	OPTION('H', "hud", "Renders the HUD into the output PNG, using the current preferences", do_hud);
 
 	OPTION('m', "max-passes", "Limits the number of passes of the plot", max_passes);
 	OPTION('I', "initial-maxiter",
@@ -290,6 +292,9 @@ int main (int argc, char**argv)
 	for (auto it : sink._chunks_done) {
 		png.process(*it);
 	}
+	if (do_hud) {
+		BaseHUD::apply(png, prefs, &plot, false, false);
+	}
 	if (do_stdout) {
 		png.write(std::cout);
 	} else {
@@ -298,7 +303,5 @@ int main (int argc, char**argv)
 
 	if (do_info)
 		std::cout << plot.info(true) << std::endl;
-
-	// TODO: allow HUD to be rendered? tricky.
 	return 0;
 }
