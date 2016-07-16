@@ -103,6 +103,7 @@ protected:
 	 * Anti-aliased chunk processing.
 	 */
 	void process_antialias(const Plot3::Plot3Chunk& chunk);
+public:
 	/**
 	 * Called by process_* functions for each output pixel.
 	 * The X and Y parameters are relative to the output width/height.
@@ -144,7 +145,6 @@ public:
 
 	virtual ~MemoryBuffer();
 
-protected:
 	virtual void pixel_done(unsigned X, unsigned Y, const rgb& p);
 };
 
@@ -178,7 +178,6 @@ public:
 	void write(const std::string& filename);
 	void write(std::ostream& ostream);
 
-protected:
 	virtual void pixel_done(unsigned X, unsigned Y, const rgb& p);
 };
 
