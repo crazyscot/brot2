@@ -69,9 +69,17 @@ takes longer to draw as it has to plot four times as many points and
 average across them. (This is a pretty naive linear antialiasing; better
 ways remain to be found and implemented.)
 
-brot2 has the notion of a plot being "good enough" to stop computing. This is expressed as a fraction (percentage) of the pixels which should have escaped (or be provably within the set), and a proportion of pixels continuing to escape in each pass. This is a tricky compromise between drawing enough detail and not taking forever, and it doesn't always get it right; you can tune it via the Preferences dialog. You can always stop a plot with Ctrl-. or ask it to make another pass ("More iterations") with Ctrl-M.
+brot2 has the notion of a plot being "good enough" to stop computing. This is
+expressed as a fraction (percentage) of the pixels which should have escaped
+(or be provably within the set), and a proportion of pixels continuing to
+escape in each pass. This is a tricky compromise between drawing enough detail
+and not taking forever, and it doesn't always get it right; you can tune it
+via the Preferences dialog. You can always stop a plot with Ctrl-. or ask it
+to make another pass ("More iterations") with Ctrl-M.
 
-There are multiple colour palettes. At the moment these are hard-coded. Changing colour scheme is a quick and cheap operation; you can even cycle through them with Ctrl-3 and Ctrl-4.
+There are multiple colour palettes. At the moment these are hard-coded.
+Changing colour scheme is a quick and cheap operation; you can even cycle
+through them with Ctrl-3 and Ctrl-4.
 
 
 Getting and Building
