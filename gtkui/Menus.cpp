@@ -250,22 +250,16 @@ public:
 		Fractal::FractalCommon::load_base();
 		_parent = &parent;
 
-		Glib::RefPtr<Gtk::AccelGroup> ag = Gtk::AccelGroup::create();
-		set_accel_group(ag);
-		parent.add_accel_group(ag);
-
 		Gtk::RadioButtonGroup group;
 		Gtk::MenuItem *i1;
 
 		i1 = new Gtk::MenuItem("Previous");
 		append(*manage(i1));
 		i1->signal_activate().connect(sigc::mem_fun(*this, &FractalMenu::do_previous));
-		i1->add_accelerator("activate", ag, GDK_1, Gdk::ModifierType::CONTROL_MASK, Gtk::ACCEL_VISIBLE);
 
 		i1 = new Gtk::MenuItem("Next");
 		append(*manage(i1));
 		i1->signal_activate().connect(sigc::mem_fun(*this, &FractalMenu::do_next));
-		i1->add_accelerator("activate", ag, GDK_2, Gdk::ModifierType::CONTROL_MASK, Gtk::ACCEL_VISIBLE);
 
 		i1 = new Gtk::SeparatorMenuItem();
 		append(*manage(i1));
