@@ -103,13 +103,14 @@ public:
 class PlotMenu : public Gtk::Menu {
 public:
 	Gtk::MenuItem Undo;
-	Gtk::ImageMenuItem Params, ZoomIn, ZoomOut, Stop, Redraw, More;
-	Gtk::SeparatorMenuItem Sepa1, Sepa2;
+	Gtk::ImageMenuItem Params, ZoomIn, ZoomOut, Stop, Redraw, More, Reset;
+	Gtk::SeparatorMenuItem Sepa1, Sepa2, Sepa3;
 
 	PlotMenu(MainWindow& parent) : Undo("_Undo", true),
 			Params(Gtk::Stock::PROPERTIES),
 			ZoomIn(Gtk::Stock::ZOOM_IN), ZoomOut(Gtk::Stock::ZOOM_OUT),
-			Stop(Gtk::Stock::STOP), Redraw(Gtk::Stock::REFRESH), More(Gtk::Stock::EXECUTE)
+			Stop(Gtk::Stock::STOP), Redraw(Gtk::Stock::REFRESH), More(Gtk::Stock::EXECUTE),
+			Reset(Gtk::Stock::REFRESH)
 	{
 		Glib::RefPtr<Gtk::AccelGroup> ag = Gtk::AccelGroup::create();
 		set_accel_group(ag);
@@ -148,6 +149,11 @@ public:
 		More.set_label("_More iterations");
 		More.add_accelerator("activate", ag, GDK_M, Gdk::ModifierType::CONTROL_MASK, Gtk::ACCEL_VISIBLE);
 		More.signal_activate().connect(sigc::mem_fun(this, &PlotMenu::do_more));
+
+		append(Sepa1);
+		append(Reset);
+		Reset.set_label("Reset");
+		Reset.signal_activate().connect(sigc::mem_fun(this, &PlotMenu::do_reset));
 	}
 
 	void do_undo() {
@@ -177,17 +183,21 @@ public:
 		MainWindow *mw = find_main(this);
 		mw->do_more_iters();
 	}
-
+	void do_reset() {
+		MainWindow *mw = find_main(this);
+		mw->do_reset();
+	}
 };
 
 class OptionsMenu : public AbstractOptionsMenu {
 public:
-	Gtk::CheckMenuItem drawHUD, antiAlias, showControls;
+	Gtk::CheckMenuItem drawHUD, antiAlias, showControls, fullscreen;
 	Gtk::ImageMenuItem PrefsItem;
 
 	OptionsMenu(MainWindow& parent) : drawHUD("Draw _HUD", true),
 					antiAlias("_Antialias", true),
 					showControls("_Controls window", true),
+					fullscreen("_Fullscreen", true),
 					PrefsItem(Gtk::Stock::PREFERENCES)
 	{
 		Glib::RefPtr<Gtk::AccelGroup> ag = Gtk::AccelGroup::create();
@@ -202,6 +212,12 @@ public:
 		append(antiAlias);
 		antiAlias.signal_toggled().connect(sigc::mem_fun(this, &OptionsMenu::toggle_antialias));
 		antiAlias.add_accelerator("activate", ag, GDK_A, Gdk::ModifierType::CONTROL_MASK, Gtk::ACCEL_VISIBLE);
+
+		append(fullscreen);
+		fullscreen.signal_toggled().connect(sigc::mem_fun(this, &OptionsMenu::toggle_fullscreen));
+		fullscreen.add_accelerator("activate", ag, GDK_F, Gdk::ModifierType::CONTROL_MASK, Gtk::ACCEL_VISIBLE);
+
+		append(*manage(new Gtk::SeparatorMenuItem()));
 
 		append(showControls);
 		showControls.signal_toggled().connect(sigc::mem_fun(this, &OptionsMenu::toggle_controls));
@@ -221,6 +237,10 @@ public:
 		MainWindow *mw = find_main(this);
 		mw->toggle_antialias();
 	}
+	void toggle_fullscreen() {
+		MainWindow *mw = find_main(this);
+		mw->toggle_fullscreen();
+	}
 	// Called by outsiders:
 	virtual void set_controls_status(bool active) {
 		showControls.set_active(active);
@@ -235,8 +255,10 @@ public:
 			p->set(PREF(ShowControls),state);
 			p->commit();
 		}
-		if (state)
+		if (state) {
 			mw->controlsWindow().show();
+			mw->controlsWindow().starting_position();
+		}
 		else
 			mw->controlsWindow().hide();
 	}

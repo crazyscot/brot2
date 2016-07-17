@@ -29,7 +29,7 @@
 using namespace BrotPrefs;
 
 Canvas::Canvas(MainWindow *parent) : main(parent), surface(0) {
-	set_size_request(300,300); // default initial size
+	set_size_request(MainWindow::DEFAULT_INITIAL_SIZE,MainWindow::DEFAULT_INITIAL_SIZE); // default initial size
 	add_events (Gdk::EXPOSURE_MASK
 			| Gdk::LEAVE_NOTIFY_MASK
 			| Gdk::BUTTON_PRESS_MASK
@@ -161,9 +161,18 @@ bool Canvas::on_motion_notify_event(GdkEventMotion * UNUSED(evt)) {
 	return true;
 }
 
+
+static bool seen_first_expose_event = false;
+
 bool Canvas::on_expose_event(GdkEventExpose * evt) {
 	Glib::RefPtr<Gdk::Window> window = get_window();
 	if (!window) return false; // no window yet?
+
+	if (!seen_first_expose_event) {
+		seen_first_expose_event = true;
+		main->controlsWindow().starting_position();
+	}
+
 	Cairo::RefPtr<Cairo::Context> cr = window->create_cairo_context();
 
 	if (!surface) return true; // Haven't rendered yet? Nothing we can do

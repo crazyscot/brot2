@@ -500,6 +500,16 @@ void MainWindow::do_more_iters()
 	plot->start();
 }
 
+void MainWindow::do_reset()
+{
+	safe_stop_plot();
+	size = { plot->fract.xmax - plot->fract.xmin,
+		plot->fract.ymax - plot->fract.ymin };
+	centre = { plot->fract.xmin, plot->fract.ymin };
+	centre += size/2.0;
+	do_plot(false);
+}
+
 void MainWindow::update_params(Fractal::Point& ncentre, Fractal::Point& nsize)
 {
 	size = nsize;
@@ -587,6 +597,15 @@ void MainWindow::toggle_antialias()
         gdk_threads_enter();
     }
 	do_plot(false);
+}
+
+void MainWindow::toggle_fullscreen()
+{
+	fullscreen_requested = !fullscreen_requested;
+	if (fullscreen_requested)
+		fullscreen();
+	else
+		unfullscreen();
 }
 
 static std::queue<std::shared_ptr<SaveAsPNG>> png_q; // protected by gdk threads lock.

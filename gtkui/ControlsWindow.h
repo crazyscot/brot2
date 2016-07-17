@@ -46,6 +46,7 @@ class ControlsWindow: public Gtk::Window{
 
 		bool close();
 		bool on_delete_event(GdkEventAny *evt);
+		void starting_position();
 };
 
 #endif // CONTROLSWINDOW_H
