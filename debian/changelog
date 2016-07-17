@@ -1,4 +1,4 @@
-brot2 (1.2~unreleased) UNRELEASED; urgency=low
+brot2 (1.2) xenial; urgency=low
 
   * Add palettes from rjk's and fanf's mandelbrotters
   * Refactor fractal maths machinery to be traits-based, have it auto-select
@@ -11,7 +11,7 @@ brot2 (1.2~unreleased) UNRELEASED; urgency=low
   * Apply aspect ratio fix when saving PNG (LP#1600574)
   * Add --hud option to CLI and checkbox to GTK save dialog (LP#1603347)
 
- -- Ross Younger <0ryoungerk.launchpad@coriolis.greenend.org.uk>  Mon, 11 Jul 2016 13:10:02 +1200
+ -- Ross Younger <0ryoungerk.launchpad@coriolis.greenend.org.uk>  Sun, 17 Jul 2016 12:47:19 +1200
 
 brot2 (1.1) precise; urgency=low
 

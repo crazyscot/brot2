@@ -1,4 +1,4 @@
-AC_INIT([brot2], [1.1+])
+AC_INIT([brot2], [1.2])
 AC_CONFIG_AUX_DIR([config.aux])
 AM_INIT_AUTOMAKE([no-define silent-rules subdir-objects])
 AM_SILENT_RULES
