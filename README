@@ -84,9 +84,7 @@ There is a release archive PPA:
 and a daily build PPA:
 	https://launchpad.net/~crazyscot/+archive/brot2-daily
 
-The live source code can be obtained from the main git site:
-	git://git.chiark.greenend.org.uk/~ryounger/brot2.git
-or the backup git site:
+The live source code can be obtained from github:
 	git://github.com/crazyscot/brot2.git
 
 In order to build, you will need to have various gtk and gtkmm developer
