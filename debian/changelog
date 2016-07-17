@@ -1,3 +1,9 @@
+brot2 (2.0~unreleased) UNRELEASED; urgency=medium
+
+  * Tweak fractal/colour menu hotkeys
+
+ -- Ross Younger <0ryoungerk.launchpad@coriolis.greenend.org.uk>  Sun, 17 Jul 2016 16:31:11 +1200
+
 brot2 (1.2) xenial; urgency=low
 
   * Add palettes from rjk's and fanf's mandelbrotters

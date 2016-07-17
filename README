@@ -79,7 +79,7 @@ to make another pass ("More iterations") with Ctrl-M.
 
 There are multiple colour palettes. At the moment these are hard-coded.
 Changing colour scheme is a quick and cheap operation; you can even cycle
-through them with Ctrl-3 and Ctrl-4.
+through them with Ctrl-1 and Ctrl-2.
 
 
 Getting and Building
