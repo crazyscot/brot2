@@ -166,6 +166,8 @@ public:
 	virtual void pass_complete(std::string& commentary);
 	virtual void plot_complete();
 
+	static const unsigned DEFAULT_INITIAL_SIZE = 300;
+
 private:
     void zoom_mechanics(enum Zoom z);
 	bool on_timer();

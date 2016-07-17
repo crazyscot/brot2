@@ -339,7 +339,7 @@ void ControlsWindow::starting_position() {
 	 * centres as well, so let's move ourselves along a bit */
 	int xx,yy;
 	mw.get_position(xx,yy);
-	move(xx+310,yy); // allow a little for window decoration
+	move(xx+MainWindow::DEFAULT_INITIAL_SIZE+10,yy); // allow a little for window decoration
 }
 
 void ControlsWindow::on_defaults() {

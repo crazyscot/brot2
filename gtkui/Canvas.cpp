@@ -29,7 +29,7 @@
 using namespace BrotPrefs;
 
 Canvas::Canvas(MainWindow *parent) : main(parent), surface(0) {
-	set_size_request(300,300); // default initial size
+	set_size_request(MainWindow::DEFAULT_INITIAL_SIZE,MainWindow::DEFAULT_INITIAL_SIZE); // default initial size
 	add_events (Gdk::EXPOSURE_MASK
 			| Gdk::LEAVE_NOTIFY_MASK
 			| Gdk::BUTTON_PRESS_MASK
