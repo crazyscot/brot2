@@ -95,13 +95,14 @@ public:
 class PlotMenu : public Gtk::Menu {
 public:
 	Gtk::MenuItem Undo;
-	Gtk::ImageMenuItem Params, ZoomIn, ZoomOut, Stop, Redraw, More;
-	Gtk::SeparatorMenuItem Sepa1, Sepa2;
+	Gtk::ImageMenuItem Params, ZoomIn, ZoomOut, Stop, Redraw, More, Reset;
+	Gtk::SeparatorMenuItem Sepa1, Sepa2, Sepa3;
 
 	PlotMenu(MainWindow& parent) : Undo("_Undo", true),
 			Params(Gtk::Stock::PROPERTIES),
 			ZoomIn(Gtk::Stock::ZOOM_IN), ZoomOut(Gtk::Stock::ZOOM_OUT),
-			Stop(Gtk::Stock::STOP), Redraw(Gtk::Stock::REFRESH), More(Gtk::Stock::EXECUTE)
+			Stop(Gtk::Stock::STOP), Redraw(Gtk::Stock::REFRESH), More(Gtk::Stock::EXECUTE),
+			Reset(Gtk::Stock::REFRESH)
 	{
 		Glib::RefPtr<Gtk::AccelGroup> ag = Gtk::AccelGroup::create();
 		set_accel_group(ag);
@@ -140,6 +141,11 @@ public:
 		More.set_label("_More iterations");
 		More.add_accelerator("activate", ag, GDK_M, Gdk::ModifierType::CONTROL_MASK, Gtk::ACCEL_VISIBLE);
 		More.signal_activate().connect(sigc::mem_fun(this, &PlotMenu::do_more));
+
+		append(Sepa1);
+		append(Reset);
+		Reset.set_label("Reset");
+		Reset.signal_activate().connect(sigc::mem_fun(this, &PlotMenu::do_reset));
 	}
 
 	void do_undo() {
@@ -169,7 +175,10 @@ public:
 		MainWindow *mw = find_main(this);
 		mw->do_more_iters();
 	}
-
+	void do_reset() {
+		MainWindow *mw = find_main(this);
+		mw->do_reset();
+	}
 };
 
 class OptionsMenu : public AbstractOptionsMenu {

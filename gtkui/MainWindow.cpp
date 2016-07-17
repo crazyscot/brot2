@@ -499,6 +499,16 @@ void MainWindow::do_more_iters()
 	plot->start();
 }
 
+void MainWindow::do_reset()
+{
+	safe_stop_plot();
+	size = { plot->fract.xmax - plot->fract.xmin,
+		plot->fract.ymax - plot->fract.ymin };
+	centre = { plot->fract.xmin, plot->fract.ymin };
+	centre += size/2.0;
+	do_plot(false);
+}
+
 void MainWindow::update_params(Fractal::Point& ncentre, Fractal::Point& nsize)
 {
 	size = nsize;

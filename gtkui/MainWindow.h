@@ -134,6 +134,7 @@ public:
     void do_undo();
 	void do_stop();
 	void do_more_iters();
+	void do_reset();
 
 	inline bool hud_active() const {
 		return draw_hud;
