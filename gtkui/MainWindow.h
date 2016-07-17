@@ -64,7 +64,7 @@ class MainWindow : public Gtk::Window, Plot3::IPlot3DataSink {
 
 	Fractal::Point centre, size;
 	unsigned rwidth, rheight; // Rendering dimensions; plot dims will be larger if antialiased
-	bool draw_hud, antialias;
+	bool draw_hud, antialias, fullscreen_requested;
 	bool initializing; // Disables certain event actions when set.
 
 	bool aspectfix, at_max_zoom, at_min_zoom, recolour_when_done; // Details about the current render
@@ -141,6 +141,7 @@ public:
 	}
 	void toggle_hud();
 	void toggle_antialias();
+	void toggle_fullscreen();
 	bool is_antialias() const { return antialias; }
 	unsigned get_menubar_height();
 

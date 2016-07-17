@@ -598,6 +598,15 @@ void MainWindow::toggle_antialias()
 	do_plot(false);
 }
 
+void MainWindow::toggle_fullscreen()
+{
+	fullscreen_requested = !fullscreen_requested;
+	if (fullscreen_requested)
+		fullscreen();
+	else
+		unfullscreen();
+}
+
 static std::queue<std::shared_ptr<SaveAsPNG>> png_q; // protected by gdk threads lock.
 
 void MainWindow::queue_png(std::shared_ptr<SaveAsPNG> png)

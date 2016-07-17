@@ -183,12 +183,13 @@ public:
 
 class OptionsMenu : public AbstractOptionsMenu {
 public:
-	Gtk::CheckMenuItem drawHUD, antiAlias, showControls;
+	Gtk::CheckMenuItem drawHUD, antiAlias, showControls, fullscreen;
 	Gtk::ImageMenuItem PrefsItem;
 
 	OptionsMenu(MainWindow& parent) : drawHUD("Draw _HUD", true),
 					antiAlias("_Antialias", true),
 					showControls("_Controls window", true),
+					fullscreen("_Fullscreen", true),
 					PrefsItem(Gtk::Stock::PREFERENCES)
 	{
 		Glib::RefPtr<Gtk::AccelGroup> ag = Gtk::AccelGroup::create();
@@ -203,6 +204,12 @@ public:
 		append(antiAlias);
 		antiAlias.signal_toggled().connect(sigc::mem_fun(this, &OptionsMenu::toggle_antialias));
 		antiAlias.add_accelerator("activate", ag, GDK_A, Gdk::ModifierType::CONTROL_MASK, Gtk::ACCEL_VISIBLE);
+
+		append(fullscreen);
+		fullscreen.signal_toggled().connect(sigc::mem_fun(this, &OptionsMenu::toggle_fullscreen));
+		fullscreen.add_accelerator("activate", ag, GDK_F, Gdk::ModifierType::CONTROL_MASK, Gtk::ACCEL_VISIBLE);
+
+		append(*manage(new Gtk::SeparatorMenuItem()));
 
 		append(showControls);
 		showControls.signal_toggled().connect(sigc::mem_fun(this, &OptionsMenu::toggle_controls));
@@ -221,6 +228,10 @@ public:
 	void toggle_antialias() {
 		MainWindow *mw = find_main(this);
 		mw->toggle_antialias();
+	}
+	void toggle_fullscreen() {
+		MainWindow *mw = find_main(this);
+		mw->toggle_fullscreen();
 	}
 	// Called by outsiders:
 	virtual void set_controls_status(bool active) {
