@@ -28,6 +28,7 @@
 #include "DragRectangle.h"
 #include "HUD.h"
 #include "ControlsWindow.h"
+#include "MovieWindow.h"
 #include "Prefs.h"
 #include "Menus.h"
 #include "Render2.h"
@@ -46,6 +47,7 @@
 
 class HUD;
 class ControlsWindow;
+class MovieWindow;
 class SaveAsPNG;
 
 class MainWindow : public Gtk::Window, Plot3::IPlot3DataSink {
@@ -55,6 +57,7 @@ class MainWindow : public Gtk::Window, Plot3::IPlot3DataSink {
 	Gtk::ProgressBar *progbar;
 	HUD hud;
 	ControlsWindow controlsWin;
+	MovieWindow movieWin;
 
 	unsigned char *imgbuf;
 
@@ -149,6 +152,10 @@ public:
 
 	ControlsWindow& controlsWindow() {
 		return controlsWin;
+	}
+
+	MovieWindow& movieWindow() {
+		return movieWin;
 	}
 
 	std::shared_ptr<const BrotPrefs::Prefs> prefs() {

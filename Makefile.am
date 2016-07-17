@@ -80,6 +80,7 @@ brot2_SOURCES= \
 	gtkui/ParamsDialog.cpp gtkui/ParamsDialog.h \
 	gtkui/PrefsDialog.cpp gtkui/PrefsDialog.h \
 	gtkui/ControlsWindow.cpp gtkui/ControlsWindow.h \
+	gtkui/MovieWindow.cpp gtkui/MovieWindow.h \
 	gtkui/Canvas.cpp gtkui/Canvas.h gtkui/HUD.cpp gtkui/HUD.h \
 	gtkui/DragRectangle.cpp gtkui/DragRectangle.h \
 	gtkui/ColourPanel.cpp gtkui/ColourPanel.h \
