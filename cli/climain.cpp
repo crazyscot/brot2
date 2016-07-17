@@ -1,8 +1,8 @@
-/* climain.cpp: main GTK program for non-gtk brot2, license text follows */
+/* climain.cpp: main GTK program for non-gtk brot2, license text follows
+ * brot2: Yet Another Mandelbrot Plotter
+ * Copyright (c) 2010-2016 Ross Younger
+ */
 const char* license_text = "\
-brot2: Yet Another Mandelbrot Plotter\n\
-Copyright (c) 2010-2016 Ross Younger\n\
-\n\
 This program is free software: you can redistribute it and/or modify \
 it under the terms of the GNU General Public License as published by \
 the Free Software Foundation, either version 3 of the License, or \
@@ -16,7 +16,7 @@ GNU General Public License for more details.\n\
 You should have received a copy of the GNU General Public License \
 along with this program.  If not, see <http://www.gnu.org/licenses/>.";
 
-const char *copyright_string = "(c) 2010-2016 Ross Younger";
+const char *copyright_string = "Copyright (c) 2010-2016 Ross Younger";
 
 #include <memory>
 #include <iostream>
@@ -42,7 +42,7 @@ const char *copyright_string = "(c) 2010-2016 Ross Younger";
 using namespace Plot3;
 using namespace BrotPrefs;
 
-static bool do_version, do_list_fractals, do_list_palettes, quiet, do_antialias, do_info, do_hud;
+static bool do_version, do_license, do_list_fractals, do_list_palettes, quiet, do_antialias, do_info, do_hud;
 static Glib::ustring c_re_x, c_im_y, length_x;
 static Glib::ustring entered_fractal = "Mandelbrot";
 static Glib::ustring entered_palette = "Linear rainbow";
@@ -89,6 +89,7 @@ static void setup_options(Glib::OptionGroup& options)
 
 	OPTION('i', "info", "Outputs the plot's info string on completion", do_info);
 	OPTION('v', "version", "Outputs this program's version number", do_version);
+	OPTION(0,   "license", "Outputs this program's license information", do_license);
 }
 
 // returns false on error
@@ -154,8 +155,14 @@ int main (int argc, char**argv)
 	SmoothPalette::register_base();
 
 	bool did_something=false;
-	if (do_version) {
-		std::cout << PACKAGE_STRING << std::endl;
+	if (do_license) {
+		std::cout << PACKAGE_STRING << " " << copyright_string << std::endl;
+		std::cout << license_text << std::endl;
+		did_something=true;
+	}
+	if (do_version && !do_license) {
+		std::cout << PACKAGE_STRING << " " << copyright_string << std::endl;
+		std::cout << "To see the license for this software, run " << argv[0] << " --license" << std::endl;
 		did_something=true;
 	}
 	if (do_list_fractals) {
