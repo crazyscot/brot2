@@ -107,7 +107,7 @@ libgtest_a_CPPFLAGS= -I$(GTEST_INC) -I$(GTEST_SRC)
 libgtest_a_CXXFLAGS= $(AM_CPPFLAGS) -Wno-undef
 # Yes, include GTEST_SRC, because gtest-all includes some .cc files ...
 
-CLEANFILES+=gtest/src/*.cc
+CLEANFILES+=gtest/src/*.cc gtest/src/*.h
 endif
 
 ################################################################
@@ -145,7 +145,7 @@ b2test_CPPFLAGS=$(AM_CPPFLAGS) -I$(GTEST_INC)
 ################################################################
 
 check_PROGRAMS+=b2benchmark
-b2benchmark_SOURCES=benchmark/benchmark2.cpp benchmark/Benchmarkable.cpp
+b2benchmark_SOURCES=benchmark/benchmark2.cpp benchmark/Benchmarkable.cpp benchmark/Benchmarkable.h
 
 b2benchmark_LDADD= libfractal.a
 b2benchmark_DEPENDENCIES= libfractal.a
