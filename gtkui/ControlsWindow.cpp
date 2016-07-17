@@ -334,6 +334,14 @@ ControlsWindow::ControlsWindow(MainWindow& _mw, std::shared_ptr<const Prefs> pre
 	box->show_all();
 }
 
+void ControlsWindow::starting_position() {
+	/* By default the main window is centred at size 300x300, and this window
+	 * centres as well, so let's move ourselves along a bit */
+	int xx,yy;
+	mw.get_position(xx,yy);
+	move(xx+310,yy); // allow a little for window decoration
+}
+
 void ControlsWindow::on_defaults() {
 	mouse->defaults();
 	scroll->defaults();

@@ -227,8 +227,10 @@ public:
 			p->set(PREF(ShowControls),state);
 			p->commit();
 		}
-		if (state)
+		if (state) {
 			mw->controlsWindow().show();
+			mw->controlsWindow().starting_position();
+		}
 		else
 			mw->controlsWindow().hide();
 	}

@@ -161,9 +161,18 @@ bool Canvas::on_motion_notify_event(GdkEventMotion * UNUSED(evt)) {
 	return true;
 }
 
+
+static bool seen_first_expose_event = false;
+
 bool Canvas::on_expose_event(GdkEventExpose * evt) {
 	Glib::RefPtr<Gdk::Window> window = get_window();
 	if (!window) return false; // no window yet?
+
+	if (!seen_first_expose_event) {
+		seen_first_expose_event = true;
+		main->controlsWindow().starting_position();
+	}
+
 	Cairo::RefPtr<Cairo::Context> cr = window->create_cairo_context();
 
 	if (!surface) return true; // Haven't rendered yet? Nothing we can do
