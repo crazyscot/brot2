@@ -144,14 +144,18 @@ b2test_CPPFLAGS=$(AM_CPPFLAGS) -I$(GTEST_INC)
 
 ################################################################
 
-check_PROGRAMS+=b2benchmark
-b2benchmark_SOURCES=benchmark/benchmark2.cpp benchmark/Benchmarkable.cpp benchmark/Benchmarkable.h
+benchmark_PROGRAMS=b2benchmark
+benchmarkdir=benchmark
+benchmark_SOURCES=benchmark/Benchmarkable.cpp benchmark/Benchmarkable.h
+
+check_PROGRAMS+=$(benchmark_PROGRAMS)
+b2benchmark_SOURCES=$(benchmark_SOURCES) benchmark/benchmark2.cpp
 
 b2benchmark_LDADD= libfractal.a
 b2benchmark_DEPENDENCIES= libfractal.a
 b2benchmark_CPPFLAGS=$(AM_CPPFLAGS)
 
-benchmark: b2benchmark
-	./b2benchmark
+benchmark: $(benchmark_PROGRAMS)
+	for p in $(benchmark_PROGRAMS); do ./$$p; done
 
 ################################################################
