@@ -145,14 +145,25 @@ b2test_CPPFLAGS=$(AM_CPPFLAGS) -I$(GTEST_INC)
 
 ################################################################
 
-check_PROGRAMS+=b2benchmark
-b2benchmark_SOURCES=benchmark/benchmark2.cpp benchmark/Benchmarkable.cpp benchmark/Benchmarkable.h
+benchmark_PROGRAMS=plot_benchmark palette_benchmark
+benchmarkdir=benchmark
+benchmark_SOURCES=benchmark/Benchmarkable.cpp benchmark/Benchmarkable.h
 
-b2benchmark_LDADD= libfractal.a
-b2benchmark_DEPENDENCIES= libfractal.a
-b2benchmark_CPPFLAGS=$(AM_CPPFLAGS)
+check_PROGRAMS+=$(benchmark_PROGRAMS)
+plot_benchmark_SOURCES=$(benchmark_SOURCES) benchmark/plot_benchmark.cpp
 
-benchmark: b2benchmark
-	./b2benchmark
+plot_benchmark_LDADD= libfractal.a
+plot_benchmark_DEPENDENCIES= libfractal.a
+plot_benchmark_CPPFLAGS=$(AM_CPPFLAGS)
+
+palette_benchmark_SOURCES=$(benchmark_SOURCES) benchmark/palette_benchmark.cpp \
+				 cli/CLIDataSink.cpp cli/CLIDataSink.h
+
+palette_benchmark_LDADD= $(all_ldadd)
+palette_benchmark_DEPENDENCIES= $(all_ldadd)
+palette_benchmark_CPPFLAGS=$(AM_CPPFLAGS) @brot2gui_CFLAGS@
+
+benchmark: $(benchmark_PROGRAMS)
+	for p in $(benchmark_PROGRAMS); do ./$$p; done
 
 ################################################################
