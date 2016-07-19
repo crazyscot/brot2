@@ -46,15 +46,17 @@ const std::string DEFAULT("\033[m");
 
 struct stats {
 	std::string title;
-	uint64_t time;
+	uint64_t time; /* microseconds */
 	uint64_t n_iters;
 
-	stats(const std::string& _title, uint64_t _time, uint64_t _n_iters) :
+	stats(const std::string& _title, uint64_t _time /* us */, uint64_t _n_iters) :
 		title(_title), time(_time), n_iters(_n_iters) {}
 
 	void output() const {
 		uint64_t sec = time / 1000000, usec = time % 1000000;
-		long double mean_us = time * 1000000 / n_iters;
+		long double mean_ps = time * 1000000 / n_iters;
+		unsigned mean_ns = mean_ps / 1000,
+				 mean_ns_fract = mean_ns % 1000;
 
 		std::cout
 			 << std::resetiosflags(std::ios::showbase)
@@ -65,7 +67,7 @@ struct stats {
 		     << "Total time:              " << sec << '.' << std::setfill('0') << std::setw(6) << usec << 's' << std::endl
 		     << std::resetiosflags(std::ios::showbase)
 		     << "Number of iterations:    " << n_iters << std::endl
-		     << "Mean time per iteration: " << mean_us << "us" << std::endl
+		     << "Mean time per iteration: " << mean_ns << "." << std::setfill('0') << std::setw(3) << mean_ns_fract << "ns" << std::endl
 		     << std::endl;
 	}
 };
