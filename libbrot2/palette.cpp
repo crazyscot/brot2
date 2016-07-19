@@ -354,9 +354,9 @@ public:
 		if (f < Fractal::PointData::ITERF_LOW_CLAMP)
 			f = Fractal::PointData::ITERF_LOW_CLAMP;
 		float c = 2.0 * M_PI * sqrt(f);
-		rv.r = (cos(c / 5.0) + 1.0) * 127;
-		rv.g = (cos(c / 7.0) + 1.0) * 127;
-		rv.b = (cos(c /11.0) + 1.0) * 127;
+		rv.r = (cos(0.2      /*  1/5 */ *c) + 1.0) * 127;
+		rv.g = (cos(0.14285  /*  1/7 */ *c) + 1.0) * 127;
+		rv.b = (cos(0.090909 /* 1/11 */ *c) + 1.0) * 127;
 		return rv;
 	};
 };
@@ -371,9 +371,9 @@ public:
 		if (f < Fractal::PointData::ITERF_LOW_CLAMP)
 			f = Fractal::PointData::ITERF_LOW_CLAMP;
 		float c = 2.0 * M_PI * sqrt(f);
-		rv.r = (cos(c / 5.0) + 1.0) * 127;
-		rv.g = (cos(c / 7.0) + 1.0) * 127;
-		rv.b = (cos(c /11.0) + 1.0) * 127;
+		rv.r = (cos(0.2      /*  1/5 */ *c) + 1.0) * 127;
+		rv.g = (cos(0.14285  /*  1/7 */ *c) + 1.0) * 127;
+		rv.b = (cos(0.090909 /* 1/11 */ *c) + 1.0) * 127;
 		return rv;
 	};
 };
