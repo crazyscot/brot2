@@ -54,35 +54,6 @@ protected:
 	}
 };
 
-const string YELLOW("\033[0;33m");
-const string DEFAULT("\033[m");
-
-
-struct stats {
-	string title;
-	uint64_t time;
-	uint64_t n_iters;
-
-	stats(const string& _title, uint64_t _time, uint64_t _n_iters) :
-		title(_title), time(_time), n_iters(_n_iters) {}
-
-	void output() const {
-		uint64_t sec = time / 1000000, usec = time % 1000000;
-		long double mean_us = time * 1000000 / n_iters;
-
-		cout << resetiosflags(ios::showbase)
-		     << YELLOW
-			 << "Benchmark:               " << title << endl
-		     << DEFAULT
-		     << setw(3)
-		     << "Total time:              " << sec << '.' << setfill('0') << setw(6) << usec << 's' << endl
-		     << resetiosflags(ios::showbase)
-		     << "Number of iterations:    " << n_iters << endl
-		     << "Mean time per iteration: " << mean_us << "us" << endl
-		     << endl;
-	}
-};
-
 void do_bm(Maths::MathsType mt, const string& title) {
 	FractalBM bm(mt);
 
