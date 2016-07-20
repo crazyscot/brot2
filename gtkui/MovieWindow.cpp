@@ -121,20 +121,19 @@ MovieWindow::MovieWindow(MainWindow& _mw, std::shared_ptr<const Prefs> prefs) : 
 	Gtk::Frame *wholemovie = Gtk::manage(new Gtk::Frame("Movie Options"));
     tbl = Gtk::manage(new Gtk::Table());
 	lbl = Gtk::manage(new Gtk::Label("Height"));
-	tbl->attach(*lbl, 0, 1, 0, 1);
+	tbl->attach(*lbl, 0, 1, 0, 1, Gtk::AttachOptions::FILL, Gtk::AttachOptions::FILL|Gtk::AttachOptions::EXPAND, 5);
 	priv->f_height = Gtk::manage(new Util::HandyEntry<unsigned>(5));
-	tbl->attach(*(priv->f_height), 1, 2, 0, 1);
+	tbl->attach(*(priv->f_height), 1, 2, 0, 1, Gtk::AttachOptions::SHRINK);
 	lbl = Gtk::manage(new Gtk::Label("Width"));
-	tbl->attach(*lbl, 2, 3, 0, 1, Gtk::AttachOptions::FILL, Gtk::AttachOptions::FILL|Gtk::AttachOptions::EXPAND, 10);
+	tbl->attach(*lbl, 2, 3, 0, 1, Gtk::AttachOptions::FILL, Gtk::AttachOptions::FILL|Gtk::AttachOptions::EXPAND, 5);
 	priv->f_width = Gtk::manage(new Util::HandyEntry<unsigned>(5));
-	tbl->attach(*(priv->f_width), 3, 4, 0, 1);
+	tbl->attach(*(priv->f_width), 3, 4, 0, 1, Gtk::AttachOptions::SHRINK);
 	// TODO add the other whole-movie controls:
 	//     fractal, palette
 	//     Hud, AA
 	//     FPS
 	//     Output filename/etc.
 	// TODO Set default height,width,others
-	// TODO Default field width is a bit large for small ints
 	wholemovie->add(*tbl);
 	vbox->pack_start(*wholemovie);
 
