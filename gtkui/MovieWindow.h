@@ -20,15 +20,24 @@
 #define MOVIEWINDOW_H
 
 #include "Prefs.h"
+#include "MovieMode.h"
 #include <gtkmm/dialog.h>
 #include <gtkmm/entry.h>
 
 class MainWindow;
+class MovieWindowPrivate;
+namespace Gtk {
+	class Table;
+}
 
 class MovieWindow: public Gtk::Window{
 	protected:
 		MainWindow& mw;
 		std::shared_ptr<const BrotPrefs::Prefs> _prefs; // master
+		struct Movie movie;
+		Gtk::Table *inner; // Gtk::manage() so no need to free
+		void update_inner_table(bool initial=false);
+		MovieWindowPrivate *priv;
 
 	public:
 		MovieWindow(MainWindow& _mw, std::shared_ptr<const BrotPrefs::Prefs> prefs);
@@ -37,6 +46,10 @@ class MovieWindow: public Gtk::Window{
 		bool close();
 		void reset();
 		bool on_delete_event(GdkEventAny *evt);
+
+		void do_add();
+		void do_reset();
+		void do_render();
 };
 
 #endif // MOVIEWINDOW_H
