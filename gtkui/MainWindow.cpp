@@ -126,7 +126,7 @@ MainWindow::~MainWindow() {
 	delete plot_prev;
 	delete divider;
 	delete renderer;
-	delete imgbuf;
+	delete[] imgbuf;
 }
 
 void MainWindow::zoom_mechanics(enum Zoom type) {
