@@ -74,6 +74,13 @@ inline void alert(Gtk::Window *parent, const std::string& message, Gtk::MessageT
 template<typename T>
 class HandyEntry: public Gtk::Entry {
 	public:
+		HandyEntry(unsigned maxsize=0) : Gtk::Entry() {
+			if (maxsize) {
+				set_max_length(maxsize);
+				set_width_chars(maxsize);
+			}
+		}
+
 		bool read(T& val_out) const {
 			Glib::ustring raw = this->get_text();
 			std::istringstream tmp(raw, std::istringstream::in);
