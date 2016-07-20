@@ -142,7 +142,7 @@ public:
 		More.add_accelerator("activate", ag, GDK_M, Gdk::ModifierType::CONTROL_MASK, Gtk::ACCEL_VISIBLE);
 		More.signal_activate().connect(sigc::mem_fun(this, &PlotMenu::do_more));
 
-		append(Sepa1);
+		append(Sepa3);
 		append(Reset);
 		Reset.set_label("Reset");
 		Reset.signal_activate().connect(sigc::mem_fun(this, &PlotMenu::do_reset));
