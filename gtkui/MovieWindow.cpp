@@ -23,6 +23,7 @@
 #include "Prefs.h"
 #include "Exception.h"
 #include "misc.h"
+#include "Plot3Plot.h"
 
 #include <gtkmm/dialog.h>
 #include <gtkmm/table.h>
@@ -41,17 +42,20 @@ using namespace BrotPrefs;
 class MovieWindowPrivate {
 	friend class MovieWindow;
 	Util::HandyEntry<unsigned> *f_height, *f_width; // GTK::manage()
+	Gtk::Label *next_here_label; // Managed
 
 	MovieWindowPrivate() : f_height(0), f_width(0)
 	{
 	}
 };
 
-#define NewLabel(_txt, _x1, _x2, _y1, _y2) do { \
+#define NewLabelX(_txt, _x1, _x2, _y1, _y2, _ref) do { \
 	Gtk::Label *lbl = Gtk::manage(new Gtk::Label()); \
 	lbl->set_markup(_txt); \
 	this->inner->attach(*lbl, _x1, _x2, _y1, _y2); \
+	_ref = lbl; \
 } while(0)
+#define NewLabel(_txt, _x1, _x2, _y1, _y2) do { Gtk::Label *_ptr; NewLabelX(_txt, _x1, _x2, _y1, _y2, _ptr); (void)_ptr;} while(0)
 
 template<typename T>
 Gtk::Label* NewLabelNum_(const T& val) {
@@ -72,6 +76,7 @@ void MovieWindow::update_inner_table(bool initial) {
 	// Bottom row: (Next point goes here...)
 
 	if (initial) {
+		// TODO LATER Add tooltips?
 		NewLabel("<b>Centre Re</b>", 0, 1, 0, 1);
 		NewLabel("<b>Centre Im</b>", 1, 2, 0, 1);
 		NewLabel("<b>Size Re</b>", 2, 3, 0, 1);
@@ -90,11 +95,17 @@ void MovieWindow::update_inner_table(bool initial) {
 		NewLabelNum(it->frames_to_next,5, 6, row, row+1);
 		++row;
 	}
-	// TODO: Make hold frames and frames-to-next settable
-	// TODO: Delete points by interacting with this table
+	// TODO: Make hold frames and frames-to-next settable (somehow)
+	// TODO: Delete points by interacting with this table (somehow)
 
-	NewLabel("<i>Next point goes here...</i>", 0, 6, row, row+1);
+	if (initial) {
+		NewLabelX("<i>Next point goes here...</i>", 0, 6, row, row+1, priv->next_here_label);
+	} else {
+		this->inner->remove(*priv->next_here_label);
+		this->inner->attach(*priv->next_here_label, 0, 6, row, row+1);
+	}
 	++row;
+	this->inner->show_all();
 }
 
 MovieWindow::MovieWindow(MainWindow& _mw, std::shared_ptr<const Prefs> prefs) : mw(_mw), _prefs(prefs)
@@ -151,6 +162,8 @@ MovieWindow::MovieWindow(MainWindow& _mw, std::shared_ptr<const Prefs> prefs) : 
 	this->add(*vbox);
 	hide();
 	vbox->show_all();
+
+	// TODO this window shouldn't appear over the main window if possible
 }
 
 MovieWindow::~MovieWindow() {
@@ -158,8 +171,15 @@ MovieWindow::~MovieWindow() {
 }
 
 void MovieWindow::do_add() {
-	Util::alert(this, "Add NYI");
-	// TODO WRITEME
+	Plot3::Plot3Plot& plot = mw.get_plot();
+	struct KeyFrame kf;
+	kf.centre = plot.centre;
+	kf.size = plot.size;
+	kf.hold_frames = 0;
+	kf.frames_to_next = 0;
+	movie.points.push_back(kf);
+	update_inner_table(false);
+	// TODO Once we have delete, check for leaks
 }
 void MovieWindow::do_reset() {
 	Util::alert(this, "Reset NYI");
