@@ -64,8 +64,9 @@ class MovieWindowPrivate {
 	ModelColumns m_columns;
 	Gtk::TreeView m_keyframes;
 	Glib::RefPtr<Gtk::ListStore> m_refTreeModel;
+	Gtk::CheckButton f_hud, f_antialias;
 
-	MovieWindowPrivate() : f_height(0), f_width(0)
+	MovieWindowPrivate() : f_height(0), f_width(0), f_hud("Draw HUD"), f_antialias("Antialias")
 	{
 	}
 };
@@ -90,10 +91,16 @@ MovieWindow::MovieWindow(MainWindow& _mw, std::shared_ptr<const Prefs> prefs) : 
 	tbl->attach(*lbl, 2, 3, 0, 1, Gtk::AttachOptions::FILL, Gtk::AttachOptions::FILL|Gtk::AttachOptions::EXPAND, 5);
 	priv->f_width = Gtk::manage(new Util::HandyEntry<unsigned>(5));
 	tbl->attach(*(priv->f_width), 3, 4, 0, 1, Gtk::AttachOptions::SHRINK);
+	tbl->attach(priv->f_hud, 4,5, 0, 1);
+	tbl->attach(priv->f_antialias, 6,7, 0, 1);
 
-	// Defaults:
+	// Defaults.
+	// LATER: Could remember these from last time?
 	priv->f_height->update(300);
 	priv->f_width->update(300);
+	priv->f_antialias.set_active(true);
+	priv->f_hud.set_active(false);
+
 	// TODO add the other whole-movie controls:
 	//     fractal, palette
 	//     Hud, AA
@@ -198,7 +205,14 @@ void MovieWindow::do_render() {
 		priv->f_width->grab_focus();
 		return;
 	}
+	movie.draw_hud = priv->f_hud.get_active();
+	movie.antialias = priv->f_antialias.get_active();
+
 	// Temporary for now, just spit out the key frames to show we've read them correctly
+	std::cout << "Movie"
+		<< " H " << movie.height << " W " << movie.width
+		<< "; Antialias " << movie.antialias << "; HUD " << movie.draw_hud
+		<< std::endl;
 	int id=0;
 	for (auto it = movie.points.begin(); it != movie.points.end(); it++) {
 		std::cout
