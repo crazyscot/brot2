@@ -32,12 +32,14 @@ struct KeyFrame {
 };
 
 struct Movie {
-	Fractal::FractalImpl * fractal;
-	BasePalette * palette;
+	const Fractal::FractalImpl * fractal;
+	const BasePalette * palette;
 	unsigned width, height;
 	bool draw_hud, antialias;
 	unsigned fps;
 	std::vector<KeyFrame> points;
+
+	Movie() : fractal(0), palette(0), width(0), height(0), fps(0) {}
 };
 
 #endif // MOVIEMODE_H
