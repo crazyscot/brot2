@@ -166,8 +166,32 @@ void MovieWindow::do_reset() {
 	priv->m_refTreeModel->clear();
 }
 void MovieWindow::do_render() {
-	Util::alert(this, "Render NYI");
-	// TODO WRITEME
+	movie.points.clear();
+	auto rows = priv->m_refTreeModel->children();
+	for (auto it = rows.begin(); it != rows.end(); it++) {
+		struct KeyFrame kf;
+		kf.centre.real((*it)[priv->m_columns.m_centre_re]);
+		kf.centre.imag((*it)[priv->m_columns.m_centre_im]);
+		kf.size.real((*it)[priv->m_columns.m_size_re]);
+		kf.size.imag((*it)[priv->m_columns.m_size_im]);
+		kf.hold_frames = (*it)[priv->m_columns.m_hold_frames];
+		kf.frames_to_next = (*it)[priv->m_columns.m_frames_next];
+		movie.points.push_back(kf);
+	}
+
+	// Temporary for now, just spit out the key frames to show we've read them correctly
+	int id=0;
+	for (auto it = movie.points.begin(); it != movie.points.end(); it++) {
+		std::cout
+			<< "KF " << id
+			<< " C @ " << it->centre.real() << " + " << it->centre.imag() << "i;"
+			<< " size " << it->size.real() << " + " << it->size.imag() << "i;"
+			<< " hold " << it->hold_frames << ";"
+			<< " intermediates " << it->frames_to_next
+			<< std::endl;
+		++id;
+	}
+	Util::alert(this, "Render NYI"); // TODO
 }
 
 void MovieWindow::reset() {
