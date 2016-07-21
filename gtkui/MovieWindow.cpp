@@ -172,6 +172,8 @@ void MovieWindow::reset() {
 
 bool MovieWindow::close() {
 	hide();
+	do_reset(); // So next time we open up we're fresh
+	// LATER: If they haven't rendered, ask if they're sure.
 	return true;
 }
 
