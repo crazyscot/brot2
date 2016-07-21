@@ -140,7 +140,7 @@ MovieWindow::MovieWindow(MainWindow& _mw, std::shared_ptr<const Prefs> prefs) : 
 	hide();
 	vbox->show_all();
 
-	// TODO this window shouldn't appear over the main window if possible
+	// LATER this window shouldn't appear over the main window if possible
 }
 
 MovieWindow::~MovieWindow() {
