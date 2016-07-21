@@ -162,6 +162,8 @@ void MovieWindow::do_add() {
 	row[priv->m_columns.m_size_im] = plot.size.imag();
 	row[priv->m_columns.m_hold_frames] = 0;
 	row[priv->m_columns.m_frames_next] = 100;
+	Gtk::TreePath path(row);
+	priv->m_keyframes.set_cursor(path, *priv->m_keyframes.get_column(4), true); // !! Hard-wired column number
 }
 void MovieWindow::do_delete() {
 	auto rp = priv->m_keyframes.get_selection()->get_selected();
