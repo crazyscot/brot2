@@ -49,6 +49,8 @@ class MovieWindow: public Gtk::Window{
 		void do_delete();
 		void do_reset();
 		void do_render();
+		void do_update_duration();
+		void do_update_duration2(const Gtk::TreeModel::Path&, const Gtk::TreeModel::iterator&);
 };
 
 #endif // MOVIEWINDOW_H

@@ -35,6 +35,8 @@
 #include <gtkmm/enums.h>
 #include <gtkmm/alignment.h>
 
+#include <iostream>
+#include <iomanip>
 #include <sstream>
 
 using namespace BrotPrefs;
@@ -64,9 +66,11 @@ class MovieWindowPrivate {
 	Glib::RefPtr<Gtk::ListStore> m_refTreeModel;
 	Util::HandyEntry<unsigned> f_height, f_width, f_fps;
 	Gtk::CheckButton f_hud, f_antialias;
+	Gtk::Entry f_duration;
 
 	MovieWindowPrivate() : f_height(5), f_width(5), f_fps(5), f_hud("Draw HUD"), f_antialias("Antialias")
 	{
+		f_duration.set_editable(false);
 	}
 };
 
@@ -92,6 +96,8 @@ MovieWindow::MovieWindow(MainWindow& _mw, std::shared_ptr<const Prefs> prefs) : 
 	tbl->attach(priv->f_antialias, 6,7, 0, 1);
 	tbl->attach(* Gtk::manage(new Gtk::Label("Frames per second")), 0, 3, 1, 2);
 	tbl->attach(priv->f_fps, 3, 4, 1, 2, Gtk::AttachOptions::SHRINK);
+	tbl->attach(* Gtk::manage(new Gtk::Label("Duration")), 4, 5, 1, 2);
+	tbl->attach(priv->f_duration, 5, 6, 1, 2);
 
 	// Defaults.
 	// LATER: Could remember these from last time?
@@ -101,18 +107,18 @@ MovieWindow::MovieWindow(MainWindow& _mw, std::shared_ptr<const Prefs> prefs) : 
 	priv->f_antialias.set_active(true);
 	priv->f_hud.set_active(false);
 
+	priv->f_fps.signal_changed().connect(sigc::mem_fun(*this, &MovieWindow::do_update_duration)); // Must do this after setting initial value
+
 	// TODO add the other whole-movie controls:
-	//     fractal, palette
-	//     Hud, AA
-	//     FPS
-	//     Output filename/etc.
-	// TODO Set default height,width,others
+	//     fractal, palette (not editable; grab from first on Add, warn if changed)
+	//     Output filename/type. (Or does this go on Render?)
 	wholemovie->add(*tbl);
 	vbox->pack_start(*wholemovie);
 
 	Gtk::Frame *keyframes = Gtk::manage(new Gtk::Frame("Key Frames"));
 	priv->m_refTreeModel = Gtk::ListStore::create(priv->m_columns);
 	priv->m_keyframes.set_model(priv->m_refTreeModel);
+	priv->m_refTreeModel->signal_row_changed().connect(sigc::mem_fun(*this, &MovieWindow::do_update_duration2));
 	keyframes->add(priv->m_keyframes);
 	vbox->pack_start(*keyframes);
 
@@ -175,9 +181,11 @@ void MovieWindow::do_add() {
 void MovieWindow::do_delete() {
 	auto rp = priv->m_keyframes.get_selection()->get_selected();
 	priv->m_refTreeModel->erase(*rp);
+	do_update_duration();
 }
 void MovieWindow::do_reset() {
 	priv->m_refTreeModel->clear();
+	do_update_duration();
 }
 void MovieWindow::do_render() {
 	// Doesn't make sense to make a movie with fewer than two points...
@@ -256,4 +264,36 @@ bool MovieWindow::close() {
 bool MovieWindow::on_delete_event(GdkEventAny *evt) {
 	(void)evt;
 	return close();
+}
+
+void MovieWindow::do_update_duration() {
+	auto rows = priv->m_refTreeModel->children();
+	unsigned frames = 0;
+	for (auto it = rows.begin(); it != rows.end(); it++) {
+		frames += (*it)[priv->m_columns.m_hold_frames];
+		frames += (*it)[priv->m_columns.m_frames_next];
+	}
+	if (frames == 0) {
+		priv->f_duration.set_text("");
+		return;
+	}
+	std::ostringstream msg;
+	unsigned fps = 0;
+	if (priv->f_fps.read(fps) && fps > 0) {
+		unsigned hr, min, sec, frm;
+		frm = frames;
+		sec = frm / fps; frm %= fps;
+		min = sec / 60;  sec %= 60;
+		hr  = min / 60;  min %= 60;
+		msg << std::setfill('0')
+			<< std::setw(2) << hr << ":" << std::setw(2) << min << ":" << std::setw(2) << sec << ":" << std::setw(2) << frm;
+	} else {
+		msg << frames << " frames";
+	}
+
+	priv->f_duration.set_text(msg.str());
+}
+void MovieWindow::do_update_duration2(const Gtk::TreeModel::Path&, const Gtk::TreeModel::iterator&) {
+	// For now this is just a thin wrapper. Might become something more complex later.
+	do_update_duration();
 }
