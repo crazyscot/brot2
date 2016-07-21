@@ -118,8 +118,9 @@ MovieWindow::MovieWindow(MainWindow& _mw, std::shared_ptr<const Prefs> prefs) : 
 	ColumnFV("Centre Imag", m_centre_im);
 	ColumnFV("Size Real", m_size_re);
 	ColumnFV("Size Imag", m_size_im);
+	// TODO Would really like to make these columns distinct in some way:
 	ColumnEditable("Hold Frames", m_hold_frames);
-	ColumnEditable("Frames to next", m_frames_next);
+	ColumnEditable("Traverse Frames", m_frames_next);
 	// LATER: Tooltips (doesn't seem possible to retrieve the actual widget of a standard column head with gtk 2.24?)
 	// LATER: cell alignment?
 
