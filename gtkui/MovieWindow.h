@@ -46,6 +46,7 @@ class MovieWindow: public Gtk::Window{
 		bool on_delete_event(GdkEventAny *evt);
 
 		void do_add();
+		void do_delete();
 		void do_reset();
 		void do_render();
 };

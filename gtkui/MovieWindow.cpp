@@ -125,12 +125,15 @@ MovieWindow::MovieWindow(MainWindow& _mw, std::shared_ptr<const Prefs> prefs) : 
 	btn = Gtk::manage(new Gtk::Button("Add current plot"));
 	btn->signal_clicked().connect(sigc::mem_fun(*this, &MovieWindow::do_add));
 	tbl->attach(*btn, 0, 1, 0, 1);
-	btn = Gtk::manage(new Gtk::Button("Reset"));
-	btn->signal_clicked().connect(sigc::mem_fun(*this, &MovieWindow::do_reset));
-	tbl->attach(*btn, 1, 2, 0, 1);
 	btn = Gtk::manage(new Gtk::Button("Render"));
 	btn->signal_clicked().connect(sigc::mem_fun(*this, &MovieWindow::do_render));
-	tbl->attach(*btn, 2, 3, 0, 1);
+	tbl->attach(*btn, 1, 2, 0, 1);
+	btn = Gtk::manage(new Gtk::Button("Delete selected plot"));
+	btn->signal_clicked().connect(sigc::mem_fun(*this, &MovieWindow::do_delete));
+	tbl->attach(*btn, 0, 1, 2, 3);
+	btn = Gtk::manage(new Gtk::Button("Reset"));
+	btn->signal_clicked().connect(sigc::mem_fun(*this, &MovieWindow::do_reset));
+	tbl->attach(*btn, 1, 2, 2, 3);
 
 	vbox->pack_end(*tbl);
 	this->add(*vbox);
@@ -154,7 +157,10 @@ void MovieWindow::do_add() {
 	row[priv->m_columns.m_size_im] = plot.size.imag();
 	row[priv->m_columns.m_hold_frames] = 0;
 	row[priv->m_columns.m_frames_next] = 100;
-	// TODO Once we have delete, check for leaks
+}
+void MovieWindow::do_delete() {
+	auto rp = priv->m_keyframes.get_selection()->get_selected();
+	priv->m_refTreeModel->erase(*rp);
 }
 void MovieWindow::do_reset() {
 	priv->m_refTreeModel->clear();
