@@ -62,10 +62,10 @@ class MovieWindowPrivate {
 	ModelColumns m_columns;
 	Gtk::TreeView m_keyframes;
 	Glib::RefPtr<Gtk::ListStore> m_refTreeModel;
-	Util::HandyEntry<unsigned> f_height, f_width;
+	Util::HandyEntry<unsigned> f_height, f_width, f_fps;
 	Gtk::CheckButton f_hud, f_antialias;
 
-	MovieWindowPrivate() : f_height(5), f_width(5), f_hud("Draw HUD"), f_antialias("Antialias")
+	MovieWindowPrivate() : f_height(5), f_width(5), f_fps(5), f_hud("Draw HUD"), f_antialias("Antialias")
 	{
 	}
 };
@@ -90,11 +90,14 @@ MovieWindow::MovieWindow(MainWindow& _mw, std::shared_ptr<const Prefs> prefs) : 
 	tbl->attach(priv->f_width, 3, 4, 0, 1, Gtk::AttachOptions::SHRINK);
 	tbl->attach(priv->f_hud, 4,5, 0, 1);
 	tbl->attach(priv->f_antialias, 6,7, 0, 1);
+	tbl->attach(* Gtk::manage(new Gtk::Label("Frames per second")), 0, 3, 1, 2);
+	tbl->attach(priv->f_fps, 3, 4, 1, 2, Gtk::AttachOptions::SHRINK);
 
 	// Defaults.
 	// LATER: Could remember these from last time?
 	priv->f_height.update(300);
 	priv->f_width.update(300);
+	priv->f_fps.update(25);
 	priv->f_antialias.set_active(true);
 	priv->f_hud.set_active(false);
 
@@ -208,6 +211,12 @@ void MovieWindow::do_render() {
 		priv->f_width.grab_focus();
 		return;
 	}
+	if (!priv->f_fps.read(movie.fps)) {
+		Util::alert(this, "Cannot parse FPS");
+		priv->f_fps.set_text("");
+		priv->f_fps.grab_focus();
+		return;
+	}
 	movie.draw_hud = priv->f_hud.get_active();
 	movie.antialias = priv->f_antialias.get_active();
 
@@ -215,6 +224,7 @@ void MovieWindow::do_render() {
 	std::cout << "Movie"
 		<< " H " << movie.height << " W " << movie.width
 		<< "; Antialias " << movie.antialias << "; HUD " << movie.draw_hud
+		<< "; " << movie.fps << " fps"
 		<< std::endl;
 	int id=0;
 	for (auto it = movie.points.begin(); it != movie.points.end(); it++) {
