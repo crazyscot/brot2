@@ -35,8 +35,6 @@ class MovieWindow: public Gtk::Window{
 		MainWindow& mw;
 		std::shared_ptr<const BrotPrefs::Prefs> _prefs; // master
 		struct Movie movie;
-		Gtk::Table *inner; // Gtk::manage() so no need to free
-		void update_inner_table(bool initial=false);
 		MovieWindowPrivate *priv;
 
 	public:

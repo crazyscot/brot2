@@ -39,74 +39,36 @@
 
 using namespace BrotPrefs;
 
+namespace Fractal { typedef long double Value; }
+// This definition exists to give a compile-time error if we change underlying maths and forget to fix up the Gtk TreeView code. See below (grep for glibmm__CustomBoxed_t).
+
+class ModelColumns : public Gtk::TreeModel::ColumnRecord {
+	public:
+		ModelColumns() {
+			add(m_centre_re); add(m_centre_im);
+			add(m_size_re); add(m_size_im);
+			add(m_hold_frames); add(m_frames_next);
+		}
+		Gtk::TreeModelColumn<Fractal::Value> m_centre_re;
+		Gtk::TreeModelColumn<Fractal::Value> m_centre_im;
+		Gtk::TreeModelColumn<Fractal::Value> m_size_re;
+		Gtk::TreeModelColumn<Fractal::Value> m_size_im;
+		Gtk::TreeModelColumn<unsigned> m_hold_frames;
+		Gtk::TreeModelColumn<unsigned> m_frames_next;
+};
+
 class MovieWindowPrivate {
 	friend class MovieWindow;
 	Util::HandyEntry<unsigned> *f_height, *f_width; // GTK::manage()
 	Gtk::Label *next_here_label; // Managed
+	ModelColumns m_columns;
+	Gtk::TreeView m_keyframes;
+	Glib::RefPtr<Gtk::ListStore> m_refTreeModel;
 
 	MovieWindowPrivate() : f_height(0), f_width(0)
 	{
 	}
 };
-
-#define NewLabelX(_txt, _x1, _x2, _y1, _y2, _ref) do { \
-	Gtk::Label *lbl = Gtk::manage(new Gtk::Label()); \
-	lbl->set_markup(_txt); \
-	this->inner->attach(*lbl, _x1, _x2, _y1, _y2); \
-	_ref = lbl; \
-} while(0)
-#define NewLabel(_txt, _x1, _x2, _y1, _y2) do { Gtk::Label *_ptr; NewLabelX(_txt, _x1, _x2, _y1, _y2, _ptr); (void)_ptr;} while(0)
-
-template<typename T>
-Gtk::Label* NewLabelNum_(const T& val) {
-	std::ostringstream tmp;
-	tmp << val;
-	Gtk::Label *lbl = Gtk::manage(new Gtk::Label(tmp.str().c_str()));
-	return lbl;
-}
-
-#define NewLabelNum(_v, _x1, _x2, _y1, _y2) this->inner->attach(* NewLabelNum_(_v), _x1, _x2, _y1, _y2)
-
-/* Updates inner table contents for the current set of prefs */
-void MovieWindow::update_inner_table(bool initial) {
-	this->inner->resize(movie.points.size()+2, 6);
-
-	// Top row: Header
-	// Data rows each contain: Centre, Size, Hold Frames, Frames to Next
-	// Bottom row: (Next point goes here...)
-
-	if (initial) {
-		// TODO LATER Add tooltips?
-		NewLabel("<b>Centre Re</b>", 0, 1, 0, 1);
-		NewLabel("<b>Centre Im</b>", 1, 2, 0, 1);
-		NewLabel("<b>Size Re</b>", 2, 3, 0, 1);
-		NewLabel("<b>Size Im</b>", 3, 4, 0, 1);
-		NewLabel("<b>Hold frames</b>", 4, 5, 0, 1);    // Settable
-		NewLabel("<b>Frames to next</b>", 5, 6, 0, 1); // Settable
-	}
-
-	int row = 1;
-	for (auto it = movie.points.begin(); it != movie.points.end(); it++) {
-		NewLabelNum(it->centre.real(), 0, 1, row, row+1);
-		NewLabelNum(it->centre.imag(), 1, 2, row, row+1);
-		NewLabelNum(it->size.real(),   2, 3, row, row+1);
-		NewLabelNum(it->size.imag(),   3, 4, row, row+1);
-		NewLabelNum(it->hold_frames,   4, 5, row, row+1);
-		NewLabelNum(it->frames_to_next,5, 6, row, row+1);
-		++row;
-	}
-	// TODO: Make hold frames and frames-to-next settable (somehow)
-	// TODO: Delete points by interacting with this table (somehow)
-
-	if (initial) {
-		NewLabelX("<i>Next point goes here...</i>", 0, 6, row, row+1, priv->next_here_label);
-	} else {
-		this->inner->remove(*priv->next_here_label);
-		this->inner->attach(*priv->next_here_label, 0, 6, row, row+1);
-	}
-	++row;
-	this->inner->show_all();
-}
 
 MovieWindow::MovieWindow(MainWindow& _mw, std::shared_ptr<const Prefs> prefs) : mw(_mw), _prefs(prefs)
 {
@@ -138,11 +100,24 @@ MovieWindow::MovieWindow(MainWindow& _mw, std::shared_ptr<const Prefs> prefs) : 
 	vbox->pack_start(*wholemovie);
 
 	Gtk::Frame *keyframes = Gtk::manage(new Gtk::Frame("Key Frames"));
-	this->inner = Gtk::manage(new Gtk::Table());
-	this->inner->set_col_spacings(10);
-	update_inner_table(true);
-	keyframes->add(*inner);
+	priv->m_refTreeModel = Gtk::ListStore::create(priv->m_columns);
+	priv->m_keyframes.set_model(priv->m_refTreeModel);
+	keyframes->add(priv->m_keyframes);
 	vbox->pack_start(*keyframes);
+
+	// The GTK TreeView code can only automatically handle certain types and we are likely going to have to create a custom CellRenderer in what is currently ColumnFV here.
+	// Grep for glibmm__CustomBoxed_t in /usr/include/gtkmm-2.4/gtkmm/treeview.h and read that comment carefully.
+#define ColumnFV(_title, _field) do { priv->m_keyframes.append_column_numeric(_title, priv->m_columns._field, "%Lf"); } while(0)
+#define ColumnEditable(_title, _field) do { priv->m_keyframes.append_column_editable(_title, priv->m_columns._field); } while(0)
+
+	ColumnFV("Centre Real", m_centre_re);
+	ColumnFV("Centre Imag", m_centre_im);
+	ColumnFV("Size Real", m_size_re);
+	ColumnFV("Size Imag", m_size_im);
+	ColumnEditable("Hold Frames", m_hold_frames);
+	ColumnEditable("Frames to next", m_frames_next);
+	// LATER: Tooltips (doesn't seem possible to retrieve the actual widget of a standard column head with gtk 2.24?)
+	// LATER: cell alignment?
 
 	Gtk::Button *btn;
     tbl = Gtk::manage(new Gtk::Table());
@@ -171,13 +146,14 @@ MovieWindow::~MovieWindow() {
 
 void MovieWindow::do_add() {
 	Plot3::Plot3Plot& plot = mw.get_plot();
-	struct KeyFrame kf;
-	kf.centre = plot.centre;
-	kf.size = plot.size;
-	kf.hold_frames = 0;
-	kf.frames_to_next = 0;
-	movie.points.push_back(kf);
-	update_inner_table(false);
+
+	Gtk::TreeModel::Row row = *(priv->m_refTreeModel->append());
+	row[priv->m_columns.m_centre_re] = plot.centre.real();
+	row[priv->m_columns.m_centre_im] = plot.centre.imag();
+	row[priv->m_columns.m_size_re] = plot.size.real();
+	row[priv->m_columns.m_size_im] = plot.size.imag();
+	row[priv->m_columns.m_hold_frames] = 0;
+	row[priv->m_columns.m_frames_next] = 100;
 	// TODO Once we have delete, check for leaks
 }
 void MovieWindow::do_reset() {
