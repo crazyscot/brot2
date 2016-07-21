@@ -59,14 +59,13 @@ class ModelColumns : public Gtk::TreeModel::ColumnRecord {
 
 class MovieWindowPrivate {
 	friend class MovieWindow;
-	Util::HandyEntry<unsigned> *f_height, *f_width; // GTK::manage()
-	Gtk::Label *next_here_label; // Managed
 	ModelColumns m_columns;
 	Gtk::TreeView m_keyframes;
 	Glib::RefPtr<Gtk::ListStore> m_refTreeModel;
+	Util::HandyEntry<unsigned> f_height, f_width;
 	Gtk::CheckButton f_hud, f_antialias;
 
-	MovieWindowPrivate() : f_height(0), f_width(0), f_hud("Draw HUD"), f_antialias("Antialias")
+	MovieWindowPrivate() : f_height(5), f_width(5), f_hud("Draw HUD"), f_antialias("Antialias")
 	{
 	}
 };
@@ -85,19 +84,17 @@ MovieWindow::MovieWindow(MainWindow& _mw, std::shared_ptr<const Prefs> prefs) : 
     tbl = Gtk::manage(new Gtk::Table());
 	lbl = Gtk::manage(new Gtk::Label("Height"));
 	tbl->attach(*lbl, 0, 1, 0, 1, Gtk::AttachOptions::FILL, Gtk::AttachOptions::FILL|Gtk::AttachOptions::EXPAND, 5);
-	priv->f_height = Gtk::manage(new Util::HandyEntry<unsigned>(5));
-	tbl->attach(*(priv->f_height), 1, 2, 0, 1, Gtk::AttachOptions::SHRINK);
+	tbl->attach(priv->f_height, 1, 2, 0, 1, Gtk::AttachOptions::SHRINK);
 	lbl = Gtk::manage(new Gtk::Label("Width"));
 	tbl->attach(*lbl, 2, 3, 0, 1, Gtk::AttachOptions::FILL, Gtk::AttachOptions::FILL|Gtk::AttachOptions::EXPAND, 5);
-	priv->f_width = Gtk::manage(new Util::HandyEntry<unsigned>(5));
-	tbl->attach(*(priv->f_width), 3, 4, 0, 1, Gtk::AttachOptions::SHRINK);
+	tbl->attach(priv->f_width, 3, 4, 0, 1, Gtk::AttachOptions::SHRINK);
 	tbl->attach(priv->f_hud, 4,5, 0, 1);
 	tbl->attach(priv->f_antialias, 6,7, 0, 1);
 
 	// Defaults.
 	// LATER: Could remember these from last time?
-	priv->f_height->update(300);
-	priv->f_width->update(300);
+	priv->f_height.update(300);
+	priv->f_width.update(300);
 	priv->f_antialias.set_active(true);
 	priv->f_hud.set_active(false);
 
@@ -193,16 +190,16 @@ void MovieWindow::do_render() {
 		movie.points.push_back(kf);
 	}
 
-	if (!priv->f_height->read(movie.height)) {
+	if (!priv->f_height.read(movie.height)) {
 		Util::alert(this, "Cannot parse height");
-		priv->f_height->set_text("");
-		priv->f_height->grab_focus();
+		priv->f_height.set_text("");
+		priv->f_height.grab_focus();
 		return;
 	}
-	if (!priv->f_width->read(movie.width)) {
+	if (!priv->f_width.read(movie.width)) {
 		Util::alert(this, "Cannot parse width");
-		priv->f_width->set_text("");
-		priv->f_width->grab_focus();
+		priv->f_width.set_text("");
+		priv->f_width.grab_focus();
 		return;
 	}
 	movie.draw_hud = priv->f_hud.get_active();
