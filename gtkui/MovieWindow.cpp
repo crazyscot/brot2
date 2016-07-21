@@ -157,8 +157,7 @@ void MovieWindow::do_add() {
 	// TODO Once we have delete, check for leaks
 }
 void MovieWindow::do_reset() {
-	Util::alert(this, "Reset NYI");
-	// TODO WRITEME
+	priv->m_refTreeModel->clear();
 }
 void MovieWindow::do_render() {
 	Util::alert(this, "Render NYI");
