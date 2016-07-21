@@ -177,8 +177,14 @@ void MovieWindow::do_reset() {
 	priv->m_refTreeModel->clear();
 }
 void MovieWindow::do_render() {
-	movie.points.clear();
+	// Doesn't make sense to make a movie with fewer than two points...
 	auto rows = priv->m_refTreeModel->children();
+	if (rows.size() < 2) {
+		Util::alert(this, "You need to specify at least two key frames to make a movie");
+		return;
+	}
+
+	movie.points.clear();
 	for (auto it = rows.begin(); it != rows.end(); it++) {
 		struct KeyFrame kf;
 		kf.centre.real((*it)[priv->m_columns.m_centre_re]);
