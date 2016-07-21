@@ -90,6 +90,10 @@ MovieWindow::MovieWindow(MainWindow& _mw, std::shared_ptr<const Prefs> prefs) : 
 	tbl->attach(*lbl, 2, 3, 0, 1, Gtk::AttachOptions::FILL, Gtk::AttachOptions::FILL|Gtk::AttachOptions::EXPAND, 5);
 	priv->f_width = Gtk::manage(new Util::HandyEntry<unsigned>(5));
 	tbl->attach(*(priv->f_width), 3, 4, 0, 1, Gtk::AttachOptions::SHRINK);
+
+	// Defaults:
+	priv->f_height->update(300);
+	priv->f_width->update(300);
 	// TODO add the other whole-movie controls:
 	//     fractal, palette
 	//     Hud, AA
@@ -179,6 +183,18 @@ void MovieWindow::do_render() {
 		movie.points.push_back(kf);
 	}
 
+	if (!priv->f_height->read(movie.height)) {
+		Util::alert(this, "Cannot parse height");
+		priv->f_height->set_text("");
+		priv->f_height->grab_focus();
+		return;
+	}
+	if (!priv->f_width->read(movie.width)) {
+		Util::alert(this, "Cannot parse width");
+		priv->f_width->set_text("");
+		priv->f_width->grab_focus();
+		return;
+	}
 	// Temporary for now, just spit out the key frames to show we've read them correctly
 	int id=0;
 	for (auto it = movie.points.begin(); it != movie.points.end(); it++) {
