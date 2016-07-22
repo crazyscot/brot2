@@ -29,6 +29,9 @@ class MovieWindowPrivate;
 namespace Gtk {
 	class Table;
 }
+namespace Movie {
+	class Renderer;
+};
 
 class MovieWindow: public Gtk::Window{
 	protected:
@@ -51,6 +54,8 @@ class MovieWindow: public Gtk::Window{
 		void do_render();
 		void do_update_duration();
 		void do_update_duration2(const Gtk::TreeModel::Path&, const Gtk::TreeModel::iterator&);
+
+		bool run_filename(std::string& filename, Movie::Renderer*& ren);
 };
 
 #endif // MOVIEWINDOW_H

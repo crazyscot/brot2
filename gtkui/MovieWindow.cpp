@@ -18,6 +18,7 @@
 
 #include "png.h" // see launchpad 218409
 #include "MovieWindow.h"
+#include "MovieRender.h"
 #include "MainWindow.h"
 #include "Fractal.h"
 #include "Prefs.h"
@@ -26,11 +27,13 @@
 #include "Plot3Plot.h"
 
 #include <gtkmm/dialog.h>
+#include <gtkmm/filechooserdialog.h>
 #include <gtkmm/table.h>
 #include <gtkmm/frame.h>
 #include <gtkmm/box.h>
 #include <gtkmm/stock.h>
 #include <gtkmm/combobox.h>
+#include <gtkmm/comboboxtext.h>
 #include <gtkmm/liststore.h>
 #include <gtkmm/enums.h>
 #include <gtkmm/alignment.h>
@@ -120,8 +123,6 @@ MovieWindow::MovieWindow(MainWindow& _mw, std::shared_ptr<const Prefs> prefs) : 
 
 	priv->f_fps.signal_changed().connect(sigc::mem_fun(*this, &MovieWindow::do_update_duration)); // Must do this after setting initial value
 
-	// TODO add the other whole-movie controls:
-	//     Output filename/type. (Or does this go on Render?)
 	wholemovie->add(*tbl);
 	vbox->pack_start(*wholemovie);
 
@@ -134,6 +135,7 @@ MovieWindow::MovieWindow(MainWindow& _mw, std::shared_ptr<const Prefs> prefs) : 
 
 	// The GTK TreeView code can only automatically handle certain types and we are likely going to have to create a custom CellRenderer in what is currently ColumnFV here.
 	// Grep for glibmm__CustomBoxed_t in /usr/include/gtkmm-2.4/gtkmm/treeview.h and read that comment carefully.
+	// possible C example: http://scentric.net/tutorial/sec-treeview-col-celldatafunc.html
 #define ColumnFV(_title, _field) do { priv->m_keyframes.append_column_numeric(_title, priv->m_columns._field, "%Lf"); } while(0)
 #define ColumnEditable(_title, _field) do { priv->m_keyframes.append_column_editable(_title, priv->m_columns._field); } while(0)
 
@@ -276,8 +278,50 @@ void MovieWindow::do_render() {
 			<< std::endl;
 		++id;
 	}
+
+	std::string filename;
+	Movie::Renderer * ren;
+	if (!run_filename(filename, ren))
+		return;
+
+	std::cout << "Filename " << filename << "; renderer " << ren->name << std::endl; // TODO
 	Util::alert(this, "Render NYI"); // TODO
 }
+
+class RenderFileChooserExtra : public Gtk::VBox {
+	public:
+		Gtk::Label lbl;
+		Gtk::ComboBoxText f_type;
+
+		RenderFileChooserExtra() : lbl("Select render type"), f_type() {
+			auto types = Movie::Renderer::all_renderers.names();
+			for (auto it=types.begin(); it!=types.end(); it++)
+				f_type.append(*it);
+
+			pack_start(lbl);
+			pack_start(f_type);
+			show_all();
+			// TODO Type of save sets filename extension
+		}
+};
+
+bool MovieWindow::run_filename(std::string& filename, Movie::Renderer*& ren)
+{
+	Gtk::FileChooserDialog dialog(*this, "Save Movie", Gtk::FileChooserAction::FILE_CHOOSER_ACTION_SAVE);
+	dialog.set_do_overwrite_confirmation(true);
+	dialog.add_button(Gtk::Stock::CANCEL, Gtk::ResponseType::RESPONSE_CANCEL);
+	dialog.add_button(Gtk::Stock::SAVE, Gtk::ResponseType::RESPONSE_ACCEPT);
+
+	RenderFileChooserExtra extra;
+	dialog.set_extra_widget(extra);
+
+	int rv = dialog.run();
+	if (rv != Gtk::ResponseType::RESPONSE_ACCEPT) return false;
+	ren = Movie::Renderer::all_renderers.get(extra.f_type.get_active_text());
+	filename = dialog.get_filename();
+	return true;
+}
+
 
 void MovieWindow::reset() {
 	movie.fractal = 0;
