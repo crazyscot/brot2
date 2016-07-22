@@ -299,10 +299,12 @@ bool MovieWindow::on_delete_event(GdkEventAny *evt) {
 
 void MovieWindow::do_update_duration() {
 	auto rows = priv->m_refTreeModel->children();
-	unsigned frames = 0;
+	unsigned frames = 0, last_traverse = 0;
 	for (auto it = rows.begin(); it != rows.end(); it++) {
 		frames += (*it)[priv->m_columns.m_hold_frames];
-		frames += (*it)[priv->m_columns.m_frames_next];
+		// Don't count Traverse frames unless there is something to traverse to
+		frames += last_traverse;
+		last_traverse = (*it)[priv->m_columns.m_frames_next];
 	}
 	if (frames == 0) {
 		priv->f_duration.set_text("");
