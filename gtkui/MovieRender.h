@@ -30,6 +30,7 @@
 namespace Movie {
 
 class Renderer;
+class RenderInstancePrivate {}; // Used by Renderer to store private data
 
 class Renderer {
 
@@ -38,12 +39,22 @@ class Renderer {
 
 	public:
 		const std::string name;
-		virtual void render(struct Movie::MovieInfo& movie) = 0;
+
+		void render(const std::string& filename, const struct Movie::MovieInfo& movie);
+
+		// Initialise render run, alloc Private if needed
+		virtual void render_top(const std::string& filename, const struct Movie::MovieInfo& movie, Movie::RenderInstancePrivate** priv) = 0;
+
+		// Called for each keyframe
+		virtual void render_each(const struct Movie::KeyFrame& kf, Movie::RenderInstancePrivate *priv) = 0;
+
+		// Finish up, flush file, delete Private
+		virtual void render_tail(Movie::RenderInstancePrivate *priv) = 0;
+
 		virtual ~Renderer();
 
 		static SimpleRegistry<Renderer> all_renderers;
 };
-
 
 }; // namespace Movie
 
