@@ -297,6 +297,7 @@ class RenderFileChooserExtra : public Gtk::VBox {
 			auto types = Movie::Renderer::all_renderers.names();
 			for (auto it=types.begin(); it!=types.end(); it++)
 				f_type.append(*it);
+			f_type.set_active(0);
 
 			pack_start(lbl);
 			pack_start(f_type);
