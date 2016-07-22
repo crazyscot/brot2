@@ -104,12 +104,12 @@ class ScriptB2CLI : public Movie::Renderer {
 			Private *mypriv = new Private(movie, filename);
 			*priv = mypriv;
 			mypriv->fs
-				<< "#!/bin/bash" << endl
+				<< "#!/bin/bash -x" << endl
 				<< "# brot2 generated movie script" << endl
 				<< endl
 				<< "BROT2CLI=\"" << b2cli << "\"" << endl
 				<< "OUTDIR=\"" << outdir << "\"" << endl
-				<< "OUTNAME=\"render.\"" << endl
+				<< "OUTNAME=\"render\"" << endl
 				<< endl
 				;
 		}
@@ -123,7 +123,6 @@ class ScriptB2CLI : public Movie::Renderer {
 				<< " -h " << mypriv->movie.height
 				<< " -w " << mypriv->movie.width
 				<< " -o \"${OUTDIR}/${OUTNAME}." << setfill('0') << setw(6) << (mypriv->fileno++) << ".png\""
-				<< " -q"
 				;
 			if (mypriv->movie.draw_hud)
 				mypriv->fs << " -H";
