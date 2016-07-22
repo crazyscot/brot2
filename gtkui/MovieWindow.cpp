@@ -227,7 +227,7 @@ void MovieWindow::do_render() {
 
 	movie.points.clear();
 	for (auto it = rows.begin(); it != rows.end(); it++) {
-		struct KeyFrame kf;
+		struct Movie::KeyFrame kf;
 		kf.centre.real((*it)[priv->m_columns.m_centre_re]);
 		kf.centre.imag((*it)[priv->m_columns.m_centre_im]);
 		kf.size.real((*it)[priv->m_columns.m_size_re]);

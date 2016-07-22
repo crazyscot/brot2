@@ -25,13 +25,15 @@
 #include "palette.h"
 #include <vector>
 
+namespace Movie {
+
 struct KeyFrame {
 	Fractal::Point centre, size;
 	unsigned hold_frames; // How many video frames to linger on this render
 	unsigned frames_to_next; // How many video frames from this point to the next. Ignored unless there is another member in the points vector.
 };
 
-struct Movie {
+struct MovieInfo {
 	const Fractal::FractalImpl * fractal;
 	const BasePalette * palette;
 	unsigned width, height;
@@ -39,7 +41,9 @@ struct Movie {
 	unsigned fps;
 	std::vector<KeyFrame> points;
 
-	Movie() : fractal(0), palette(0), width(0), height(0), fps(0) {}
+	MovieInfo() : fractal(0), palette(0), width(0), height(0), fps(0) {}
 };
+
+}; // namespace Movie
 
 #endif // MOVIEMODE_H

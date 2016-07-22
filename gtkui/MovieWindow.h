@@ -34,7 +34,7 @@ class MovieWindow: public Gtk::Window{
 	protected:
 		MainWindow& mw;
 		std::shared_ptr<const BrotPrefs::Prefs> _prefs; // master
-		struct Movie movie;
+		struct Movie::MovieInfo movie;
 		MovieWindowPrivate *priv;
 
 	public:
