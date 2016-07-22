@@ -37,10 +37,45 @@ Movie::Renderer::~Renderer() {
 void Movie::Renderer::render(const std::string& filename, const struct Movie::MovieInfo& movie) {
 	RenderInstancePrivate * priv;
 	render_top(filename, movie, &priv);
-	// ... go do it XXX
-	//
+
+	auto iter = movie.points.begin();
+
+	struct Movie::Frame f1;
+	f1.centre.real(iter->centre.real());
+	f1.centre.imag(iter->centre.imag());
+	f1.size.real(  iter->size.real());
+	for (unsigned i=0; i<iter->hold_frames; i++)
+		render_frame(f1, priv);
+	unsigned traverse = iter->frames_to_next;
+	iter++;
+
+	for (; iter != movie.points.end(); iter++) {
+		struct Movie::Frame ft(f1);
+		struct Movie::Frame f2;
+		f2.centre.real(iter->centre.real());
+		f2.centre.imag(iter->centre.imag());
+		f2.size.real  (iter->size.real());
+
+		// TODO maybe geometric step?
+		Fractal::Point step = (f2.centre - f1.centre) / traverse;
+		Fractal::Point step_size = (f2.size - f1.size) / traverse;
+
+		for (unsigned i=0; i<traverse; i++) {
+			ft.centre += step;
+			ft.size += step_size;
+			render_frame(ft, priv);
+		}
+		for (unsigned i=0; i<iter->hold_frames; i++)
+			render_frame(f2, priv);
+
+		traverse = iter->frames_to_next;
+		f1 = f2;
+	}
 	render_tail(priv);
 }
+
+// ------------------------------------------------------------------------------
+// Outputs a script to drive brot2cli
 
 class ScriptB2CLI : public Movie::Renderer {
 	class Private : public Movie::RenderInstancePrivate {
