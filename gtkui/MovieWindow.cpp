@@ -306,10 +306,6 @@ void MovieWindow::do_update_duration() {
 		frames += last_traverse;
 		last_traverse = (*it)[priv->m_columns.m_frames_next];
 	}
-	if (frames == 0) {
-		priv->f_duration.set_text("");
-		return;
-	}
 	std::ostringstream msg;
 	unsigned fps = 0;
 	if (priv->f_fps.read(fps) && fps > 0) {
