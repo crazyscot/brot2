@@ -78,11 +78,11 @@ class ScriptB2CLI : public Movie::Renderer {
 				<< endl
 				;
 		}
-		void render_each(const struct Movie::KeyFrame& kf, Movie::RenderInstancePrivate *priv) {
+		void render_frame(const struct Movie::Frame& fr, Movie::RenderInstancePrivate *priv) {
 			Private * mypriv = (Private*)(priv);
 			mypriv->fs
-				<< "${BROT2CLI} -X " << kf.centre.real() << " -Y " << kf.centre.imag()
-				<< " -l " << kf.size.real()
+				<< "${BROT2CLI} -X " << fr.centre.real() << " -Y " << fr.centre.imag()
+				<< " -l " << fr.size.real()
 				<< " -f \"" << mypriv->movie.fractal->name << "\""
 				<< " -p \"" << mypriv->movie.palette->name << "\""
 				<< " -h " << mypriv->movie.height

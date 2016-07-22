@@ -45,8 +45,8 @@ class Renderer {
 		// Initialise render run, alloc Private if needed
 		virtual void render_top(const std::string& filename, const struct Movie::MovieInfo& movie, Movie::RenderInstancePrivate** priv) = 0;
 
-		// Called for each keyframe
-		virtual void render_each(const struct Movie::KeyFrame& kf, Movie::RenderInstancePrivate *priv) = 0;
+		// Called for each frame
+		virtual void render_frame(const struct Movie::Frame& kf, Movie::RenderInstancePrivate *priv) = 0;
 
 		// Finish up, flush file, delete Private
 		virtual void render_tail(Movie::RenderInstancePrivate *priv) = 0;

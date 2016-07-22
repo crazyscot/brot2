@@ -27,6 +27,10 @@
 
 namespace Movie {
 
+struct Frame {
+	Fractal::Point centre, size;
+};
+
 struct KeyFrame {
 	Fractal::Point centre, size;
 	unsigned hold_frames; // How many video frames to linger on this render
