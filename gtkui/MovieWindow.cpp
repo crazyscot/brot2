@@ -121,7 +121,6 @@ MovieWindow::MovieWindow(MainWindow& _mw, std::shared_ptr<const Prefs> prefs) : 
 	priv->f_fps.signal_changed().connect(sigc::mem_fun(*this, &MovieWindow::do_update_duration)); // Must do this after setting initial value
 
 	// TODO add the other whole-movie controls:
-	//     fractal, palette (not editable; grab from first on Add, warn if changed)
 	//     Output filename/type. (Or does this go on Render?)
 	wholemovie->add(*tbl);
 	vbox->pack_start(*wholemovie);
@@ -188,6 +187,26 @@ void MovieWindow::do_add() {
 	row[priv->m_columns.m_frames_next] = 100;
 	Gtk::TreePath path(row);
 	priv->m_keyframes.set_cursor(path, *priv->m_keyframes.get_column(4), true); // !! Hard-wired column number
+
+	bool changed=false;
+	if (movie.fractal != &plot.fract) {
+		std::ostringstream str;
+		str << "<b>" << plot.fract.name << "</b>";
+		priv->f_fractal.set_markup(str.str());
+		if (movie.fractal)
+			changed = true;
+		movie.fractal = &plot.fract;
+	}
+	if (movie.palette != mw.pal) {
+		std::ostringstream str;
+		str << "<b>" << mw.pal->name << "</b>";
+		priv->f_palette.set_markup(str.str());
+		if (movie.palette)
+			changed = true;
+		movie.palette = mw.pal;
+	}
+	if (changed)
+		Util::alert(this, "Fractal or palette have changed, only the last specified will be used to make the movie");
 }
 void MovieWindow::do_delete() {
 	auto rp = priv->m_keyframes.get_selection()->get_selected();
@@ -241,7 +260,8 @@ void MovieWindow::do_render() {
 
 	// Temporary for now, just spit out the key frames to show we've read them correctly
 	std::cout << "Movie"
-		<< " H " << movie.height << " W " << movie.width
+		<< " " << movie.fractal->name << "/" << movie.palette->name
+		<< "; H " << movie.height << " W " << movie.width
 		<< "; Antialias " << movie.antialias << "; HUD " << movie.draw_hud
 		<< "; " << movie.fps << " fps"
 		<< std::endl;
