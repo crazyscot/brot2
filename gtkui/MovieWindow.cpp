@@ -260,32 +260,12 @@ void MovieWindow::do_render() {
 	movie.draw_hud = priv->f_hud.get_active();
 	movie.antialias = priv->f_antialias.get_active();
 
-	// Temporary for now, just spit out the key frames to show we've read them correctly
-	std::cout << "Movie"
-		<< " " << movie.fractal->name << "/" << movie.palette->name
-		<< "; H " << movie.height << " W " << movie.width
-		<< "; Antialias " << movie.antialias << "; HUD " << movie.draw_hud
-		<< "; " << movie.fps << " fps"
-		<< std::endl;
-	int id=0;
-	for (auto it = movie.points.begin(); it != movie.points.end(); it++) {
-		std::cout
-			<< "KF " << id
-			<< " C @ " << it->centre.real() << " + " << it->centre.imag() << "i;"
-			<< " size " << it->size.real() << " + " << it->size.imag() << "i;"
-			<< " hold " << it->hold_frames << ";"
-			<< " intermediates " << it->frames_to_next
-			<< std::endl;
-		++id;
-	}
-
 	std::string filename;
 	Movie::Renderer * ren;
 	if (!run_filename(filename, ren))
 		return;
 
-	std::cout << "Filename " << filename << "; renderer " << ren->name << std::endl; // TODO
-	Util::alert(this, "Render NYI"); // TODO
+	ren->render(filename, movie);
 }
 
 class RenderFileChooserExtra : public Gtk::VBox {
@@ -315,6 +295,7 @@ bool MovieWindow::run_filename(std::string& filename, Movie::Renderer*& ren)
 
 	RenderFileChooserExtra extra;
 	dialog.set_extra_widget(extra);
+	// TODO Remember last saved directory (from SaveAsPNG, commonify?)
 
 	int rv = dialog.run();
 	if (rv != Gtk::ResponseType::RESPONSE_ACCEPT) return false;
