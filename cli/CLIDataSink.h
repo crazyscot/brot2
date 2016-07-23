@@ -28,7 +28,7 @@ class CLIDataSink : public Plot3::IPlot3DataSink {
 		// Otherwise assumes something sensible.
 		CLIDataSink(int columns=0, bool silent=false);
 
-		void set_plot(Plot3::Plot3Plot* plot) { _plot = plot; }
+		void set_plot(Plot3::Plot3Plot* plot);
 
 		virtual void chunk_done(Plot3::Plot3Chunk* job);
 		virtual void pass_complete(std::string&);
@@ -36,14 +36,17 @@ class CLIDataSink : public Plot3::IPlot3DataSink {
 
 		virtual ~CLIDataSink() {}
 
-		std::set<Plot3::Plot3Chunk*> _chunks_done;
+		bool is_done() const { return flagged_done; }
+		std::set<Plot3::Plot3Chunk*> get_chunks_done();
 
 	protected:
 		int ncolumns;
 		bool quiet;
 		Plot3::Plot3Plot* _plot;
 		std::atomic<int> _chunks_this_pass; // Reset to 0 on pass completion.
-		std::mutex _terminal_lock;
+		std::mutex _mux;
+		std::atomic<bool> flagged_done;
+		std::set<Plot3::Plot3Chunk*> _chunks_done; // Must hold _mux before access
 };
 
 #endif /* CLIDATASINK_H */

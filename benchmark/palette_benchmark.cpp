@@ -72,7 +72,7 @@ public:
 protected:
 	virtual void run() {
 		Render2::PNG png(width, height, *palette, -1, false/*AA*/);
-		for (auto it : sink._chunks_done)
+		for (auto it : sink.get_chunks_done())
 			png.process(*it);
 	}
 };

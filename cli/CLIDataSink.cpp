@@ -38,7 +38,7 @@ using namespace Plot3;
 #endif
 
 CLIDataSink::CLIDataSink(int columns, bool silent) :
-	ncolumns(columns), quiet(silent), _plot(0), _chunks_this_pass(0)
+	ncolumns(columns), quiet(silent), _plot(0), _chunks_this_pass(0), flagged_done(false)
 {
 	if (!ncolumns) {
 		struct winsize w;
@@ -52,13 +52,14 @@ CLIDataSink::CLIDataSink(int columns, bool silent) :
 
 void CLIDataSink::chunk_done(Plot3Chunk* job)
 {
+	std::unique_lock<std::mutex> lock(_mux);
 	_chunks_done.insert(job);
 	_chunks_this_pass++;
 
 	if (quiet) return;
 	float workdone = (float)_chunks_this_pass / _plot->chunks_total();
-	// Without this lock, multiple threads bicker over the screen and make a mess.
-	std::unique_lock<std::mutex> lock(_terminal_lock);
+
+	// Must hold the lock, otherwise multiple threads bicker over the screen:
 	ASSERT(workdone <= 1.0);
 	if (ncolumns > 10) {
 		int j, n=ncolumns * workdone;
@@ -79,4 +80,21 @@ void CLIDataSink::pass_complete(std::string& commentary)
 
 void CLIDataSink::plot_complete()
 {
+	flagged_done = true;
+}
+
+std::set<Plot3::Plot3Chunk*> CLIDataSink::get_chunks_done()
+{
+	std::set<Plot3::Plot3Chunk*> set;
+	std::unique_lock<std::mutex> lock(_mux);
+	for (auto it = _chunks_done.cbegin(); it != _chunks_done.cend(); it++)
+		set.insert(*it);
+	return set;
+}
+
+void CLIDataSink::set_plot(Plot3::Plot3Plot* plot)
+{
+	std::unique_lock<std::mutex> lock(_mux);
+	ASSERT(!_plot);
+	_plot = plot;
 }
