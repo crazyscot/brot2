@@ -42,6 +42,7 @@
 #include "SaveAsPNG.h"
 
 using namespace BrotPrefs;
+using namespace SavePNG;
 
 namespace menus {
 

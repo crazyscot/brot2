@@ -31,6 +31,8 @@ class MainWindow;
 #include <string>
 #include <memory>
 
+namespace SavePNG {
+
 class SaveAsPNG;
 
 struct PNGProgressWindow: public Gtk::Window, Plot3::IPlot3DataSink {
@@ -45,7 +47,7 @@ struct PNGProgressWindow: public Gtk::Window, Plot3::IPlot3DataSink {
 };
 
 class SaveAsPNG {
-	friend class MainWindow;
+	friend class ::MainWindow;
 	friend class PNGProgressWindow;
 
 	// Private constructor! Called by do_save().
@@ -86,5 +88,7 @@ public:
 
 	virtual ~SaveAsPNG();
 };
+
+}; // namespace SavePNG
 
 #endif /* SAVEASPNG_H_ */

@@ -42,6 +42,7 @@
 using namespace Plot3;
 using namespace std;
 using namespace Render2;
+using namespace SavePNG;
 
 const double MainWindow::ZOOM_FACTOR = 2.0f;
 
