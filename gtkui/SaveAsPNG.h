@@ -35,12 +35,12 @@ namespace SavePNG {
 
 class SaveAsPNG;
 
-struct PNGProgressWindow: public Gtk::Window, Plot3::IPlot3DataSink {
+struct SingleProgressWindow: public Gtk::Window, Plot3::IPlot3DataSink {
 	MainWindow& parent;
 	SaveAsPNG& job;
 	Gtk::ProgressBar *progbar;
 	int _chunks_this_pass;
-	PNGProgressWindow(MainWindow& p, SaveAsPNG& j);
+	SingleProgressWindow(MainWindow& p, SaveAsPNG& j);
 	virtual void chunk_done(Plot3::Plot3Chunk* chunk);
 	virtual void pass_complete(std::string& commentary);
 	virtual void plot_complete();
@@ -48,7 +48,7 @@ struct PNGProgressWindow: public Gtk::Window, Plot3::IPlot3DataSink {
 
 class SaveAsPNG {
 	friend class ::MainWindow;
-	friend class PNGProgressWindow;
+	friend class SingleProgressWindow;
 
 	// Private constructor! Called by do_save().
 	SaveAsPNG(MainWindow* mw, Fractal::Point centre, Fractal::Point size, unsigned width, unsigned height, bool antialias, bool do_hud, std::string&name);
@@ -62,7 +62,7 @@ private:
 	void instance_to_png(MainWindow *mw);
 
 	// Delete on destruct:
-	PNGProgressWindow reporter;
+	SingleProgressWindow reporter;
 	std::shared_ptr<Plot3::ChunkDivider::Base> divider;
 	const int aafactor;
 	Plot3::Plot3Plot plot;

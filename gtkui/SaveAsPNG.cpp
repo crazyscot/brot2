@@ -72,7 +72,7 @@ void SaveAsPNG::to_png(MainWindow *mw, unsigned rwidth, unsigned rheight,
 	}
 }
 
-PNGProgressWindow::PNGProgressWindow(MainWindow& p, SaveAsPNG& j) : parent(p), job(j), _chunks_this_pass(0) {
+SingleProgressWindow::SingleProgressWindow(MainWindow& p, SaveAsPNG& j) : parent(p), job(j), _chunks_this_pass(0) {
 	set_transient_for(parent);
 	set_title("Save as PNG");
 	Gtk::VBox* box = Gtk::manage(new Gtk::VBox());
@@ -84,7 +84,7 @@ PNGProgressWindow::PNGProgressWindow(MainWindow& p, SaveAsPNG& j) : parent(p), j
 	show_all();
 }
 
-void PNGProgressWindow::chunk_done(Plot3Chunk*) {
+void SingleProgressWindow::chunk_done(Plot3Chunk*) {
 	// We're not doing anything with the completed chunks, they're picked up en masse at the end.
 	_chunks_this_pass++;
 	float workdone = (float) _chunks_this_pass / job.get_chunks_count();
@@ -96,7 +96,7 @@ void PNGProgressWindow::chunk_done(Plot3Chunk*) {
 	gdk_threads_leave();
 }
 
-void PNGProgressWindow::pass_complete(std::string& commentary) {
+void SingleProgressWindow::pass_complete(std::string& commentary) {
 	_chunks_this_pass=0;
 	gdk_threads_enter();
 	progbar->set_text(commentary);
@@ -106,7 +106,7 @@ void PNGProgressWindow::pass_complete(std::string& commentary) {
 	gdk_threads_leave();
 }
 
-void PNGProgressWindow::plot_complete() {
+void SingleProgressWindow::plot_complete() {
 	std::shared_ptr<SaveAsPNG> png (&job);
 	parent.queue_png(png);
 }
