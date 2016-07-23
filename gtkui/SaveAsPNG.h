@@ -99,6 +99,13 @@ public:
 	virtual ~Single();
 };
 
+
+class MovieFrame : public Base {
+	public:
+		MovieFrame(std::shared_ptr<const BrotPrefs::Prefs> prefs, ThreadPool& threads, const Fractal::FractalImpl& fractal, const BasePalette& palette, Plot3::IPlot3DataSink& sink, Fractal::Point centre, Fractal::Point size, unsigned width, unsigned height, bool antialias, bool do_hud, std::string& name);
+		virtual ~MovieFrame();
+};
+
 }; // namespace SavePNG
 
 #endif /* SAVEASPNG_H_ */

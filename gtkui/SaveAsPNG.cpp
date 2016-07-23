@@ -258,6 +258,12 @@ Single::Single(MainWindow* mw, Fractal::Point centre, Fractal::Point size, unsig
 {
 }
 
+MovieFrame::MovieFrame(std::shared_ptr<const Prefs> prefs, ThreadPool& threads, Fractal::FractalImpl& fractal, BasePalette& palette, Plot3::IPlot3DataSink& sink, Fractal::Point centre, Fractal::Point size, unsigned width, unsigned height, bool antialias, bool do_hud, string& filename) :
+		Base(prefs, threads, fractal, palette, sink, centre, size, width, height, antialias, do_hud, filename)
+{
+}
+
+
 void SavePNG::Base::start(void)
 {
 	plot.start();
@@ -273,6 +279,10 @@ SavePNG::Base::~Base()
 }
 
 SavePNG::Single::~Single()
+{
+}
+
+SavePNG::MovieFrame::~MovieFrame()
 {
 }
 
