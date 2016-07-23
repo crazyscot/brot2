@@ -268,6 +268,13 @@ void MovieWindow::do_render() {
 	ren->render(filename, movie);
 }
 
+inline bool ends_with(std::string const & value, std::string const & ending)
+{
+	/* Found on Stack Overflow */
+	if (ending.size() > value.size()) return false;
+	return std::equal(ending.rbegin(), ending.rend(), value.rbegin());
+}
+
 bool MovieWindow::run_filename(std::string& filename, Movie::Renderer*& ren)
 {
 	Gtk::FileChooserDialog dialog(*this, "Save Movie", Gtk::FileChooserAction::FILE_CHOOSER_ACTION_SAVE);
@@ -287,8 +294,17 @@ bool MovieWindow::run_filename(std::string& filename, Movie::Renderer*& ren)
 
 	int rv = dialog.run();
 	if (rv != Gtk::ResponseType::RESPONSE_ACCEPT) return false;
-	ren = Movie::Renderer::all_renderers.get(dialog.get_filter()->get_name());
+	Gtk::FileFilter *filter = dialog.get_filter();
+	ren = Movie::Renderer::all_renderers.get(filter->get_name());
 	filename = dialog.get_filename();
+	{
+		// Attempt to enforce file extension.. there are probably better ways to do this.
+		std::string extn(ren->pattern);
+		if (extn[0] == '*')
+			extn.erase(0,1);
+		if (!ends_with(filename,extn))
+			filename.append(extn);
+	}
 	return true;
 }
 
