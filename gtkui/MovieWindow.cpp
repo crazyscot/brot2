@@ -268,24 +268,6 @@ void MovieWindow::do_render() {
 	ren->render(filename, movie);
 }
 
-class RenderFileChooserExtra : public Gtk::VBox {
-	public:
-		Gtk::Label lbl;
-		Gtk::ComboBoxText f_type;
-
-		RenderFileChooserExtra() : lbl("Select render type"), f_type() {
-			auto types = Movie::Renderer::all_renderers.names();
-			for (auto it=types.begin(); it!=types.end(); it++)
-				f_type.append(*it);
-			f_type.set_active(0);
-
-			pack_start(lbl);
-			pack_start(f_type);
-			show_all();
-			// TODO Type of save sets filename extension
-		}
-};
-
 bool MovieWindow::run_filename(std::string& filename, Movie::Renderer*& ren)
 {
 	Gtk::FileChooserDialog dialog(*this, "Save Movie", Gtk::FileChooserAction::FILE_CHOOSER_ACTION_SAVE);
@@ -293,13 +275,19 @@ bool MovieWindow::run_filename(std::string& filename, Movie::Renderer*& ren)
 	dialog.add_button(Gtk::Stock::CANCEL, Gtk::ResponseType::RESPONSE_CANCEL);
 	dialog.add_button(Gtk::Stock::SAVE, Gtk::ResponseType::RESPONSE_ACCEPT);
 
-	RenderFileChooserExtra extra;
-	dialog.set_extra_widget(extra);
+	auto types = Movie::Renderer::all_renderers.names();
+	for (auto it=types.begin(); it!=types.end(); it++) {
+		Gtk::FileFilter *filter = Gtk::manage(new Gtk::FileFilter());
+		Movie::Renderer *ren = Movie::Renderer::all_renderers.get(*it);
+		filter->set_name(ren->name);
+		filter->add_pattern(ren->pattern);
+		dialog.add_filter(*filter);
+	}
 	// TODO Remember last saved directory (from SaveAsPNG, commonify?)
 
 	int rv = dialog.run();
 	if (rv != Gtk::ResponseType::RESPONSE_ACCEPT) return false;
-	ren = Movie::Renderer::all_renderers.get(extra.f_type.get_active_text());
+	ren = Movie::Renderer::all_renderers.get(dialog.get_filter()->get_name());
 	filename = dialog.get_filename();
 	return true;
 }
