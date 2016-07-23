@@ -51,6 +51,27 @@ class Base {
 		static std::string last_saved_dirname;
 		static std::string default_save_dir(void);
 		static void update_save_dir(const std::string& filename);
+
+		void start(); // ->plot.start()
+		void wait(); // -> plot.wait()
+		unsigned get_chunks_count() const { return plot.chunks_total(); }
+
+	protected:
+		Base(std::shared_ptr<const BrotPrefs::Prefs> prefs, ThreadPool& threads,
+				Fractal::FractalImpl& fractal, BasePalette& palette,
+				Plot3::IPlot3DataSink& sink,
+				Fractal::Point centre, Fractal::Point size,
+				unsigned width, unsigned height, bool antialias, bool do_hud, std::string&name);
+
+		std::shared_ptr<Plot3::ChunkDivider::Base> divider;
+		const int aafactor;
+		Plot3::Plot3Plot plot;
+		BasePalette *pal; // do NOT delete
+		std::string filename;
+		const unsigned _width, _height;
+		const bool _do_antialias, _do_hud;
+
+		virtual ~Base();
 };
 
 class Single : Base {
@@ -66,29 +87,14 @@ private:
 	static void to_png(MainWindow *mw, unsigned rwidth, unsigned rheight,
 			Plot3::Plot3Plot* plot, BasePalette* pal, bool antialias,
 			bool show_hud, std::string& filename);
-	void instance_to_png(MainWindow *mw);
+	void instance_to_png(MainWindow *mw); // For tidyup from MainWindow
 
-	// Delete on destruct:
 	SingleProgressWindow reporter;
-	std::shared_ptr<Plot3::ChunkDivider::Base> divider;
-	const int aafactor;
-	Plot3::Plot3Plot plot;
-
-	// do NOT delete:
-	BasePalette *pal;
-	std::string filename;
-	const unsigned _width, _height;
-	const bool _do_antialias, _do_hud;
-
-	void start(); // ->plot.start()
-	void wait(); // -> plot.wait()
 
 public:
 
 	// main entrypoint: runs the save dialog and DTRTs
 	static void do_save(MainWindow *mw);
-
-	unsigned get_chunks_count() const { return plot.chunks_total(); }
 
 	virtual ~Single();
 };
