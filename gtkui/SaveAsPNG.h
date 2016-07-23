@@ -46,7 +46,14 @@ struct SingleProgressWindow: public Gtk::Window, Plot3::IPlot3DataSink {
 	virtual void plot_complete();
 };
 
-class Single {
+class Base {
+	public:
+		static std::string last_saved_dirname;
+		static std::string default_save_dir(void);
+		static void update_save_dir(const std::string& filename);
+};
+
+class Single : Base {
 	friend class ::MainWindow;
 	friend class SingleProgressWindow;
 
@@ -77,14 +84,11 @@ private:
 	void wait(); // -> plot.wait()
 
 public:
-	static std::string last_saved_dirname;
 
 	// main entrypoint: runs the save dialog and DTRTs
 	static void do_save(MainWindow *mw);
 
 	unsigned get_chunks_count() const { return plot.chunks_total(); }
-	static std::string default_save_dir(void);
-	static void update_save_dir(const std::string& filename);
 
 	virtual ~Single();
 };

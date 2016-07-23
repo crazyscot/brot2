@@ -284,14 +284,14 @@ bool MovieWindow::run_filename(std::string& filename, Movie::Renderer*& ren)
 		filter->add_pattern(ren->pattern);
 		dialog.add_filter(*filter);
 	}
-	dialog.set_current_folder(SavePNG::Single::default_save_dir());
+	dialog.set_current_folder(SavePNG::Base::default_save_dir());
 
 	int rv = dialog.run();
 	if (rv != Gtk::ResponseType::RESPONSE_ACCEPT) return false;
 	Gtk::FileFilter *filter = dialog.get_filter();
 	ren = Movie::Renderer::all_renderers.get(filter->get_name());
 	filename = dialog.get_filename();
-	SavePNG::Single::update_save_dir(filename);
+	SavePNG::Base::update_save_dir(filename);
 	{
 		// Attempt to enforce file extension.. there are probably better ways to do this.
 		std::string extn(ren->pattern);

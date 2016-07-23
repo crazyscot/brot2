@@ -42,8 +42,6 @@ using namespace Plot3;
 using namespace BrotPrefs;
 using namespace SavePNG;
 
-std::string Single::last_saved_dirname = "";
-
 void Single::instance_to_png(MainWindow *mw)
 {
 	Single::to_png(mw, _width, _height, &plot, pal, _do_antialias, _do_hud, filename);
@@ -269,8 +267,10 @@ Single::~Single()
 {
 }
 
+std::string SavePNG::Base::last_saved_dirname = "";
+
 /*STATIC*/
-std::string Single::default_save_dir()
+std::string SavePNG::Base::default_save_dir()
 {
 	if (!last_saved_dirname.length()) {
 		std::shared_ptr<const Prefs> prefs = Prefs::getMaster();
@@ -297,7 +297,7 @@ std::string Single::default_save_dir()
 }
 
 /*STATIC*/
-void Single::update_save_dir(const std::string& filename)
+void SavePNG::Base::update_save_dir(const std::string& filename)
 {
 	last_saved_dirname.clear();
 	last_saved_dirname.append(filename);
