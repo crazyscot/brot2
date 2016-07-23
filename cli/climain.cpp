@@ -292,22 +292,19 @@ int main (int argc, char**argv)
 		return 4;
 	}
 	plot.wait();
+	ASSERT(sink.is_done());
 	if (!quiet)
 		std::cerr << std::endl << "Complete!" << std::endl;
 
 	Render2::PNG png(output_w, output_h, *selected_palette, -1, do_antialias);
-	for (auto it : sink._chunks_done) {
+	for (auto it : sink.get_chunks_done())
 		png.process(*it);
-	}
-	if (do_hud) {
+	if (do_hud)
 		BaseHUD::apply(png, prefs, &plot, false, false);
-	}
-	if (do_stdout) {
+	if (do_stdout)
 		png.write(std::cout);
-	} else {
+	else
 		png.write(filename);
-	}
-
 	if (do_info)
 		std::cout << plot.info(true) << std::endl;
 	return 0;
