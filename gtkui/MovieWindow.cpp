@@ -25,6 +25,7 @@
 #include "Exception.h"
 #include "misc.h"
 #include "Plot3Plot.h"
+#include "SaveAsPNG.h"
 
 #include <gtkmm/dialog.h>
 #include <gtkmm/filechooserdialog.h>
@@ -290,13 +291,14 @@ bool MovieWindow::run_filename(std::string& filename, Movie::Renderer*& ren)
 		filter->add_pattern(ren->pattern);
 		dialog.add_filter(*filter);
 	}
-	// TODO Remember last saved directory (from SaveAsPNG, commonify?)
+	dialog.set_current_folder(SaveAsPNG::default_save_dir());
 
 	int rv = dialog.run();
 	if (rv != Gtk::ResponseType::RESPONSE_ACCEPT) return false;
 	Gtk::FileFilter *filter = dialog.get_filter();
 	ren = Movie::Renderer::all_renderers.get(filter->get_name());
 	filename = dialog.get_filename();
+	SaveAsPNG::update_save_dir(filename);
 	{
 		// Attempt to enforce file extension.. there are probably better ways to do this.
 		std::string extn(ren->pattern);
