@@ -109,7 +109,13 @@ class HandyEntry: public Gtk::Entry {
 		}
 };
 
+inline bool ends_with(std::string const & value, std::string const & ending)
+{
+	/* Found on Stack Overflow */
+	if (ending.size() > value.size()) return false;
+	return std::equal(ending.rbegin(), ending.rend(), value.rbegin());
+}
+
 }; // namespace Util
 
 #endif // MISC_H_
-

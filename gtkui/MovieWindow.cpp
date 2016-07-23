@@ -269,13 +269,6 @@ void MovieWindow::do_render() {
 	ren->render(filename, movie);
 }
 
-inline bool ends_with(std::string const & value, std::string const & ending)
-{
-	/* Found on Stack Overflow */
-	if (ending.size() > value.size()) return false;
-	return std::equal(ending.rbegin(), ending.rend(), value.rbegin());
-}
-
 bool MovieWindow::run_filename(std::string& filename, Movie::Renderer*& ren)
 {
 	Gtk::FileChooserDialog dialog(*this, "Save Movie", Gtk::FileChooserAction::FILE_CHOOSER_ACTION_SAVE);
@@ -304,7 +297,7 @@ bool MovieWindow::run_filename(std::string& filename, Movie::Renderer*& ren)
 		std::string extn(ren->pattern);
 		if (extn[0] == '*')
 			extn.erase(0,1);
-		if (!ends_with(filename,extn))
+		if (!Util::ends_with(filename,extn))
 			filename.append(extn);
 	}
 	return true;
