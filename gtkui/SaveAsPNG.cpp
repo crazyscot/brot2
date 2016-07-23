@@ -42,14 +42,14 @@ using namespace Plot3;
 using namespace BrotPrefs;
 using namespace SavePNG;
 
-std::string SaveAsPNG::last_saved_dirname = "";
+std::string Single::last_saved_dirname = "";
 
-void SaveAsPNG::instance_to_png(MainWindow *mw)
+void Single::instance_to_png(MainWindow *mw)
 {
-	SaveAsPNG::to_png(mw, _width, _height, &plot, pal, _do_antialias, _do_hud, filename);
+	Single::to_png(mw, _width, _height, &plot, pal, _do_antialias, _do_hud, filename);
 }
 
-void SaveAsPNG::to_png(MainWindow *mw, unsigned rwidth, unsigned rheight,
+void Single::to_png(MainWindow *mw, unsigned rwidth, unsigned rheight,
 		Plot3Plot* plot, BasePalette* pal, bool antialias, bool show_hud,
 		std::string& filename)
 {
@@ -72,7 +72,7 @@ void SaveAsPNG::to_png(MainWindow *mw, unsigned rwidth, unsigned rheight,
 	}
 }
 
-SingleProgressWindow::SingleProgressWindow(MainWindow& p, SaveAsPNG& j) : parent(p), job(j), _chunks_this_pass(0) {
+SingleProgressWindow::SingleProgressWindow(MainWindow& p, Single& j) : parent(p), job(j), _chunks_this_pass(0) {
 	set_transient_for(parent);
 	set_title("Save as PNG");
 	Gtk::VBox* box = Gtk::manage(new Gtk::VBox());
@@ -107,7 +107,7 @@ void SingleProgressWindow::pass_complete(std::string& commentary) {
 }
 
 void SingleProgressWindow::plot_complete() {
-	std::shared_ptr<SaveAsPNG> png (&job);
+	std::shared_ptr<Single> png (&job);
 	parent.queue_png(png);
 }
 
@@ -173,7 +173,7 @@ class FileChooserExtra : public Gtk::VBox {
 };
 
 /* STATIC */
-void SaveAsPNG::do_save(MainWindow *mw)
+void Single::do_save(MainWindow *mw)
 {
 	std::string filename;
 	int newx=0, newy=0;
@@ -233,7 +233,7 @@ void SaveAsPNG::do_save(MainWindow *mw)
 		if (imag(size) * aspect != real(size))
 			size.imag(real(size) / aspect);
 
-		SaveAsPNG* job = new SaveAsPNG(mw, centre, size, newx, newy, do_antialias, do_hud, filename);
+		Single* job = new Single(mw, centre, size, newx, newy, do_antialias, do_hud, filename);
 
 		job->start();
 		// and commit it to the four winds. Will be deleted later by mw...
@@ -246,7 +246,7 @@ void SaveAsPNG::do_save(MainWindow *mw)
 	}
 }
 
-SaveAsPNG::SaveAsPNG(MainWindow* mw, Fractal::Point centre, Fractal::Point size, unsigned width, unsigned height, bool antialias, bool do_hud, string& name) :
+Single::Single(MainWindow* mw, Fractal::Point centre, Fractal::Point size, unsigned width, unsigned height, bool antialias, bool do_hud, string& name) :
 		reporter(*mw,*this), divider(new Plot3::ChunkDivider::Horizontal10px()), aafactor(antialias ? 2 : 1),
 		plot(mw->get_threadpool(), &reporter, *mw->fractal, *divider, centre, size, width*aafactor, height*aafactor, 0),
 		pal(mw->pal), filename(name), _width(width), _height(height), _do_antialias(antialias), _do_hud(do_hud)
@@ -255,22 +255,22 @@ SaveAsPNG::SaveAsPNG(MainWindow* mw, Fractal::Point centre, Fractal::Point size,
 	plot.set_prefs(pp);
 }
 
-void SaveAsPNG::start(void)
+void Single::start(void)
 {
 	plot.start();
 }
 
-void SaveAsPNG::wait(void)
+void Single::wait(void)
 {
 	plot.wait();
 }
 
-SaveAsPNG::~SaveAsPNG()
+Single::~Single()
 {
 }
 
 /*STATIC*/
-std::string SaveAsPNG::default_save_dir()
+std::string Single::default_save_dir()
 {
 	if (!last_saved_dirname.length()) {
 		std::shared_ptr<const Prefs> prefs = Prefs::getMaster();
@@ -297,7 +297,7 @@ std::string SaveAsPNG::default_save_dir()
 }
 
 /*STATIC*/
-void SaveAsPNG::update_save_dir(const std::string& filename)
+void Single::update_save_dir(const std::string& filename)
 {
 	last_saved_dirname.clear();
 	last_saved_dirname.append(filename);

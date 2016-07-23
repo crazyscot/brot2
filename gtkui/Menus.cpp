@@ -42,7 +42,6 @@
 #include "SaveAsPNG.h"
 
 using namespace BrotPrefs;
-using namespace SavePNG;
 
 namespace menus {
 
@@ -93,7 +92,7 @@ public:
 	}
 	void do_save() {
 		MainWindow *mw = find_main(this);
-		SaveAsPNG::do_save(mw);
+		SavePNG::Single::do_save(mw);
 	}
 	void do_movie() {
 		MainWindow *mw = find_main(this);

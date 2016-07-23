@@ -33,25 +33,25 @@ class MainWindow;
 
 namespace SavePNG {
 
-class SaveAsPNG;
+class Single;
 
 struct SingleProgressWindow: public Gtk::Window, Plot3::IPlot3DataSink {
 	MainWindow& parent;
-	SaveAsPNG& job;
+	Single& job;
 	Gtk::ProgressBar *progbar;
 	int _chunks_this_pass;
-	SingleProgressWindow(MainWindow& p, SaveAsPNG& j);
+	SingleProgressWindow(MainWindow& p, Single& j);
 	virtual void chunk_done(Plot3::Plot3Chunk* chunk);
 	virtual void pass_complete(std::string& commentary);
 	virtual void plot_complete();
 };
 
-class SaveAsPNG {
+class Single {
 	friend class ::MainWindow;
 	friend class SingleProgressWindow;
 
 	// Private constructor! Called by do_save().
-	SaveAsPNG(MainWindow* mw, Fractal::Point centre, Fractal::Point size, unsigned width, unsigned height, bool antialias, bool do_hud, std::string&name);
+	Single(MainWindow* mw, Fractal::Point centre, Fractal::Point size, unsigned width, unsigned height, bool antialias, bool do_hud, std::string&name);
 
 	// Interface for MainWindow to trigger save actions.
 	// An instance of this class is an outstanding PNG-save job.
@@ -86,7 +86,7 @@ public:
 	static std::string default_save_dir(void);
 	static void update_save_dir(const std::string& filename);
 
-	virtual ~SaveAsPNG();
+	virtual ~Single();
 };
 
 }; // namespace SavePNG

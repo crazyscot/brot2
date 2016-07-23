@@ -33,6 +33,7 @@
 #include "Menus.h"
 #include "Render2.h"
 #include "libbrot2/ThreadPool.h"
+#include "SaveAsPNG.h"
 
 #include <iostream>
 #include <memory>
@@ -48,9 +49,6 @@
 class HUD;
 class ControlsWindow;
 class MovieWindow;
-namespace SavePNG {
-class SaveAsPNG;
-};
 
 class MainWindow : public Gtk::Window, Plot3::IPlot3DataSink {
 	Gtk::VBox *vbox; // Main layout widget
@@ -170,7 +168,7 @@ public:
 		return menubar->optionsMenu;
 	}
 
-	void queue_png(std::shared_ptr<SavePNG::SaveAsPNG> png);
+	void queue_png(std::shared_ptr<SavePNG::Single> png);
 
 	// IPlot3DataSink:
 	virtual void chunk_done(Plot3::Plot3Chunk* job);

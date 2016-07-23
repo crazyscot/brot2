@@ -42,7 +42,6 @@
 using namespace Plot3;
 using namespace std;
 using namespace Render2;
-using namespace SavePNG;
 
 const double MainWindow::ZOOM_FACTOR = 2.0f;
 
@@ -590,9 +589,9 @@ void MainWindow::toggle_fullscreen()
 		unfullscreen();
 }
 
-static std::queue<std::shared_ptr<SaveAsPNG>> png_q; // protected by gdk threads lock.
+static std::queue<std::shared_ptr<SavePNG::Single>> png_q; // protected by gdk threads lock.
 
-void MainWindow::queue_png(std::shared_ptr<SaveAsPNG> png)
+void MainWindow::queue_png(std::shared_ptr<SavePNG::Single> png)
 {
 	gdk_threads_enter();
 	png_q.push(png);
@@ -603,7 +602,7 @@ void MainWindow::png_save_completion()
 {
 	// must have the gdk threads lock.
 	if (!png_q.empty()) {
-		std::shared_ptr<SaveAsPNG> png(png_q.front());
+		std::shared_ptr<SavePNG::Single> png(png_q.front());
 		png_q.pop();
 		//gdk_threads_leave(); // Don't do this, it deadlocks.
 		Plot3Plot& pngplot = png->plot;
