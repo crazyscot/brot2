@@ -81,6 +81,8 @@ public:
 	static void do_save(MainWindow *mw);
 
 	unsigned get_chunks_count() const { return plot.chunks_total(); }
+	static std::string default_save_dir(void);
+	static void update_save_dir(const std::string& filename);
 
 	virtual ~SaveAsPNG();
 };
