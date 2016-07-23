@@ -27,7 +27,7 @@ using namespace std;
 
 SimpleRegistry<Movie::Renderer> Movie::Renderer::all_renderers;
 
-Movie::Renderer::Renderer(const std::string& _name) : name(_name) {
+Movie::Renderer::Renderer(const std::string& _name, const std::string& _pattern) : name(_name), pattern(_pattern) {
 	all_renderers.reg(_name, this);
 }
 Movie::Renderer::~Renderer() {
@@ -92,7 +92,7 @@ class ScriptB2CLI : public Movie::Renderer {
 		}
 	};
 	public:
-		ScriptB2CLI() : Movie::Renderer("Script for brot2cli") { }
+		ScriptB2CLI() : Movie::Renderer("Script for brot2cli", "*.sh") { }
 
 		void render_top(const std::string& filename, const struct Movie::MovieInfo& movie, Movie::RenderInstancePrivate **priv) {
 			std::string b2cli(brot2_argv0);

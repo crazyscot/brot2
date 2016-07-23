@@ -35,10 +35,11 @@ class RenderInstancePrivate {}; // Used by Renderer to store private data
 class Renderer {
 
 	protected:
-		Renderer(const std::string& name);
+		Renderer(const std::string& name, const std::string& pattern);
 
 	public:
 		const std::string name;
+		const std::string pattern; // shell style glob, for Gtk::FileFilter
 
 		void render(const std::string& filename, const struct Movie::MovieInfo& movie);
 
