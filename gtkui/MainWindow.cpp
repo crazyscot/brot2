@@ -518,46 +518,27 @@ void MainWindow::update_params(Fractal::Point& ncentre, Fractal::Point& nsize)
 void MainWindow::new_centre_checked(const Fractal::Point& ncentre, bool is_zoom)
 {
 	centre = ncentre;
-	Fractal::Point halfsize = size/2.0;
-	Fractal::Point TR = centre + halfsize,
-				   BL = centre - halfsize;
-	bool clipped = false;
 
 	if (!is_zoom)
 		at_min_zoom = at_max_zoom = false;
 	// if is_zoom, those mechanics check and update the min/max flags.
 
-	if (real(TR) > fractal->xmax) {
-		Fractal::Point shift(fractal->xmax-real(TR), 0);
-		centre += shift; TR += shift; BL += shift;
+	if (real(centre) > fractal->xmax) {
+		Fractal::Point shift(fractal->xmax-real(centre), 0);
+		centre += shift;
 	}
-	if (real(BL) < fractal->xmin) {
-		Fractal::Point shift(fractal->xmin-real(BL), 0);
-		centre += shift; TR += shift; BL += shift;
-		if (real(TR) > fractal->xmax) {
-			// I'm not sure how this might come about, but my sixth sense tells me to cope with it anyway.
-			TR.real(fractal->xmax);
-			clipped = true;
-		}
+	if (real(centre) < fractal->xmin) {
+		Fractal::Point shift(fractal->xmin-real(centre), 0);
+		centre += shift;
 	}
 
-	if (imag(TR) > fractal->ymax) {
-		Fractal::Point shift(0, fractal->ymax-imag(TR));
-		centre += shift; TR += shift; BL += shift;
+	if (imag(centre) > fractal->ymax) {
+		Fractal::Point shift(0, fractal->ymax-imag(centre));
+		centre += shift;
 	}
-	if (imag(BL) < fractal->ymin) {
-		Fractal::Point shift(0, fractal->ymin-imag(BL));
-		centre += shift; TR += shift; BL += shift;
-		if (imag(TR) > fractal->ymax) {
-			// I'm not sure how this might come about, but my sixth sense tells me to cope with it anyway.
-			TR.imag(fractal->ymax);
-			clipped = true;
-		}
-	}
-	if (clipped) {
-		// need to recompute size and centre.
-		size = TR - BL;
-		centre = TR - size/2.0;
+	if (imag(centre) < fractal->ymin) {
+		Fractal::Point shift(0, fractal->ymin-imag(centre));
+		centre += shift;
 	}
 }
 
