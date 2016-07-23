@@ -56,13 +56,15 @@ void Movie::Renderer::render(const std::string& filename, const struct Movie::Mo
 		f2.centre.imag(iter->centre.imag());
 		f2.size.real  (iter->size.real());
 
-		// TODO maybe geometric step?
 		Fractal::Point step = (f2.centre - f1.centre) / traverse;
-		Fractal::Point step_size = (f2.size - f1.size) / traverse;
+		// Simple scaling of the axis length (zoom factor) doesn't work.
+		// Looks like it needs to move exponentially from A to B.
+		long double scaler = powl ( f2.size.real()/f1.size.real() , 1.0 / traverse );
 
 		for (unsigned i=0; i<traverse; i++) {
-			ft.centre += step;
-			ft.size += step_size;
+			Fractal::Point stepx(i * step.real(), i * step.imag());
+			ft.centre = f1.centre + stepx;
+			ft.size = f1.size * powl(scaler, i);
 			render_frame(ft, priv);
 		}
 		for (unsigned i=0; i<iter->hold_frames; i++)
