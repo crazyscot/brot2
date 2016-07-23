@@ -266,7 +266,7 @@ void MovieWindow::do_render() {
 	if (!run_filename(filename, ren))
 		return;
 
-	ren->render(filename, movie);
+	ren->render(filename, movie, mw.prefs(), mw.get_threadpool());
 }
 
 bool MovieWindow::run_filename(std::string& filename, Movie::Renderer*& ren)

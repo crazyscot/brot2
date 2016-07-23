@@ -34,9 +34,9 @@ Movie::Renderer::~Renderer() {
 	all_renderers.dereg(name);
 }
 
-void Movie::Renderer::render(const std::string& filename, const struct Movie::MovieInfo& movie) {
+void Movie::Renderer::render(const std::string& filename, const struct Movie::MovieInfo& movie, std::shared_ptr<const BrotPrefs::Prefs> prefs, ThreadPool& threads) {
 	RenderInstancePrivate * priv;
-	render_top(filename, movie, &priv);
+	render_top(prefs, threads, filename, movie, &priv);
 
 	auto iter = movie.points.begin();
 
@@ -96,7 +96,7 @@ class ScriptB2CLI : public Movie::Renderer {
 	public:
 		ScriptB2CLI() : Movie::Renderer("Script for brot2cli", "*.sh") { }
 
-		void render_top(const std::string& filename, const struct Movie::MovieInfo& movie, Movie::RenderInstancePrivate **priv) {
+		void render_top(std::shared_ptr<const BrotPrefs::Prefs>, ThreadPool&, const std::string& filename, const struct Movie::MovieInfo& movie, Movie::RenderInstancePrivate **priv) {
 			std::string b2cli(brot2_argv0);
 			b2cli.append("cli");
 			std::string outdir(filename);

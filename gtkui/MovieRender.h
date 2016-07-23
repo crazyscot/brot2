@@ -25,6 +25,7 @@
 #include "FractalMaths.h"
 #include "palette.h"
 #include "Registry.h"
+#include "ThreadPool.h"
 #include <vector>
 
 namespace Movie {
@@ -41,10 +42,10 @@ class Renderer {
 		const std::string name;
 		const std::string pattern; // shell style glob, for Gtk::FileFilter
 
-		void render(const std::string& filename, const struct Movie::MovieInfo& movie);
+		void render(const std::string& filename, const struct Movie::MovieInfo& movie, std::shared_ptr<const BrotPrefs::Prefs> prefs, ThreadPool& threads);
 
 		// Initialise render run, alloc Private if needed
-		virtual void render_top(const std::string& filename, const struct Movie::MovieInfo& movie, Movie::RenderInstancePrivate** priv) = 0;
+		virtual void render_top(std::shared_ptr<const BrotPrefs::Prefs> prefs, ThreadPool& threads, const std::string& filename, const struct Movie::MovieInfo& movie, Movie::RenderInstancePrivate** priv) = 0;
 
 		// Called for each frame
 		virtual void render_frame(const struct Movie::Frame& kf, Movie::RenderInstancePrivate *priv) = 0;
