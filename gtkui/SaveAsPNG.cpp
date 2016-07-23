@@ -195,28 +195,7 @@ void SaveAsPNG::do_save(MainWindow *mw)
 					mw->get_rwidth(), mw->get_rheight() ));
 		dialog.set_extra_widget(*extra);
 
-		if (!last_saved_dirname.length()) {
-            last_saved_dirname = prefs->get(PREF(LastSaveDir));
-        }
-		if (!last_saved_dirname.length()) {
-            const char *homedir;
-            if ((homedir = getenv("HOME")) == NULL) {
-                homedir = getpwuid(getuid())->pw_dir;
-            }
-            // Try $HOME/Documents
-			std::ostringstream str;
-			str << homedir << "/Documents/";
-            if (Glib::file_test(str.str(), Glib::FILE_TEST_IS_DIR)) {
-                // use str as-is
-            } else {
-                str.flush();
-                str << homedir;
-            }
-			dialog.set_current_folder(str.str().c_str());
-		} else {
-			dialog.set_current_folder(last_saved_dirname.c_str());
-		}
-
+		dialog.set_current_folder(default_save_dir());
 		{
 			std::ostringstream str;
 			str << mw->get_plot().info().c_str() << ".png";
@@ -240,17 +219,7 @@ void SaveAsPNG::do_save(MainWindow *mw)
 			filename = dialog.get_filename();
 		} while(0);
 	}
-	last_saved_dirname.clear();
-	last_saved_dirname.append(filename);
-	// Trim the filename to leave the dir:
-	int spos = last_saved_dirname.rfind('/');
-	if (spos >= 0)
-		last_saved_dirname.erase(spos+1);
-    {
-        std::shared_ptr<Prefs> prefs2 = prefs->getWorkingCopy();
-        prefs2->set(PREF(LastSaveDir), last_saved_dirname);
-        prefs2->commit();
-    }
+	update_save_dir(filename);
 
 	if (do_extra) {
 		// HARD CASE: Launch a new job in the background to rerender.
@@ -297,4 +266,48 @@ void SaveAsPNG::wait(void)
 
 SaveAsPNG::~SaveAsPNG()
 {
+}
+
+/*STATIC*/
+std::string SaveAsPNG::default_save_dir()
+{
+	if (!last_saved_dirname.length()) {
+		std::shared_ptr<const Prefs> prefs = Prefs::getMaster();
+		last_saved_dirname = prefs->get(PREF(LastSaveDir));
+	}
+	if (!last_saved_dirname.length()) {
+		const char *homedir;
+		if ((homedir = getenv("HOME")) == NULL) {
+			homedir = getpwuid(getuid())->pw_dir;
+		}
+		// Try $HOME/Documents
+		std::ostringstream str;
+		str << homedir << "/Documents/";
+		if (Glib::file_test(str.str(), Glib::FILE_TEST_IS_DIR)) {
+			// use str as-is
+		} else {
+			str.flush();
+			str << homedir;
+		}
+		return str.str();
+	} else {
+		return last_saved_dirname;
+	}
+}
+
+/*STATIC*/
+void SaveAsPNG::update_save_dir(const std::string& filename)
+{
+	last_saved_dirname.clear();
+	last_saved_dirname.append(filename);
+	// Trim the filename to leave the dir:
+	int spos = last_saved_dirname.rfind('/');
+	if (spos >= 0)
+		last_saved_dirname.erase(spos+1);
+    {
+		std::shared_ptr<const Prefs> prefs = Prefs::getMaster();
+        std::shared_ptr<Prefs> prefs2 = prefs->getWorkingCopy();
+        prefs2->set(PREF(LastSaveDir), last_saved_dirname);
+        prefs2->commit();
+    }
 }
