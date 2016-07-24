@@ -57,6 +57,9 @@ class Base {
 		void save_png(Gtk::Window *parent);
 		unsigned get_chunks_count() const { return plot.chunks_total(); }
 
+		static void to_png(Gtk::Window *parent, unsigned rwidth, unsigned rheight,
+				Plot3::Plot3Plot* plot, const BasePalette* pal, bool antialias,
+				bool show_hud, std::string& filename);
 	protected:
 		Base(std::shared_ptr<const BrotPrefs::Prefs> prefs, ThreadPool& threads,
 				const Fractal::FractalImpl& fractal, const BasePalette& palette,
@@ -86,13 +89,9 @@ class Single : Base {
 	// Interface for MainWindow to trigger save actions.
 	// An instance of this class is an outstanding PNG-save job.
 private:
-	static void to_png(Gtk::Window *parent, unsigned rwidth, unsigned rheight,
-			Plot3::Plot3Plot* plot, const BasePalette* pal, bool antialias,
-			bool show_hud, std::string& filename);
 	SingleProgressWindow reporter;
 
 public:
-
 	// main entrypoint: runs the save dialog and DTRTs
 	static void do_save(MainWindow *mw);
 

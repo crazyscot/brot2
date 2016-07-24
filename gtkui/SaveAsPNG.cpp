@@ -63,7 +63,7 @@ void SavePNG::Base::save_png(Gtk::Window *parent)
 }
 
 /*STATIC*/
-void Single::to_png(Gtk::Window *parent, unsigned rwidth, unsigned rheight,
+void SavePNG::Base::to_png(Gtk::Window *parent, unsigned rwidth, unsigned rheight,
 		Plot3Plot* plot, const BasePalette* pal, bool antialias, bool show_hud,
 		std::string& filename)
 {
