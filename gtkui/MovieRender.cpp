@@ -19,6 +19,8 @@
 #include "MovieRender.h"
 #include "MovieMode.h"
 #include "gtkmain.h" // for argv0
+#include "SaveAsPNG.h"
+#include "IPlot3DataSink.h"
 #include <iostream>
 #include <fstream>
 #include <iomanip>
@@ -141,5 +143,95 @@ class ScriptB2CLI : public Movie::Renderer {
 		virtual ~ScriptB2CLI() {}
 };
 
+// ------------------------------------------------------------------------------
+// Outputs a bunch of PNGs in a single directory
+
+class Idata {
+	public:
+		virtual unsigned get_fileno() const = 0;
+		virtual ~Idata() {}
+};
+
+// TODO Allow cancellation (async - could be tricky!) - set flag from prog window, check in render()?
+// TODO Don't hog the main thread - render movie in background?
+
+class MultiPNGProgressReporter : public Plot3::IPlot3DataSink {
+		Idata& _priv;
+	// TODO Make this a window - or maybe do something to the MovieWindow?
+	public:
+		MultiPNGProgressReporter(Idata& priv) : _priv(priv) {}
+
+		virtual void chunk_done(Plot3::Plot3Chunk*) {}
+		virtual void pass_complete(std::string&) {}
+		virtual void plot_complete() {
+			// TODO Proper progress window
+			std::cout << "Frame " << _priv.get_fileno() << " complete" << std::endl;
+		}
+		virtual ~MultiPNGProgressReporter() {}
+};
+
+
+class BunchOfPNGs : public Movie::Renderer {
+	class Private : public Movie::RenderInstancePrivate, public Idata {
+		friend class BunchOfPNGs;
+		const struct Movie::MovieInfo& movie;
+		unsigned fileno;
+		const std::string outdir, nametmpl;
+		std::shared_ptr<const BrotPrefs::Prefs> prefs;
+		ThreadPool& threads;
+		MultiPNGProgressReporter reporter;
+
+		Private(const struct Movie::MovieInfo& _movie, const std::string& _outdir, const std::string& _tmpl,
+				std::shared_ptr<const BrotPrefs::Prefs> _prefs, ThreadPool& _threads) :
+			movie(_movie), fileno(0), outdir(_outdir), nametmpl(_tmpl), prefs(_prefs), threads(_threads),
+			reporter(*this){
+		}
+		virtual ~Private() {}
+		public:
+			virtual unsigned get_fileno() const { return fileno; }
+	};
+	public:
+		BunchOfPNGs() : Movie::Renderer("PNG files in a directory", "*.png") { }
+
+		void render_top(std::shared_ptr<const BrotPrefs::Prefs> prefs, ThreadPool& threads, const std::string& filename, const struct Movie::MovieInfo& movie, Movie::RenderInstancePrivate **priv) {
+			std::string outdir(filename), tmpl(filename);
+			int spos = outdir.rfind('/');
+			if (spos >= 0) {
+				outdir.erase(spos+1);
+				tmpl.erase(0, spos+1);
+			}
+			spos = tmpl.rfind(".png");
+			if (spos >= 0)
+				tmpl.erase(spos);
+			Private *mypriv = new Private(movie, outdir, tmpl, prefs, threads);
+			*priv = mypriv;
+		}
+		void render_frame(const struct Movie::Frame& fr, Movie::RenderInstancePrivate *priv) {
+			Private * mypriv = (Private*)(priv);
+			ostringstream filename;
+			filename << mypriv->outdir << '/' << mypriv->nametmpl << '_' << setfill('0') << setw(6) << (mypriv->fileno++) << ".png";
+			std::string filename2 (filename.str());
+
+			SavePNG::MovieFrame saver(mypriv->prefs, mypriv->threads,
+					*mypriv->movie.fractal, *mypriv->movie.palette,
+					mypriv->reporter,
+					fr.centre, fr.size,
+					mypriv->movie.width, mypriv->movie.height,
+					mypriv->movie.antialias, mypriv->movie.draw_hud,
+					filename2);
+			saver.start();
+			saver.wait();
+			saver.save_png(0);
+			// LATER Could kick off all frames in parallel and wait for them in render_bottom?
+		}
+		void render_tail(Movie::RenderInstancePrivate *priv) {
+			Private * mypriv = (Private*)(priv);
+			delete mypriv;
+		}
+		virtual ~BunchOfPNGs() {}
+};
+
+// ------------------------------------------------------------------------------
 // And now some instances to make them live
 static ScriptB2CLI scripter;
+static BunchOfPNGs pngz;
