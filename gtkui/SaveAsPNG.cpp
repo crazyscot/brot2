@@ -48,7 +48,7 @@ void Single::instance_to_png(MainWindow *mw)
 }
 
 void Single::to_png(MainWindow *mw, unsigned rwidth, unsigned rheight,
-		Plot3Plot* plot, BasePalette* pal, bool antialias, bool show_hud,
+		Plot3Plot* plot, const BasePalette* pal, bool antialias, bool show_hud,
 		std::string& filename)
 {
     std::shared_ptr<const Prefs> prefs = Prefs::getMaster();
@@ -244,7 +244,7 @@ void Single::do_save(MainWindow *mw)
 	}
 }
 
-SavePNG::Base::Base(std::shared_ptr<const Prefs> prefs, ThreadPool& threads, Fractal::FractalImpl& fractal, BasePalette& palette, Plot3::IPlot3DataSink& sink, Fractal::Point centre, Fractal::Point size, unsigned width, unsigned height, bool antialias, bool do_hud, string& fname) :
+SavePNG::Base::Base(std::shared_ptr<const Prefs> prefs, ThreadPool& threads, const Fractal::FractalImpl& fractal, const BasePalette& palette, Plot3::IPlot3DataSink& sink, Fractal::Point centre, Fractal::Point size, unsigned width, unsigned height, bool antialias, bool do_hud, string& fname) :
 		divider(new Plot3::ChunkDivider::Horizontal10px()), aafactor(antialias ? 2 : 1),
 		plot(threads, &sink, fractal, *divider, centre, size, width*aafactor, height*aafactor, 0),
 		pal(&palette), filename(fname), _width(width), _height(height), _do_antialias(antialias), _do_hud(do_hud)
@@ -258,7 +258,7 @@ Single::Single(MainWindow* mw, Fractal::Point centre, Fractal::Point size, unsig
 {
 }
 
-MovieFrame::MovieFrame(std::shared_ptr<const Prefs> prefs, ThreadPool& threads, Fractal::FractalImpl& fractal, BasePalette& palette, Plot3::IPlot3DataSink& sink, Fractal::Point centre, Fractal::Point size, unsigned width, unsigned height, bool antialias, bool do_hud, string& filename) :
+MovieFrame::MovieFrame(std::shared_ptr<const Prefs> prefs, ThreadPool& threads, const Fractal::FractalImpl& fractal, const BasePalette& palette, Plot3::IPlot3DataSink& sink, Fractal::Point centre, Fractal::Point size, unsigned width, unsigned height, bool antialias, bool do_hud, string& filename) :
 		Base(prefs, threads, fractal, palette, sink, centre, size, width, height, antialias, do_hud, filename)
 {
 }

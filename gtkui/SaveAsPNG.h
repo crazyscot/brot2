@@ -58,7 +58,7 @@ class Base {
 
 	protected:
 		Base(std::shared_ptr<const BrotPrefs::Prefs> prefs, ThreadPool& threads,
-				Fractal::FractalImpl& fractal, BasePalette& palette,
+				const Fractal::FractalImpl& fractal, const BasePalette& palette,
 				Plot3::IPlot3DataSink& sink,
 				Fractal::Point centre, Fractal::Point size,
 				unsigned width, unsigned height, bool antialias, bool do_hud, std::string&name);
@@ -66,7 +66,7 @@ class Base {
 		std::shared_ptr<Plot3::ChunkDivider::Base> divider;
 		const int aafactor;
 		Plot3::Plot3Plot plot;
-		BasePalette *pal; // do NOT delete
+		const BasePalette *pal; // do NOT delete
 		std::string filename;
 		const unsigned _width, _height;
 		const bool _do_antialias, _do_hud;
@@ -85,7 +85,7 @@ class Single : Base {
 	// An instance of this class is an outstanding PNG-save job.
 private:
 	static void to_png(MainWindow *mw, unsigned rwidth, unsigned rheight,
-			Plot3::Plot3Plot* plot, BasePalette* pal, bool antialias,
+			Plot3::Plot3Plot* plot, const BasePalette* pal, bool antialias,
 			bool show_hud, std::string& filename);
 	void instance_to_png(MainWindow *mw); // For tidyup from MainWindow
 
