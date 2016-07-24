@@ -244,12 +244,13 @@ void Single::do_save(MainWindow *mw)
 	}
 }
 
-SavePNG::Base::Base(std::shared_ptr<const Prefs> prefs, ThreadPool& threads, const Fractal::FractalImpl& fractal, const BasePalette& palette, Plot3::IPlot3DataSink& sink, Fractal::Point centre, Fractal::Point size, unsigned width, unsigned height, bool antialias, bool do_hud, string& fname) :
+SavePNG::Base::Base(std::shared_ptr<const Prefs> _prefs, ThreadPool& threads, const Fractal::FractalImpl& fractal, const BasePalette& palette, Plot3::IPlot3DataSink& sink, Fractal::Point centre, Fractal::Point size, unsigned width, unsigned height, bool antialias, bool do_hud, string& fname) :
+		prefs(_prefs),
 		divider(new Plot3::ChunkDivider::Horizontal10px()), aafactor(antialias ? 2 : 1),
 		plot(threads, &sink, fractal, *divider, centre, size, width*aafactor, height*aafactor, 0),
 		pal(&palette), filename(fname), _width(width), _height(height), _do_antialias(antialias), _do_hud(do_hud)
 {
-	plot.set_prefs(prefs);
+	plot.set_prefs(_prefs);
 }
 
 Single::Single(MainWindow* mw, Fractal::Point centre, Fractal::Point size, unsigned width, unsigned height, bool antialias, bool do_hud, string& filename) :

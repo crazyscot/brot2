@@ -63,6 +63,7 @@ class Base {
 				Fractal::Point centre, Fractal::Point size,
 				unsigned width, unsigned height, bool antialias, bool do_hud, std::string&name);
 
+		std::shared_ptr<const BrotPrefs::Prefs> prefs;
 		std::shared_ptr<Plot3::ChunkDivider::Base> divider;
 		const int aafactor;
 		Plot3::Plot3Plot plot;
