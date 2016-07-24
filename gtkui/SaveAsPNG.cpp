@@ -42,12 +42,8 @@ using namespace Plot3;
 using namespace BrotPrefs;
 using namespace SavePNG;
 
-void Single::instance_to_png(MainWindow *mw)
-{
-	Single::to_png(mw, _width, _height, &plot, pal, _do_antialias, _do_hud, filename);
-}
-
 void SavePNG::Base::save_png(Gtk::Window *parent)
+// TODO Reduce shared code with to_png
 {
 	ofstream f(filename, ios::out | ios::trunc | ios::binary);
 	if (f.is_open()) {
@@ -67,7 +63,6 @@ void SavePNG::Base::save_png(Gtk::Window *parent)
 }
 
 /*STATIC*/
-// XXX Factor this out
 void Single::to_png(Gtk::Window *parent, unsigned rwidth, unsigned rheight,
 		Plot3Plot* plot, const BasePalette* pal, bool antialias, bool show_hud,
 		std::string& filename)

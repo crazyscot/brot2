@@ -89,8 +89,6 @@ private:
 	static void to_png(Gtk::Window *parent, unsigned rwidth, unsigned rheight,
 			Plot3::Plot3Plot* plot, const BasePalette* pal, bool antialias,
 			bool show_hud, std::string& filename);
-	void instance_to_png(MainWindow *mw); // For tidyup from MainWindow
-
 	SingleProgressWindow reporter;
 
 public:
