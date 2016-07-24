@@ -607,7 +607,7 @@ void MainWindow::png_save_completion()
 		//gdk_threads_leave(); // Don't do this, it deadlocks.
 		Plot3Plot& pngplot = png->plot;
 		pngplot.wait();
-		png->instance_to_png(this);
+		png->save_png(this);
 		//gdk_threads_enter();
 	} else {
 	}

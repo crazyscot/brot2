@@ -54,6 +54,7 @@ class Base {
 
 		void start(); // ->plot.start()
 		void wait(); // -> plot.wait()
+		void save_png(Gtk::Window *parent);
 		unsigned get_chunks_count() const { return plot.chunks_total(); }
 
 	protected:
