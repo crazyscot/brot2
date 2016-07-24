@@ -43,23 +43,8 @@ using namespace BrotPrefs;
 using namespace SavePNG;
 
 void SavePNG::Base::save_png(Gtk::Window *parent)
-// TODO Reduce shared code with to_png
 {
-	ofstream f(filename, ios::out | ios::trunc | ios::binary);
-	if (f.is_open()) {
-		Render2::PNG png(_width, _height, *pal, -1, _do_antialias);
-		png.process(plot.get_chunks__only_after_completion());
-		if (_do_hud)
-			BaseHUD::apply(png, prefs, &plot, false, false);
-		png.write(filename);
-		if (f.bad()) {
-			Util::alert(parent, "Writing failed");
-		}
-	} else {
-		ostringstream str;
-		str << "Could not open " << filename << " for writing.";
-		Util::alert(parent, str.str());
-	}
+	SavePNG::Base::to_png(parent, _width, _height, &plot, pal, _do_antialias, _do_hud, filename);
 }
 
 /*STATIC*/
