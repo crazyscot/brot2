@@ -209,7 +209,7 @@ void MovieWindow::do_add() {
 		movie.palette = mw.pal;
 	}
 	if (changed)
-		Util::alert(this, "Fractal or palette have changed, only the last specified will be used to make the movie");
+		Util::alert(this, "Fractal or palette have changed, only the last specified will be used to make the movie", Gtk::MessageType::MESSAGE_WARNING);
 }
 void MovieWindow::do_delete() {
 	auto rp = priv->m_keyframes.get_selection()->get_selected();
