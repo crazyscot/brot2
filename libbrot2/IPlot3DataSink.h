@@ -21,6 +21,8 @@
 
 namespace Plot3 {
 
+class Plot3Chunk;
+
 class IPlot3DataSink {
 public:
 	/**Signals that a chunk is complete, offering an opportunity to do
