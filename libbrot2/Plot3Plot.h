@@ -60,7 +60,7 @@ public:
 
 	/* The real constructor may request the fractal to do any precomputation
 	 * necessary (known-blank regions, for example). */
-	Plot3Plot(ThreadPool& pool, IPlot3DataSink* s, Fractal::FractalImpl& f, ChunkDivider::Base& div,
+	Plot3Plot(ThreadPool& pool, IPlot3DataSink* s, const Fractal::FractalImpl& f, ChunkDivider::Base& div,
 			Fractal::Point centre, Fractal::Point size, unsigned width, unsigned height, unsigned max_passes=0);
 	virtual ~Plot3Plot();
 

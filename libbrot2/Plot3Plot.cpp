@@ -61,7 +61,7 @@ namespace Plot3 {
 
 ThreadPool Plot3Plot::runner_pool(1);
 
-Plot3Plot::Plot3Plot(ThreadPool& pool, IPlot3DataSink* s, FractalImpl& f, ChunkDivider::Base& d,
+Plot3Plot::Plot3Plot(ThreadPool& pool, IPlot3DataSink* s, const FractalImpl& f, ChunkDivider::Base& d,
 		Point centre, Point size,
 		unsigned width, unsigned height, unsigned max_passes) :
 		_pool(pool), sink(s), fract(f), divider(d),
