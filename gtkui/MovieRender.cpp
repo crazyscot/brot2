@@ -44,6 +44,7 @@ void Movie::Renderer::render(const std::string& filename, const struct Movie::Mo
 	f1.centre.real(iter->centre.real());
 	f1.centre.imag(iter->centre.imag());
 	f1.size.real(  iter->size.real());
+	f1.size.imag(  iter->size.imag());
 	for (unsigned i=0; i<iter->hold_frames; i++)
 		render_frame(f1, priv);
 	unsigned traverse = iter->frames_to_next;
@@ -55,6 +56,7 @@ void Movie::Renderer::render(const std::string& filename, const struct Movie::Mo
 		f2.centre.real(iter->centre.real());
 		f2.centre.imag(iter->centre.imag());
 		f2.size.real  (iter->size.real());
+		f2.size.imag  (iter->size.imag());
 
 		Fractal::Point step = (f2.centre - f1.centre) / traverse;
 		// Simple scaling of the axis length (zoom factor) doesn't work.
