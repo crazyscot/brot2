@@ -80,14 +80,14 @@ class Base {
 };
 
 class Single : Base {
+	// Interface for MainWindow to trigger save actions.
+	// An instance of this class is an outstanding PNG-save job.
 	friend class ::MainWindow;
 	friend class SingleProgressWindow;
 
 	// Private constructor! Called by do_save().
 	Single(MainWindow* mw, Fractal::Point centre, Fractal::Point size, unsigned width, unsigned height, bool antialias, bool do_hud, std::string&name);
 
-	// Interface for MainWindow to trigger save actions.
-	// An instance of this class is an outstanding PNG-save job.
 private:
 	SingleProgressWindow reporter;
 
