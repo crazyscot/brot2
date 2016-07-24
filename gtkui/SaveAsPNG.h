@@ -85,7 +85,7 @@ class Single : Base {
 	// Interface for MainWindow to trigger save actions.
 	// An instance of this class is an outstanding PNG-save job.
 private:
-	static void to_png(MainWindow *mw, unsigned rwidth, unsigned rheight,
+	static void to_png(Gtk::Window *parent, unsigned rwidth, unsigned rheight,
 			Plot3::Plot3Plot* plot, const BasePalette* pal, bool antialias,
 			bool show_hud, std::string& filename);
 	void instance_to_png(MainWindow *mw); // For tidyup from MainWindow

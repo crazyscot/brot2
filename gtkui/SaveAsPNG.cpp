@@ -48,6 +48,7 @@ void Single::instance_to_png(MainWindow *mw)
 }
 
 void Single::to_png(MainWindow *mw, unsigned rwidth, unsigned rheight,
+void Single::to_png(Gtk::Window *parent, unsigned rwidth, unsigned rheight,
 		Plot3Plot* plot, const BasePalette* pal, bool antialias, bool show_hud,
 		std::string& filename)
 {
@@ -61,12 +62,12 @@ void Single::to_png(MainWindow *mw, unsigned rwidth, unsigned rheight,
 		}
 		png.write(filename);
 		if (f.bad()) {
-			Util::alert(mw, "Writing failed");
+			Util::alert(parent, "Writing failed");
 		}
 	} else {
 		ostringstream str;
 		str << "Could not open " << filename << " for writing.";
-		Util::alert(mw, str.str());
+		Util::alert(parent, str.str());
 	}
 }
 
