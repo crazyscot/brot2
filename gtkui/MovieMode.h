@@ -46,6 +46,7 @@ struct MovieInfo {
 	std::vector<KeyFrame> points;
 
 	MovieInfo() : fractal(0), palette(0), width(0), height(0), fps(0) {}
+	unsigned count_frames() const;
 };
 
 }; // namespace Movie
