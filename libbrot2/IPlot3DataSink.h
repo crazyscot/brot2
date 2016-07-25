@@ -19,6 +19,8 @@
 #ifndef IPLOT3DATASINK_H_
 #define IPLOT3DATASINK_H_
 
+#include <string>
+
 namespace Plot3 {
 
 class Plot3Chunk;
