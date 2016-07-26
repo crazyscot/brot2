@@ -18,6 +18,7 @@
 
 #include "MovieRender.h"
 #include "MovieMode.h"
+#include "MovieWindow.h"
 #include "gtkmain.h" // for argv0
 #include "SaveAsPNG.h"
 #include "IPlot3DataSink.h"
@@ -34,6 +35,36 @@ Movie::Renderer::Renderer(const std::string& _name, const std::string& _pattern)
 }
 Movie::Renderer::~Renderer() {
 	all_renderers.dereg(name);
+}
+
+// ---------------------------------------------------------------------
+
+namespace Movie {
+class RenderJob {
+	MovieWindow& _parent;
+	Movie::Renderer& _renderer;
+	const std::string _filename;
+	struct Movie::MovieInfo _movie;
+	std::shared_ptr<const BrotPrefs::Prefs> _prefs;
+	ThreadPool& _threads;
+
+	public:
+		RenderJob(MovieWindow& parent, Movie::Renderer& renderer, const std::string& filename, const struct Movie::MovieInfo& movie, std::shared_ptr<const BrotPrefs::Prefs> prefs, ThreadPool& threads) :
+			_parent(parent), _renderer(renderer), _filename(filename), _movie(movie), _prefs(prefs), _threads(threads) { }
+
+		void run() {
+			_renderer.render(_filename, _movie, _prefs, _threads);
+			std::shared_ptr<Movie::RenderJob> this2(this);
+			_parent.queue_for_cleanup(this2);
+		}
+		virtual ~RenderJob() { }
+};
+
+}; // Movie
+
+void Movie::Renderer::start(MovieWindow& parent, const std::string& filename, const struct Movie::MovieInfo& movie, std::shared_ptr<const BrotPrefs::Prefs> prefs, ThreadPool& threads) {
+	RenderJob * job = new RenderJob(parent, *this, filename, movie, prefs, threads);
+	threads.enqueue<void>([=]{ job->run(); });
 }
 
 void Movie::Renderer::render(const std::string& filename, const struct Movie::MovieInfo& movie, std::shared_ptr<const BrotPrefs::Prefs> prefs, ThreadPool& threads) {
@@ -181,10 +212,12 @@ class BunchOfPNGs : public Movie::Renderer {
 		ThreadPool& threads;
 		MultiPNGProgressReporter reporter;
 
-		Private(const struct Movie::MovieInfo& _movie, const std::string& _outdir, const std::string& _tmpl,
+		Private(BunchOfPNGs& renderer,
+				const struct Movie::MovieInfo& _movie, const std::string& _outdir, const std::string& _tmpl,
 				std::shared_ptr<const BrotPrefs::Prefs> _prefs, ThreadPool& _threads) :
 			movie(_movie), fileno(0), outdir(_outdir), nametmpl(_tmpl), prefs(_prefs), threads(_threads),
 			reporter(*this){
+				(void) renderer;
 		}
 		virtual ~Private() {}
 		public:
@@ -203,7 +236,7 @@ class BunchOfPNGs : public Movie::Renderer {
 			spos = tmpl.rfind(".png");
 			if (spos >= 0)
 				tmpl.erase(spos);
-			Private *mypriv = new Private(movie, outdir, tmpl, prefs, threads);
+			Private *mypriv = new Private(*this, movie, outdir, tmpl, prefs, threads);
 			*priv = mypriv;
 		}
 		void render_frame(const struct Movie::Frame& fr, Movie::RenderInstancePrivate *priv) {

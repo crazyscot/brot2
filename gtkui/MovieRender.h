@@ -28,12 +28,17 @@
 #include "ThreadPool.h"
 #include <vector>
 
+class MovieWindow;
+
 namespace Movie {
 
 class Renderer;
 class RenderInstancePrivate {}; // Used by Renderer to store private data
 
+class RenderJob; // private to MovieRender.cpp
+
 class Renderer {
+	friend class RenderJob;
 
 	protected:
 		Renderer(const std::string& name, const std::string& pattern);
@@ -42,7 +47,8 @@ class Renderer {
 		const std::string name;
 		const std::string pattern; // shell style glob, for Gtk::FileFilter
 
-		void render(const std::string& filename, const struct Movie::MovieInfo& movie, std::shared_ptr<const BrotPrefs::Prefs> prefs, ThreadPool& threads);
+		// Main entrypoint:
+		void start(MovieWindow& parent, const std::string& filename, const struct Movie::MovieInfo& movie, std::shared_ptr<const BrotPrefs::Prefs> prefs, ThreadPool& threads);
 
 		// Initialise render run, alloc Private if needed
 		virtual void render_top(std::shared_ptr<const BrotPrefs::Prefs> prefs, ThreadPool& threads, const std::string& filename, const struct Movie::MovieInfo& movie, Movie::RenderInstancePrivate** priv) = 0;
@@ -56,6 +62,10 @@ class Renderer {
 		virtual ~Renderer();
 
 		static SimpleRegistry<Renderer> all_renderers;
+
+	private:
+		void render(const std::string& filename, const struct Movie::MovieInfo& movie, std::shared_ptr<const BrotPrefs::Prefs> prefs, ThreadPool& threads);
+
 };
 
 }; // namespace Movie
