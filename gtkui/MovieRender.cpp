@@ -22,7 +22,6 @@
 #include "MovieWindow.h"
 #include "gtkmain.h" // for argv0
 #include "SaveAsPNG.h"
-#include "IPlot3DataSink.h"
 #include <iostream>
 #include <fstream>
 #include <iomanip>
@@ -55,8 +54,6 @@ class RenderJob {
 
 		void run() {
 			_renderer.render(_filename, _movie, _prefs, _threads);
-			std::shared_ptr<Movie::RenderJob> this2(this);
-			_parent.queue_for_cleanup(this2);
 		}
 		virtual ~RenderJob() { }
 };
@@ -64,7 +61,7 @@ class RenderJob {
 }; // Movie
 
 void Movie::Renderer::start(MovieWindow& parent, const std::string& filename, const struct Movie::MovieInfo& movie, std::shared_ptr<const BrotPrefs::Prefs> prefs, ThreadPool& threads) {
-	RenderJob * job = new RenderJob(parent, *this, filename, movie, prefs, threads);
+	std::shared_ptr<RenderJob> job (new RenderJob(parent, *this, filename, movie, prefs, threads));
 	threads.enqueue<void>([=]{ job->run(); });
 }
 

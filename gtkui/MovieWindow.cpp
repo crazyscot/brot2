@@ -171,31 +171,11 @@ MovieWindow::MovieWindow(MainWindow& _mw, std::shared_ptr<const Prefs> prefs) : 
 	hide();
 	vbox->show_all();
 
-	// Cleanup event
-	Glib::signal_timeout().connect( sigc::mem_fun(*this, &MovieWindow::on_timer), 500 );
-
 	// LATER this window shouldn't appear over the main window if possible
 }
 
 MovieWindow::~MovieWindow() {
 	delete priv;
-}
-
-std::queue<std::shared_ptr<Movie::RenderJob>> cleanup_q; // protected by gdk threads lock
-
-void MovieWindow::queue_for_cleanup(std::shared_ptr<Movie::RenderJob> job) {
-	gdk_threads_enter();
-	cleanup_q.push(job);
-	gdk_threads_leave();
-}
-
-bool MovieWindow::on_timer() {
-	// must have gdk threads lock
-	while (!cleanup_q.empty()) {
-		std::shared_ptr<Movie::RenderJob> job(cleanup_q.front());
-		cleanup_q.pop();
-	}
-	return true;
 }
 
 void MovieWindow::do_add() {

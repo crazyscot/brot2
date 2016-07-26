@@ -41,7 +41,6 @@ class MovieWindow: public Gtk::Window{
 		struct Movie::MovieInfo movie;
 		MovieWindowPrivate *priv;
 
-		bool on_timer();
 	public:
 		MovieWindow(MainWindow& _mw, std::shared_ptr<const BrotPrefs::Prefs> prefs);
 		~MovieWindow();
@@ -58,8 +57,6 @@ class MovieWindow: public Gtk::Window{
 		void do_update_duration2(const Gtk::TreeModel::Path&, const Gtk::TreeModel::iterator&);
 
 		bool run_filename(std::string& filename, Movie::Renderer*& ren);
-
-		void queue_for_cleanup(std::shared_ptr<Movie::RenderJob>);
 };
 
 #endif // MOVIEWINDOW_H
