@@ -18,6 +18,7 @@
 
 #include "MovieRender.h"
 #include "MovieMode.h"
+#include "MovieProgress.h"
 #include "MovieWindow.h"
 #include "gtkmain.h" // for argv0
 #include "SaveAsPNG.h"
@@ -177,51 +178,25 @@ class ScriptB2CLI : public Movie::Renderer {
 // ------------------------------------------------------------------------------
 // Outputs a bunch of PNGs in a single directory
 
-class Idata {
-	public:
-		virtual unsigned get_fileno() const = 0;
-		virtual ~Idata() {}
-};
-
 // TODO Allow cancellation (async - could be tricky!) - set flag from prog window, check in render()?
-// TODO Don't hog the main thread - render movie in background?
-
-class MultiPNGProgressReporter : public Plot3::IPlot3DataSink {
-		Idata& _priv;
-	// TODO Make this a window - or maybe do something to the MovieWindow?
-	public:
-		MultiPNGProgressReporter(Idata& priv) : _priv(priv) {}
-
-		virtual void chunk_done(Plot3::Plot3Chunk*) {}
-		virtual void pass_complete(std::string&) {}
-		virtual void plot_complete() {
-			// TODO Proper progress window
-			std::cout << "Frame " << _priv.get_fileno() << " complete" << std::endl;
-		}
-		virtual ~MultiPNGProgressReporter() {}
-};
-
 
 class BunchOfPNGs : public Movie::Renderer {
-	class Private : public Movie::RenderInstancePrivate, public Idata {
+	class Private : public Movie::RenderInstancePrivate {
 		friend class BunchOfPNGs;
 		const struct Movie::MovieInfo& movie;
 		unsigned fileno;
 		const std::string outdir, nametmpl;
 		std::shared_ptr<const BrotPrefs::Prefs> prefs;
 		ThreadPool& threads;
-		MultiPNGProgressReporter reporter;
+		Movie::Progress reporter;
 
 		Private(BunchOfPNGs& renderer,
 				const struct Movie::MovieInfo& _movie, const std::string& _outdir, const std::string& _tmpl,
 				std::shared_ptr<const BrotPrefs::Prefs> _prefs, ThreadPool& _threads) :
 			movie(_movie), fileno(0), outdir(_outdir), nametmpl(_tmpl), prefs(_prefs), threads(_threads),
-			reporter(*this){
-				(void) renderer;
+			reporter(movie, renderer){
 		}
 		virtual ~Private() {}
-		public:
-			virtual unsigned get_fileno() const { return fileno; }
 	};
 	public:
 		BunchOfPNGs() : Movie::Renderer("PNG files in a directory", "*.png") { }
