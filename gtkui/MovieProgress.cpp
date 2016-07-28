@@ -27,16 +27,20 @@ Movie::Progress::Progress(const struct MovieInfo &_movie, const Movie::Renderer&
 	nframes(_movie.count_frames()), movie(_movie)
 {
 	gdk_threads_enter();
+	vbox = Gtk::manage(new Gtk::VBox());
+	plotbar = Gtk::manage(new Gtk::ProgressBar());
+	framebar = Gtk::manage(new Gtk::ProgressBar());
+	moviebar = Gtk::manage(new Gtk::ProgressBar());
 	set_title("Movie progress");
 	Gtk::Label *lbl;
-#define LABEL(_txt) do { lbl = Gtk::manage(new Gtk::Label(_txt)); vbox.pack_start(*lbl); } while(0)
+#define LABEL(_txt) do { lbl = Gtk::manage(new Gtk::Label(_txt)); vbox->pack_start(*lbl); } while(0)
 	LABEL("Current pass");
-	vbox.pack_start(plotbar);
+	vbox->pack_start(*plotbar);
 	LABEL("Current plot");
-	vbox.pack_start(framebar);
+	vbox->pack_start(*framebar);
 	LABEL("Overall");
-	vbox.pack_start(moviebar);
-	add(vbox);
+	vbox->pack_start(*moviebar);
+	add(*vbox);
 	show_all();
 	gdk_threads_leave();
 	plot_complete(); // Resets frames_done to 0
@@ -50,14 +54,14 @@ void Movie::Progress::chunk_done(Plot3::Plot3Chunk* job) {
 		chunks_done = 0;
 	else
 		++chunks_done;
-	plotbar.pulse();
+	plotbar->pulse();
 	// TODO plotbar.set_fraction((double)chunks_done / NCHUNKS); // No easy link to current plot
 	gdk_threads_leave();
 }
 void Movie::Progress::pass_complete(std::string& msg) {
 	gdk_threads_enter();
-	framebar.pulse();
-	framebar.set_text(msg);
+	framebar->pulse();
+	framebar->set_text(msg);
 	gdk_threads_leave();
 	chunk_done(0 /* indicates start-of-pass */);
 }
@@ -70,8 +74,8 @@ void Movie::Progress::plot_complete() {
 	gdk_threads_enter();
 	std::ostringstream msg2;
 	msg2 << "Frame " << frames_done << " of " << nframes;
-	moviebar.set_text(msg2.str());
-	moviebar.set_fraction((double)frames_done / nframes);
+	moviebar->set_text(msg2.str());
+	moviebar->set_fraction((double)frames_done / nframes);
 	gdk_threads_leave();
 
 	pass_complete(str1);

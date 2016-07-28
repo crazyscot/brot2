@@ -31,8 +31,8 @@ namespace Movie {
 	class Progress: public Gtk::Window, public Plot3::IPlot3DataSink {
 		private:
 			const Movie::Renderer& renderer;
-			Gtk::VBox vbox;
-			Gtk::ProgressBar plotbar, framebar, moviebar;
+			Gtk::VBox* vbox;
+			Gtk::ProgressBar *plotbar, *framebar, *moviebar;
 			int chunks_done, frames_done;
 			const unsigned npixels, nframes;
 			const struct MovieInfo& movie;
