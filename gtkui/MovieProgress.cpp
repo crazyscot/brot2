@@ -67,9 +67,9 @@ void Movie::Progress::chunk_done(Plot3::Plot3Chunk* job) {
 	plotbar->set_text(msg1.str());
 	gdk_threads_leave();
 }
-void Movie::Progress::pass_complete(std::string& msg, unsigned, unsigned, unsigned, unsigned) {
+void Movie::Progress::pass_complete(std::string& msg, unsigned /*passes_plotted*/, unsigned /*maxiter*/, unsigned pixels_still_live, unsigned total_pixels) {
 	gdk_threads_enter();
-	framebar->pulse();
+	framebar->set_fraction( (double) (total_pixels - pixels_still_live) / total_pixels);
 	framebar->set_text(msg);
 	gdk_threads_leave();
 	chunk_done(0 /* indicates start-of-pass */);
