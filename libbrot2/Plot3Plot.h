@@ -85,7 +85,7 @@ public:
 	 */
 	void wait();
 
-	unsigned chunks_total() const;
+	unsigned chunks_total() const; // Only gives a useful answer after start() - once the ChunkDivider has run
 	unsigned get_passes() const { return plotted_passes; }
 	int get_maxiter() const { return plotted_maxiter; }
 	bool is_running();
