@@ -49,6 +49,12 @@ Movie::Progress::Progress(const struct MovieInfo &_movie, const Movie::Renderer&
 Movie::Progress::~Progress() {}
 
 void Movie::Progress::chunk_done(Plot3::Plot3Chunk* job) {
+	std::ostringstream msg1;
+	msg1 << chunks_done;
+	if (chunks_count > 0)
+		msg1 << " / " << chunks_count;
+	msg1 <<	" chunks done";
+
 	gdk_threads_enter();
 	if (job == 0)
 		chunks_done = 0;
@@ -58,6 +64,7 @@ void Movie::Progress::chunk_done(Plot3::Plot3Chunk* job) {
 		plotbar->set_fraction((double)chunks_done / chunks_count);
 	else
 		plotbar->pulse();
+	plotbar->set_text(msg1.str());
 	gdk_threads_leave();
 }
 void Movie::Progress::pass_complete(std::string& msg) {
