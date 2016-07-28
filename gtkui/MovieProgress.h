@@ -33,7 +33,7 @@ namespace Movie {
 			const Movie::Renderer& renderer;
 			Gtk::VBox* vbox;
 			Gtk::ProgressBar *plotbar, *framebar, *moviebar;
-			int chunks_done, frames_done;
+			int chunks_done, chunks_count, frames_done;
 			const unsigned npixels, nframes;
 			const struct MovieInfo& movie;
 		public:
@@ -43,6 +43,8 @@ namespace Movie {
 			virtual void chunk_done(Plot3::Plot3Chunk* job);
 			virtual void pass_complete(std::string& msg);
 			virtual void plot_complete();
+
+			void set_chunks_count(int n);
 	};
 }; // namespace Movie
 

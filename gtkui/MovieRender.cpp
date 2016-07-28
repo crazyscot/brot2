@@ -225,6 +225,7 @@ class BunchOfPNGs : public Movie::Renderer {
 					mypriv->movie.antialias, mypriv->movie.draw_hud,
 					filename2);
 			saver.start();
+			mypriv->reporter.set_chunks_count(saver.get_chunks_count());
 			saver.wait();
 			saver.save_png(0);
 			// LATER Could kick off all frames in parallel and wait for them in render_bottom?

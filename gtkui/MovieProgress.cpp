@@ -22,7 +22,7 @@
 #include <sstream>
 
 Movie::Progress::Progress(const struct MovieInfo &_movie, const Movie::Renderer& _ren) : renderer(_ren),
-	chunks_done(0), frames_done(-1),
+	chunks_done(0), chunks_count(0), frames_done(-1),
 	npixels(_movie.height * _movie.width * (_movie.antialias ? 4 : 1)),
 	nframes(_movie.count_frames()), movie(_movie)
 {
@@ -54,8 +54,10 @@ void Movie::Progress::chunk_done(Plot3::Plot3Chunk* job) {
 		chunks_done = 0;
 	else
 		++chunks_done;
-	plotbar->pulse();
-	// TODO plotbar.set_fraction((double)chunks_done / NCHUNKS); // No easy link to current plot
+	if (chunks_count > 0)
+		plotbar->set_fraction((double)chunks_done / chunks_count);
+	else
+		plotbar->pulse();
 	gdk_threads_leave();
 }
 void Movie::Progress::pass_complete(std::string& msg) {
@@ -80,4 +82,6 @@ void Movie::Progress::plot_complete() {
 
 	pass_complete(str1);
 }
-
+void Movie::Progress::set_chunks_count(int n) {
+	chunks_count = n;
+}
