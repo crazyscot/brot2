@@ -68,7 +68,7 @@ public:
 class NullSink : public IPlot3DataSink {
 public:
 	virtual void chunk_done(Plot3Chunk*) {}
-	virtual void pass_complete(string&) {}
+	virtual void pass_complete(string&, unsigned, unsigned, unsigned, unsigned) {}
 	virtual void plot_complete() {}
 };
 
@@ -181,7 +181,7 @@ public:
 		EXPECT_EQ(0,nfailed) << " double-touches in job " << std::hex << (void*)(job);
 	}
 
-	virtual void pass_complete(string&) {}
+	virtual void pass_complete(string&, unsigned, unsigned, unsigned, unsigned) {}
 	virtual void plot_complete() {}
 
 	virtual void final_check() {
@@ -404,7 +404,7 @@ public:
 	virtual void chunk_done(Plot3Chunk*) {
 		++chunks;
 	}
-	virtual void pass_complete(std::string&) {
+	virtual void pass_complete(std::string&, unsigned, unsigned, unsigned, unsigned) {
 		++passes;
 	}
 	virtual void plot_complete() {

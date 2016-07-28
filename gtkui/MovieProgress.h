@@ -41,7 +41,7 @@ namespace Movie {
 			virtual ~Progress();
 
 			virtual void chunk_done(Plot3::Plot3Chunk* job);
-			virtual void pass_complete(std::string& msg);
+			virtual void pass_complete(std::string& msg, unsigned passes_plotted, unsigned maxiter, unsigned pixels_still_live, unsigned total_pixels);
 			virtual void plot_complete();
 
 			void set_chunks_count(int n);

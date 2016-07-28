@@ -172,7 +172,7 @@ public:
 
 	// IPlot3DataSink:
 	virtual void chunk_done(Plot3::Plot3Chunk* job);
-	virtual void pass_complete(std::string& commentary);
+	virtual void pass_complete(std::string& commentary, unsigned passes_plotted, unsigned maxiter, unsigned pixels_still_live, unsigned total_pixels);
 	virtual void plot_complete();
 
 	static const unsigned DEFAULT_INITIAL_SIZE = 300;

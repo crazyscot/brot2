@@ -266,7 +266,7 @@ void Plot3Plot::run() {
 			info << ": " << live_pixels << " pixels live";
 			string infos = info.str();
 			lock.unlock();
-			sink->pass_complete(infos);
+			sink->pass_complete(infos, passcount, plotted_maxiter, live_pixels, width*height);
 			lock.lock();
 		}
 

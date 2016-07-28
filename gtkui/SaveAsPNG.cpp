@@ -95,7 +95,7 @@ void SingleProgressWindow::chunk_done(Plot3Chunk*) {
 	gdk_threads_leave();
 }
 
-void SingleProgressWindow::pass_complete(std::string& commentary) {
+void SingleProgressWindow::pass_complete(std::string& commentary, unsigned, unsigned, unsigned, unsigned) {
 	_chunks_this_pass=0;
 	gdk_threads_enter();
 	progbar->set_text(commentary);

@@ -42,7 +42,7 @@ struct SingleProgressWindow: public Gtk::Window, Plot3::IPlot3DataSink {
 	int _chunks_this_pass;
 	SingleProgressWindow(MainWindow& p, Single& j);
 	virtual void chunk_done(Plot3::Plot3Chunk* chunk);
-	virtual void pass_complete(std::string& commentary);
+	virtual void pass_complete(std::string& commentary, unsigned passes_plotted, unsigned maxiter, unsigned pixels_still_live, unsigned total_pixels);
 	virtual void plot_complete();
 };
 

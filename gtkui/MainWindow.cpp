@@ -389,7 +389,7 @@ void MainWindow::chunk_done(Plot3Chunk* job)
 	gdk_threads_leave();
 }
 
-void MainWindow::pass_complete(std::string& commentary)
+void MainWindow::pass_complete(std::string& commentary, unsigned, unsigned, unsigned, unsigned)
 {
 	_chunks_this_pass=0;
 
