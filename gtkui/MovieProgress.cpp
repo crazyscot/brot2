@@ -42,6 +42,7 @@ Movie::Progress::Progress(const struct MovieInfo &_movie, const Movie::Renderer&
 	vbox->pack_start(*moviebar);
 	add(*vbox);
 	show_all();
+	Glib::signal_timeout().connect( sigc::mem_fun(*this, &Movie::Progress::on_timer), 300 );
 	gdk_threads_leave();
 	plot_complete(); // Resets frames_done to 0
 }
@@ -49,22 +50,11 @@ Movie::Progress::Progress(const struct MovieInfo &_movie, const Movie::Renderer&
 Movie::Progress::~Progress() {}
 
 void Movie::Progress::chunk_done(Plot3::Plot3Chunk* job) {
-	std::ostringstream msg1;
-	msg1 << chunks_done;
-	if (chunks_count > 0)
-		msg1 << " / " << chunks_count;
-	msg1 <<	" chunks done";
-
 	gdk_threads_enter();
 	if (job == 0)
 		chunks_done = 0;
 	else
 		++chunks_done;
-	if (chunks_count > 0)
-		plotbar->set_fraction((double)chunks_done / chunks_count);
-	else
-		plotbar->pulse();
-	plotbar->set_text(msg1.str());
 	gdk_threads_leave();
 }
 void Movie::Progress::pass_complete(std::string& msg, unsigned /*passes_plotted*/, unsigned /*maxiter*/, unsigned pixels_still_live, unsigned total_pixels) {
@@ -73,6 +63,7 @@ void Movie::Progress::pass_complete(std::string& msg, unsigned /*passes_plotted*
 	framebar->set_text(msg);
 	gdk_threads_leave();
 	chunk_done(0 /* indicates start-of-pass */);
+	on_timer(); // force that bar to update
 }
 void Movie::Progress::plot_complete() {
 	++frames_done;
@@ -91,4 +82,18 @@ void Movie::Progress::plot_complete() {
 }
 void Movie::Progress::set_chunks_count(int n) {
 	chunks_count = n;
+}
+bool Movie::Progress::on_timer() {
+	std::ostringstream msg1;
+	msg1 << chunks_done;
+	if (chunks_count > 0)
+		msg1 << " / " << chunks_count;
+	msg1 <<	" chunks done";
+
+	if (chunks_count > 0)
+		plotbar->set_fraction((double)chunks_done / chunks_count);
+	else
+		plotbar->pulse();
+	plotbar->set_text(msg1.str());
+	return true;
 }

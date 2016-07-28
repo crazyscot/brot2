@@ -36,6 +36,8 @@ namespace Movie {
 			int chunks_done, chunks_count, frames_done;
 			const unsigned npixels, nframes;
 			const struct MovieInfo& movie;
+
+			bool on_timer();
 		public:
 			Progress(const struct MovieInfo &, const Movie::Renderer &);
 			virtual ~Progress();
