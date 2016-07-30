@@ -30,7 +30,7 @@ namespace Movie {
 
 	class Progress: public Gtk::Window, public Plot3::IPlot3DataSink {
 		private:
-			const Movie::Renderer& renderer;
+			Movie::Renderer& renderer;
 			Gtk::VBox* vbox;
 			Gtk::ProgressBar *plotbar, *framebar, *moviebar;
 			int chunks_done, chunks_count, frames_done;
@@ -38,8 +38,9 @@ namespace Movie {
 			const struct MovieInfo& movie;
 
 			bool on_timer();
+			void do_cancel();
 		public:
-			Progress(const struct MovieInfo &, const Movie::Renderer &);
+			Progress(const struct MovieInfo &, Movie::Renderer &);
 			virtual ~Progress();
 
 			virtual void chunk_done(Plot3::Plot3Chunk* job);

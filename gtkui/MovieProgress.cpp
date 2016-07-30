@@ -20,8 +20,10 @@
 #include "MovieMode.h"
 #include "MovieRender.h"
 #include <sstream>
+#include <gtkmm/button.h>
+#include <gtkmm/buttonbox.h>
 
-Movie::Progress::Progress(const struct MovieInfo &_movie, const Movie::Renderer& _ren) : renderer(_ren),
+Movie::Progress::Progress(const struct MovieInfo &_movie, Movie::Renderer& _ren) : renderer(_ren),
 	chunks_done(0), chunks_count(0), frames_done(-1),
 	npixels(_movie.height * _movie.width * (_movie.antialias ? 4 : 1)),
 	nframes(_movie.count_frames()), movie(_movie)
@@ -40,6 +42,14 @@ Movie::Progress::Progress(const struct MovieInfo &_movie, const Movie::Renderer&
 	vbox->pack_start(*framebar);
 	LABEL("Overall");
 	vbox->pack_start(*moviebar);
+
+	Gtk::HButtonBox *bbox = Gtk::manage(new Gtk::HButtonBox());
+	vbox->pack_end(*bbox);
+
+	Gtk::Button *cancel_btn = Gtk::manage(new Gtk::Button("Cancel"));
+	cancel_btn->signal_clicked().connect(sigc::mem_fun(*this, &Movie::Progress::do_cancel));
+	bbox->pack_end(*cancel_btn);
+
 	add(*vbox);
 	show_all();
 	Glib::signal_timeout().connect( sigc::mem_fun(*this, &Movie::Progress::on_timer), 300 );
@@ -96,4 +106,7 @@ bool Movie::Progress::on_timer() {
 		plotbar->pulse();
 	plotbar->set_text(msg1.str());
 	return true;
+}
+void Movie::Progress::do_cancel() {
+	renderer.request_cancel();
 }
