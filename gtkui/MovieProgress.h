@@ -37,6 +37,7 @@ namespace Movie {
 			const unsigned npixels, nframes;
 			const struct MovieInfo& movie;
 
+			bool on_delete_event(GdkEventAny *evt);
 			bool on_timer();
 			void do_cancel();
 		public:

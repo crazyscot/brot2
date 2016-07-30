@@ -22,6 +22,7 @@
 #include <sstream>
 #include <gtkmm/button.h>
 #include <gtkmm/buttonbox.h>
+#include <gtkmm/messagedialog.h>
 
 Movie::Progress::Progress(const struct MovieInfo &_movie, Movie::Renderer& _ren) : renderer(_ren),
 	chunks_done(0), chunks_count(0), frames_done(-1),
@@ -109,4 +110,12 @@ bool Movie::Progress::on_timer() {
 }
 void Movie::Progress::do_cancel() {
 	renderer.request_cancel();
+}
+bool Movie::Progress::on_delete_event(GdkEventAny *) {
+	Gtk::MessageDialog dialog(*this, "Cancel this movie render?", false, Gtk::MessageType::MESSAGE_WARNING, Gtk::ButtonsType::BUTTONS_YES_NO, true);
+	int response = dialog.run();
+	if (response == Gtk::ResponseType::RESPONSE_NO)
+		return true;
+	do_cancel();
+	return false;
 }
