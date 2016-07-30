@@ -207,7 +207,7 @@ bool MainWindow::on_key_release_event(GdkEventKey *event) {
 
 bool MainWindow::on_delete_event(GdkEventAny * UNUSED(e)) {
 	Gtk::Main::instance()->quit(); // NORETURN
-	return true;
+	return false;
 }
 
 void MainWindow::render_prep(int local_inf) {
