@@ -45,7 +45,6 @@ class MovieWindow: public Gtk::Window{
 		MovieWindow(MainWindow& _mw, std::shared_ptr<const BrotPrefs::Prefs> prefs);
 		~MovieWindow();
 
-		bool close();
 		void reset();
 		bool on_delete_event(GdkEventAny *evt);
 

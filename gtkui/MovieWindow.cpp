@@ -313,16 +313,11 @@ void MovieWindow::reset() {
 	movie.points.clear();
 }
 
-bool MovieWindow::close() {
+bool MovieWindow::on_delete_event(GdkEventAny *) {
 	hide();
 	do_reset(); // So next time we open up we're fresh
 	// LATER: If they haven't rendered, ask if they're sure.
 	return true;
-}
-
-bool MovieWindow::on_delete_event(GdkEventAny *evt) {
-	(void)evt;
-	return close();
 }
 
 unsigned Movie::MovieInfo::count_frames() const {
