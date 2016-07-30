@@ -30,7 +30,7 @@ using namespace std;
 
 SimpleRegistry<Movie::Renderer> Movie::Renderer::all_renderers;
 
-Movie::Renderer::Renderer(const std::string& _name, const std::string& _pattern) : name(_name), pattern(_pattern) {
+Movie::Renderer::Renderer(const std::string& _name, const std::string& _pattern) : cancel_requested(false), name(_name), pattern(_pattern) {
 	all_renderers.reg(_name, this);
 }
 Movie::Renderer::~Renderer() {
@@ -61,6 +61,7 @@ class RenderJob {
 }; // Movie
 
 void Movie::Renderer::start(MovieWindow& parent, const std::string& filename, const struct Movie::MovieInfo& movie, std::shared_ptr<const BrotPrefs::Prefs> prefs, ThreadPool& threads) {
+	cancel_requested = false;
 	std::shared_ptr<RenderJob> job (new RenderJob(parent, *this, filename, movie, prefs, threads));
 	threads.enqueue<void>([=]{ job->run(); });
 }
@@ -81,7 +82,7 @@ void Movie::Renderer::render(const std::string& filename, const struct Movie::Mo
 	unsigned traverse = iter->frames_to_next;
 	iter++;
 
-	for (; iter != movie.points.end(); iter++) {
+	for (; iter != movie.points.end() && !cancel_requested; iter++) {
 		struct Movie::Frame ft(f1);
 		struct Movie::Frame f2;
 		f2.centre.real(iter->centre.real());
@@ -94,19 +95,28 @@ void Movie::Renderer::render(const std::string& filename, const struct Movie::Mo
 		// Looks like it needs to move exponentially from A to B.
 		long double scaler = powl ( f2.size.real()/f1.size.real() , 1.0 / traverse );
 
+		if (cancel_requested) break;
 		for (unsigned i=0; i<traverse; i++) {
 			Fractal::Point stepx(i * step.real(), i * step.imag());
 			ft.centre = f1.centre + stepx;
 			ft.size = f1.size * powl(scaler, i);
 			render_frame(ft, priv);
+			if (cancel_requested) break;
 		}
-		for (unsigned i=0; i<iter->hold_frames; i++)
+		if (cancel_requested) break;
+		for (unsigned i=0; i<iter->hold_frames; i++) {
 			render_frame(f2, priv);
+			if (cancel_requested) break;
+		}
 
 		traverse = iter->frames_to_next;
 		f1 = f2;
 	}
 	render_tail(priv);
+}
+
+void Movie::Renderer::request_cancel() {
+	cancel_requested = true;
 }
 
 // ------------------------------------------------------------------------------
@@ -165,7 +175,7 @@ class ScriptB2CLI : public Movie::Renderer {
 				mypriv->fs << " -a";
 			mypriv->fs << endl;
 		}
-		void render_tail(Movie::RenderInstancePrivate *priv) {
+		void render_tail(Movie::RenderInstancePrivate *priv, bool) {
 			Private * mypriv = (Private*)(priv);
 			delete mypriv;
 		}
@@ -230,7 +240,7 @@ class BunchOfPNGs : public Movie::Renderer {
 			saver.save_png(0);
 			// LATER Could kick off all frames in parallel and wait for them in render_bottom?
 		}
-		void render_tail(Movie::RenderInstancePrivate *priv) {
+		void render_tail(Movie::RenderInstancePrivate *priv, bool) {
 			Private * mypriv = (Private*)(priv);
 			delete mypriv;
 		}

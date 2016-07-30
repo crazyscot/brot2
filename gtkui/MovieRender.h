@@ -42,6 +42,7 @@ class Renderer {
 
 	protected:
 		Renderer(const std::string& name, const std::string& pattern);
+		bool cancel_requested;
 
 	public:
 		const std::string name;
@@ -57,7 +58,9 @@ class Renderer {
 		virtual void render_frame(const struct Movie::Frame& kf, Movie::RenderInstancePrivate *priv) = 0;
 
 		// Finish up, flush file, delete Private
-		virtual void render_tail(Movie::RenderInstancePrivate *priv) = 0;
+		virtual void render_tail(Movie::RenderInstancePrivate *priv, bool cancelling=false) = 0;
+
+		virtual void request_cancel();
 
 		virtual ~Renderer();
 
