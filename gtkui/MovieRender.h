@@ -27,6 +27,7 @@
 #include "Registry.h"
 #include "ThreadPool.h"
 #include <vector>
+#include <set>
 
 class MovieWindow;
 
@@ -74,14 +75,15 @@ class Renderer {
 class RendererFactory {
 	friend class Renderer;
 	static SimpleRegistry<RendererFactory> all_factories;
-	const std::string name;
-	const std::string pattern; // shell style glob, for Gtk::FileFilter
 
 	protected:
 		RendererFactory(const std::string& _name, const std::string& _pattern);
 		virtual ~RendererFactory();
 
 	public:
+		const std::string name;
+		const std::string pattern; // shell style glob, for Gtk::FileFilter
+		static std::set<std::string> all_factory_names();
 		static RendererFactory* get_factory(const std::string& name);
 		virtual Renderer* instantiate() = 0;
 };

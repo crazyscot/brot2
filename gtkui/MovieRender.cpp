@@ -49,6 +49,10 @@ Movie::RendererFactory::~RendererFactory() {
 Movie::RendererFactory* Movie::RendererFactory::get_factory(const std::string& name) {
 	return all_factories.get(name);
 }
+/*STATIC*/
+std::set<std::string> Movie::RendererFactory::all_factory_names() {
+	return all_factories.names();
+}
 
 // ---------------------------------------------------------------------
 
