@@ -274,4 +274,5 @@ static BunchOfPNGs pngz;
 	};                                                                    \
 	static clazz##Factory clazz##_factory;
 
-FACTORY(ScriptB2CLI, "PNG files in a directory", "*.png");
+FACTORY(ScriptB2CLI, "Script for brot2cli", "*.sh");
+FACTORY(BunchOfPNGs, "PNG files in a directory", "*.png");
