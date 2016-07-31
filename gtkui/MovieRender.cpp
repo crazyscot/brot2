@@ -273,7 +273,10 @@ static BunchOfPNGs pngz;
 	class clazz##Factory : public Movie::RendererFactory {                \
 		public:                                                           \
 				clazz##Factory() : Movie::RendererFactory(name, glob) { } \
-			virtual clazz* instantiate() { return new clazz(); }          \
+			virtual std::shared_ptr<Movie::Renderer> instantiate() {      \
+				std::shared_ptr<Movie::Renderer> instance(new clazz());   \
+				return instance;                                          \
+			}                                                             \
 			virtual ~clazz##Factory() {}                                  \
 	};                                                                    \
 	static clazz##Factory clazz##_factory;

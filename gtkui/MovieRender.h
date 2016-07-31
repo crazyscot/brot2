@@ -85,7 +85,7 @@ class RendererFactory {
 		const std::string pattern; // shell style glob, for Gtk::FileFilter
 		static std::set<std::string> all_factory_names();
 		static RendererFactory* get_factory(const std::string& name);
-		virtual Renderer* instantiate() = 0;
+		virtual std::shared_ptr<Renderer> instantiate() = 0;
 };
 
 }; // namespace Movie
