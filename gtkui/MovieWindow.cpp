@@ -224,6 +224,10 @@ void MovieWindow::do_reset() {
 	do_update_duration();
 }
 void MovieWindow::do_render() {
+	if (renderer) {
+		Util::alert(this, "A movie is already rendering, please wait for it to finish");
+		return;
+	}
 	// Doesn't make sense to make a movie with fewer than two points...
 	auto rows = priv->m_refTreeModel->children();
 	if (rows.size() < 2) {
@@ -265,24 +269,23 @@ void MovieWindow::do_render() {
 	movie.antialias = priv->f_antialias.get_active();
 
 	std::string filename;
-	Movie::Renderer * ren;
-	if (!run_filename(filename, ren))
+	if (!run_filename(filename, renderer))
 		return;
 
-	ren->start(*this, filename, movie, mw.prefs(), mw.get_threadpool());
+	renderer->start(*this, filename, movie, mw.prefs(), mw.get_threadpool());
 }
 
-bool MovieWindow::run_filename(std::string& filename, Movie::Renderer*& ren)
+bool MovieWindow::run_filename(std::string& filename, std::shared_ptr<Movie::Renderer>& renrv)
 {
 	Gtk::FileChooserDialog dialog(*this, "Save Movie", Gtk::FileChooserAction::FILE_CHOOSER_ACTION_SAVE);
 	dialog.set_do_overwrite_confirmation(true);
 	dialog.add_button(Gtk::Stock::CANCEL, Gtk::ResponseType::RESPONSE_CANCEL);
 	dialog.add_button(Gtk::Stock::SAVE, Gtk::ResponseType::RESPONSE_ACCEPT);
 
-	auto types = Movie::Renderer::all_renderers.names();
+	auto types = Movie::RendererFactory::all_factory_names();
 	for (auto it=types.begin(); it!=types.end(); it++) {
 		Gtk::FileFilter *filter = Gtk::manage(new Gtk::FileFilter());
-		Movie::Renderer *ren = Movie::Renderer::all_renderers.get(*it);
+		Movie::RendererFactory *ren = Movie::RendererFactory::get_factory(*it);
 		filter->set_name(ren->name);
 		filter->add_pattern(ren->pattern);
 		dialog.add_filter(*filter);
@@ -292,12 +295,12 @@ bool MovieWindow::run_filename(std::string& filename, Movie::Renderer*& ren)
 	int rv = dialog.run();
 	if (rv != Gtk::ResponseType::RESPONSE_ACCEPT) return false;
 	Gtk::FileFilter *filter = dialog.get_filter();
-	ren = Movie::Renderer::all_renderers.get(filter->get_name());
+	renrv = Movie::RendererFactory::get_factory(filter->get_name())->instantiate();
 	filename = dialog.get_filename();
 	SavePNG::Base::update_save_dir(filename);
 	{
 		// Attempt to enforce file extension.. there are probably better ways to do this.
-		std::string extn(ren->pattern);
+		std::string extn(renrv->pattern);
 		if (extn[0] == '*')
 			extn.erase(0,1);
 		if (!Util::ends_with(filename,extn))
@@ -360,4 +363,8 @@ void MovieWindow::do_update_duration() {
 void MovieWindow::do_update_duration2(const Gtk::TreeModel::Path&, const Gtk::TreeModel::iterator&) {
 	// For now this is just a thin wrapper. Might become something more complex later.
 	do_update_duration();
+}
+void MovieWindow::signal_completion(Movie::Renderer& job) {
+	ASSERT(&job == renderer.get());
+	renderer = 0;
 }

@@ -40,6 +40,7 @@ class MovieWindow: public Gtk::Window{
 		std::shared_ptr<const BrotPrefs::Prefs> _prefs; // master
 		struct Movie::MovieInfo movie;
 		MovieWindowPrivate *priv;
+		std::shared_ptr<Movie::Renderer> renderer; // 0 when inactive
 
 	public:
 		MovieWindow(MainWindow& _mw, std::shared_ptr<const BrotPrefs::Prefs> prefs);
@@ -55,7 +56,8 @@ class MovieWindow: public Gtk::Window{
 		void do_update_duration();
 		void do_update_duration2(const Gtk::TreeModel::Path&, const Gtk::TreeModel::iterator&);
 
-		bool run_filename(std::string& filename, Movie::Renderer*& ren);
+		bool run_filename(std::string& filename, std::shared_ptr<Movie::Renderer>& ren);
+		void signal_completion(Movie::Renderer& job);
 };
 
 #endif // MOVIEWINDOW_H

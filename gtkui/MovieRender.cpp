@@ -71,6 +71,7 @@ class RenderJob {
 
 		void run() {
 			_renderer.render(_filename, _movie, _prefs, _threads);
+			_parent.signal_completion(_renderer);
 		}
 		virtual ~RenderJob() { }
 };
