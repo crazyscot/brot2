@@ -84,7 +84,7 @@ void Movie::Progress::plot_complete() {
 
 	gdk_threads_enter();
 	std::ostringstream msg2;
-	msg2 << "Frame " << frames_done << " of " << nframes;
+	msg2 << frames_done << "/" << nframes << " frames";
 	moviebar->set_text(msg2.str());
 	moviebar->set_fraction((double)frames_done / nframes);
 	gdk_threads_leave();
