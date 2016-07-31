@@ -317,6 +317,13 @@ void MovieWindow::reset() {
 }
 
 bool MovieWindow::on_delete_event(GdkEventAny *) {
+	if (renderer) {
+		Gtk::MessageDialog dialog(*this, "Cancel this movie render?", false, Gtk::MessageType::MESSAGE_WARNING, Gtk::ButtonsType::BUTTONS_YES_NO, true);
+		int response = dialog.run();
+		if (response == Gtk::ResponseType::RESPONSE_NO)
+			return true;
+		renderer->request_cancel();
+	}
 	hide();
 	do_reset(); // So next time we open up we're fresh
 	// LATER: If they haven't rendered, ask if they're sure.
