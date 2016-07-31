@@ -28,13 +28,9 @@
 
 using namespace std;
 
-SimpleRegistry<Movie::Renderer> Movie::Renderer::all_renderers;
-
 Movie::Renderer::Renderer(const std::string& _name, const std::string& _pattern) : cancel_requested(false), name(_name), pattern(_pattern) {
-	all_renderers.reg(_name, this);
 }
 Movie::Renderer::~Renderer() {
-	all_renderers.dereg(name);
 }
 
 SimpleRegistry<Movie::RendererFactory> Movie::RendererFactory::all_factories;
@@ -42,6 +38,7 @@ SimpleRegistry<Movie::RendererFactory> Movie::RendererFactory::all_factories;
 Movie::RendererFactory::RendererFactory(const std::string& _name, const std::string& _pattern) : name(_name), pattern(_pattern) {
 	all_factories.reg(_name, this);
 }
+
 Movie::RendererFactory::~RendererFactory() {
 	all_factories.dereg(name);
 }
@@ -267,8 +264,6 @@ class BunchOfPNGs : public Movie::Renderer {
 
 // ------------------------------------------------------------------------------
 // And now some instances to make them live
-static ScriptB2CLI scripter;
-static BunchOfPNGs pngz;
 
 #define FACTORY(clazz, name, glob) \
 	class clazz##Factory : public Movie::RendererFactory {                \

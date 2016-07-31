@@ -65,8 +65,6 @@ class Renderer {
 
 		virtual ~Renderer();
 
-		static SimpleRegistry<Renderer> all_renderers;
-
 	private:
 		void render(const std::string& filename, const struct Movie::MovieInfo& movie, std::shared_ptr<const BrotPrefs::Prefs> prefs, ThreadPool& threads);
 
