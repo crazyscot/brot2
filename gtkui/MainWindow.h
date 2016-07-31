@@ -104,6 +104,7 @@ public:
 
     virtual bool on_key_release_event(GdkEventKey *);
     virtual bool on_delete_event(GdkEventAny *);
+    bool do_quit();
 
     void do_resize(unsigned width, unsigned height);
     void do_plot(bool is_same_plot = false);

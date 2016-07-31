@@ -73,7 +73,7 @@ public:
 		movieI.signal_activate().connect(sigc::mem_fun(this, &MainMenu::do_movie));
 		append(sepa);
 		append(quitI);
-		quitI.signal_activate().connect(sigc::ptr_fun(do_quit));
+		quitI.signal_activate().connect(sigc::mem_fun(this, &MainMenu::do_quit));
 	}
 
 	static void do_about() {
@@ -87,8 +87,9 @@ public:
 		dlg.set_logo(logo);
 		dlg.run();
 	}
-	static void do_quit() {
-		Gtk::Main::instance()->quit();
+	void do_quit() {
+		MainWindow *mw = find_main(this);
+		mw->do_quit();
 	}
 	void do_save() {
 		MainWindow *mw = find_main(this);

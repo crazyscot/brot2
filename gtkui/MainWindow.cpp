@@ -205,9 +205,15 @@ bool MainWindow::on_key_release_event(GdkEventKey *event) {
 	return false;
 }
 
-bool MainWindow::on_delete_event(GdkEventAny * UNUSED(e)) {
+bool MainWindow::do_quit() {
+	if (movieWin.on_delete_event(0))
+		return true; // i.e. event was squashed
 	Gtk::Main::instance()->quit(); // NORETURN
 	return false;
+}
+
+bool MainWindow::on_delete_event(GdkEventAny * UNUSED(e)) {
+	return do_quit();
 }
 
 void MainWindow::render_prep(int local_inf) {
