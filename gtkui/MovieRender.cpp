@@ -37,6 +37,19 @@ Movie::Renderer::~Renderer() {
 	all_renderers.dereg(name);
 }
 
+SimpleRegistry<Movie::RendererFactory> Movie::RendererFactory::all_factories;
+
+Movie::RendererFactory::RendererFactory(const std::string& _name, const std::string& _pattern) : name(_name), pattern(_pattern) {
+	all_factories.reg(_name, this);
+}
+Movie::RendererFactory::~RendererFactory() {
+	all_factories.dereg(name);
+}
+/*STATIC*/
+Movie::RendererFactory* Movie::RendererFactory::get_factory(const std::string& name) {
+	return all_factories.get(name);
+}
+
 // ---------------------------------------------------------------------
 
 namespace Movie {
