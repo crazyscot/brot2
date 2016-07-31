@@ -265,13 +265,13 @@ class BunchOfPNGs : public Movie::Renderer {
 static ScriptB2CLI scripter;
 static BunchOfPNGs pngz;
 
-class ScriptB2CLIFactory : public Movie::RendererFactory {
-	public:
-		ScriptB2CLIFactory() : Movie::RendererFactory("PNG files in a directory", "*.png") { }
-		virtual ScriptB2CLI* instantiate() {
-			return new ScriptB2CLI();
-		}
-		virtual ~ScriptB2CLIFactory() {}
-};
+#define FACTORY(clazz, name, glob) \
+	class clazz##Factory : public Movie::RendererFactory {                \
+		public:                                                           \
+				clazz##Factory() : Movie::RendererFactory(name, glob) { } \
+			virtual clazz* instantiate() { return new clazz(); }          \
+			virtual ~clazz##Factory() {}                                  \
+	};                                                                    \
+	static clazz##Factory clazz##_factory;
 
-static ScriptB2CLIFactory scripter_factory;
+FACTORY(ScriptB2CLI, "PNG files in a directory", "*.png");
