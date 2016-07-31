@@ -264,3 +264,14 @@ class BunchOfPNGs : public Movie::Renderer {
 // And now some instances to make them live
 static ScriptB2CLI scripter;
 static BunchOfPNGs pngz;
+
+class ScriptB2CLIFactory : public Movie::RendererFactory {
+	public:
+		ScriptB2CLIFactory() : Movie::RendererFactory("PNG files in a directory", "*.png") { }
+		virtual ScriptB2CLI* instantiate() {
+			return new ScriptB2CLI();
+		}
+		virtual ~ScriptB2CLIFactory() {}
+};
+
+static ScriptB2CLIFactory scripter_factory;
