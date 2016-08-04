@@ -123,6 +123,8 @@ MainWindow::~MainWindow() {
 		plot->stop();
 		plot->wait();
 	}
+	movieWindow().stop();
+	movieWindow().wait();
 	delete plot;
 	delete plot_prev;
 	delete divider;
