@@ -101,11 +101,13 @@ bool Movie::Progress::on_timer() {
 		msg1 << " / " << chunks_count;
 	msg1 <<	" chunks done";
 
+	gdk_threads_enter();
 	if (chunks_count > 0)
 		plotbar->set_fraction((double)chunks_done / chunks_count);
 	else
 		plotbar->pulse();
 	plotbar->set_text(msg1.str());
+	gdk_threads_leave();
 	return true;
 }
 void Movie::Progress::do_cancel() {

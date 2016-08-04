@@ -621,7 +621,9 @@ void MainWindow::png_save_completion()
 
 bool MainWindow::on_timer()
 {
+	gdk_threads_enter();
 	png_save_completion();
+	gdk_threads_leave();
 	return true;
 }
 
