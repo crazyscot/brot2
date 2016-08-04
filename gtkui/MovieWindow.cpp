@@ -310,13 +310,6 @@ bool MovieWindow::run_filename(std::string& filename, std::shared_ptr<Movie::Ren
 	return true;
 }
 
-
-void MovieWindow::reset() {
-	movie.fractal = 0;
-	movie.palette = 0;
-	movie.points.clear();
-}
-
 bool MovieWindow::on_delete_event(GdkEventAny *) {
 	std::unique_lock<std::mutex> lock(mux);
 	if (renderer) {

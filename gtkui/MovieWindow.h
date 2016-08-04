@@ -50,12 +50,11 @@ class MovieWindow: public Gtk::Window{
 		MovieWindow(MainWindow& _mw, std::shared_ptr<const BrotPrefs::Prefs> prefs);
 		~MovieWindow();
 
-		void reset();
 		bool on_delete_event(GdkEventAny *evt);
 
 		void do_add();
 		void do_delete();
-		void do_reset();
+		void do_reset(); // Reset button clicked
 		void do_render();
 		void do_update_duration();
 		void do_update_duration2(const Gtk::TreeModel::Path&, const Gtk::TreeModel::iterator&);
