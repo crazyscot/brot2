@@ -224,6 +224,7 @@ void MovieWindow::do_reset() {
 	do_update_duration();
 }
 void MovieWindow::do_render() {
+	std::unique_lock<std::mutex> lock(mux);
 	if (renderer) {
 		Util::alert(this, "A movie is already rendering, please wait for it to finish");
 		return;
@@ -317,6 +318,7 @@ void MovieWindow::reset() {
 }
 
 bool MovieWindow::on_delete_event(GdkEventAny *) {
+	std::unique_lock<std::mutex> lock(mux);
 	if (renderer) {
 		Gtk::MessageDialog dialog(*this, "Cancel this movie render?", false, Gtk::MessageType::MESSAGE_WARNING, Gtk::ButtonsType::BUTTONS_YES_NO, true);
 		int response = dialog.run();
@@ -329,6 +331,21 @@ bool MovieWindow::on_delete_event(GdkEventAny *) {
 	// LATER: If they haven't rendered, ask if they're sure.
 	return false;
 }
+
+void MovieWindow::stop() {
+	std::unique_lock<std::mutex> lock(mux);
+	if (renderer) {
+		renderer->request_cancel();
+	}
+}
+
+void MovieWindow::wait() {
+	std::unique_lock<std::mutex> lock(mux);
+	if (renderer) {
+		completion_cv.wait(lock);
+	}
+}
+
 
 unsigned Movie::MovieInfo::count_frames() const {
 	// Same code as do_update_duration() but different structure...
@@ -372,6 +389,8 @@ void MovieWindow::do_update_duration2(const Gtk::TreeModel::Path&, const Gtk::Tr
 	do_update_duration();
 }
 void MovieWindow::signal_completion(Movie::Renderer& job) {
+	std::unique_lock<std::mutex> lock(mux);
 	ASSERT(&job == renderer.get());
 	renderer = 0;
+	completion_cv.notify_all();
 }

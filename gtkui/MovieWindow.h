@@ -23,6 +23,7 @@
 #include "MovieMode.h"
 #include <gtkmm/dialog.h>
 #include <gtkmm/entry.h>
+#include <condition_variable>
 
 class MainWindow;
 class MovieWindowPrivate;
@@ -40,7 +41,10 @@ class MovieWindow: public Gtk::Window{
 		std::shared_ptr<const BrotPrefs::Prefs> _prefs; // master
 		struct Movie::MovieInfo movie;
 		MovieWindowPrivate *priv;
-		std::shared_ptr<Movie::Renderer> renderer; // 0 when inactive
+		std::shared_ptr<Movie::Renderer> renderer; // 0 when inactive, protected by mux
+
+		std::mutex mux; // Protects renderer and completion_cv
+		std::condition_variable completion_cv; // Signals to anyone who's interested that we're complete
 
 	public:
 		MovieWindow(MainWindow& _mw, std::shared_ptr<const BrotPrefs::Prefs> prefs);
@@ -58,6 +62,9 @@ class MovieWindow: public Gtk::Window{
 
 		bool run_filename(std::string& filename, std::shared_ptr<Movie::Renderer>& ren);
 		void signal_completion(Movie::Renderer& job);
+
+		void stop(); // Attempts to halt the render ASAP
+		void wait(); // Waits for all movie jobs to complete
 };
 
 #endif // MOVIEWINDOW_H
