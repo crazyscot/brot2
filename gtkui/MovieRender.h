@@ -28,6 +28,7 @@
 #include "ThreadPool.h"
 #include <vector>
 #include <set>
+#include <atomic>
 
 class MovieWindow;
 
@@ -43,7 +44,7 @@ class Renderer {
 
 	protected:
 		Renderer(const std::string& name, const std::string& pattern);
-		bool cancel_requested;
+		std::atomic<bool> cancel_requested;
 
 	public:
 		const std::string name;
