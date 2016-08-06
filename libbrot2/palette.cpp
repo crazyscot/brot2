@@ -48,7 +48,7 @@ std::ostream& operator<<(std::ostream &stream, const rgba& o) {
 	  return stream;
 }
 
-// HSV->RGB conversion algorithm coded up from the formula on Wikipedia.
+// HSV->RGB conversion algorithm: Originally coded up from the formula on Wikipedia, improved version (also derived from Wikipedia) converted from JavaScript found on https://github.com/mjackson/mjijackson.github.com/blob/master/2008/02/rgb-to-hsl-and-rgb-to-hsv-color-model-conversion-algorithms-in-javascript.txt
 hsvf::operator rgb() {
 	if (isnan(h)) {
 		return rgbf(v,v,v); // "undefined" case
@@ -57,35 +57,19 @@ hsvf::operator rgb() {
 		ASSERT(false); // should never happen
 		return rgb(0,0,0); // eek, not a real number
 	}
-	float chroma = v * s, tmp;
-	if ((h<0.0) || (h>=1.0)) h = modff(h,&tmp);
-	// h': which part of the hexcone does h fall into?
-	float hp = h*6.0;
-	float hm = hp;
-	while (hm>2.0) hm -= 2.0; // so hm = hp mod 2
-	float x;
-	if (hm<1.0)	x=hm;
-	else		x=2.0-hm;
-	x *= chroma;
-
-	rgbf rv;
-	switch((int)hp) {
-	case 0: case 6:
-		rv = rgbf(chroma,x,0); break;
-	case 1:
-		rv = rgbf(x,chroma,0); break;
-	case 2:
-		rv = rgbf(0,chroma,x); break;
-	case 3:
-		rv = rgbf(0,x,chroma); break;
-	case 4:
-		rv = rgbf(x,0,chroma); break;
-	case 5:
-		rv = rgbf(chroma,0,x); break;
+	int i = h * 6.0;
+	float f = h * 6.0 - i;
+	float p = v * (1.0 - s);
+	float q = v * (1.0 - f * s);
+	float t = v * (1.0 - (1.0 - f) * s);
+	switch(i%6) {
+		case 0: return rgbf(v, t, p);
+		case 1: return rgbf(q, v, p);
+		case 2: return rgbf(p, v, t);
+		case 3: return rgbf(p, q, v);
+		case 4: return rgbf(t, p, v);
+		case 5: return rgbf(v, p, q);
 	}
-	float m = v - chroma;
-	rv.r += m; rv.g += m; rv.b += m;
-	return rv;
 }
 
 std::ostream& operator<<(std::ostream &stream, hsvf o) {
