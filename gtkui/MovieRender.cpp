@@ -94,7 +94,8 @@ void Movie::Renderer::render(const std::string& filename, const struct Movie::Mo
 	f1.centre.imag(iter->centre.imag());
 	f1.size.real(  iter->size.real());
 	f1.size.imag(  iter->size.imag());
-	render_frame(f1, priv, iter->hold_frames+1);
+	render_frame(f1, priv, iter->hold_frames+1); // we expect this will call plot_complete but not frames_traversed
+	priv->reporter.frames_traversed(iter->hold_frames);
 	unsigned traverse = iter->frames_to_next;
 	iter++;
 
@@ -120,7 +121,8 @@ void Movie::Renderer::render(const std::string& filename, const struct Movie::Mo
 			if (cancel_requested) break;
 		}
 		if (cancel_requested) break;
-		render_frame(f2, priv, iter->hold_frames+1);
+		render_frame(f2, priv, iter->hold_frames+1); // we expect this will call plot_complete but not frames_traversed
+		priv->reporter.frames_traversed(iter->hold_frames);
 
 		traverse = iter->frames_to_next;
 		f1 = f2;
