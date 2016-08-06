@@ -1,6 +1,6 @@
 /*
     misc.h: General miscellanea that didn't fit anywhere else
-    Copyright (C) 2011 Ross Younger
+    Copyright (C) 2011-6 Ross Younger
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -115,6 +115,10 @@ inline bool ends_with(std::string const & value, std::string const & ending)
 	if (ending.size() > value.size()) return false;
 	return std::equal(ending.rbegin(), ending.rend(), value.rbegin());
 }
+
+/* Copies a file from one filename to another.
+ * On error, returns -1 and sets errno. */
+int copy_file(const std::string& from, const std::string& to);
 
 }; // namespace Util
 
