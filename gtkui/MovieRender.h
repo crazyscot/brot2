@@ -56,8 +56,8 @@ class Renderer {
 		// Initialise render run, alloc Private if needed
 		virtual void render_top(std::shared_ptr<const BrotPrefs::Prefs> prefs, ThreadPool& threads, const std::string& filename, const struct Movie::MovieInfo& movie, Movie::RenderInstancePrivate** priv) = 0;
 
-		// Called for each frame
-		virtual void render_frame(const struct Movie::Frame& kf, Movie::RenderInstancePrivate *priv) = 0;
+		// Called for each frame in turn; "n_frames" is the number of times this frame is to be inserted
+		virtual void render_frame(const struct Movie::Frame& kf, Movie::RenderInstancePrivate *priv, const unsigned n_frames=1) = 0;
 
 		// Finish up, flush file, delete Private
 		virtual void render_tail(Movie::RenderInstancePrivate *priv, bool cancelling=false) = 0;

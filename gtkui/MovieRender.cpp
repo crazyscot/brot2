@@ -21,10 +21,12 @@
 #include "MovieProgress.h"
 #include "MovieWindow.h"
 #include "gtkmain.h" // for argv0
+#include "misc.h"
 #include "SaveAsPNG.h"
 #include <iostream>
 #include <fstream>
 #include <iomanip>
+#include <errno.h>
 
 using namespace std;
 
@@ -92,8 +94,7 @@ void Movie::Renderer::render(const std::string& filename, const struct Movie::Mo
 	f1.centre.imag(iter->centre.imag());
 	f1.size.real(  iter->size.real());
 	f1.size.imag(  iter->size.imag());
-	for (unsigned i=0; i<iter->hold_frames; i++)
-		render_frame(f1, priv);
+	render_frame(f1, priv, iter->hold_frames+1);
 	unsigned traverse = iter->frames_to_next;
 	iter++;
 
@@ -115,14 +116,11 @@ void Movie::Renderer::render(const std::string& filename, const struct Movie::Mo
 			Fractal::Point stepx(i * step.real(), i * step.imag());
 			ft.centre = f1.centre + stepx;
 			ft.size = f1.size * powl(scaler, i);
-			render_frame(ft, priv);
+			render_frame(ft, priv, 1);
 			if (cancel_requested) break;
 		}
 		if (cancel_requested) break;
-		for (unsigned i=0; i<iter->hold_frames; i++) {
-			render_frame(f2, priv);
-			if (cancel_requested) break;
-		}
+		render_frame(f2, priv, iter->hold_frames+1);
 
 		traverse = iter->frames_to_next;
 		f1 = f2;
@@ -173,8 +171,11 @@ class ScriptB2CLI : public Movie::Renderer {
 				<< endl
 				;
 		}
-		void render_frame(const struct Movie::Frame& fr, Movie::RenderInstancePrivate *priv) {
+		void render_frame(const struct Movie::Frame& fr, Movie::RenderInstancePrivate *priv, const unsigned n_frames) {
 			Private * mypriv = (Private*)(priv);
+			ostringstream filename;
+			filename << "\"${OUTDIR}/${OUTNAME}." << setfill('0') << setw(6) << (mypriv->fileno++) << ".png\"";
+
 			mypriv->fs
 				<< "${BROT2CLI} -X " << fr.centre.real() << " -Y " << fr.centre.imag()
 				<< " -l " << fr.size.real()
@@ -182,13 +183,20 @@ class ScriptB2CLI : public Movie::Renderer {
 				<< " -p \"" << mypriv->movie.palette->name << "\""
 				<< " -h " << mypriv->movie.height
 				<< " -w " << mypriv->movie.width
-				<< " -o \"${OUTDIR}/${OUTNAME}." << setfill('0') << setw(6) << (mypriv->fileno++) << ".png\""
+				<< " -o " << filename.str()
 				;
 			if (mypriv->movie.draw_hud)
 				mypriv->fs << " -H";
 			if (mypriv->movie.antialias)
 				mypriv->fs << " -a";
 			mypriv->fs << endl;
+
+			for (unsigned i=1; i<n_frames; i++) {
+				mypriv->fs
+					<< "cp " << filename.str() << " "
+					<< "\"${OUTDIR}/${OUTNAME}." << setfill('0') << setw(6) << (mypriv->fileno++) << ".png\"" 
+					<< endl;
+			}
 		}
 		void render_tail(Movie::RenderInstancePrivate *priv, bool) {
 			Private * mypriv = (Private*)(priv);
@@ -236,7 +244,7 @@ class BunchOfPNGs : public Movie::Renderer {
 			Private *mypriv = new Private(*this, movie, outdir, tmpl, prefs, threads);
 			*priv = mypriv;
 		}
-		void render_frame(const struct Movie::Frame& fr, Movie::RenderInstancePrivate *priv) {
+		void render_frame(const struct Movie::Frame& fr, Movie::RenderInstancePrivate *priv, unsigned n_frames) {
 			Private * mypriv = (Private*)(priv);
 			ostringstream filename;
 			filename << mypriv->outdir << '/' << mypriv->nametmpl << '_' << setfill('0') << setw(6) << (mypriv->fileno++) << ".png";
@@ -253,6 +261,15 @@ class BunchOfPNGs : public Movie::Renderer {
 			mypriv->reporter.set_chunks_count(saver.get_chunks_count());
 			saver.wait();
 			saver.save_png(0);
+			for (unsigned i=1; i<n_frames; i++) {
+				ostringstream file_copy;
+				file_copy << mypriv->outdir << '/' << mypriv->nametmpl << '_' << setfill('0') << setw(6) << (mypriv->fileno++) << ".png";
+				if (Util::copy_file(filename2, file_copy.str()) != 0) {
+					ostringstream msg;
+					msg << "Error copying frames: " << strerror(errno);
+					Util::alert(0, msg.str());
+				}
+			}
 			// LATER Could kick off all frames in parallel and wait for them in render_bottom?
 		}
 		void render_tail(Movie::RenderInstancePrivate *priv, bool) {
