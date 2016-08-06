@@ -20,6 +20,7 @@
 #define MOVIERENDER_H
 
 #include "MovieMode.h"
+#include "MovieProgress.h"
 #include "Prefs.h"
 #include "Fractal.h"
 #include "FractalMaths.h"
@@ -35,7 +36,11 @@ class MovieWindow;
 namespace Movie {
 
 class Renderer;
-class RenderInstancePrivate {}; // Used by Renderer to store private data
+struct RenderInstancePrivate {
+	const struct Movie::MovieInfo& movie;
+	RenderInstancePrivate(const struct Movie::MovieInfo& _movie) : movie(_movie) {}
+	virtual ~RenderInstancePrivate() {}
+}; // Used by Renderer to store private data
 
 class RenderJob; // private to MovieRender.cpp
 

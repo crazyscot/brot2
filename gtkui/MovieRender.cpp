@@ -139,10 +139,9 @@ class ScriptB2CLI : public Movie::Renderer {
 	class Private : public Movie::RenderInstancePrivate {
 		friend class ScriptB2CLI;
 		ofstream fs;
-		const struct Movie::MovieInfo& movie;
 		unsigned fileno;
 
-		Private(const struct Movie::MovieInfo& _movie, const std::string& filename) : movie(_movie), fileno(0) {
+		Private(const struct Movie::MovieInfo& _movie, const std::string& filename) : Movie::RenderInstancePrivate(_movie), fileno(0) {
 			fs.open(filename, std::fstream::out);
 		}
 		~Private() {
@@ -213,7 +212,6 @@ class ScriptB2CLI : public Movie::Renderer {
 class BunchOfPNGs : public Movie::Renderer {
 	class Private : public Movie::RenderInstancePrivate {
 		friend class BunchOfPNGs;
-		const struct Movie::MovieInfo& movie;
 		unsigned fileno;
 		const std::string outdir, nametmpl;
 		std::shared_ptr<const BrotPrefs::Prefs> prefs;
@@ -223,7 +221,7 @@ class BunchOfPNGs : public Movie::Renderer {
 		Private(BunchOfPNGs& renderer,
 				const struct Movie::MovieInfo& _movie, const std::string& _outdir, const std::string& _tmpl,
 				std::shared_ptr<const BrotPrefs::Prefs> _prefs, ThreadPool& _threads) :
-			movie(_movie), fileno(0), outdir(_outdir), nametmpl(_tmpl), prefs(_prefs), threads(_threads),
+			RenderInstancePrivate(_movie), fileno(0), outdir(_outdir), nametmpl(_tmpl), prefs(_prefs), threads(_threads),
 			reporter(movie, renderer){
 		}
 		virtual ~Private() {}
