@@ -226,8 +226,6 @@ class ScriptB2CLI : public Movie::Renderer {
 // ------------------------------------------------------------------------------
 // Outputs a bunch of PNGs in a single directory
 
-// TODO Allow cancellation (async - could be tricky!) - set flag from prog window, check in render()?
-
 class BunchOfPNGs : public Movie::Renderer {
 	class Private : public Movie::RenderInstancePrivate {
 		friend class BunchOfPNGs;
