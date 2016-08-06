@@ -104,12 +104,14 @@ void Movie::Renderer::render(const std::string& filename, const struct Movie::Mo
 
 	auto iter = movie.points.begin();
 
+	// NOTE: The total number of frames we render should match the number calculated by MovieWindow::do_update_duration().
+
 	struct Movie::Frame f1;
 	f1.centre.real(iter->centre.real());
 	f1.centre.imag(iter->centre.imag());
 	f1.size.real(  iter->size.real());
 	f1.size.imag(  iter->size.imag());
-	render_frame(f1, priv, iter->hold_frames+1); // we expect this will call plot_complete but not frames_traversed
+	render_frame(f1, priv, iter->hold_frames); // we expect this will call plot_complete but not frames_traversed
 	priv->reporter->frames_traversed(iter->hold_frames);
 	unsigned traverse = iter->frames_to_next;
 	iter++;
@@ -136,7 +138,7 @@ void Movie::Renderer::render(const std::string& filename, const struct Movie::Mo
 			if (cancel_requested) break;
 		}
 		if (cancel_requested) break;
-		render_frame(f2, priv, iter->hold_frames+1); // we expect this will call plot_complete but not frames_traversed
+		render_frame(f2, priv, iter->hold_frames); // we expect this will call plot_complete but not frames_traversed
 		priv->reporter->frames_traversed(iter->hold_frames);
 
 		traverse = iter->frames_to_next;
