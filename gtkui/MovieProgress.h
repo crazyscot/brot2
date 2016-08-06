@@ -48,6 +48,8 @@ namespace Movie {
 			virtual void pass_complete(std::string& msg, unsigned passes_plotted, unsigned maxiter, unsigned pixels_still_live, unsigned total_pixels);
 			virtual void plot_complete();
 
+			virtual void frames_traversed(int n);
+
 			void set_chunks_count(int n);
 	};
 }; // namespace Movie

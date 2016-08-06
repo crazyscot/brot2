@@ -77,7 +77,11 @@ void Movie::Progress::pass_complete(std::string& msg, unsigned /*passes_plotted*
 	on_timer(); // force that bar to update
 }
 void Movie::Progress::plot_complete() {
-	++frames_done;
+	frames_traversed(1);
+}
+void Movie::Progress::frames_traversed(int n) {
+	frames_done += n;
+
 	std::ostringstream msg1;
 	msg1 << "0 passes plotted; maxiter = 0; " << npixels << " pixels live";
 	std::string str1(msg1.str());
