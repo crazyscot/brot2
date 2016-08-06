@@ -55,6 +55,21 @@ std::set<std::string> Movie::RendererFactory::all_factory_names() {
 
 // ---------------------------------------------------------------------
 
+Movie::RenderInstancePrivate::RenderInstancePrivate(const struct Movie::MovieInfo& _movie, Movie::Renderer& _renderer) : movie(_movie)
+{
+	//gdk_threads_enter(); // NO, because Progress::Progress calls threads_enter()
+	reporter = new Movie::Progress(_movie, _renderer);
+	//gdk_threads_leave();
+}
+Movie::RenderInstancePrivate::~RenderInstancePrivate()
+{
+	gdk_threads_enter();
+	delete reporter; // It's a Gtk::Window
+	gdk_threads_leave();
+}
+
+// ---------------------------------------------------------------------
+
 namespace Movie {
 class RenderJob {
 	MovieWindow& _parent;
@@ -95,7 +110,7 @@ void Movie::Renderer::render(const std::string& filename, const struct Movie::Mo
 	f1.size.real(  iter->size.real());
 	f1.size.imag(  iter->size.imag());
 	render_frame(f1, priv, iter->hold_frames+1); // we expect this will call plot_complete but not frames_traversed
-	priv->reporter.frames_traversed(iter->hold_frames);
+	priv->reporter->frames_traversed(iter->hold_frames);
 	unsigned traverse = iter->frames_to_next;
 	iter++;
 
@@ -122,7 +137,7 @@ void Movie::Renderer::render(const std::string& filename, const struct Movie::Mo
 		}
 		if (cancel_requested) break;
 		render_frame(f2, priv, iter->hold_frames+1); // we expect this will call plot_complete but not frames_traversed
-		priv->reporter.frames_traversed(iter->hold_frames);
+		priv->reporter->frames_traversed(iter->hold_frames);
 
 		traverse = iter->frames_to_next;
 		f1 = f2;
@@ -251,13 +266,13 @@ class BunchOfPNGs : public Movie::Renderer {
 
 			SavePNG::MovieFrame saver(mypriv->prefs, mypriv->threads,
 					*mypriv->movie.fractal, *mypriv->movie.palette,
-					mypriv->reporter,
+					*mypriv->reporter,
 					fr.centre, fr.size,
 					mypriv->movie.width, mypriv->movie.height,
 					mypriv->movie.antialias, mypriv->movie.draw_hud,
 					filename2);
 			saver.start();
-			mypriv->reporter.set_chunks_count(saver.get_chunks_count());
+			mypriv->reporter->set_chunks_count(saver.get_chunks_count());
 			saver.wait();
 			saver.save_png(0);
 			for (unsigned i=1; i<n_frames; i++) {

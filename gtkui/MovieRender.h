@@ -38,9 +38,9 @@ namespace Movie {
 class Renderer;
 struct RenderInstancePrivate {
 	const struct Movie::MovieInfo& movie;
-	Movie::Progress reporter;
-	RenderInstancePrivate(const struct Movie::MovieInfo& _movie, Movie::Renderer& _renderer) : movie(_movie), reporter(_movie, _renderer) {}
-	virtual ~RenderInstancePrivate() {}
+	Movie::Progress *reporter;
+	RenderInstancePrivate(const struct Movie::MovieInfo& _movie, Movie::Renderer& _renderer);
+	virtual ~RenderInstancePrivate();
 }; // Used by Renderer to store private data
 
 class RenderJob; // private to MovieRender.cpp
