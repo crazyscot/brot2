@@ -94,11 +94,17 @@ public:
 };
 
 class Rainbow : public DiscretePalette {
+	rgb* colours;
 public:
-	Rainbow(int n) : DiscretePalette("Rainbow", n) {};
-	virtual rgb get(const PointData &pt) const {
+	Rainbow(int n) : DiscretePalette("Rainbow", n) {
+		colours = new rgb[n];
+		for (int i=0; i<n; i++) {
+			colours[i] = calculate(i);
+		}
+	};
+	virtual ~Rainbow() { delete[] colours; }
+	rgb calculate(double n) const {
 		// This is a continuous "gradient" around the Hue wheel.
-		double n = (double)pt.iter / size;
 		double tmp;
 		n = modf(n,&tmp);
 		hsvf h(n, 1, 1);
@@ -108,6 +114,10 @@ public:
 	#endif
 		return r;
 	};
+	virtual rgb get(const PointData &pt) const {
+		int n = (double)pt.iter / size;
+		return colours[n];
+	}
 };
 
 class PastelSalad : public DiscretePalette {
