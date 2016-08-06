@@ -141,7 +141,7 @@ class ScriptB2CLI : public Movie::Renderer {
 		ofstream fs;
 		unsigned fileno;
 
-		Private(const struct Movie::MovieInfo& _movie, const std::string& filename) : Movie::RenderInstancePrivate(_movie), fileno(0) {
+		Private(ScriptB2CLI& _renderer, const struct Movie::MovieInfo& _movie, const std::string& filename) : Movie::RenderInstancePrivate(_movie, _renderer), fileno(0) {
 			fs.open(filename, std::fstream::out);
 		}
 		~Private() {
@@ -158,7 +158,7 @@ class ScriptB2CLI : public Movie::Renderer {
 			int spos = outdir.rfind('/');
 			if (spos >= 0)
 				outdir.erase(spos+1);
-			Private *mypriv = new Private(movie, filename);
+			Private *mypriv = new Private(*this, movie, filename);
 			*priv = mypriv;
 			mypriv->fs
 				<< "#!/bin/bash -x" << endl
@@ -216,13 +216,12 @@ class BunchOfPNGs : public Movie::Renderer {
 		const std::string outdir, nametmpl;
 		std::shared_ptr<const BrotPrefs::Prefs> prefs;
 		ThreadPool& threads;
-		Movie::Progress reporter;
 
 		Private(BunchOfPNGs& renderer,
 				const struct Movie::MovieInfo& _movie, const std::string& _outdir, const std::string& _tmpl,
 				std::shared_ptr<const BrotPrefs::Prefs> _prefs, ThreadPool& _threads) :
-			RenderInstancePrivate(_movie), fileno(0), outdir(_outdir), nametmpl(_tmpl), prefs(_prefs), threads(_threads),
-			reporter(movie, renderer){
+			RenderInstancePrivate(_movie, renderer), fileno(0), outdir(_outdir), nametmpl(_tmpl), prefs(_prefs), threads(_threads)
+		{
 		}
 		virtual ~Private() {}
 	};
