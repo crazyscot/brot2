@@ -31,10 +31,25 @@ TEST(Zoom, Identity) {
 	EXPECT_EQ( size, size_out );
 }
 
+TEST(Zoom, DoesSomething) {
+	Fractal::Point size( 1.0, 1.0 ), size2( 0.1, 0.1 ), size_out;
+	EXPECT_TRUE( Movie::MotionZoom(size, size2, TEST_WIDTH, TEST_HEIGHT, TEST_SPEED, size_out) );
+	EXPECT_NE( size, size_out );
+}
+
+TEST(Zoom, Epsilon) {
+	Fractal::Point size( 1.0, 1.0 ), size_target( 1.00001, 1.00001 ), size_out;
+	EXPECT_FALSE( Movie::MotionZoom(size, size_target, 100, 100, TEST_SPEED, size_out) );
+	EXPECT_EQ( size, size_out );
+
+	Fractal::Point size_target_2(1.01, 1.01);
+	EXPECT_TRUE( Movie::MotionZoom(size, size_target_2, 100, 100, TEST_SPEED, size_out) );
+	EXPECT_NE( size, size_out );
+}
+
 // Other tests:
-// Zoom Actually Zooms
-// Delta check
-// Iterative zoom works and terminates
+// Iterative zoom works and terminates in both directions (zoom in and out) <<< This is Minimum Testable Code, plug it in...
 // Iterative check on non-square (funky aspect ratios)
+// Overshoot check
 
 // -----------------------------------------------------------------------------
