@@ -20,7 +20,6 @@
 #define MOVIERENDER_H
 
 #include "MovieMode.h"
-#include "MovieProgress.h"
 #include "Prefs.h"
 #include "Fractal.h"
 #include "FractalMaths.h"
@@ -36,6 +35,7 @@ class MovieWindow;
 namespace Movie {
 
 class Renderer;
+class Progress;
 struct RenderInstancePrivate {
 	const struct Movie::MovieInfo& movie;
 	Movie::Progress *reporter;
