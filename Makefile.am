@@ -48,6 +48,7 @@ libbrot2_a_SOURCES= \
 	libbrot2/Prefs.h libbrot2/Prefs.cpp \
 	libbrot2/BaseHUD.h libbrot2/BaseHUD.cpp \
 	libbrot2/MovieMode.h \
+	libbrot2/MovieMotion.h libbrot2/MovieMotion.cpp \
 	libbrot2/PrefsRegistry.h libbrot2/PrefsRegistry.cpp
 
 AUTOGEN+=logo_auto.c
@@ -139,7 +140,7 @@ b2test_SOURCES=test/b2test.cpp \
 					test/MockPalette.h \
 					test/MockPrefs.h test/MockPrefs.cpp \
 					test/Plot3Test.cpp test/Render2Test.cpp \
-					test/FractalKAT.cpp
+					test/FractalKAT.cpp test/MovieTest.cpp
 
 b2test_LDADD= libgtest.a $(all_ldadd)
 b2test_DEPENDENCIES= libgtest.a $(all_libs)
