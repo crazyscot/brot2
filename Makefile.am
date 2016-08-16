@@ -121,7 +121,7 @@ if GTEST
 check_PROGRAMS+=b2test
 export builddir
 TESTS+=b2test
-if USE_VALGRIND
+if TEST_WITH_VALGRIND
 TESTS+=test/b2test.valgrind
 endif
 

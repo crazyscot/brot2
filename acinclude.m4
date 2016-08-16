@@ -93,6 +93,6 @@ if [[ "$use_valgrind" = "not_set" ]]; then
 	fi
 fi
 
-AM_CONDITIONAL(USE_VALGRIND, $use_valgrind)
+AM_CONDITIONAL([TEST_WITH_VALGRIND], [test "x${use_valgrind}" = xyes])
 ])
 
