@@ -47,6 +47,7 @@ libbrot2_a_SOURCES= \
 	libbrot2/Render2.h libbrot2/Render2.cpp \
 	libbrot2/Prefs.h libbrot2/Prefs.cpp \
 	libbrot2/BaseHUD.h libbrot2/BaseHUD.cpp \
+	libbrot2/MovieMode.h \
 	libbrot2/PrefsRegistry.h libbrot2/PrefsRegistry.cpp
 
 AUTOGEN+=logo_auto.c
@@ -81,7 +82,6 @@ brot2_SOURCES= \
 	gtkui/PrefsDialog.cpp gtkui/PrefsDialog.h \
 	gtkui/ControlsWindow.cpp gtkui/ControlsWindow.h \
 	gtkui/MovieWindow.cpp gtkui/MovieWindow.h \
-	gtkui/MovieMode.h \
 	gtkui/MovieRender.cpp gtkui/MovieRender.h \
 	gtkui/MovieProgress.cpp gtkui/MovieProgress.h \
 	gtkui/Canvas.cpp gtkui/Canvas.h gtkui/HUD.cpp gtkui/HUD.h \
