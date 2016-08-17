@@ -107,8 +107,8 @@ bool Movie::MotionTranslate(const Fractal::Point& centre_in, const Fractal::Poin
 {
 
 	centre_out = centre_in;
-	// Easy case
-	if ( real(centre_in) == real(centre_target)  ||  imag(centre_in) == imag(centre_target) )
+	// Easy case. Note BOTH must match.
+	if ( real(centre_in) == real(centre_target)  &&  imag(centre_in) == imag(centre_target) )
 		return false;
 
 	// Like with zooming, if moving would take us beyond the target, we're close enough.
