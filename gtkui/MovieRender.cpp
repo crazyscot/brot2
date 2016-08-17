@@ -18,6 +18,7 @@
 
 #include "MovieRender.h"
 #include "MovieMode.h"
+#include "MovieMotion.h"
 #include "MovieProgress.h"
 #include "MovieWindow.h"
 #include "gtkmain.h" // for argv0
@@ -108,33 +109,31 @@ void Movie::Renderer::render(const std::string& filename, const struct Movie::Mo
 	// TODO Have do_update_duration call into here for a frame count.
 
 	struct Movie::Frame f1(iter->centre, iter->size);
-	render_frame(f1, priv, iter->hold_frames); // we expect this will call plot_complete but not frames_traversed
+	if (iter->hold_frames)
+		render_frame(f1, priv, iter->hold_frames); // we expect this will call plot_complete but not frames_traversed
+	else
+		render_frame(f1, priv, 1);
+
 	priv->reporter->frames_traversed(iter->hold_frames);
-	unsigned traverse = iter->frames_to_next;
 	iter++;
 
 	for (; iter != movie.points.end() && !cancel_requested; iter++) {
 		struct Movie::Frame ft(f1);
 		struct Movie::Frame f2(iter->centre, iter->size);
 
-		Fractal::Point step = (f2.centre - f1.centre) / traverse;
-		// Simple scaling of the axis length (zoom factor) doesn't work.
-		// Looks like it needs to move exponentially from A to B.
-		long double scaler = powl ( f2.size.real()/f1.size.real() , 1.0 / traverse );
+		bool still_moving;
+		do {
+			still_moving = false;
+			still_moving |= Movie::MotionZoom(ft.size, f2.size, movie.width, movie.height, 10 /*TODO speed*/, ft.size);
+			still_moving |= Movie::MotionTranslate(ft.centre, f2.centre, ft.size, movie.width, movie.height, 10 /* TODO speed */, ft.centre);
+			if (still_moving)
+				render_frame(ft, priv, 1);
+		} while (still_moving && !cancel_requested);
 
-		if (cancel_requested) break;
-		for (unsigned i=0; i<traverse; i++) {
-			Fractal::Point stepx(i * step.real(), i * step.imag());
-			ft.centre = f1.centre + stepx;
-			ft.size = f1.size * powl(scaler, i);
-			render_frame(ft, priv, 1);
-			if (cancel_requested) break;
-		}
-		if (cancel_requested) break;
-		render_frame(f2, priv, iter->hold_frames); // we expect this will call plot_complete but not frames_traversed
+		if (iter->hold_frames>1)
+			render_frame(f2, priv, iter->hold_frames-1); // we expect this will call plot_complete but not frames_traversed
 		priv->reporter->frames_traversed(iter->hold_frames);
 
-		traverse = iter->frames_to_next;
 		f1 = f2;
 	}
 	render_tail(priv);
