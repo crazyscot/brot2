@@ -38,18 +38,56 @@ TEST(Zoom, DoesSomething) {
 }
 
 TEST(Zoom, Epsilon) {
+	// Very close, no effect
 	Fractal::Point size( 1.0, 1.0 ), size_target( 1.00001, 1.00001 ), size_out;
 	EXPECT_FALSE( Movie::MotionZoom(size, size_target, 100, 100, TEST_SPEED, size_out) );
 	EXPECT_EQ( size, size_out );
 
+	// Not that close, does step
 	Fractal::Point size_target_2(1.01, 1.01);
 	EXPECT_TRUE( Movie::MotionZoom(size, size_target_2, 100, 100, TEST_SPEED, size_out) );
 	EXPECT_NE( size, size_out );
 }
 
-// Other tests:
-// Iterative zoom works and terminates in both directions (zoom in and out) <<< This is Minimum Testable Code, plug it in...
-// Iterative check on non-square (funky aspect ratios)
-// Overshoot check
+TEST(ZoomIn, Terminates) {
+	Fractal::Point size1( 1.0, 1.0 ), size2( 0.1, 0.1 ), size_working(size1), size_out;
+	int i=0;
+	while (i<1000000) {
+		//std::cout << "Step " << i << " size=" << size_working << std::endl;
+		if ( ! Movie::MotionZoom(size_working, size2, TEST_WIDTH, TEST_HEIGHT, TEST_SPEED, size_working) )
+			break;
+		++i;
+	}
+	EXPECT_LT(i, 1000000);
+	// And check for no overshoot.
+	EXPECT_GT(real(size_working), real(size2));
+	EXPECT_GT(imag(size_working), imag(size2));
+}
+
+TEST(ZoomOut, Terminates) {
+	Fractal::Point size1( 0.1, 0.1 ), size2( 1.0, 1.0 ), size_working(size1), size_out;
+	int i=0;
+	while (i<1000000) {
+		//std::cout << "Step " << i << " size=" << size_working << std::endl;
+		if ( ! Movie::MotionZoom(size_working, size2, TEST_WIDTH, TEST_HEIGHT, TEST_SPEED, size_working) )
+			break;
+		++i;
+	}
+	EXPECT_LT(i, 1000000);
+}
+
+TEST(Zoom, NonSquareTerminates) {
+	// This is a deliberately contrived example which should never happen; higher-level code should
+	// fix the aspect ratio.
+	Fractal::Point size1( 1.0, 0.5 ), size2( 0.1, 0.2 ), size_working(size1), size_out;
+	int i=0;
+	while (i<1000000) {
+		//std::cout << "Step " << i << " size=" << size_working << std::endl;
+		if ( ! Movie::MotionZoom(size_working, size2, TEST_WIDTH, TEST_HEIGHT, TEST_SPEED, size_working) )
+			break;
+		++i;
+	}
+	EXPECT_LT(i, 1000000);
+}
 
 // -----------------------------------------------------------------------------
