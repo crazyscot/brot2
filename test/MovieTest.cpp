@@ -38,15 +38,16 @@ TEST(Zoom, DoesSomething) {
 }
 
 TEST(Zoom, Epsilon) {
-	// Very close, no effect
+	// Very close, truncates the step to hit the target precisely
 	Fractal::Point size( 1.0, 1.0 ), size_target( 1.00001, 1.00001 ), size_out;
-	EXPECT_FALSE( Movie::MotionZoom(size, size_target, 100, 100, TEST_SPEED, size_out) );
-	EXPECT_EQ( size, size_out );
+	EXPECT_TRUE( Movie::MotionZoom(size, size_target, 100, 100, TEST_SPEED, size_out) );
+	EXPECT_EQ( size_target, size_out );
 
-	// Not that close, does step
+	// Not that close, ordinary step
 	Fractal::Point size_target_2(1.01, 1.01);
 	EXPECT_TRUE( Movie::MotionZoom(size, size_target_2, 100, 100, TEST_SPEED, size_out) );
 	EXPECT_NE( size, size_out );
+	EXPECT_NE( size_target, size_out );
 }
 
 void do_zoom_case(Fractal::Value s1re, Fractal::Value s1im,
@@ -98,15 +99,16 @@ TEST(Translate, DoesSomething) {
 }
 
 TEST(Translate, Epsilon) {
-	// Very close, no effect
+	// Very close, precise (truncated) step
 	Fractal::Point cent( 1.0, 1.0 ), cent_target( 1.00001, 1.00001 ), cent_out, size(0.5, 0.5);
-	EXPECT_FALSE( Movie::MotionTranslate(cent, cent_target, size, 100, 100, TEST_SPEED, cent_out) );
-	EXPECT_EQ( cent, cent_out );
+	EXPECT_TRUE( Movie::MotionTranslate(cent, cent_target, size, 100, 100, TEST_SPEED, cent_out) );
+	EXPECT_EQ( cent_target, cent_out );
 
-	// Not that close, does step
+	// Not that close, ordinary step
 	Fractal::Point cent_target_2(1.01, 1.01);
 	EXPECT_TRUE( Movie::MotionTranslate(cent, cent_target_2, size, 100, 100, TEST_SPEED, cent_out) );
 	EXPECT_NE( cent, cent_out );
+	EXPECT_NE( cent_target, cent_out );
 }
 
 void do_translate_case(Fractal::Value re1, Fractal::Value im1,

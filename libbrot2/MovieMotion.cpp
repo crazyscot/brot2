@@ -88,9 +88,11 @@ bool Movie::MotionZoom(const Fractal::Point& size_in, const Fractal::Point& size
 	tmp_out.imag( imag(size_in) * (height + speed_z) / height );
 	struct signpair signs_after(calc_signs(tmp_out, size_target));
 
-	// XXX: Improvement: If zooming would take us beyond target, SET TO TARGET in those dims which threshold.
-	if (signs_before != signs_after)
-		return false;
+	// Action on "close enough": set output dimension precisely from input; next time the Easy Case check will return false.
+	if (signs_before.real != signs_after.real)
+		tmp_out.real( real(size_target) );
+	if (signs_before.imag != signs_after.imag)
+		tmp_out.imag( imag(size_target) );
 	size_out = tmp_out;
 	return true;
 }
@@ -124,9 +126,11 @@ bool Movie::MotionTranslate(const Fractal::Point& centre_in, const Fractal::Poin
 
 	struct signpair signs_after(calc_signs(centre_target, tmp_out));
 
-	// XXX: Improvement: If zooming would take us beyond target, SET TO TARGET in those dims which threshold.
-	if (signs_before != signs_after)
-		return false;
+	// Action on "close enough": set output dimension precisely from input; next time the Easy Case check will return false.
+	if (signs_before.real != signs_after.real)
+		tmp_out.real( real(centre_target) );
+	if (signs_before.imag != signs_after.imag)
+		tmp_out.imag( imag(centre_target) );
 	centre_out = tmp_out;
 	return true;
 }
