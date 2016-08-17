@@ -122,6 +122,15 @@ void do_translate_case(Fractal::Value re1, Fractal::Value im1,
 		++i;
 	}
 	EXPECT_LT(i, 1000000);
+	// And check for no overshoot.
+	if (re1 < re2)
+		EXPECT_LE(real(centre_working), real(centre2));
+	else
+		EXPECT_GE(real(centre_working), real(centre2));
+	if (im1 < im2)
+		EXPECT_LE(imag(centre_working), imag(centre2));
+	else
+		EXPECT_GE(imag(centre_working), imag(centre2));
 }
 
 TEST(Translate, Terminates1) { do_translate_case(0.1,0.1, 0.2, 0.2); }
