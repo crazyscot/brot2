@@ -18,7 +18,41 @@
 
 #include "MovieMotion.h"
 
-Fractal::Point calc_signs(const Fractal::Point a, const Fractal::Point b)
+// Returns the sign of a value.
+// From http://stackoverflow.com/questions/1903954/is-there-a-standard-sign-function-signum-sgn-in-c-c
+#if 0
+template <typename T> int sign(T val) {
+	return (T(0) < val) - (val < T(0));
+}
+#endif
+int sign(const Fractal::Value val) {
+	return (Fractal::Value(0) < val) - (val < Fractal::Value(0));
+}
+
+struct signpair {
+	int real, imag;
+
+	bool operator==(const struct signpair& other) const {
+		return (real == other.real) && (imag == other.imag);
+	}
+	bool operator!=(const struct signpair& other) const {
+		return !(*this == other);
+	}
+};
+
+
+// Determines the sign of (a-b) for each dimension independently.
+struct signpair calc_signs(const Fractal::Point a, const Fractal::Point b)
+{
+	Fractal::Point tmp = a - b;
+	struct signpair rv;
+	rv.real = sign(real(tmp));
+	rv.imag = sign(imag(tmp));
+	return rv;
+}
+
+// Determines the sign of (a-b) for each dimension independently.
+Fractal::Point Xcalc_signs(const Fractal::Point a, const Fractal::Point b)
 {
 	Fractal::Point rv;
 	rv.real( real(a) == real(b) ? 0 :
@@ -48,11 +82,11 @@ bool Movie::MotionZoom(const Fractal::Point& size_in, const Fractal::Point& size
 	// If we're close enough to target, we're done.
 	// But what does "close enough" mean? Good old floating-point comparisons...
 	// For our purposes we'll say that if zooming would take us beyond target, we're close enough.
-	Fractal::Point signs_before(calc_signs(size_in, size_target));
+	struct signpair signs_before(calc_signs(size_in, size_target));
 	Fractal::Point tmp_out;
 	tmp_out.real( real(size_in) * (width + speed_z) / width );
 	tmp_out.imag( imag(size_in) * (height + speed_z) / height );
-	Fractal::Point signs_after(calc_signs(tmp_out, size_target));
+	struct signpair signs_after(calc_signs(tmp_out, size_target));
 
 	if (signs_before != signs_after)
 		return false;
