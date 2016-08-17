@@ -116,4 +116,27 @@ TEST(Translate, Epsilon) {
 	EXPECT_NE( cent, cent_out );
 }
 
-// TODO: Terminates, NonSquareTerminates
+void do_translate_case(Fractal::Value re1, Fractal::Value im1,
+					   Fractal::Value re2, Fractal::Value im2,
+					   Fractal::Value reSz=0.1, Fractal::Value imSz=0.1) {
+	Fractal::Point centre1( re1, im1 ), centre2( re2, im2 ), centre_out, size(reSz, imSz);
+	Fractal::Point centre_working(centre1);
+	int i=0;
+	while (i<1000000) {
+		std::cout << "Step " << i << " centre=" << centre_working << std::endl;
+		if ( ! Movie::MotionTranslate(centre_working, centre2, size, TEST_WIDTH, TEST_HEIGHT, TEST_SPEED, centre_working) )
+			break;
+		++i;
+	}
+	EXPECT_LT(i, 1000000);
+}
+
+TEST(Translate, Terminates1) { do_translate_case(0.1,0.1, 0.2, 0.2); }
+TEST(Translate, Terminates2) { do_translate_case(0.1,0.2, 0.2, 0.1); }
+TEST(Translate, Terminates3) { do_translate_case(0.2,0.1, 0.1, 0.2); }
+TEST(Translate, Terminates4) { do_translate_case(0.2,0.2, 0.1, 0.1); }
+
+TEST(Translate, NonSquareTerminates) {
+	// This is a deliberately contrived example
+	do_translate_case( 0.1, 0.1, 0.5, 0.5, 0.1, 0.5 );
+}
