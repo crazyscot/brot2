@@ -91,3 +91,29 @@ TEST(Zoom, NonSquareTerminates) {
 }
 
 // -----------------------------------------------------------------------------
+
+TEST(Translate, Identity) {
+	Fractal::Point cent( 1.0, 1.0 ), cent_out, size(0.1, 0.1);
+	EXPECT_FALSE( Movie::MotionTranslate(cent, cent, size, TEST_WIDTH, TEST_HEIGHT, TEST_SPEED, cent_out) );
+	EXPECT_EQ( cent, cent_out );
+}
+
+TEST(Translate, DoesSomething) {
+	Fractal::Point cent( 1.0, 1.0 ), cent2( 0.1, 0.1 ), cent_out, size(0.5, 0.5);
+	EXPECT_TRUE( Movie::MotionTranslate(cent, cent2, size, TEST_WIDTH, TEST_HEIGHT, TEST_SPEED, cent_out) );
+	EXPECT_NE( cent, cent_out );
+}
+
+TEST(Translate, Epsilon) {
+	// Very close, no effect
+	Fractal::Point cent( 1.0, 1.0 ), cent_target( 1.00001, 1.00001 ), cent_out, size(0.5, 0.5);
+	EXPECT_FALSE( Movie::MotionTranslate(cent, cent_target, size, 100, 100, TEST_SPEED, cent_out) );
+	EXPECT_EQ( cent, cent_out );
+
+	// Not that close, does step
+	Fractal::Point cent_target_2(1.01, 1.01);
+	EXPECT_TRUE( Movie::MotionTranslate(cent, cent_target_2, size, 100, 100, TEST_SPEED, cent_out) );
+	EXPECT_NE( cent, cent_out );
+}
+
+// TODO: Terminates, NonSquareTerminates

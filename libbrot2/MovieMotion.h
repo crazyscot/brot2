@@ -30,6 +30,14 @@ namespace Movie {
 	bool MotionZoom(const Fractal::Point& size_in, const Fractal::Point& size_target,
 			const unsigned width, const unsigned height, const unsigned speed, Fractal::Point& size_out);
 
+	/* Performs a translation motion.
+	 * The current and target are compared; if a zoom would help move us from A to B,
+	 * we move the corners by up to @speed@ pixels.
+	 * Returns true if we did something, false if not. */
+	bool MotionTranslate(const Fractal::Point& centre_in, const Fractal::Point& centre_target,
+			const Fractal::Point& size,
+			const unsigned width, const unsigned height, const unsigned speed, Fractal::Point& centre_out);
+
 }; // namespace Movie
 
 #endif // MOVIEMOTION_H

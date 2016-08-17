@@ -88,8 +88,45 @@ bool Movie::MotionZoom(const Fractal::Point& size_in, const Fractal::Point& size
 	tmp_out.imag( imag(size_in) * (height + speed_z) / height );
 	struct signpair signs_after(calc_signs(tmp_out, size_target));
 
+	// XXX: Improvement: If zooming would take us beyond target, SET TO TARGET in those dims which threshold.
 	if (signs_before != signs_after)
 		return false;
 	size_out = tmp_out;
+	return true;
+}
+
+/* Performs a translation motion.
+ * The current and target are compared; if a zoom would help move us from A to B,
+ * we move the corners by up to @speed@ pixels.
+ * Returns true if we did something, false if not. */
+bool Movie::MotionTranslate(const Fractal::Point& centre_in, const Fractal::Point& centre_target,
+		const Fractal::Point& size,
+		const unsigned width, const unsigned height, const unsigned speed, Fractal::Point& centre_out)
+{
+
+	centre_out = centre_in;
+	// Easy case
+	if ( real(centre_in) == real(centre_target)  ||  imag(centre_in) == imag(centre_target) )
+		return false;
+
+	// Like with zooming, if moving would take us beyond the target, we're close enough.
+	struct signpair signs_before(calc_signs(centre_target, centre_in));
+	Fractal::Point tmp_out;
+
+	Fractal::Point pixel_size ( real(size) / width, imag(size) / height );
+	Fractal::Point delta ( real(pixel_size) * speed, imag(pixel_size) * speed );
+
+	if (signs_before.real < 0)
+		delta.real(real(delta) * -1.0);
+	if (signs_before.imag < 0)
+		delta.imag(imag(delta) * -1.0);
+	tmp_out = centre_in + delta;
+
+	struct signpair signs_after(calc_signs(centre_target, tmp_out));
+
+	// XXX: Improvement: If zooming would take us beyond target, SET TO TARGET in those dims which threshold.
+	if (signs_before != signs_after)
+		return false;
+	centre_out = tmp_out;
 	return true;
 }
