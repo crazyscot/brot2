@@ -29,6 +29,8 @@ namespace Movie {
 
 struct Frame {
 	Fractal::Point centre, size;
+	Frame() : centre(0,0), size(0,0) {}
+	Frame(Fractal::Point _c, Fractal::Point _s) : centre(_c), size(_s) {}
 };
 
 struct KeyFrame {

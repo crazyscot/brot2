@@ -105,12 +105,9 @@ void Movie::Renderer::render(const std::string& filename, const struct Movie::Mo
 	auto iter = movie.points.begin();
 
 	// NOTE: The total number of frames we render should match the number calculated by MovieWindow::do_update_duration().
+	// TODO Have do_update_duration call into here for a frame count.
 
-	struct Movie::Frame f1;
-	f1.centre.real(iter->centre.real());
-	f1.centre.imag(iter->centre.imag());
-	f1.size.real(  iter->size.real());
-	f1.size.imag(  iter->size.imag());
+	struct Movie::Frame f1(iter->centre, iter->size);
 	render_frame(f1, priv, iter->hold_frames); // we expect this will call plot_complete but not frames_traversed
 	priv->reporter->frames_traversed(iter->hold_frames);
 	unsigned traverse = iter->frames_to_next;
@@ -118,11 +115,7 @@ void Movie::Renderer::render(const std::string& filename, const struct Movie::Mo
 
 	for (; iter != movie.points.end() && !cancel_requested; iter++) {
 		struct Movie::Frame ft(f1);
-		struct Movie::Frame f2;
-		f2.centre.real(iter->centre.real());
-		f2.centre.imag(iter->centre.imag());
-		f2.size.real  (iter->size.real());
-		f2.size.imag  (iter->size.imag());
+		struct Movie::Frame f2(iter->centre, iter->size);
 
 		Fractal::Point step = (f2.centre - f1.centre) / traverse;
 		// Simple scaling of the axis length (zoom factor) doesn't work.
