@@ -49,8 +49,9 @@ TEST(Zoom, Epsilon) {
 	EXPECT_NE( size, size_out );
 }
 
-TEST(ZoomIn, Terminates) {
-	Fractal::Point size1( 1.0, 1.0 ), size2( 0.1, 0.1 ), size_working(size1), size_out;
+void do_zoom_case(Fractal::Value s1re, Fractal::Value s1im,
+				  Fractal::Value s2re, Fractal::Value s2im) {
+	Fractal::Point size1(s1re, s1im), size2(s2re, s2im), size_working(size1), size_out;
 	int i=0;
 	while (i<1000000) {
 		//std::cout << "Step " << i << " size=" << size_working << std::endl;
@@ -60,34 +61,26 @@ TEST(ZoomIn, Terminates) {
 	}
 	EXPECT_LT(i, 1000000);
 	// And check for no overshoot.
-	EXPECT_GT(real(size_working), real(size2));
-	EXPECT_GT(imag(size_working), imag(size2));
+	if (s1re < s2re)
+		EXPECT_LE(real(size_working), real(size2));
+	else
+		EXPECT_GE(real(size_working), real(size2));
+	if (s1im < s2im)
+		EXPECT_LE(imag(size_working), imag(size2));
+	else
+		EXPECT_GE(imag(size_working), imag(size2));
+}
+
+TEST(ZoomIn, Terminates) {
+	do_zoom_case( 1.0, 1.0, 0.1, 0.1 );
 }
 
 TEST(ZoomOut, Terminates) {
-	Fractal::Point size1( 0.1, 0.1 ), size2( 1.0, 1.0 ), size_working(size1), size_out;
-	int i=0;
-	while (i<1000000) {
-		//std::cout << "Step " << i << " size=" << size_working << std::endl;
-		if ( ! Movie::MotionZoom(size_working, size2, TEST_WIDTH, TEST_HEIGHT, TEST_SPEED, size_working) )
-			break;
-		++i;
-	}
-	EXPECT_LT(i, 1000000);
+	do_zoom_case( 0.1, 0.1, 1.0, 1.0 );
 }
 
 TEST(Zoom, NonSquareTerminates) {
-	// This is a deliberately contrived example which should never happen; higher-level code should
-	// fix the aspect ratio.
-	Fractal::Point size1( 1.0, 0.5 ), size2( 0.1, 0.2 ), size_working(size1), size_out;
-	int i=0;
-	while (i<1000000) {
-		//std::cout << "Step " << i << " size=" << size_working << std::endl;
-		if ( ! Movie::MotionZoom(size_working, size2, TEST_WIDTH, TEST_HEIGHT, TEST_SPEED, size_working) )
-			break;
-		++i;
-	}
-	EXPECT_LT(i, 1000000);
+	do_zoom_case( 1.0, 0.5, 0.1, 0.2 );
 }
 
 // -----------------------------------------------------------------------------
@@ -123,7 +116,7 @@ void do_translate_case(Fractal::Value re1, Fractal::Value im1,
 	Fractal::Point centre_working(centre1);
 	int i=0;
 	while (i<1000000) {
-		std::cout << "Step " << i << " centre=" << centre_working << std::endl;
+		//std::cout << "Step " << i << " centre=" << centre_working << std::endl;
 		if ( ! Movie::MotionTranslate(centre_working, centre2, size, TEST_WIDTH, TEST_HEIGHT, TEST_SPEED, centre_working) )
 			break;
 		++i;
