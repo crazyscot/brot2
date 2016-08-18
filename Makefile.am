@@ -76,7 +76,8 @@ brot2cli_LDADD= $(all_ldadd)
 bin_PROGRAMS+=brot2
 
 brot2_SOURCES= \
-	gtkui/gtkmain.cpp gtkui/gtkmain.h gtkui/misc.h gtkui/misc.cpp \
+	gtkui/gtkmain.cpp gtkui/gtkmain.h gtkui/gtkutil.h \
+	gtkui/misc.h gtkui/misc.cpp \
 	gtkui/MainWindow.cpp gtkui/MainWindow.h \
 	gtkui/Menus.cpp gtkui/Menus.h \
 	gtkui/ParamsDialog.cpp gtkui/ParamsDialog.h \

@@ -21,6 +21,7 @@
 #include "MovieMotion.h"
 #include "MovieProgress.h"
 #include "misc.h"
+#include "gtkutil.h"
 #include "SaveAsPNG.h"
 #include <iostream>
 #include <fstream>

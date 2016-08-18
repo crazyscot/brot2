@@ -19,7 +19,7 @@
 #include "png.h" // must be first, see launchpad 218409
 #include "PrefsDialog.h"
 #include "MainWindow.h"
-#include "misc.h"
+#include "gtkutil.h"
 #include "Prefs.h"
 #include "Exception.h"
 #include "ColourPanel.h"

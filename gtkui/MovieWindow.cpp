@@ -25,6 +25,7 @@
 #include "Prefs.h"
 #include "Exception.h"
 #include "misc.h"
+#include "gtkutil.h"
 #include "Plot3Plot.h"
 #include "SaveAsPNG.h"
 #include "gtkmain.h"
