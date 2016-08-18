@@ -20,7 +20,6 @@
 #include "MovieMode.h"
 #include "MovieMotion.h"
 #include "MovieProgress.h"
-#include "MovieWindow.h"
 #include "gtkmain.h" // for argv0
 #include "misc.h"
 #include "SaveAsPNG.h"
@@ -73,7 +72,7 @@ Movie::RenderInstancePrivate::~RenderInstancePrivate()
 
 namespace Movie {
 class RenderJob {
-	MovieWindow& _parent;
+	IRenderCompleteHandler& _parent;
 	Movie::Renderer& _renderer;
 	const std::string _filename;
 	struct Movie::MovieInfo _movie;
@@ -81,7 +80,7 @@ class RenderJob {
 	ThreadPool& _threads;
 
 	public:
-		RenderJob(MovieWindow& parent, Movie::Renderer& renderer, const std::string& filename, const struct Movie::MovieInfo& movie, std::shared_ptr<const BrotPrefs::Prefs> prefs, ThreadPool& threads) :
+		RenderJob(IRenderCompleteHandler& parent, Movie::Renderer& renderer, const std::string& filename, const struct Movie::MovieInfo& movie, std::shared_ptr<const BrotPrefs::Prefs> prefs, ThreadPool& threads) :
 			_parent(parent), _renderer(renderer), _filename(filename), _movie(movie), _prefs(prefs), _threads(threads) { }
 
 		void run() {
@@ -93,7 +92,7 @@ class RenderJob {
 
 }; // Movie
 
-void Movie::Renderer::start(MovieWindow& parent, const std::string& filename, const struct Movie::MovieInfo& movie, std::shared_ptr<const BrotPrefs::Prefs> prefs, ThreadPool& threads) {
+void Movie::Renderer::start(IRenderCompleteHandler& parent, const std::string& filename, const struct Movie::MovieInfo& movie, std::shared_ptr<const BrotPrefs::Prefs> prefs, ThreadPool& threads) {
 	cancel_requested = false;
 	std::shared_ptr<RenderJob> job (new RenderJob(parent, *this, filename, movie, prefs, threads));
 	threads.enqueue<void>([=]{ job->run(); });

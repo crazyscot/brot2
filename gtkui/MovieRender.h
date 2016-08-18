@@ -30,11 +30,15 @@
 #include <set>
 #include <atomic>
 
-class MovieWindow;
-
 namespace Movie {
 
 class Renderer;
+class IRenderCompleteHandler {
+	public:
+		virtual void signal_completion(Renderer& job) = 0;
+		virtual ~IRenderCompleteHandler() {}
+};
+
 class Progress;
 struct RenderInstancePrivate {
 	const struct Movie::MovieInfo& movie;
@@ -57,7 +61,7 @@ class Renderer {
 		const std::string pattern; // shell style glob, for Gtk::FileFilter
 
 		// Main entrypoint:
-		void start(MovieWindow& parent, const std::string& filename, const struct Movie::MovieInfo& movie, std::shared_ptr<const BrotPrefs::Prefs> prefs, ThreadPool& threads);
+		void start(IRenderCompleteHandler& completion, const std::string& filename, const struct Movie::MovieInfo& movie, std::shared_ptr<const BrotPrefs::Prefs> prefs, ThreadPool& threads);
 
 		// Initialise render run, alloc Private if needed
 		virtual void render_top(std::shared_ptr<const BrotPrefs::Prefs> prefs, ThreadPool& threads, const std::string& filename, const struct Movie::MovieInfo& movie, Movie::RenderInstancePrivate** priv) = 0;

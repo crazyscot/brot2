@@ -21,6 +21,7 @@
 
 #include "Prefs.h"
 #include "MovieMode.h"
+#include "MovieRender.h"
 #include <gtkmm/dialog.h>
 #include <gtkmm/entry.h>
 #include <condition_variable>
@@ -35,7 +36,7 @@ namespace Movie {
 	class RenderJob;
 };
 
-class MovieWindow: public Gtk::Window{
+class MovieWindow: public Gtk::Window, public Movie::IRenderCompleteHandler {
 	protected:
 		MainWindow& mw;
 		std::shared_ptr<const BrotPrefs::Prefs> _prefs; // master
@@ -60,7 +61,7 @@ class MovieWindow: public Gtk::Window{
 		void do_update_duration2(const Gtk::TreeModel::Path&, const Gtk::TreeModel::iterator&);
 
 		bool run_filename(std::string& filename, std::shared_ptr<Movie::Renderer>& ren);
-		void signal_completion(Movie::Renderer& job);
+		void signal_completion(Movie::Renderer& job); // IRenderCompleteHandler
 
 		void stop(); // Attempts to halt the render ASAP
 		void wait(); // Waits for all movie jobs to complete
