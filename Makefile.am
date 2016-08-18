@@ -36,6 +36,7 @@ noinst_LIBRARIES+=libbrot2.a
 
 libbrot2_a_SOURCES= \
 	libbrot2/Exception.h \
+	libbrot2/misc.h libbrot2/misc.cpp \
 	libbrot2/logo.h logo_auto.c \
 	libbrot2/palette.cpp libbrot2/palette.h \
 	libbrot2/Plot3Plot.cpp libbrot2/Plot3Plot.h \
@@ -77,7 +78,6 @@ bin_PROGRAMS+=brot2
 
 brot2_SOURCES= \
 	gtkui/gtkmain.cpp gtkui/gtkmain.h gtkui/gtkutil.h \
-	gtkui/misc.h gtkui/misc.cpp \
 	gtkui/MainWindow.cpp gtkui/MainWindow.h \
 	gtkui/Menus.cpp gtkui/Menus.h \
 	gtkui/ParamsDialog.cpp gtkui/ParamsDialog.h \
