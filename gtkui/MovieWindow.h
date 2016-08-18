@@ -61,7 +61,7 @@ class MovieWindow: public Gtk::Window, public Movie::IRenderCompleteHandler {
 		void do_update_duration2(const Gtk::TreeModel::Path&, const Gtk::TreeModel::iterator&);
 
 		bool run_filename(std::string& filename, std::shared_ptr<Movie::Renderer>& ren);
-		void signal_completion(Movie::Renderer& job); // IRenderCompleteHandler
+		void signal_completion(Movie::RenderJob& job); // IRenderCompleteHandler
 
 		void stop(); // Attempts to halt the render ASAP
 		void wait(); // Waits for all movie jobs to complete

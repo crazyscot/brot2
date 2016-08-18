@@ -72,7 +72,7 @@ Movie::RenderJob::RenderJob(IRenderCompleteHandler& parent, Movie::Renderer& ren
 
 void Movie::RenderJob::run() {
 	_renderer.render(this);
-	_parent.signal_completion(_renderer);
+	_parent.signal_completion(*this);
 }
 Movie::RenderJob::~RenderJob() {
 	gdk_threads_enter();

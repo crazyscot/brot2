@@ -385,9 +385,9 @@ void MovieWindow::do_update_duration2(const Gtk::TreeModel::Path&, const Gtk::Tr
 	// For now this is just a thin wrapper. Might become something more complex later.
 	do_update_duration();
 }
-void MovieWindow::signal_completion(Movie::Renderer& job) {
+void MovieWindow::signal_completion(Movie::RenderJob& job) {
 	std::unique_lock<std::mutex> lock(mux);
-	ASSERT(&job == renderer.get());
+	ASSERT(&job._renderer == renderer.get());
 	renderer = 0;
 	completion_cv.notify_all();
 }

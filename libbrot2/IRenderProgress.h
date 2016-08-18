@@ -23,11 +23,11 @@
 
 namespace Movie {
 
-class Renderer;
+class RenderJob;
 class IRenderCompleteHandler {
 	public:
-		// Signals that the given movie job has been completed.
-		virtual void signal_completion(Renderer& job) = 0;
+		// Signals that the current movie job has been completed.
+		virtual void signal_completion(RenderJob& job) = 0;
 		virtual ~IRenderCompleteHandler() {}
 };
 
