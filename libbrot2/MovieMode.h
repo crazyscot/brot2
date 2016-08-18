@@ -27,16 +27,17 @@
 
 namespace Movie {
 
-struct Frame {
-	Fractal::Point centre, size;
-	Frame() : centre(0,0), size(0,0) {}
-	Frame(Fractal::Point _c, Fractal::Point _s) : centre(_c), size(_s) {}
-};
-
 struct KeyFrame {
 	Fractal::Point centre, size;
 	unsigned hold_frames; // How many video frames to linger on this render
 	unsigned frames_to_next; // How many video frames from this point to the next. Ignored unless there is another member in the points vector.
+};
+
+struct Frame {
+	Fractal::Point centre, size;
+	Frame() : centre(0,0), size(0,0) {}
+	Frame(Fractal::Point _c, Fractal::Point _s) : centre(_c), size(_s) {}
+	Frame(struct KeyFrame kf) : centre(kf.centre), size(kf.size) {}
 };
 
 struct MovieInfo {
