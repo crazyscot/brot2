@@ -20,7 +20,7 @@
 #include "ParamsDialog.h"
 #include "MainWindow.h"
 #include "Fractal.h"
-#include "misc.h"
+#include "gtkutil.h"
 #include "Exception.h"
 #include <gtkmm/dialog.h>
 #include <gtkmm/table.h>

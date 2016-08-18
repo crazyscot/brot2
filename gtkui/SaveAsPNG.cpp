@@ -21,7 +21,7 @@
 #include "SaveAsPNG.h"
 #include "libbrot2/Render2.h"
 #include "libbrot2/ChunkDivider.h"
-#include "misc.h"
+#include "gtkutil.h"
 #include "BaseHUD.h"
 
 #include "MainWindow.h"

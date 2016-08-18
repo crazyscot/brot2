@@ -23,7 +23,7 @@
 #include "HUD.h"
 #include "libbrot2/Render2.h"
 #include "libbrot2/Plot3Plot.h"
-#include "misc.h"
+#include "gtkutil.h"
 #include "config.h"
 #include "ControlsWindow.h"
 #include "SaveAsPNG.h"

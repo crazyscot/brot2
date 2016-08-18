@@ -20,7 +20,7 @@
 #define PARAMS_DIALOG_H
 
 #include "MainWindow.h"
-#include "misc.h"
+#include "gtkutil.h"
 #include <gtkmm/dialog.h>
 #include <gtkmm/entry.h>
 
