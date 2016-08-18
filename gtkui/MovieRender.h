@@ -40,7 +40,10 @@ struct RenderInstancePrivate {
 	virtual ~RenderInstancePrivate();
 }; // Used by Renderer to store private data
 
+class Renderer;
+
 class RenderJob {
+	friend class Renderer;
 	IRenderCompleteHandler& _parent;
 	Movie::Renderer& _renderer;
 	const std::string _filename;
@@ -82,7 +85,7 @@ class Renderer {
 		virtual ~Renderer();
 
 	private:
-		void render(const std::string& filename, const struct Movie::MovieInfo& movie, std::shared_ptr<const BrotPrefs::Prefs> prefs, ThreadPool& threads);
+		void render(Movie::RenderJob* job);
 
 };
 

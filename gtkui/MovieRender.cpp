@@ -74,7 +74,7 @@ Movie::RenderJob::RenderJob(IRenderCompleteHandler& parent, Movie::Renderer& ren
 }
 
 void Movie::RenderJob::run() {
-	_renderer.render(_filename, _movie, _prefs, _threads);
+	_renderer.render(this);
 	_parent.signal_completion(_renderer);
 }
 Movie::RenderJob::~RenderJob() { }
@@ -85,9 +85,10 @@ void Movie::Renderer::start(IRenderCompleteHandler& parent, const std::string& f
 	threads.enqueue<void>([=]{ job->run(); });
 }
 
-void Movie::Renderer::render(const std::string& filename, const struct Movie::MovieInfo& movie, std::shared_ptr<const BrotPrefs::Prefs> prefs, ThreadPool& threads) {
+void Movie::Renderer::render(RenderJob* job) {
 	RenderInstancePrivate * priv;
-	render_top(prefs, threads, filename, movie, &priv);
+	const struct Movie::MovieInfo& movie(job->_movie);
+	render_top(job->_prefs, job->_threads, job->_filename, movie, &priv);
 
 	auto iter = movie.points.begin();
 
