@@ -33,19 +33,10 @@
 
 namespace Movie {
 
-struct RenderJob;
-
-struct RenderInstancePrivate {
-	RenderJob& job;
-	IRenderProgressReporter *reporter;
-
-	RenderInstancePrivate(Movie::RenderJob& _job);
-	virtual ~RenderInstancePrivate();
-}; // Used by Renderer to store private data
-
 class Renderer;
 
 struct RenderJob {
+	// Everything about a job, from the UI's point of view, goes in here.
 	IRenderCompleteHandler& _parent;
 	Movie::Renderer& _renderer;
 	const std::string _filename;
@@ -58,7 +49,17 @@ struct RenderJob {
 	virtual ~RenderJob();
 };
 
+struct RenderInstancePrivate {
+	// Subclassed by Renderer subclasses to store private data
+	RenderJob& job;
+	IRenderProgressReporter *reporter;
+
+	RenderInstancePrivate(Movie::RenderJob& _job);
+	virtual ~RenderInstancePrivate();
+};
+
 class Renderer {
+	// Renderer interface, you get instances of derived classes from the Factory
 	friend struct RenderJob;
 
 	protected:
