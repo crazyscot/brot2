@@ -26,6 +26,7 @@
 #include "palette.h"
 #include "Registry.h"
 #include "ThreadPool.h"
+#include "IPlot3DataSink.h"
 #include <vector>
 #include <set>
 #include <atomic>
@@ -35,14 +36,29 @@ namespace Movie {
 class Renderer;
 class IRenderCompleteHandler {
 	public:
+		// Signals that the given movie job has been completed.
 		virtual void signal_completion(Renderer& job) = 0;
 		virtual ~IRenderCompleteHandler() {}
 };
 
-class Progress;
+class IRenderProgressReporter : public Plot3::IPlot3DataSink {
+	public:
+		// Setup. Not mandatory, we do the best we can if not called.
+		virtual void set_chunks_count(int n) = 0;
+		// Call when outputting multiple frames at once. We record @n@ frames as being plotted.
+		virtual void frames_traversed(int n) = 0;
+
+		// We also inherit from  Plot3::IPlot3DataSink:
+		// virtual void chunk_done(Plot3::Plot3Chunk* job) = 0;
+		// virtual void pass_complete(std::string& msg, unsigned passes_plotted, unsigned maxiter, unsigned pixels_still_live, unsigned total_pixels) = 0;
+		// virtual void plot_complete() = 0; // One plot = one FRAME of the movie.
+
+		virtual ~IRenderProgressReporter() {}
+};
+
 struct RenderInstancePrivate {
 	const struct Movie::MovieInfo& movie;
-	Movie::Progress *reporter;
+	IRenderProgressReporter *reporter;
 	RenderInstancePrivate(const struct Movie::MovieInfo& _movie, Movie::Renderer& _renderer);
 	virtual ~RenderInstancePrivate();
 }; // Used by Renderer to store private data

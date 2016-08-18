@@ -20,6 +20,7 @@
 #define MOVIEPROGRESS_H
 
 #include "IPlot3DataSink.h"
+#include "MovieRender.h"
 #include <gtkmm/window.h>
 #include <gtkmm/box.h>
 #include <gtkmm/label.h>
@@ -28,7 +29,7 @@
 namespace Movie {
 	class Renderer;
 
-	class Progress: public Gtk::Window, public Plot3::IPlot3DataSink {
+	class Progress: public Gtk::Window, public Movie::IRenderProgressReporter {
 		private:
 			Movie::Renderer& renderer;
 			Gtk::VBox* vbox;
@@ -50,7 +51,7 @@ namespace Movie {
 
 			virtual void frames_traversed(int n);
 
-			void set_chunks_count(int n);
+			virtual void set_chunks_count(int n);
 	};
 }; // namespace Movie
 
