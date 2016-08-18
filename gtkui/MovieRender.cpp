@@ -88,7 +88,7 @@ void Movie::Renderer::start(IRenderCompleteHandler& parent, const std::string& f
 void Movie::Renderer::render(RenderJob* job) {
 	RenderInstancePrivate * priv;
 	const struct Movie::MovieInfo& movie(job->_movie);
-	render_top(job->_prefs, job->_threads, job->_filename, movie, &priv);
+	render_top(*job, &priv);
 
 	auto iter = movie.points.begin();
 
@@ -149,14 +149,14 @@ class ScriptB2CLI : public Movie::Renderer {
 	public:
 		ScriptB2CLI() : Movie::Renderer("Script for brot2cli", "*.sh") { }
 
-		void render_top(std::shared_ptr<const BrotPrefs::Prefs>, ThreadPool&, const std::string& filename, const struct Movie::MovieInfo& movie, Movie::RenderInstancePrivate **priv) {
+		void render_top(Movie::RenderJob& job, Movie::RenderInstancePrivate **priv) {
 			std::string b2cli(brot2_argv0);
 			b2cli.append("cli");
-			std::string outdir(filename);
+			std::string outdir(job._filename);
 			int spos = outdir.rfind('/');
 			if (spos >= 0)
 				outdir.erase(spos+1);
-			Private *mypriv = new Private(*this, movie, filename);
+			Private *mypriv = new Private(*this, job._movie, job._filename);
 			*priv = mypriv;
 			mypriv->fs
 				<< "#!/bin/bash -x" << endl
@@ -224,8 +224,8 @@ class BunchOfPNGs : public Movie::Renderer {
 	public:
 		BunchOfPNGs() : Movie::Renderer("PNG files in a directory", "*.png") { }
 
-		void render_top(std::shared_ptr<const BrotPrefs::Prefs> prefs, ThreadPool& threads, const std::string& filename, const struct Movie::MovieInfo& movie, Movie::RenderInstancePrivate **priv) {
-			std::string outdir(filename), tmpl(filename);
+		void render_top(Movie::RenderJob& job, Movie::RenderInstancePrivate **priv) {
+			std::string outdir(job._filename), tmpl(job._filename);
 			int spos = outdir.rfind('/');
 			if (spos >= 0) {
 				outdir.erase(spos+1);
@@ -234,7 +234,7 @@ class BunchOfPNGs : public Movie::Renderer {
 			spos = tmpl.rfind(".png");
 			if (spos >= 0)
 				tmpl.erase(spos);
-			Private *mypriv = new Private(*this, movie, outdir, tmpl, prefs, threads);
+			Private *mypriv = new Private(*this, job._movie, outdir, tmpl, job._prefs, job._threads);
 			*priv = mypriv;
 		}
 		void render_frame(const struct Movie::Frame& fr, Movie::RenderInstancePrivate *priv, unsigned n_frames) {

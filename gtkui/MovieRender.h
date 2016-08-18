@@ -42,8 +42,7 @@ struct RenderInstancePrivate {
 
 class Renderer;
 
-class RenderJob {
-	friend class Renderer;
+struct RenderJob {
 	IRenderCompleteHandler& _parent;
 	Movie::Renderer& _renderer;
 	const std::string _filename;
@@ -51,14 +50,13 @@ class RenderJob {
 	std::shared_ptr<const BrotPrefs::Prefs> _prefs;
 	ThreadPool& _threads;
 
-	public:
-		RenderJob(IRenderCompleteHandler& parent, Movie::Renderer& renderer, const std::string& filename, const struct Movie::MovieInfo& movie, std::shared_ptr<const BrotPrefs::Prefs> prefs, ThreadPool& threads);
-		void run();
-		virtual ~RenderJob();
+	RenderJob(IRenderCompleteHandler& parent, Movie::Renderer& renderer, const std::string& filename, const struct Movie::MovieInfo& movie, std::shared_ptr<const BrotPrefs::Prefs> prefs, ThreadPool& threads);
+	void run();
+	virtual ~RenderJob();
 };
 
 class Renderer {
-	friend class RenderJob;
+	friend struct RenderJob;
 
 	protected:
 		Renderer(const std::string& name, const std::string& pattern);
@@ -72,7 +70,7 @@ class Renderer {
 		void start(IRenderCompleteHandler& completion, const std::string& filename, const struct Movie::MovieInfo& movie, std::shared_ptr<const BrotPrefs::Prefs> prefs, ThreadPool& threads);
 
 		// Initialise render run, alloc Private if needed
-		virtual void render_top(std::shared_ptr<const BrotPrefs::Prefs> prefs, ThreadPool& threads, const std::string& filename, const struct Movie::MovieInfo& movie, Movie::RenderInstancePrivate** priv) = 0;
+		virtual void render_top(Movie::RenderJob& job, Movie::RenderInstancePrivate** priv) = 0;
 
 		// Called for each frame in turn; "n_frames" is the number of times this frame is to be inserted
 		virtual void render_frame(const struct Movie::Frame& kf, Movie::RenderInstancePrivate *priv, const unsigned n_frames=1) = 0;
