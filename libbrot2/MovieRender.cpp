@@ -65,7 +65,7 @@ Movie::RenderInstancePrivate::~RenderInstancePrivate()
 
 // ---------------------------------------------------------------------
 
-Movie::RenderJob::RenderJob(IRenderProgressReporter& reporter, IMovieCompleteHandler& parent, Movie::Renderer& renderer, const std::string& filename, const struct Movie::MovieInfo& movie, std::shared_ptr<const BrotPrefs::Prefs> prefs, ThreadPool& threads, const char* argv0) :
+Movie::RenderJob::RenderJob(IMovieProgressReporter& reporter, IMovieCompleteHandler& parent, Movie::Renderer& renderer, const std::string& filename, const struct Movie::MovieInfo& movie, std::shared_ptr<const BrotPrefs::Prefs> prefs, ThreadPool& threads, const char* argv0) :
 	_parent(parent),
 	_reporter(&reporter),
 	_renderer(renderer),
@@ -79,7 +79,7 @@ void Movie::RenderJob::run() {
 Movie::RenderJob::~RenderJob() {
 }
 
-void Movie::Renderer::start(IRenderProgressReporter& reporter, IMovieCompleteHandler& parent, const std::string& filename, const struct Movie::MovieInfo& movie, std::shared_ptr<const BrotPrefs::Prefs> prefs, ThreadPool& threads, const char* argv0) {
+void Movie::Renderer::start(IMovieProgressReporter& reporter, IMovieCompleteHandler& parent, const std::string& filename, const struct Movie::MovieInfo& movie, std::shared_ptr<const BrotPrefs::Prefs> prefs, ThreadPool& threads, const char* argv0) {
 	cancel_requested = false;
 	std::shared_ptr<RenderJob> job (new RenderJob(reporter, parent, *this, filename, movie, prefs, threads, argv0));
 	threads.enqueue<void>([=]{ job->run(); });

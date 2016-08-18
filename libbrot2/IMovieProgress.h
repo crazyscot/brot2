@@ -31,7 +31,7 @@ class IMovieCompleteHandler {
 		virtual ~IMovieCompleteHandler() {}
 };
 
-class IRenderProgressReporter : public Plot3::IPlot3DataSink {
+class IMovieProgressReporter : public Plot3::IPlot3DataSink {
 	public:
 		// Setup. Not mandatory, we do the best we can if not called.
 		virtual void set_chunks_count(int n) = 0;
@@ -43,7 +43,7 @@ class IRenderProgressReporter : public Plot3::IPlot3DataSink {
 		// virtual void pass_complete(std::string& msg, unsigned passes_plotted, unsigned maxiter, unsigned pixels_still_live, unsigned total_pixels) = 0;
 		// virtual void plot_complete() = 0; // One plot = one FRAME of the movie.
 
-		virtual ~IRenderProgressReporter() {}
+		virtual ~IMovieProgressReporter() {}
 };
 
 }; // namespace Movie

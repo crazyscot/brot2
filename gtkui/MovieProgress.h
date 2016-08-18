@@ -29,7 +29,7 @@
 namespace Movie {
 	class Renderer;
 
-	class Progress: public Gtk::Window, public Movie::IRenderProgressReporter {
+	class Progress: public Gtk::Window, public Movie::IMovieProgressReporter {
 		private:
 			Movie::Renderer& renderer;
 			Gtk::VBox* vbox;
