@@ -53,14 +53,15 @@ class ModelColumns : public Gtk::TreeModel::ColumnRecord {
 		ModelColumns() {
 			add(m_centre_re); add(m_centre_im);
 			add(m_size_re); add(m_size_im);
-			add(m_hold_frames); add(m_frames_next);
+			add(m_hold_frames); add(m_speed_zoom); add(m_speed_translate);
 		}
 		Gtk::TreeModelColumn<Fractal::Value> m_centre_re;
 		Gtk::TreeModelColumn<Fractal::Value> m_centre_im;
 		Gtk::TreeModelColumn<Fractal::Value> m_size_re;
 		Gtk::TreeModelColumn<Fractal::Value> m_size_im;
 		Gtk::TreeModelColumn<unsigned> m_hold_frames;
-		Gtk::TreeModelColumn<unsigned> m_frames_next;
+		Gtk::TreeModelColumn<unsigned> m_speed_zoom;
+		Gtk::TreeModelColumn<unsigned> m_speed_translate;
 };
 
 class MovieWindowPrivate {
@@ -146,7 +147,8 @@ MovieWindow::MovieWindow(MainWindow& _mw, std::shared_ptr<const Prefs> prefs) : 
 	ColumnFV("Size Imag", m_size_im);
 	// TODO Would really like to make these columns distinct in some way:
 	ColumnEditable("Hold Frames", m_hold_frames);
-	ColumnEditable("Traverse Frames", m_frames_next);
+	ColumnEditable("Zoom Speed", m_speed_zoom);
+	ColumnEditable("Move Speed", m_speed_translate);
 	// LATER: Tooltips (doesn't seem possible to retrieve the actual widget of a standard column head with gtk 2.24?)
 	// LATER: cell alignment?
 
@@ -190,7 +192,8 @@ void MovieWindow::do_add() {
 	row[priv->m_columns.m_size_re] = plot.size.real();
 	row[priv->m_columns.m_size_im] = plot.size.imag();
 	row[priv->m_columns.m_hold_frames] = 0;
-	row[priv->m_columns.m_frames_next] = 100;
+	row[priv->m_columns.m_speed_zoom] = 10;
+	row[priv->m_columns.m_speed_translate] = 10;
 	Gtk::TreePath path(row);
 	priv->m_keyframes.set_cursor(path, *priv->m_keyframes.get_column(4), true); // !! Hard-wired column number
 
@@ -244,7 +247,8 @@ void MovieWindow::do_render() {
 		kf.size.real((*it)[priv->m_columns.m_size_re]);
 		kf.size.imag((*it)[priv->m_columns.m_size_im]);
 		kf.hold_frames = (*it)[priv->m_columns.m_hold_frames];
-		kf.frames_to_next = (*it)[priv->m_columns.m_frames_next];
+		kf.speed_zoom = (*it)[priv->m_columns.m_speed_zoom];
+		kf.speed_translate = (*it)[priv->m_columns.m_speed_translate];
 		movie.points.push_back(kf);
 	}
 
@@ -347,7 +351,7 @@ unsigned Movie::MovieInfo::count_frames() const {
 		frames += it->hold_frames;
 		// Don't count Traverse frames unless there is something to traverse to
 		frames += last_traverse;
-		last_traverse = it->frames_to_next;
+		last_traverse = 1000; // FIXME TEMP until duration counter rewritten
 	}
 	return frames;
 }
@@ -359,7 +363,7 @@ void MovieWindow::do_update_duration() {
 		frames += (*it)[priv->m_columns.m_hold_frames];
 		// Don't count Traverse frames unless there is something to traverse to
 		frames += last_traverse;
-		last_traverse = (*it)[priv->m_columns.m_frames_next];
+		last_traverse = 1000; // FIXME TEMP
 	}
 	std::ostringstream msg;
 	unsigned fps = 0;
