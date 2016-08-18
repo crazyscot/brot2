@@ -30,7 +30,7 @@ namespace Movie {
 struct KeyFrame {
 	Fractal::Point centre, size;
 	unsigned hold_frames; // How many video frames to linger on this render
-	unsigned frames_to_next; // How many video frames from this point to the next. Ignored unless there is another member in the points vector.
+	unsigned speed_zoom, speed_translate; // Speeds for motion to next key frame (ignored if this is last)
 };
 
 struct Frame {

@@ -108,31 +108,31 @@ void Movie::Renderer::render(const std::string& filename, const struct Movie::Mo
 	// NOTE: The total number of frames we render should match the number calculated by MovieWindow::do_update_duration().
 	// TODO Have do_update_duration call into here for a frame count.
 
-	struct Movie::Frame f1(iter->centre, iter->size);
-	if (iter->hold_frames)
-		render_frame(f1, priv, iter->hold_frames); // we expect this will call plot_complete but not frames_traversed
+	struct Movie::KeyFrame f1(*iter);
+	if (f1.hold_frames)
+		render_frame(f1, priv, f1.hold_frames); // we expect this will call plot_complete but not frames_traversed
 	else
 		render_frame(f1, priv, 1);
 
-	priv->reporter->frames_traversed(iter->hold_frames);
+	priv->reporter->frames_traversed(f1.hold_frames); // FIXME Check semantics, is this call correct?
 	iter++;
 
 	for (; iter != movie.points.end() && !cancel_requested; iter++) {
 		struct Movie::Frame ft(f1);
-		struct Movie::Frame f2(iter->centre, iter->size);
+		struct Movie::KeyFrame f2(*iter);
 
 		bool still_moving;
 		do {
 			still_moving = false;
-			still_moving |= Movie::MotionZoom(ft.size, f2.size, movie.width, movie.height, 10 /*TODO speed*/, ft.size);
-			still_moving |= Movie::MotionTranslate(ft.centre, f2.centre, ft.size, movie.width, movie.height, 10 /* TODO speed */, ft.centre);
+			still_moving |= Movie::MotionZoom(ft.size, f2.size, movie.width, movie.height, f1.speed_zoom, ft.size);
+			still_moving |= Movie::MotionTranslate(ft.centre, f2.centre, ft.size, movie.width, movie.height, f1.speed_translate, ft.centre);
 			if (still_moving)
 				render_frame(ft, priv, 1);
 		} while (still_moving && !cancel_requested);
 
-		if (iter->hold_frames>1)
-			render_frame(f2, priv, iter->hold_frames-1); // we expect this will call plot_complete but not frames_traversed
-		priv->reporter->frames_traversed(iter->hold_frames);
+		if (f1.hold_frames>1)
+			render_frame(f2, priv, f1.hold_frames-1); // we expect this will call plot_complete but not frames_traversed
+		priv->reporter->frames_traversed(f1.hold_frames); // FIXME Check semantics, is this call correct?
 
 		f1 = f2;
 	}
