@@ -46,6 +46,19 @@ class IMovieProgressReporter : public Plot3::IPlot3DataSink {
 		virtual ~IMovieProgressReporter() {}
 };
 
+// The null progress reporter does nothing.
+class MovieNullProgress : public IMovieProgressReporter {
+	public:
+		MovieNullProgress();
+		virtual ~MovieNullProgress();
+
+		virtual void set_chunks_count(int);
+		virtual void frames_traversed(int);
+		virtual void chunk_done(Plot3::Plot3Chunk*);
+		virtual void pass_complete(std::string&, unsigned passes_plotted, unsigned maxiter, unsigned pixels_still_live, unsigned total_pixels);
+		virtual void plot_complete();
+};
+
 }; // namespace Movie
 
 #endif // IMOVIEPROGRESS_H
