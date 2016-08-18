@@ -24,11 +24,11 @@
 namespace Movie {
 
 class RenderJob;
-class IRenderCompleteHandler {
+class IMovieCompleteHandler {
 	public:
 		// Signals that the current movie job has been completed.
 		virtual void signal_completion(RenderJob& job) = 0;
-		virtual ~IRenderCompleteHandler() {}
+		virtual ~IMovieCompleteHandler() {}
 };
 
 class IRenderProgressReporter : public Plot3::IPlot3DataSink {
