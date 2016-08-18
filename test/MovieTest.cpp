@@ -50,13 +50,14 @@ TEST(Zoom, Epsilon) {
 	EXPECT_NE( size_target, size_out );
 }
 
-void do_zoom_case(Fractal::Value s1re, Fractal::Value s1im,
-				  Fractal::Value s2re, Fractal::Value s2im) {
+// Runs a case, returns number of frames we would have rendered.
+unsigned do_zoom_case(Fractal::Value s1re, Fractal::Value s1im,
+				  Fractal::Value s2re, Fractal::Value s2im, const unsigned speed = TEST_SPEED) {
 	Fractal::Point size1(s1re, s1im), size2(s2re, s2im), size_working(size1), size_out;
 	int i=0;
 	while (i<1000000) {
 		//std::cout << "Step " << i << " size=" << size_working << std::endl;
-		if ( ! Movie::MotionZoom(size_working, size2, TEST_WIDTH, TEST_HEIGHT, TEST_SPEED, size_working) )
+		if ( ! Movie::MotionZoom(size_working, size2, TEST_WIDTH, TEST_HEIGHT, speed, size_working) )
 			break;
 		++i;
 	}
@@ -70,6 +71,7 @@ void do_zoom_case(Fractal::Value s1re, Fractal::Value s1im,
 		EXPECT_LE(imag(size_working), imag(size2));
 	else
 		EXPECT_GE(imag(size_working), imag(size2));
+	return i;
 }
 
 TEST(ZoomIn, Terminates) {
@@ -111,15 +113,16 @@ TEST(Translate, Epsilon) {
 	EXPECT_NE( cent_target, cent_out );
 }
 
-void do_translate_case(Fractal::Value re1, Fractal::Value im1,
+// Runs a case, returns number of frames we would have rendered.
+unsigned do_translate_case(Fractal::Value re1, Fractal::Value im1,
 					   Fractal::Value re2, Fractal::Value im2,
-					   Fractal::Value reSz=0.1, Fractal::Value imSz=0.1) {
+					   Fractal::Value reSz=0.1, Fractal::Value imSz=0.1, const unsigned speed = TEST_SPEED) {
 	Fractal::Point centre1( re1, im1 ), centre2( re2, im2 ), centre_out, size(reSz, imSz);
 	Fractal::Point centre_working(centre1);
 	int i=0;
 	while (i<1000000) {
 		//std::cout << "Step " << i << " centre=" << centre_working << std::endl;
-		if ( ! Movie::MotionTranslate(centre_working, centre2, size, TEST_WIDTH, TEST_HEIGHT, TEST_SPEED, centre_working) )
+		if ( ! Movie::MotionTranslate(centre_working, centre2, size, TEST_WIDTH, TEST_HEIGHT, speed, centre_working) )
 			break;
 		++i;
 	}
@@ -133,6 +136,7 @@ void do_translate_case(Fractal::Value re1, Fractal::Value im1,
 		EXPECT_LE(imag(centre_working), imag(centre2));
 	else
 		EXPECT_GE(imag(centre_working), imag(centre2));
+	return i;
 }
 
 TEST(Translate, Terminates1) { do_translate_case(0.1,0.1, 0.2, 0.2); }
@@ -177,4 +181,18 @@ TEST(ZoomAndTranslate, IteratesCorrectly) {
 		 * So simulating here, expect correct answer. */
 	EXPECT_EQ(cc, centre2);
 	EXPECT_EQ(ss, size2);
+}
+
+// -----------------------------------------------------------------------------
+
+TEST(Zoom, SpeedBehaves) {
+	unsigned s1 = do_zoom_case( 1.0, 1.0, 0.1, 0.1, TEST_SPEED );
+	unsigned s2 = do_zoom_case( 1.0, 1.0, 0.1, 0.1, 2*TEST_SPEED );
+	EXPECT_LT(s2, s1); // Twice the speed, should give about half the frames.
+}
+
+TEST(Translate, SpeedBehaves) {
+	unsigned s1 = do_translate_case( 0.1, 0.1, 0.2, 0.2, 0.1, 0.1, TEST_SPEED );
+	unsigned s2 = do_translate_case( 0.1, 0.1, 0.2, 0.2, 0.1, 0.1, 2*TEST_SPEED );
+	EXPECT_LT(s2, s1); // Twice the speed, should give about half the frames.
 }
