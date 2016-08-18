@@ -203,6 +203,36 @@ class ScriptB2CLI : public Movie::Renderer {
 };
 
 // ------------------------------------------------------------------------------
+// Specialised dummy renderer, used for counting frames.
+// This one doesn't have a standard factory so that it doesn't appear as an option.
+
+class NullRenderer : public Movie::Renderer {
+	class Private : public Movie::RenderInstancePrivate {
+		friend class NullRenderer;
+		Private(Movie::RenderJob& _job) : Movie::RenderInstancePrivate(_job) { }
+		~Private() { }
+	};
+	public:
+		NullRenderer() : Movie::Renderer("Null renderer", "/dev/null") { }
+
+		void render_top(Movie::RenderJob& job, Movie::RenderInstancePrivate **priv) {
+			Private *mypriv = new Private(job);
+			*priv = mypriv;
+		}
+		void render_frame(const struct Movie::Frame& fr, Movie::RenderInstancePrivate *priv, const unsigned n_frames) { }
+		void render_tail(Movie::RenderInstancePrivate *priv, bool) {
+			Private * mypriv = (Private*)(priv);
+			delete mypriv;
+		}
+		virtual ~NullRenderer() {}
+};
+
+std::shared_ptr<Movie::Renderer> Movie::NullRendererFactory::instantiate() {
+	std::shared_ptr<Movie::Renderer> rv(new NullRenderer());
+	return rv;
+}
+
+// ------------------------------------------------------------------------------
 // And now some instances to make them live
 
 MOVIERENDER_DECLARE_FACTORY(ScriptB2CLI, "Script for brot2cli", "*.sh");

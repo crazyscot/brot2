@@ -108,6 +108,11 @@ class RendererFactory {
 		virtual std::shared_ptr<Renderer> instantiate() = 0;
 };
 
+class NullRendererFactory {
+	public:
+		std::shared_ptr<Renderer> instantiate();
+};
+
 }; // namespace Movie
 
 #define MOVIERENDER_DECLARE_FACTORY(clazz, name, glob) \
