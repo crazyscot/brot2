@@ -44,8 +44,9 @@ struct RenderJob {
 	const struct Movie::MovieInfo _movie;
 	std::shared_ptr<const BrotPrefs::Prefs> _prefs;
 	ThreadPool& _threads;
+	const char *_argv0; // The CLI used to invoke brot2. This is used in at least one renderer to locate brot2cli.
 
-	RenderJob(IRenderProgressReporter& reporter, IRenderCompleteHandler& parent, Movie::Renderer& renderer, const std::string& filename, const struct Movie::MovieInfo& movie, std::shared_ptr<const BrotPrefs::Prefs> prefs, ThreadPool& threads);
+	RenderJob(IRenderProgressReporter& reporter, IRenderCompleteHandler& parent, Movie::Renderer& renderer, const std::string& filename, const struct Movie::MovieInfo& movie, std::shared_ptr<const BrotPrefs::Prefs> prefs, ThreadPool& threads, const char* argv0);
 	void run();
 	virtual ~RenderJob();
 };
@@ -71,7 +72,7 @@ class Renderer {
 		const std::string pattern; // shell style glob, for Gtk::FileFilter
 
 		// Main entrypoint:
-		void start(IRenderProgressReporter& reporter, IRenderCompleteHandler& completion, const std::string& filename, const struct Movie::MovieInfo& movie, std::shared_ptr<const BrotPrefs::Prefs> prefs, ThreadPool& threads);
+		void start(IRenderProgressReporter& reporter, IRenderCompleteHandler& completion, const std::string& filename, const struct Movie::MovieInfo& movie, std::shared_ptr<const BrotPrefs::Prefs> prefs, ThreadPool& threads, const char* argv0);
 
 		// Initialise render run, alloc Private if needed
 		virtual void render_top(Movie::RenderJob& job, Movie::RenderInstancePrivate** priv) = 0;

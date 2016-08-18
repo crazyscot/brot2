@@ -20,7 +20,6 @@
 #include "MovieMode.h"
 #include "MovieMotion.h"
 #include "MovieProgress.h"
-#include "gtkmain.h" // for argv0
 #include "misc.h"
 #include "SaveAsPNG.h"
 #include <iostream>
@@ -64,11 +63,11 @@ Movie::RenderInstancePrivate::~RenderInstancePrivate()
 
 // ---------------------------------------------------------------------
 
-Movie::RenderJob::RenderJob(IRenderProgressReporter& reporter, IRenderCompleteHandler& parent, Movie::Renderer& renderer, const std::string& filename, const struct Movie::MovieInfo& movie, std::shared_ptr<const BrotPrefs::Prefs> prefs, ThreadPool& threads) :
+Movie::RenderJob::RenderJob(IRenderProgressReporter& reporter, IRenderCompleteHandler& parent, Movie::Renderer& renderer, const std::string& filename, const struct Movie::MovieInfo& movie, std::shared_ptr<const BrotPrefs::Prefs> prefs, ThreadPool& threads, const char* argv0) :
 	_parent(parent),
 	_reporter(&reporter),
 	_renderer(renderer),
-	_filename(filename), _movie(movie), _prefs(prefs), _threads(threads) {
+	_filename(filename), _movie(movie), _prefs(prefs), _threads(threads), _argv0(argv0) {
 }
 
 void Movie::RenderJob::run() {
@@ -78,9 +77,9 @@ void Movie::RenderJob::run() {
 Movie::RenderJob::~RenderJob() {
 }
 
-void Movie::Renderer::start(IRenderProgressReporter& reporter, IRenderCompleteHandler& parent, const std::string& filename, const struct Movie::MovieInfo& movie, std::shared_ptr<const BrotPrefs::Prefs> prefs, ThreadPool& threads) {
+void Movie::Renderer::start(IRenderProgressReporter& reporter, IRenderCompleteHandler& parent, const std::string& filename, const struct Movie::MovieInfo& movie, std::shared_ptr<const BrotPrefs::Prefs> prefs, ThreadPool& threads, const char* argv0) {
 	cancel_requested = false;
-	std::shared_ptr<RenderJob> job (new RenderJob(reporter, parent, *this, filename, movie, prefs, threads));
+	std::shared_ptr<RenderJob> job (new RenderJob(reporter, parent, *this, filename, movie, prefs, threads, argv0));
 	threads.enqueue<void>([=]{ job->run(); });
 }
 
@@ -149,7 +148,7 @@ class ScriptB2CLI : public Movie::Renderer {
 		ScriptB2CLI() : Movie::Renderer("Script for brot2cli", "*.sh") { }
 
 		void render_top(Movie::RenderJob& job, Movie::RenderInstancePrivate **priv) {
-			std::string b2cli(brot2_argv0);
+			std::string b2cli(job._argv0);
 			b2cli.append("cli");
 			std::string outdir(job._filename);
 			int spos = outdir.rfind('/');
