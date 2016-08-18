@@ -19,6 +19,7 @@
 #include "png.h" // see launchpad 218409
 #include "MovieWindow.h"
 #include "MovieRender.h"
+#include "MovieProgress.h"
 #include "MainWindow.h"
 #include "Fractal.h"
 #include "Prefs.h"
@@ -277,7 +278,9 @@ void MovieWindow::do_render() {
 	if (!run_filename(filename, renderer))
 		return;
 
-	renderer->start(*this, filename, movie, mw.prefs(), mw.get_threadpool());
+	Movie::Progress* reporter = new Movie::Progress(movie, *renderer);
+	renderer->start(*reporter, *this, filename, movie, mw.prefs(), mw.get_threadpool());
+	// reporter will be deleted when completion signalled
 }
 
 bool MovieWindow::run_filename(std::string& filename, std::shared_ptr<Movie::Renderer>& renrv)
@@ -388,6 +391,9 @@ void MovieWindow::do_update_duration2(const Gtk::TreeModel::Path&, const Gtk::Tr
 void MovieWindow::signal_completion(Movie::RenderJob& job) {
 	std::unique_lock<std::mutex> lock(mux);
 	ASSERT(&job._renderer == renderer.get());
+	gdk_threads_enter();
+	delete job._reporter; // We created it, we delete it. It's a Movie::Progress*, which is a Gtk::Window so we have to lock for it.
+	gdk_threads_leave();
 	renderer = 0;
 	completion_cv.notify_all();
 }

@@ -25,11 +25,11 @@
 #include <gtkmm/messagedialog.h>
 
 Movie::Progress::Progress(const struct MovieInfo &_movie, Movie::Renderer& _ren) : renderer(_ren),
-	chunks_done(0), chunks_count(0), frames_done(-1),
+	chunks_done(0), chunks_count(0), frames_done(0),
 	npixels(_movie.height * _movie.width * (_movie.antialias ? 4 : 1)),
 	nframes(_movie.count_frames()), movie(_movie)
 {
-	gdk_threads_enter();
+	// Precondition: GDK threads lock held
 	vbox = Gtk::manage(new Gtk::VBox());
 	plotbar = Gtk::manage(new Gtk::ProgressBar());
 	framebar = Gtk::manage(new Gtk::ProgressBar());
@@ -54,8 +54,7 @@ Movie::Progress::Progress(const struct MovieInfo &_movie, Movie::Renderer& _ren)
 	add(*vbox);
 	show_all();
 	Glib::signal_timeout().connect( sigc::mem_fun(*this, &Movie::Progress::on_timer), 300 );
-	gdk_threads_leave();
-	plot_complete(); // Resets frames_done to 0
+	// Cannot call plot_complete() here as we already hold the GDK lock
 }
 
 Movie::Progress::~Progress() {}

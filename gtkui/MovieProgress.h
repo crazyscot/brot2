@@ -42,7 +42,7 @@ namespace Movie {
 			bool on_timer();
 			void do_cancel();
 		public:
-			Progress(const struct MovieInfo &, Movie::Renderer &);
+			Progress(const struct MovieInfo &, Movie::Renderer &); // Must hold the GDK threads lock!
 			virtual ~Progress();
 
 			virtual void chunk_done(Plot3::Plot3Chunk* job);

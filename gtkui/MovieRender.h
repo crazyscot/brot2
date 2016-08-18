@@ -45,7 +45,7 @@ struct RenderJob {
 	std::shared_ptr<const BrotPrefs::Prefs> _prefs;
 	ThreadPool& _threads;
 
-	RenderJob(IRenderCompleteHandler& parent, Movie::Renderer& renderer, const std::string& filename, const struct Movie::MovieInfo& movie, std::shared_ptr<const BrotPrefs::Prefs> prefs, ThreadPool& threads);
+	RenderJob(IRenderProgressReporter& reporter, IRenderCompleteHandler& parent, Movie::Renderer& renderer, const std::string& filename, const struct Movie::MovieInfo& movie, std::shared_ptr<const BrotPrefs::Prefs> prefs, ThreadPool& threads);
 	void run();
 	virtual ~RenderJob();
 };
@@ -71,7 +71,7 @@ class Renderer {
 		const std::string pattern; // shell style glob, for Gtk::FileFilter
 
 		// Main entrypoint:
-		void start(IRenderCompleteHandler& completion, const std::string& filename, const struct Movie::MovieInfo& movie, std::shared_ptr<const BrotPrefs::Prefs> prefs, ThreadPool& threads);
+		void start(IRenderProgressReporter& reporter, IRenderCompleteHandler& completion, const std::string& filename, const struct Movie::MovieInfo& movie, std::shared_ptr<const BrotPrefs::Prefs> prefs, ThreadPool& threads);
 
 		// Initialise render run, alloc Private if needed
 		virtual void render_top(Movie::RenderJob& job, Movie::RenderInstancePrivate** priv) = 0;

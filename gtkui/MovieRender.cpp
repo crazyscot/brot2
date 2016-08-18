@@ -64,10 +64,11 @@ Movie::RenderInstancePrivate::~RenderInstancePrivate()
 
 // ---------------------------------------------------------------------
 
-Movie::RenderJob::RenderJob(IRenderCompleteHandler& parent, Movie::Renderer& renderer, const std::string& filename, const struct Movie::MovieInfo& movie, std::shared_ptr<const BrotPrefs::Prefs> prefs, ThreadPool& threads) : _parent(parent), _renderer(renderer), _filename(filename), _movie(movie), _prefs(prefs), _threads(threads) {
-	//gdk_threads_enter(); // NO, because Progress::Progress calls threads_enter()
-	_reporter = new Movie::Progress(_movie, _renderer);
-	//gdk_threads_leave();
+Movie::RenderJob::RenderJob(IRenderProgressReporter& reporter, IRenderCompleteHandler& parent, Movie::Renderer& renderer, const std::string& filename, const struct Movie::MovieInfo& movie, std::shared_ptr<const BrotPrefs::Prefs> prefs, ThreadPool& threads) :
+	_parent(parent),
+	_reporter(&reporter),
+	_renderer(renderer),
+	_filename(filename), _movie(movie), _prefs(prefs), _threads(threads) {
 }
 
 void Movie::RenderJob::run() {
@@ -75,14 +76,11 @@ void Movie::RenderJob::run() {
 	_parent.signal_completion(*this);
 }
 Movie::RenderJob::~RenderJob() {
-	gdk_threads_enter();
-	delete _reporter; // It's a Gtk::Window
-	gdk_threads_leave();
 }
 
-void Movie::Renderer::start(IRenderCompleteHandler& parent, const std::string& filename, const struct Movie::MovieInfo& movie, std::shared_ptr<const BrotPrefs::Prefs> prefs, ThreadPool& threads) {
+void Movie::Renderer::start(IRenderProgressReporter& reporter, IRenderCompleteHandler& parent, const std::string& filename, const struct Movie::MovieInfo& movie, std::shared_ptr<const BrotPrefs::Prefs> prefs, ThreadPool& threads) {
 	cancel_requested = false;
-	std::shared_ptr<RenderJob> job (new RenderJob(parent, *this, filename, movie, prefs, threads));
+	std::shared_ptr<RenderJob> job (new RenderJob(reporter, parent, *this, filename, movie, prefs, threads));
 	threads.enqueue<void>([=]{ job->run(); });
 }
 
