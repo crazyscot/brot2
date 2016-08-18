@@ -57,27 +57,28 @@ std::set<std::string> Movie::RendererFactory::all_factory_names() {
 
 Movie::RenderInstancePrivate::RenderInstancePrivate(Movie::RenderJob& _job) : job(_job)
 {
-	//gdk_threads_enter(); // NO, because Progress::Progress calls threads_enter()
-	reporter = new Movie::Progress(_job._movie, _job._renderer);
-	//gdk_threads_leave();
 }
 Movie::RenderInstancePrivate::~RenderInstancePrivate()
 {
-	gdk_threads_enter();
-	delete reporter; // It's a Gtk::Window
-	gdk_threads_leave();
 }
 
 // ---------------------------------------------------------------------
 
 Movie::RenderJob::RenderJob(IRenderCompleteHandler& parent, Movie::Renderer& renderer, const std::string& filename, const struct Movie::MovieInfo& movie, std::shared_ptr<const BrotPrefs::Prefs> prefs, ThreadPool& threads) : _parent(parent), _renderer(renderer), _filename(filename), _movie(movie), _prefs(prefs), _threads(threads) {
+	//gdk_threads_enter(); // NO, because Progress::Progress calls threads_enter()
+	_reporter = new Movie::Progress(_movie, _renderer);
+	//gdk_threads_leave();
 }
 
 void Movie::RenderJob::run() {
 	_renderer.render(this);
 	_parent.signal_completion(_renderer);
 }
-Movie::RenderJob::~RenderJob() { }
+Movie::RenderJob::~RenderJob() {
+	gdk_threads_enter();
+	delete _reporter; // It's a Gtk::Window
+	gdk_threads_leave();
+}
 
 void Movie::Renderer::start(IRenderCompleteHandler& parent, const std::string& filename, const struct Movie::MovieInfo& movie, std::shared_ptr<const BrotPrefs::Prefs> prefs, ThreadPool& threads) {
 	cancel_requested = false;
@@ -101,7 +102,7 @@ void Movie::Renderer::render(RenderJob* job) {
 	else
 		render_frame(f1, priv, 1);
 
-	priv->reporter->frames_traversed(f1.hold_frames); // FIXME Check semantics, is this call correct?
+	job->_reporter->frames_traversed(f1.hold_frames); // FIXME Check semantics, is this call correct?
 	iter++;
 
 	for (; iter != movie.points.end() && !cancel_requested; iter++) {
@@ -119,7 +120,7 @@ void Movie::Renderer::render(RenderJob* job) {
 
 		if (f1.hold_frames>1)
 			render_frame(f2, priv, f1.hold_frames-1); // we expect this will call plot_complete but not frames_traversed
-		priv->reporter->frames_traversed(f1.hold_frames); // FIXME Check semantics, is this call correct?
+		job->_reporter->frames_traversed(f1.hold_frames); // FIXME Check semantics, is this call correct?
 
 		f1 = f2;
 	}
@@ -241,13 +242,13 @@ class BunchOfPNGs : public Movie::Renderer {
 
 			SavePNG::MovieFrame saver(mypriv->job._prefs, mypriv->job._threads,
 					*mypriv->job._movie.fractal, *mypriv->job._movie.palette,
-					*mypriv->reporter,
+					*mypriv->job._reporter,
 					fr.centre, fr.size,
 					mypriv->job._movie.width, mypriv->job._movie.height,
 					mypriv->job._movie.antialias, mypriv->job._movie.draw_hud,
 					filename2);
 			saver.start();
-			mypriv->reporter->set_chunks_count(saver.get_chunks_count());
+			mypriv->job._reporter->set_chunks_count(saver.get_chunks_count());
 			saver.wait();
 			saver.save_png(0);
 			for (unsigned i=1; i<n_frames; i++) {

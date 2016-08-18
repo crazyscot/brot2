@@ -38,6 +38,7 @@ class Renderer;
 struct RenderJob {
 	// Everything about a job, from the UI's point of view, goes in here.
 	IRenderCompleteHandler& _parent;
+	IRenderProgressReporter *_reporter;
 	Movie::Renderer& _renderer;
 	const std::string _filename;
 	const struct Movie::MovieInfo _movie;
@@ -52,7 +53,6 @@ struct RenderJob {
 struct RenderInstancePrivate {
 	// Subclassed by Renderer subclasses to store private data
 	RenderJob& job;
-	IRenderProgressReporter *reporter;
 
 	RenderInstancePrivate(Movie::RenderJob& _job);
 	virtual ~RenderInstancePrivate();
