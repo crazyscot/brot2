@@ -55,10 +55,10 @@ std::set<std::string> Movie::RendererFactory::all_factory_names() {
 
 // ---------------------------------------------------------------------
 
-Movie::RenderInstancePrivate::RenderInstancePrivate(const struct Movie::MovieInfo& _movie, Movie::Renderer& _renderer) : movie(_movie)
+Movie::RenderInstancePrivate::RenderInstancePrivate(Movie::RenderJob& _job) : job(_job)
 {
 	//gdk_threads_enter(); // NO, because Progress::Progress calls threads_enter()
-	reporter = new Movie::Progress(_movie, _renderer);
+	reporter = new Movie::Progress(_job._movie, _job._renderer);
 	//gdk_threads_leave();
 }
 Movie::RenderInstancePrivate::~RenderInstancePrivate()
@@ -139,8 +139,8 @@ class ScriptB2CLI : public Movie::Renderer {
 		ofstream fs;
 		unsigned fileno;
 
-		Private(ScriptB2CLI& _renderer, const struct Movie::MovieInfo& _movie, const std::string& filename) : Movie::RenderInstancePrivate(_movie, _renderer), fileno(0) {
-			fs.open(filename, std::fstream::out);
+		Private(Movie::RenderJob& _job) : Movie::RenderInstancePrivate(_job), fileno(0) {
+			fs.open(_job._filename, std::fstream::out);
 		}
 		~Private() {
 			fs.close();
@@ -156,7 +156,7 @@ class ScriptB2CLI : public Movie::Renderer {
 			int spos = outdir.rfind('/');
 			if (spos >= 0)
 				outdir.erase(spos+1);
-			Private *mypriv = new Private(*this, job._movie, job._filename);
+			Private *mypriv = new Private(job);
 			*priv = mypriv;
 			mypriv->fs
 				<< "#!/bin/bash -x" << endl
@@ -176,15 +176,15 @@ class ScriptB2CLI : public Movie::Renderer {
 			mypriv->fs
 				<< "${BROT2CLI} -X " << fr.centre.real() << " -Y " << fr.centre.imag()
 				<< " -l " << fr.size.real()
-				<< " -f \"" << mypriv->movie.fractal->name << "\""
-				<< " -p \"" << mypriv->movie.palette->name << "\""
-				<< " -h " << mypriv->movie.height
-				<< " -w " << mypriv->movie.width
+				<< " -f \"" << mypriv->job._movie.fractal->name << "\""
+				<< " -p \"" << mypriv->job._movie.palette->name << "\""
+				<< " -h " << mypriv->job._movie.height
+				<< " -w " << mypriv->job._movie.width
 				<< " -o " << filename.str()
 				;
-			if (mypriv->movie.draw_hud)
+			if (mypriv->job._movie.draw_hud)
 				mypriv->fs << " -H";
-			if (mypriv->movie.antialias)
+			if (mypriv->job._movie.antialias)
 				mypriv->fs << " -a";
 			mypriv->fs << endl;
 
@@ -210,13 +210,9 @@ class BunchOfPNGs : public Movie::Renderer {
 		friend class BunchOfPNGs;
 		unsigned fileno;
 		const std::string outdir, nametmpl;
-		std::shared_ptr<const BrotPrefs::Prefs> prefs;
-		ThreadPool& threads;
 
-		Private(BunchOfPNGs& renderer,
-				const struct Movie::MovieInfo& _movie, const std::string& _outdir, const std::string& _tmpl,
-				std::shared_ptr<const BrotPrefs::Prefs> _prefs, ThreadPool& _threads) :
-			RenderInstancePrivate(_movie, renderer), fileno(0), outdir(_outdir), nametmpl(_tmpl), prefs(_prefs), threads(_threads)
+		Private(Movie::RenderJob& _job, const std::string& _outdir, const std::string& _tmpl) :
+			RenderInstancePrivate(_job), fileno(0), outdir(_outdir), nametmpl(_tmpl)
 		{
 		}
 		virtual ~Private() {}
@@ -234,7 +230,7 @@ class BunchOfPNGs : public Movie::Renderer {
 			spos = tmpl.rfind(".png");
 			if (spos >= 0)
 				tmpl.erase(spos);
-			Private *mypriv = new Private(*this, job._movie, outdir, tmpl, job._prefs, job._threads);
+			Private *mypriv = new Private(job, outdir, tmpl);
 			*priv = mypriv;
 		}
 		void render_frame(const struct Movie::Frame& fr, Movie::RenderInstancePrivate *priv, unsigned n_frames) {
@@ -243,12 +239,12 @@ class BunchOfPNGs : public Movie::Renderer {
 			filename << mypriv->outdir << '/' << mypriv->nametmpl << '_' << setfill('0') << setw(6) << (mypriv->fileno++) << ".png";
 			std::string filename2 (filename.str());
 
-			SavePNG::MovieFrame saver(mypriv->prefs, mypriv->threads,
-					*mypriv->movie.fractal, *mypriv->movie.palette,
+			SavePNG::MovieFrame saver(mypriv->job._prefs, mypriv->job._threads,
+					*mypriv->job._movie.fractal, *mypriv->job._movie.palette,
 					*mypriv->reporter,
 					fr.centre, fr.size,
-					mypriv->movie.width, mypriv->movie.height,
-					mypriv->movie.antialias, mypriv->movie.draw_hud,
+					mypriv->job._movie.width, mypriv->job._movie.height,
+					mypriv->job._movie.antialias, mypriv->job._movie.draw_hud,
 					filename2);
 			saver.start();
 			mypriv->reporter->set_chunks_count(saver.get_chunks_count());

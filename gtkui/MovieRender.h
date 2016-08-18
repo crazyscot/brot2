@@ -33,10 +33,13 @@
 
 namespace Movie {
 
+struct RenderJob;
+
 struct RenderInstancePrivate {
-	const struct Movie::MovieInfo& movie;
+	RenderJob& job;
 	IRenderProgressReporter *reporter;
-	RenderInstancePrivate(const struct Movie::MovieInfo& _movie, Movie::Renderer& _renderer);
+
+	RenderInstancePrivate(Movie::RenderJob& _job);
 	virtual ~RenderInstancePrivate();
 }; // Used by Renderer to store private data
 
