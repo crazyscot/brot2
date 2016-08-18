@@ -94,7 +94,7 @@ class Renderer {
 
 class RendererFactory {
 	friend class Renderer;
-	static SimpleRegistry<RendererFactory> all_factories;
+	static SimpleRegistry<RendererFactory>* all_factories();
 
 	protected:
 		RendererFactory(const std::string& _name, const std::string& _pattern);

@@ -32,22 +32,25 @@ Movie::Renderer::Renderer(const std::string& _name, const std::string& _pattern)
 Movie::Renderer::~Renderer() {
 }
 
-SimpleRegistry<Movie::RendererFactory> Movie::RendererFactory::all_factories;
+SimpleRegistry<Movie::RendererFactory>* Movie::RendererFactory::all_factories() {
+	static SimpleRegistry<Movie::RendererFactory>* all_factories_ = new SimpleRegistry<Movie::RendererFactory>();
+	return all_factories_;
+}
 
 Movie::RendererFactory::RendererFactory(const std::string& _name, const std::string& _pattern) : name(_name), pattern(_pattern) {
-	all_factories.reg(_name, this);
+	all_factories()->reg(_name, this);
 }
 
 Movie::RendererFactory::~RendererFactory() {
-	all_factories.dereg(name);
+	all_factories()->dereg(name);
 }
 /*STATIC*/
 Movie::RendererFactory* Movie::RendererFactory::get_factory(const std::string& name) {
-	return all_factories.get(name);
+	return all_factories()->get(name);
 }
 /*STATIC*/
 std::set<std::string> Movie::RendererFactory::all_factory_names() {
-	return all_factories.names();
+	return all_factories()->names();
 }
 
 // ---------------------------------------------------------------------
