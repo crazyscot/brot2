@@ -44,7 +44,7 @@ class RenderJob {
 	IRenderCompleteHandler& _parent;
 	Movie::Renderer& _renderer;
 	const std::string _filename;
-	struct Movie::MovieInfo _movie;
+	const struct Movie::MovieInfo _movie;
 	std::shared_ptr<const BrotPrefs::Prefs> _prefs;
 	ThreadPool& _threads;
 
