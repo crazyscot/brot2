@@ -270,17 +270,5 @@ class BunchOfPNGs : public Movie::Renderer {
 // ------------------------------------------------------------------------------
 // And now some instances to make them live
 
-#define FACTORY(clazz, name, glob) \
-	class clazz##Factory : public Movie::RendererFactory {                \
-		public:                                                           \
-				clazz##Factory() : Movie::RendererFactory(name, glob) { } \
-			virtual std::shared_ptr<Movie::Renderer> instantiate() {      \
-				std::shared_ptr<Movie::Renderer> instance(new clazz());   \
-				return instance;                                          \
-			}                                                             \
-			virtual ~clazz##Factory() {}                                  \
-	};                                                                    \
-	static clazz##Factory clazz##_factory;
-
-FACTORY(ScriptB2CLI, "Script for brot2cli", "*.sh");
-FACTORY(BunchOfPNGs, "PNG files in a directory", "*.png");
+MOVIERENDER_DECLARE_FACTORY(ScriptB2CLI, "Script for brot2cli", "*.sh");
+MOVIERENDER_DECLARE_FACTORY(BunchOfPNGs, "PNG files in a directory", "*.png");

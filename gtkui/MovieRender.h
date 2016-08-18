@@ -110,4 +110,17 @@ class RendererFactory {
 
 }; // namespace Movie
 
+#define MOVIERENDER_DECLARE_FACTORY(clazz, name, glob) \
+	class clazz##Factory : public Movie::RendererFactory {                \
+		public:                                                           \
+				clazz##Factory() : Movie::RendererFactory(name, glob) { } \
+			virtual std::shared_ptr<Movie::Renderer> instantiate() {      \
+				std::shared_ptr<Movie::Renderer> instance(new clazz());   \
+				return instance;                                          \
+			}                                                             \
+			virtual ~clazz##Factory() {}                                  \
+	};                                                                    \
+	static clazz##Factory clazz##_factory;
+
+
 #endif // MOVIERENDER_H
