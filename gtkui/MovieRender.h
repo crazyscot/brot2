@@ -40,7 +40,19 @@ struct RenderInstancePrivate {
 	virtual ~RenderInstancePrivate();
 }; // Used by Renderer to store private data
 
-class RenderJob; // private to MovieRender.cpp
+class RenderJob {
+	IRenderCompleteHandler& _parent;
+	Movie::Renderer& _renderer;
+	const std::string _filename;
+	struct Movie::MovieInfo _movie;
+	std::shared_ptr<const BrotPrefs::Prefs> _prefs;
+	ThreadPool& _threads;
+
+	public:
+		RenderJob(IRenderCompleteHandler& parent, Movie::Renderer& renderer, const std::string& filename, const struct Movie::MovieInfo& movie, std::shared_ptr<const BrotPrefs::Prefs> prefs, ThreadPool& threads);
+		void run();
+		virtual ~RenderJob();
+};
 
 class Renderer {
 	friend class RenderJob;

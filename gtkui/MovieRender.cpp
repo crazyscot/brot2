@@ -70,27 +70,14 @@ Movie::RenderInstancePrivate::~RenderInstancePrivate()
 
 // ---------------------------------------------------------------------
 
-namespace Movie {
-class RenderJob {
-	IRenderCompleteHandler& _parent;
-	Movie::Renderer& _renderer;
-	const std::string _filename;
-	struct Movie::MovieInfo _movie;
-	std::shared_ptr<const BrotPrefs::Prefs> _prefs;
-	ThreadPool& _threads;
+Movie::RenderJob::RenderJob(IRenderCompleteHandler& parent, Movie::Renderer& renderer, const std::string& filename, const struct Movie::MovieInfo& movie, std::shared_ptr<const BrotPrefs::Prefs> prefs, ThreadPool& threads) : _parent(parent), _renderer(renderer), _filename(filename), _movie(movie), _prefs(prefs), _threads(threads) {
+}
 
-	public:
-		RenderJob(IRenderCompleteHandler& parent, Movie::Renderer& renderer, const std::string& filename, const struct Movie::MovieInfo& movie, std::shared_ptr<const BrotPrefs::Prefs> prefs, ThreadPool& threads) :
-			_parent(parent), _renderer(renderer), _filename(filename), _movie(movie), _prefs(prefs), _threads(threads) { }
-
-		void run() {
-			_renderer.render(_filename, _movie, _prefs, _threads);
-			_parent.signal_completion(_renderer);
-		}
-		virtual ~RenderJob() { }
-};
-
-}; // Movie
+void Movie::RenderJob::run() {
+	_renderer.render(_filename, _movie, _prefs, _threads);
+	_parent.signal_completion(_renderer);
+}
+Movie::RenderJob::~RenderJob() { }
 
 void Movie::Renderer::start(IRenderCompleteHandler& parent, const std::string& filename, const struct Movie::MovieInfo& movie, std::shared_ptr<const BrotPrefs::Prefs> prefs, ThreadPool& threads) {
 	cancel_requested = false;
