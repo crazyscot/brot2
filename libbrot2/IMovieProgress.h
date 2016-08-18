@@ -1,5 +1,5 @@
 /*
-    IRenderProgress.h: Movie progress reporter interface
+    IMovieProgress.h: Movie progress reporter interface
     Copyright (C) 2016 Ross Younger
 
     This program is free software: you can redistribute it and/or modify
@@ -16,8 +16,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef IRENDERPROGRESSREPORTER_H
-#define IRENDERPROGRESSREPORTER_H
+#ifndef IMOVIEPROGRESS_H
+#define IMOVIEPROGRESS_H
 
 #include "IPlot3DataSink.h"
 
@@ -48,4 +48,4 @@ class IRenderProgressReporter : public Plot3::IPlot3DataSink {
 
 }; // namespace Movie
 
-#endif // IRENDERPROGRESSREPORTER_H
+#endif // IMOVIEPROGRESS_H

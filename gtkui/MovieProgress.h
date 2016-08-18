@@ -19,7 +19,7 @@
 #ifndef MOVIEPROGRESS_H
 #define MOVIEPROGRESS_H
 
-#include "IPlot3DataSink.h"
+#include "IMovieProgress.h"
 #include "MovieRender.h"
 #include <gtkmm/window.h>
 #include <gtkmm/box.h>

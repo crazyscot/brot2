@@ -20,13 +20,13 @@
 #define MOVIERENDER_H
 
 #include "MovieMode.h"
+#include "IMovieProgress.h"
 #include "Prefs.h"
 #include "Fractal.h"
 #include "FractalMaths.h"
 #include "palette.h"
 #include "Registry.h"
 #include "ThreadPool.h"
-#include "IRenderProgress.h"
 #include <vector>
 #include <set>
 #include <atomic>

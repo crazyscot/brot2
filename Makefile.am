@@ -44,6 +44,7 @@ libbrot2_a_SOURCES= \
 	libbrot2/Plot3Pass.cpp libbrot2/Plot3Pass.h \
 	libbrot2/ThreadPool.h libbrot2/ThreadPool.cpp \
 	libbrot2/IPlot3DataSink.h \
+	libbrot2/IMovieProgress.h \
 	libbrot2/ChunkDivider.h libbrot2/ChunkDivider.cpp \
 	libbrot2/Render2.h libbrot2/Render2.cpp \
 	libbrot2/Prefs.h libbrot2/Prefs.cpp \
