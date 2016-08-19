@@ -295,6 +295,18 @@ void MovieWindow::do_render() {
 		}
 	}
 
+	{
+		bool ok = true;
+		for (auto iter = movie.points.begin(); iter != movie.points.end(); iter++) {
+			ok &= ((*iter).speed_zoom != 0);
+			ok &= ((*iter).speed_translate != 0);
+		}
+		if (!ok) {
+			Util::alert(this, "All speeds must be non-0");
+			return;
+		}
+	}
+
 	std::string filename;
 	if (!run_filename(filename, renderer))
 		return;
