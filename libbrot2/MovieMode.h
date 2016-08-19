@@ -33,12 +33,19 @@ struct KeyFrame {
 	unsigned speed_zoom, speed_translate; // Speeds for motion to next key frame (ignored if this is last)
 	KeyFrame(Fractal::Point _c, Fractal::Point _s, unsigned _h, unsigned _sz, unsigned _st) :
 		centre(_c), size(_s), hold_frames(_h), speed_zoom(_sz), speed_translate(_st) {}
+	KeyFrame( Fractal::Value _cr, Fractal::Value _ci,
+			Fractal::Value _sr, Fractal::Value _si,
+			unsigned _h, unsigned _sz, unsigned _st) :
+		centre(_cr, _ci), size(_sr, _si), hold_frames(_h), speed_zoom(_sz), speed_translate(_st) {}
+
 };
 
 struct Frame {
 	Fractal::Point centre, size;
 	Frame() : centre(0,0), size(0,0) {}
 	Frame(Fractal::Point _c, Fractal::Point _s) : centre(_c), size(_s) {}
+	Frame( Fractal::Value _cr, Fractal::Value _ci,
+			Fractal::Value _sr, Fractal::Value _si) : centre (_cr, _ci), size (_sr, _si) {}
 	Frame(struct KeyFrame kf) : centre(kf.centre), size(kf.size) {}
 };
 

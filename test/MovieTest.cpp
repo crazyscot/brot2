@@ -242,3 +242,45 @@ TEST_F(MovieTest, SpeedHasAnEffect) {
 	// Doubling the speed for a simple transition without hold, should halve the frame count.
 	EXPECT_EQ(count1/2, count2);
 }
+
+TEST(Movie,StructConstructorsBehave) {
+	// Construct from explicit Points
+	Movie::KeyFrame f1 (Fractal::Point(1.2, 3.4), Fractal::Point(5.6, 7.8), 9, 10, 11);
+	EXPECT_EQ(real(f1.centre), 1.2);
+	EXPECT_EQ(imag(f1.centre), 3.4);
+	EXPECT_EQ(real(f1.size), 5.6);
+	EXPECT_EQ(imag(f1.size), 7.8);
+	EXPECT_EQ(f1.hold_frames, 9);
+	EXPECT_EQ(f1.speed_zoom, 10);
+	EXPECT_EQ(f1.speed_translate, 11);
+
+	// Construct from other
+	Movie::Frame f2( f1 );
+	EXPECT_EQ(f1.centre, f2.centre);
+	EXPECT_EQ(f1.size,   f2.size);
+
+	// Construct from explicit Points
+	Movie::Frame f3( Fractal::Point(2.3, 4.5), Fractal::Point(6.7, 8.9) );
+	EXPECT_EQ(real(f3.centre), 2.3);
+	EXPECT_EQ(imag(f3.centre), 4.5);
+	EXPECT_EQ(real(f3.size), 6.7);
+	EXPECT_EQ(imag(f3.size), 8.9);
+
+	// Construct free-hand from values
+	Movie::KeyFrame f4 (1.2, 3.4, 5.6, 7.8, 9, 10, 11);
+	EXPECT_EQ(real(f4.centre), 1.2);
+	EXPECT_EQ(imag(f4.centre), 3.4);
+	EXPECT_EQ(real(f4.size), 5.6);
+	EXPECT_EQ(imag(f4.size), 7.8);
+	EXPECT_EQ(f4.hold_frames, 9);
+	EXPECT_EQ(f4.speed_zoom, 10);
+	EXPECT_EQ(f4.speed_translate, 11);
+
+	// Construct free-hand from values
+	Movie::Frame f5( 2.3, 4.5, 6.7, 8.9 );
+	EXPECT_EQ(real(f5.centre), 2.3);
+	EXPECT_EQ(imag(f5.centre), 4.5);
+	EXPECT_EQ(real(f5.size), 6.7);
+	EXPECT_EQ(imag(f5.size), 8.9);
+
+}
