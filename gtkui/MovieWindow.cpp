@@ -237,8 +237,8 @@ bool MovieWindow::update_movie_struct() {
 	movie.points.clear();
 	for (auto it = rows.begin(); it != rows.end(); it++) {
 		struct Movie::KeyFrame kf(
-				( (Fractal::Value) (*it)[priv->m_columns.m_centre_re], (Fractal::Value) (*it)[priv->m_columns.m_centre_im] ),
-				( (Fractal::Value) (*it)[priv->m_columns.m_size_re], (Fractal::Value) (*it)[priv->m_columns.m_size_im] ),
+				(*it)[priv->m_columns.m_centre_re], (*it)[priv->m_columns.m_centre_im],
+				(*it)[priv->m_columns.m_size_re], (*it)[priv->m_columns.m_size_im],
 				(*it)[priv->m_columns.m_hold_frames],
 				(*it)[priv->m_columns.m_speed_zoom], (*it)[priv->m_columns.m_speed_translate]);
 		movie.points.push_back(kf);
