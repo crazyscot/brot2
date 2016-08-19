@@ -110,6 +110,20 @@ class RendererFactory {
 		virtual std::shared_ptr<Renderer> instantiate() = 0;
 };
 
+// This macro creates a factory for a class, allowing its details to be kept private to the source compile unit.
+#define MOVIERENDER_DECLARE_FACTORY(clazz, name, glob) \
+	class clazz##Factory : public Movie::RendererFactory {                \
+		public:                                                           \
+				clazz##Factory() : Movie::RendererFactory(name, glob) { } \
+			virtual std::shared_ptr<Movie::Renderer> instantiate() {      \
+				std::shared_ptr<Movie::Renderer> instance(new clazz());   \
+				return instance;                                          \
+			}                                                             \
+			virtual ~clazz##Factory() {}                                  \
+	};                                                                    \
+	static clazz##Factory clazz##_factory;
+
+
 // -----------------------------------------------------------------
 // The null renderer is special, used for counting frames before actually rendering.
 // It doesn't have a factory so that it doesn't appear in the list of options.
@@ -134,18 +148,5 @@ class NullRenderer : public Movie::Renderer {
 };
 
 }; // namespace Movie
-
-#define MOVIERENDER_DECLARE_FACTORY(clazz, name, glob) \
-	class clazz##Factory : public Movie::RendererFactory {                \
-		public:                                                           \
-				clazz##Factory() : Movie::RendererFactory(name, glob) { } \
-			virtual std::shared_ptr<Movie::Renderer> instantiate() {      \
-				std::shared_ptr<Movie::Renderer> instance(new clazz());   \
-				return instance;                                          \
-			}                                                             \
-			virtual ~clazz##Factory() {}                                  \
-	};                                                                    \
-	static clazz##Factory clazz##_factory;
-
 
 #endif // MOVIERENDER_H
