@@ -229,18 +229,10 @@ void MovieWindow::do_reset() {
 	priv->m_refTreeModel->clear();
 	do_update_duration();
 }
-void MovieWindow::do_render() {
+
+bool MovieWindow::update_movie_struct() {
 	std::unique_lock<std::mutex> lock(mux);
-	if (renderer) {
-		Util::alert(this, "A movie is already rendering, please wait for it to finish");
-		return;
-	}
-	// Doesn't make sense to make a movie with fewer than two points...
 	auto rows = priv->m_refTreeModel->children();
-	if (rows.size() < 2) {
-		Util::alert(this, "You need to specify at least two key frames to make a movie");
-		return;
-	}
 
 	movie.points.clear();
 	for (auto it = rows.begin(); it != rows.end(); it++) {
@@ -256,22 +248,40 @@ void MovieWindow::do_render() {
 		Util::alert(this, "Cannot parse height");
 		priv->f_height.set_text("");
 		priv->f_height.grab_focus();
-		return;
+		return false;
 	}
 	if (!priv->f_width.read(movie.width)) {
 		Util::alert(this, "Cannot parse width");
 		priv->f_width.set_text("");
 		priv->f_width.grab_focus();
-		return;
+		return false;
 	}
 	if (!priv->f_fps.read(movie.fps)) {
 		Util::alert(this, "Cannot parse FPS");
 		priv->f_fps.set_text("");
 		priv->f_fps.grab_focus();
-		return;
+		return false;
 	}
 	movie.draw_hud = priv->f_hud.get_active();
 	movie.antialias = priv->f_antialias.get_active();
+	return true;
+}
+
+void MovieWindow::do_render() {
+	std::unique_lock<std::mutex> lock(mux);
+	if (renderer) {
+		Util::alert(this, "A movie is already rendering, please wait for it to finish");
+		return;
+	}
+	// Doesn't make sense to make a movie with fewer than two points...
+	auto rows = priv->m_refTreeModel->children();
+	if (rows.size() < 2) {
+		Util::alert(this, "You need to specify at least two key frames to make a movie");
+		return;
+	}
+	lock.unlock();
+	if (!update_movie_struct()) return;
+	lock.lock();
 
 	std::string filename;
 	if (!run_filename(filename, renderer))
