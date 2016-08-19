@@ -100,22 +100,13 @@ void Movie::Renderer::render(RenderJob* job) {
 		render_tail(priv);
 		return;
 	}
-	// Size 0 cannot be rendered
 	{
 		bool ok = true;
 		for (auto iter = movie.points.begin(); iter != movie.points.end(); iter++) {
+			// Size 0 cannot be rendered
 			ok &= (real((*iter).size) != 0);
 			ok &= (imag((*iter).size) != 0);
-		}
-		if (!ok) {
-			render_tail(priv);
-			return;
-		}
-	}
-	// Speed 0 cannot be rendered
-	{
-		bool ok = true;
-		for (auto iter = movie.points.begin(); iter != movie.points.end(); iter++) {
+			// Speed 0 cannot be rendered
 			ok &= ((*iter).speed_zoom != 0);
 			ok &= ((*iter).speed_translate != 0);
 		}
