@@ -283,5 +283,38 @@ TEST(Movie,StructConstructorsBehave) {
 	EXPECT_EQ(imag(f5.centre), 4.5);
 	EXPECT_EQ(real(f5.size), 6.7);
 	EXPECT_EQ(imag(f5.size), 8.9);
+}
 
+// Hold frames should be counted correctly
+TEST_F(MovieTest, HoldFramesWork) {
+#define EXPECT_COUNT(_what) do { unsigned _count = movie.count_frames(); EXPECT_EQ(_what, _count); } while(0)
+	InitialiseMovie(TEST_SPEED);
+	movie.points[0].hold_frames = 0;
+	unsigned count1 = movie.count_frames();
+
+	InitialiseMovie(TEST_SPEED);
+	movie.points[0].hold_frames = 1;
+	EXPECT_COUNT(count1+1);
+
+	InitialiseMovie(TEST_SPEED);
+	movie.points[0].hold_frames = 2;
+	EXPECT_COUNT(count1+2);
+
+	InitialiseMovie(TEST_SPEED);
+	movie.points[0].hold_frames = 1000;
+	EXPECT_COUNT(count1+1000);
+
+	InitialiseMovie(TEST_SPEED);
+	movie.points[1].hold_frames = 1;
+	EXPECT_COUNT(count1+1);
+
+	InitialiseMovie(TEST_SPEED);
+	movie.points[0].hold_frames = 1;
+	movie.points[1].hold_frames = 2;
+	EXPECT_COUNT(count1+3);
+
+	InitialiseMovie(TEST_SPEED);
+	movie.points[0].hold_frames = 100;
+	movie.points[1].hold_frames = 2;
+	EXPECT_COUNT(count1+102);
 }

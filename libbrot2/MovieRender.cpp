@@ -118,16 +118,9 @@ void Movie::Renderer::render(RenderJob* job) {
 
 	auto iter = movie.points.begin();
 
-	// NOTE: The total number of frames we render should match the number calculated by MovieWindow::do_update_duration().
-	// TODO Have do_update_duration call into here for a frame count.
-
 	struct Movie::KeyFrame f1(*iter);
-	if (f1.hold_frames)
-		render_frame(f1, priv, f1.hold_frames); // we expect this will call plot_complete but not frames_traversed
-	else
-		render_frame(f1, priv, 1);
-
-	job->_reporter->frames_traversed(f1.hold_frames); // FIXME Check semantics, is this call correct?
+	render_frame(f1, priv, f1.hold_frames+1); // +1 as we must output the initial frame once, even if we are not holding on it. We expect that render_frame will call plot_complete but not frames_traversed.
+	job->_reporter->frames_traversed(f1.hold_frames);
 	iter++;
 
 	for (; iter != movie.points.end() && !cancel_requested; iter++) {
@@ -143,9 +136,11 @@ void Movie::Renderer::render(RenderJob* job) {
 				render_frame(ft, priv, 1);
 		} while (still_moving && !cancel_requested);
 
-		if (f1.hold_frames>1)
-			render_frame(f2, priv, f1.hold_frames-1); // we expect this will call plot_complete but not frames_traversed
-		job->_reporter->frames_traversed(f1.hold_frames); // FIXME Check semantics, is this call correct?
+		// We've just output a single frame of the destination keyframe.
+		if (f2.hold_frames) {
+			render_frame(f2, priv, f2.hold_frames); // we expect this will call plot_complete once but not frames_traversed
+			job->_reporter->frames_traversed(f2.hold_frames-1);
+		}
 
 		f1 = f2;
 	}
