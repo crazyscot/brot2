@@ -85,6 +85,12 @@ void Movie::Renderer::start(IMovieProgressReporter& reporter, IMovieCompleteHand
 	threads.enqueue<void>([=]{ job->run(); });
 }
 
+void Movie::Renderer::do_blocking(IMovieProgressReporter& reporter, IMovieCompleteHandler& parent, const std::string& filename, const struct Movie::MovieInfo& movie, std::shared_ptr<const BrotPrefs::Prefs> prefs, ThreadPool& threads, const char* argv0) {
+	cancel_requested = false;
+	std::shared_ptr<RenderJob> job (new RenderJob(reporter, parent, *this, filename, movie, prefs, threads, argv0));
+	job->run();
+}
+
 void Movie::Renderer::render(RenderJob* job) {
 	RenderInstancePrivate * priv;
 	const struct Movie::MovieInfo& movie(job->_movie);

@@ -73,6 +73,8 @@ class Renderer {
 
 		// Main entrypoint:
 		void start(IMovieProgressReporter& reporter, IMovieCompleteHandler& completion, const std::string& filename, const struct Movie::MovieInfo& movie, std::shared_ptr<const BrotPrefs::Prefs> prefs, ThreadPool& threads, const char* argv0);
+		// Special entrypoint for unthreaded mode:
+		void do_blocking(IMovieProgressReporter& reporter, IMovieCompleteHandler& completion, const std::string& filename, const struct Movie::MovieInfo& movie, std::shared_ptr<const BrotPrefs::Prefs> prefs, ThreadPool& threads, const char* argv0);
 
 		// Initialise render run, alloc Private if needed
 		virtual void render_top(Movie::RenderJob& job, Movie::RenderInstancePrivate** priv) = 0;
