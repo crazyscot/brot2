@@ -348,6 +348,7 @@ bool MovieWindow::on_delete_event(GdkEventAny *) {
 		renderer->request_cancel();
 	}
 	hide();
+	lock.unlock();
 	do_reset(); // So next time we open up we're fresh
 	// LATER: If they haven't rendered, ask if they're sure.
 	return false;
@@ -369,20 +370,18 @@ void MovieWindow::wait() {
 
 
 void MovieWindow::do_update_duration() {
-	auto rows = priv->m_refTreeModel->children();
-	unsigned frames = 0, last_traverse = 0;
-	for (auto it = rows.begin(); it != rows.end(); it++) {
-		frames += (*it)[priv->m_columns.m_hold_frames];
-		// Don't count Traverse frames unless there is something to traverse to
-		frames += last_traverse;
-		last_traverse = 1000; // FIXME TEMP
+	if (!update_movie_struct()) {
+		priv->f_duration.set_text("?");
+		return;
 	}
+	std::unique_lock<std::mutex> lock(mux);
+	unsigned frames = movie.count_frames();
+
 	std::ostringstream msg;
-	unsigned fps = 0;
-	if (priv->f_fps.read(fps) && fps > 0) {
+	if (movie.fps > 0) {
 		unsigned hr, min, sec, frm;
 		frm = frames;
-		sec = frm / fps; frm %= fps;
+		sec = frm / movie.fps; frm %= movie.fps;
 		min = sec / 60;  sec %= 60;
 		hr  = min / 60;  min %= 60;
 		msg << std::setfill('0')
@@ -393,6 +392,7 @@ void MovieWindow::do_update_duration() {
 
 	priv->f_duration.set_text(msg.str());
 }
+
 void MovieWindow::do_update_duration2(const Gtk::TreeModel::Path&, const Gtk::TreeModel::iterator&) {
 	// For now this is just a thin wrapper. Might become something more complex later.
 	do_update_duration();
