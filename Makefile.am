@@ -49,7 +49,7 @@ libbrot2_a_SOURCES= \
 	libbrot2/Render2.h libbrot2/Render2.cpp \
 	libbrot2/Prefs.h libbrot2/Prefs.cpp \
 	libbrot2/BaseHUD.h libbrot2/BaseHUD.cpp \
-	libbrot2/MovieMode.h \
+	libbrot2/MovieMode.h libbrot2/MovieMode.cpp \
 	libbrot2/MovieMotion.h libbrot2/MovieMotion.cpp \
 	libbrot2/MovieRender.cpp libbrot2/MovieRender.h \
 	libbrot2/PrefsRegistry.h libbrot2/PrefsRegistry.cpp

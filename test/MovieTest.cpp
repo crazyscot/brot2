@@ -18,8 +18,12 @@
 #include <stdlib.h>
 #include <array>
 #include "gtest/gtest.h"
+#include "MovieMode.h"
 #include "MovieMotion.h"
 #include "libbrot2/Exception.h"
+#include "MockFractal.h"
+#include "MockPalette.h"
+#include "ThreadPool.h"
 
 #define TEST_WIDTH 300
 #define TEST_HEIGHT 300
@@ -195,4 +199,46 @@ TEST(Translate, SpeedBehaves) {
 	unsigned s1 = do_translate_case( 0.1, 0.1, 0.2, 0.2, 0.1, 0.1, TEST_SPEED );
 	unsigned s2 = do_translate_case( 0.1, 0.1, 0.2, 0.2, 0.1, 0.1, 2*TEST_SPEED );
 	EXPECT_LT(s2, s1); // Twice the speed, should give about half the frames.
+}
+
+// -----------------------------------------------------------------------------
+
+class MovieTest : public ::testing::Test {
+	protected:
+		MockFractal fract;
+		MockPalette pal;
+		struct Movie::MovieInfo movie;
+		ThreadPool threads;
+
+		MovieTest() : threads(0) {}
+		void InitialiseMovie(unsigned speed = TEST_SPEED) {
+			movie.fractal = &fract;
+			movie.palette = &pal;
+			movie.width = TEST_WIDTH;
+			movie.height = TEST_HEIGHT;
+			Movie::KeyFrame f1( (0.1, 0.1), (0.1, 0.1), 0, speed, speed );
+			Movie::KeyFrame f2( (0.0, 0.0), (0.1, 0.1), 0, speed, speed );
+			movie.points.clear();
+			movie.points.push_back(f1);
+			movie.points.push_back(f2);
+		}
+};
+
+// This tests that render actually does something
+TEST_F(MovieTest, RenderWorks) {
+	InitialiseMovie(TEST_SPEED);
+	unsigned count1 = Movie::count_frames(movie);
+	EXPECT_NE(count1, 0);
+}
+
+// This tests that changing the speed changes the number of frames.
+TEST_F(MovieTest, SpeedHasAnEffect) {
+	InitialiseMovie(TEST_SPEED);
+	unsigned count1 = Movie::count_frames(movie);
+	//std::cout << "Frame count 1: " << count1 << std::endl;
+	InitialiseMovie(2*TEST_SPEED);
+	unsigned count2 = Movie::count_frames(movie);
+	//std::cout << "Frame count 2: " << count2 << std::endl;
+	// Doubling the speed for a simple transition without hold, should halve the frame count.
+	EXPECT_EQ(count1/2, count2);
 }

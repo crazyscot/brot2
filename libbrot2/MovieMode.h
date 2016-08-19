@@ -31,6 +31,8 @@ struct KeyFrame {
 	Fractal::Point centre, size;
 	unsigned hold_frames; // How many video frames to linger on this render
 	unsigned speed_zoom, speed_translate; // Speeds for motion to next key frame (ignored if this is last)
+	KeyFrame(Fractal::Point _c, Fractal::Point _s, unsigned _h, unsigned _sz, unsigned _st) :
+		centre(_c), size(_s), hold_frames(_h), speed_zoom(_sz), speed_translate(_st) {}
 };
 
 struct Frame {
@@ -51,6 +53,9 @@ struct MovieInfo {
 	MovieInfo() : fractal(0), palette(0), width(0), height(0), fps(0) {}
 	unsigned count_frames() const;
 };
+
+// How many frames is this movie? Runs the actual code but with a null renderer to determine.
+unsigned count_frames(const MovieInfo& movie);
 
 }; // namespace Movie
 
