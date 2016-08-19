@@ -36,6 +36,8 @@ class IMovieProgressReporter : public Plot3::IPlot3DataSink {
 		// Setup. Not mandatory, we do the best we can if not called.
 		virtual void set_chunks_count(int n) = 0;
 		// Call when outputting multiple frames at once. We record @n@ frames as being plotted.
+		// Beware, there is an off-by-one error: plot_complete is called for every frame rendered,
+		// so when a renderer copies its output, frames_traversed should be called with n-1.
 		virtual void frames_traversed(int n) = 0;
 
 		// We also inherit from  Plot3::IPlot3DataSink:

@@ -79,7 +79,9 @@ class Renderer {
 		// Initialise render run, alloc Private if needed
 		virtual void render_top(Movie::RenderJob& job, Movie::RenderInstancePrivate** priv) = 0;
 
-		// Called for each frame in turn; "n_frames" is the number of times this frame is to be inserted
+		// Called for each frame in turn; "n_frames" is the number of times this frame is to be inserted.
+		// Should call the job's reporter's plot_complete() precisely once.
+		// Should NOT call frames_traversed when n_frames>1; that is done for you by Renderer::render().
 		virtual void render_frame(const struct Movie::Frame& kf, Movie::RenderInstancePrivate *priv, const unsigned n_frames=1) = 0;
 
 		// Finish up, flush file, delete Private
