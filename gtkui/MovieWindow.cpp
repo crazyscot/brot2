@@ -244,14 +244,11 @@ void MovieWindow::do_render() {
 
 	movie.points.clear();
 	for (auto it = rows.begin(); it != rows.end(); it++) {
-		struct Movie::KeyFrame kf;
-		kf.centre.real((*it)[priv->m_columns.m_centre_re]);
-		kf.centre.imag((*it)[priv->m_columns.m_centre_im]);
-		kf.size.real((*it)[priv->m_columns.m_size_re]);
-		kf.size.imag((*it)[priv->m_columns.m_size_im]);
-		kf.hold_frames = (*it)[priv->m_columns.m_hold_frames];
-		kf.speed_zoom = (*it)[priv->m_columns.m_speed_zoom];
-		kf.speed_translate = (*it)[priv->m_columns.m_speed_translate];
+		struct Movie::KeyFrame kf(
+				( (Fractal::Value) (*it)[priv->m_columns.m_centre_re], (Fractal::Value) (*it)[priv->m_columns.m_centre_im] ),
+				( (Fractal::Value) (*it)[priv->m_columns.m_size_re], (Fractal::Value) (*it)[priv->m_columns.m_size_im] ),
+				(*it)[priv->m_columns.m_hold_frames],
+				(*it)[priv->m_columns.m_speed_zoom], (*it)[priv->m_columns.m_speed_translate]);
 		movie.points.push_back(kf);
 	}
 
