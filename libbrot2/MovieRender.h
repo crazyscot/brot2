@@ -108,9 +108,27 @@ class RendererFactory {
 		virtual std::shared_ptr<Renderer> instantiate() = 0;
 };
 
-class NullRendererFactory {
+// -----------------------------------------------------------------
+// The null renderer is special, used for counting frames before actually rendering.
+// It doesn't have a factory so that it doesn't appear in the list of options.
+// Just instantiate it as a standard class.
+
+class NullRenderer : public Movie::Renderer {
 	public:
-		std::shared_ptr<Renderer> instantiate();
+		unsigned framecount_;
+		NullRenderer() : Movie::Renderer("Null renderer", "/dev/null"), framecount_(0) { }
+
+		void render_top(Movie::RenderJob&, Movie::RenderInstancePrivate **) {
+			framecount_ = 0;
+		}
+		void render_frame(const struct Movie::Frame&, Movie::RenderInstancePrivate *, const unsigned n_frames) {
+			framecount_ += n_frames;
+		}
+		void render_tail(Movie::RenderInstancePrivate*, bool) {
+		}
+		virtual ~NullRenderer() {}
+
+		virtual unsigned framecount() { return framecount_; }
 };
 
 }; // namespace Movie
