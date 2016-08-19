@@ -227,17 +227,17 @@ class MovieTest : public ::testing::Test {
 // This tests that render actually does something
 TEST_F(MovieTest, RenderWorks) {
 	InitialiseMovie(TEST_SPEED);
-	unsigned count1 = Movie::count_frames(movie);
+	unsigned count1 = movie.count_frames();
 	EXPECT_NE(count1, 0);
 }
 
 // This tests that changing the speed changes the number of frames.
 TEST_F(MovieTest, SpeedHasAnEffect) {
 	InitialiseMovie(TEST_SPEED);
-	unsigned count1 = Movie::count_frames(movie);
+	unsigned count1 = movie.count_frames();
 	//std::cout << "Frame count 1: " << count1 << std::endl;
 	InitialiseMovie(2*TEST_SPEED);
-	unsigned count2 = Movie::count_frames(movie);
+	unsigned count2 = movie.count_frames();
 	//std::cout << "Frame count 2: " << count2 << std::endl;
 	// Doubling the speed for a simple transition without hold, should halve the frame count.
 	EXPECT_EQ(count1/2, count2);

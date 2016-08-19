@@ -346,18 +346,6 @@ void MovieWindow::wait() {
 }
 
 
-unsigned Movie::MovieInfo::count_frames() const {
-	// Same code as do_update_duration() but different structure...
-	unsigned frames=0, last_traverse=0;
-	for (auto it = points.begin(); it != points.end(); it++) {
-		frames += it->hold_frames;
-		// Don't count Traverse frames unless there is something to traverse to
-		frames += last_traverse;
-		last_traverse = 1000; // FIXME TEMP until duration counter rewritten
-	}
-	return frames;
-}
-
 void MovieWindow::do_update_duration() {
 	auto rows = priv->m_refTreeModel->children();
 	unsigned frames = 0, last_traverse = 0;

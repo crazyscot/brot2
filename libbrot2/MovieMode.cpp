@@ -32,14 +32,14 @@ class NullCompletionHandler : public IMovieCompleteHandler {
 namespace Movie {
 
 // How many frames is this movie? Runs the actual code but with a null renderer to determine.
-unsigned count_frames(const MovieInfo& movie) {
+unsigned MovieInfo::count_frames() const {
 	NullRenderer renderer;
 	MovieNullProgress progress;
 	NullCompletionHandler completion;
 	ThreadPool threads(0);
 	std::shared_ptr<const BrotPrefs::Prefs> prefs(BrotPrefs::Prefs::getMaster());
 
-	renderer.do_blocking(progress, completion, "" /*filename*/, movie, prefs, threads, "dummy-argv0");
+	renderer.do_blocking(progress, completion, "" /*filename*/, *this, prefs, threads, "dummy-argv0");
 	return renderer.framecount();
 }
 

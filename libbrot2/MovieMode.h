@@ -54,9 +54,6 @@ struct MovieInfo {
 	unsigned count_frames() const;
 };
 
-// How many frames is this movie? Runs the actual code but with a null renderer to determine.
-unsigned count_frames(const MovieInfo& movie);
-
 }; // namespace Movie
 
 #endif // MOVIEMODE_H
