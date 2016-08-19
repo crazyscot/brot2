@@ -283,6 +283,18 @@ void MovieWindow::do_render() {
 	if (!update_movie_struct()) return;
 	lock.lock();
 
+	{
+		bool ok = true;
+		for (auto iter = movie.points.begin(); iter != movie.points.end(); iter++) {
+			ok &= (real((*iter).size) != 0);
+			ok &= (imag((*iter).size) != 0);
+		}
+		if (!ok) {
+			Util::alert(this, "Frames with size 0 are not meaningful");
+			return;
+		}
+	}
+
 	std::string filename;
 	if (!run_filename(filename, renderer))
 		return;
