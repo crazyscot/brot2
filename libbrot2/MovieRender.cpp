@@ -95,6 +95,22 @@ void Movie::Renderer::render(RenderJob* job) {
 	RenderInstancePrivate * priv;
 	const struct Movie::MovieInfo& movie(job->_movie);
 	render_top(*job, &priv);
+	// Sanity check - trap incomplete structs
+	if (!movie.points.size()) {
+		render_tail(priv);
+		return;
+	}
+	{
+		bool ok = true;
+		for (auto iter = movie.points.begin(); iter != movie.points.end(); iter++) {
+			ok &= (real((*iter).size) != 0);
+			ok &= (imag((*iter).size) != 0);
+		}
+		if (!ok) {
+			render_tail(priv);
+			return;
+		}
+	}
 
 	auto iter = movie.points.begin();
 
