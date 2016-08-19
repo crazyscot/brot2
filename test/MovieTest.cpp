@@ -218,6 +218,7 @@ class MovieTest : public ::testing::Test {
 			movie.height = TEST_HEIGHT;
 			Movie::KeyFrame f1( (0.1, 0.1), (0.1, 0.1), 0, speed, speed );
 			Movie::KeyFrame f2( (0.0, 0.0), (0.1, 0.1), 0, speed, speed );
+			Movie::KeyFrame f2( 0.0, 0.0, 0.1, 0.1, 0, speed, speed );
 			movie.points.clear();
 			movie.points.push_back(f1);
 			movie.points.push_back(f2);
@@ -243,6 +244,7 @@ TEST_F(MovieTest, SpeedHasAnEffect) {
 	EXPECT_EQ(count1/2, count2);
 }
 
+// Found the need for this test the hard way...
 TEST(Movie,StructConstructorsBehave) {
 	// Construct from explicit Points
 	Movie::KeyFrame f1 (Fractal::Point(1.2, 3.4), Fractal::Point(5.6, 7.8), 9, 10, 11);
