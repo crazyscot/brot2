@@ -186,6 +186,8 @@ MovieWindow::MovieWindow(MainWindow& _mw, std::shared_ptr<const Prefs> prefs) : 
 	priv->f_antialias.set_active(true);
 	priv->f_hud.set_active(false);
 
+	priv->f_height.signal_changed().connect(sigc::mem_fun(*this, &MovieWindow::do_update_duration)); // Must do this after setting initial value
+	priv->f_width.signal_changed().connect(sigc::mem_fun(*this, &MovieWindow::do_update_duration)); // Must do this after setting initial value
 	priv->f_fps.signal_changed().connect(sigc::mem_fun(*this, &MovieWindow::do_update_duration)); // Must do this after setting initial value
 
 	wholemovie->add(*tbl);
@@ -292,6 +294,7 @@ void MovieWindow::do_reset() {
 
 bool MovieWindow::update_movie_struct() {
 	std::unique_lock<std::mutex> lock(mux);
+	bool ok = true;
 	auto rows = priv->m_refTreeModel->children();
 
 	movie.points.clear();
@@ -304,27 +307,27 @@ bool MovieWindow::update_movie_struct() {
 		movie.points.push_back(kf);
 	}
 
-	if (!priv->f_height.read(movie.height)) {
-		Util::alert(this, "Cannot parse height");
-		priv->f_height.set_text("");
-		priv->f_height.grab_focus();
-		return false;
+	if (!priv->f_height.read(movie.height) || movie.height<1) {
+		priv->f_height.set_error();
+		ok = false;
+	} else {
+		priv->f_height.clear_error();
 	}
-	if (!priv->f_width.read(movie.width)) {
-		Util::alert(this, "Cannot parse width");
-		priv->f_width.set_text("");
-		priv->f_width.grab_focus();
-		return false;
+	if (!priv->f_width.read(movie.width) || movie.width<1) {
+		priv->f_width.set_error();
+		ok = false;
+	} else {
+		priv->f_width.clear_error();
 	}
-	if (!priv->f_fps.read(movie.fps)) {
-		Util::alert(this, "Cannot parse FPS");
-		priv->f_fps.set_text("");
-		priv->f_fps.grab_focus();
-		return false;
+	if (!priv->f_fps.read(movie.fps) || movie.fps<1) {
+		priv->f_fps.set_error();
+		ok = false;
+	} else {
+		priv->f_fps.clear_error();
 	}
 	movie.draw_hud = priv->f_hud.get_active();
 	movie.antialias = priv->f_antialias.get_active();
-	return true;
+	return ok;
 }
 
 void MovieWindow::do_render() {
@@ -441,6 +444,7 @@ void MovieWindow::wait() {
 }
 
 
+// Checks for errors in the fields and updates duration
 void MovieWindow::do_update_duration() {
 	if (!update_movie_struct()) {
 		priv->f_duration.set_text("?");
