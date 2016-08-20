@@ -195,7 +195,9 @@ class ScriptB2CLI : public Movie::Renderer {
 			filename << "\"${OUTDIR}/${OUTNAME}." << setfill('0') << setw(6) << (mypriv->fileno++) << ".png\"";
 
 			mypriv->fs
-				<< "${BROT2CLI} -X " << fr.centre.real() << " -Y " << fr.centre.imag()
+				<< "${BROT2CLI}"
+				<< " -X " << std::setprecision(Fractal::precision_for(fr.size.real(),mypriv->job._movie.width)) << fr.centre.real()
+				<< " -Y " << std::setprecision(Fractal::precision_for(fr.size.imag(),mypriv->job._movie.height)) << fr.centre.imag()
 				<< " -l " << fr.size.real()
 				<< " -f \"" << mypriv->job._movie.fractal->name << "\""
 				<< " -p \"" << mypriv->job._movie.palette->name << "\""
