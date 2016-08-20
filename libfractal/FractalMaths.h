@@ -67,7 +67,9 @@ public:
  * LP#783087 */
 inline unsigned precision_for(const Fractal::Value& fieldsize, unsigned npixels) {
 	Fractal::Value pixsize = fieldsize / npixels;
-	return 1+ceill(0-log10(pixsize));
+	/* Need two guard digits to correctly reconstruct to desired accuracy.
+	 * http://docs.oracle.com/cd/E19957-01/806-3568/ncg_goldberg.html#693 refers. */
+	return 2+ceill(0-log10(pixsize));
 }
 
 
