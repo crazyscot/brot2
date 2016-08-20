@@ -201,11 +201,12 @@ MovieWindow::MovieWindow(MainWindow& _mw, std::shared_ptr<const Prefs> prefs) : 
 	// The GTK TreeView code can only automatically handle certain types and we are likely going to have to create a custom CellRenderer in what is currently ColumnFV here.
 	// Grep for glibmm__CustomBoxed_t in /usr/include/gtkmm-2.4/gtkmm/treeview.h and read that comment carefully.
 	// possible C example: http://scentric.net/tutorial/sec-treeview-col-celldatafunc.html
-#define ColumnFV(_title, _field) do { treeview_append_fractal_column(priv->m_keyframes, _title, priv->m_columns._field); } while(0)
+#define ColumnFV(_title, _field) do { priv->m_keyframes.append_column_numeric(_title, priv->m_columns._field, "%.5Le"); } while(0)
+#define ColumnFVVP(_title, _field) do { treeview_append_fractal_column(priv->m_keyframes, _title, priv->m_columns._field); } while(0)
 #define ColumnEditable(_title, _field) do { priv->m_keyframes.append_column_editable(_title, priv->m_columns._field); } while(0)
 
-	ColumnFV("Centre Real", m_centre_re);
-	ColumnFV("Centre Imag", m_centre_im);
+	ColumnFVVP("Centre Real", m_centre_re);
+	ColumnFVVP("Centre Imag", m_centre_im);
 	ColumnFV("Size Real", m_size_re);
 	ColumnFV("Size Imag", m_size_im);
 	// TODO Would really like to make these columns distinct in some way:
