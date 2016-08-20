@@ -270,13 +270,9 @@ int ParamsDialog::run() {
 	 * Compute the size of a pixel in fractal units, then work out the
 	 * decimal precision required to express that, plus 1 for a safety
 	 * margin. */
-	const Fractal::Value xpixsize = real(mw->get_size()) / mw->get_rwidth();
-	const Fractal::Value ypixsize = imag(mw->get_size()) / mw->get_rheight();
-	const int clampx = 1+ceill(0-log10(xpixsize)),
-			  clampy = 1+ceill(0-log10(ypixsize));
+	f_c_re->update(real(ctr), Fractal::precision_for(real(mw->get_size()), mw->get_rwidth()));
+	f_c_im->update(imag(ctr), Fractal::precision_for(imag(mw->get_size()), mw->get_rheight()));
 
-	f_c_re->update(real(ctr), clampx);
-	f_c_im->update(imag(ctr), clampy);
 	zc->set(real(mw->get_size())); // Real axis length is the default option.
 	show_all();
 
