@@ -24,6 +24,8 @@
 #include "MovieRender.h"
 #include <gtkmm/dialog.h>
 #include <gtkmm/entry.h>
+#include <gtkmm/cellrenderer.h>
+#include <gtkmm/treeview.h>
 #include <condition_variable>
 
 class MainWindow;
@@ -46,6 +48,9 @@ class MovieWindow: public Gtk::Window, public Movie::IMovieCompleteHandler {
 
 		std::mutex mux; // Protects renderer and completion_cv
 		std::condition_variable completion_cv; // Signals to anyone who's interested that we're complete
+
+		void treeview_fractal_cell_data_func(Gtk::CellRenderer* cell, const Gtk::TreeModel::iterator& iter, int model_column);
+		int treeview_append_fractal_column(Gtk::TreeView& it, const Glib::ustring& title, const Gtk::TreeModelColumn<Fractal::Value>& model_column);
 
 	public:
 		MovieWindow(MainWindow& _mw, std::shared_ptr<const BrotPrefs::Prefs> prefs);

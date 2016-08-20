@@ -85,6 +85,66 @@ class MovieWindowPrivate {
 	}
 };
 
+/* Cell data renderer for variable-precision floating-point data.
+ * We need to grobble around in the MovieWindowPrivate to determine whether
+ * this field is real or imaginary, and thence which fields to grab the sizing
+ * information for Fractal::precision_for().
+ *
+ * Based on gtkmm/treeview.h _auto_cell_data_func.
+ */
+void MovieWindow::treeview_fractal_cell_data_func(Gtk::CellRenderer* cell, const Gtk::TreeModel::iterator& iter, int model_column) {
+	Gtk::CellRendererText* pTextRenderer = dynamic_cast<Gtk::CellRendererText*>(cell);
+	if(!pTextRenderer) {
+		g_warning("treeview_append_fractal_column was used with a non-text field.");
+		return;
+	}
+	if (iter) {
+		//Get the value from the model.
+		Gtk::TreeModel::Row row = *iter;
+		Fractal::Value value;
+		row.get_value(model_column, value);
+
+		// Am I real or imaginary?
+		Fractal::Value fieldsize;
+		unsigned npixels;
+
+		if (    (model_column == priv->m_columns.m_centre_re.index()) ||
+				(model_column == priv->m_columns.m_size_re.index()) ) {
+			// This column is a real component
+			row.get_value( priv->m_columns.m_size_re.index(), fieldsize );
+			if (!priv->f_width.read(npixels))
+				npixels = 300; // horrid default fallback if field is unparseable
+		} else if (
+				(model_column == priv->m_columns.m_centre_im.index()) ||
+				(model_column == priv->m_columns.m_size_im.index()) ) {
+			// This column is an imaginary component
+			row.get_value( priv->m_columns.m_size_im.index(), fieldsize );
+			if (!priv->f_height.read(npixels))
+				npixels = 300; // horrid default fallback if field is unparseable
+		} else {
+			g_warning("treeview_append_fractal_column was used with a new field, couldn't determine re/im");
+			return;
+		}
+		std::ostringstream buf;
+		buf << std::setprecision(Fractal::precision_for(fieldsize, npixels)) << value;
+		pTextRenderer->property_text() = buf.str().c_str();
+	}
+}
+
+/* Based on gtkmm/treeview.h TreeView::append_column_numeric */
+int MovieWindow::treeview_append_fractal_column(Gtk::TreeView& it, const Glib::ustring& title, const Gtk::TreeModelColumn<Fractal::Value>& model_column) {
+	Gtk::CellRenderer* pCellRenderer = manage( new Gtk::CellRendererText() );
+	Gtk::TreeViewColumn* const pViewColumn = Gtk::manage( new Gtk::TreeViewColumn(title, *pCellRenderer) );
+	//typedef void (*type_fptr)(Gtk::CellRenderer* cell, const Gtk::TreeModel::iterator& iter, int model_column, const Glib::ustring& format);
+	//type_fptr fptr = treeview_fractal_cell_data_func;
+	Gtk::TreeViewColumn::SlotCellData slot = sigc::bind<-1>(
+			sigc::mem_fun(this, &MovieWindow::treeview_fractal_cell_data_func),
+			model_column.index()
+			);
+	pViewColumn->set_cell_data_func(*pCellRenderer, slot);
+	return it.append_column(*pViewColumn);
+}
+
 MovieWindow::MovieWindow(MainWindow& _mw, std::shared_ptr<const Prefs> prefs) : mw(_mw), _prefs(prefs)
 {
 	priv = new MovieWindowPrivate();
@@ -141,7 +201,7 @@ MovieWindow::MovieWindow(MainWindow& _mw, std::shared_ptr<const Prefs> prefs) : 
 	// The GTK TreeView code can only automatically handle certain types and we are likely going to have to create a custom CellRenderer in what is currently ColumnFV here.
 	// Grep for glibmm__CustomBoxed_t in /usr/include/gtkmm-2.4/gtkmm/treeview.h and read that comment carefully.
 	// possible C example: http://scentric.net/tutorial/sec-treeview-col-celldatafunc.html
-#define ColumnFV(_title, _field) do { priv->m_keyframes.append_column_numeric(_title, priv->m_columns._field, "%Le"); } while(0)
+#define ColumnFV(_title, _field) do { treeview_append_fractal_column(priv->m_keyframes, _title, priv->m_columns._field); } while(0)
 #define ColumnEditable(_title, _field) do { priv->m_keyframes.append_column_editable(_title, priv->m_columns._field); } while(0)
 
 	ColumnFV("Centre Real", m_centre_re);
