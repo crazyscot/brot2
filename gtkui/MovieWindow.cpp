@@ -258,7 +258,7 @@ void MovieWindow::do_add() {
 	row[priv->m_columns.m_speed_zoom] = 10;
 	row[priv->m_columns.m_speed_translate] = 2;
 	Gtk::TreePath path(row);
-	priv->m_keyframes.set_cursor(path, *priv->m_keyframes.get_column(4), true); // !! Hard-wired column number
+	priv->m_keyframes.set_cursor(path, *priv->m_keyframes.get_column(priv->m_columns.m_hold_frames.index()), true);
 
 	bool changed=false;
 	if (movie.fractal != &plot.fract) {
