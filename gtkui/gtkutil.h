@@ -19,6 +19,7 @@
 #ifndef GTKUTIL_H_
 #define GTKUTIL_H_
 
+#include <gdkmm/color.h>
 #include <gtkmm/window.h>
 #include <gtkmm/entry.h>
 #include <gtkmm/messagedialog.h>
@@ -72,6 +73,24 @@ class HandyEntry: public Gtk::Entry {
 			tmp.precision(precision);
 			tmp << val;
 			this->set_text(tmp.str().c_str());
+		}
+// 2nd-order macro for all Gtk::StateType
+#define ALL_STATES(DO) \
+		DO(NORMAL); \
+		DO(ACTIVE); \
+		DO(PRELIGHT); \
+		DO(SELECTED); \
+		DO(INSENSITIVE);
+		// Highlights this field, for use when its contents are in error in some way (e.g. unparseable numeric)
+		void set_error() {
+			Gdk::Color red;
+			red.set_rgb(65535, 16384, 16384);
+#define do_red(_state) do { modify_base(Gtk::StateType::STATE_##_state, red); } while(0)
+			ALL_STATES(do_red)
+		}
+#define do_clear(_state) do { unset_base(Gtk::StateType::STATE_##_state); } while(0)
+		void clear_error() {
+			ALL_STATES(do_clear)
 		}
 };
 
