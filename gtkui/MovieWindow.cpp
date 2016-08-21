@@ -175,7 +175,7 @@ void MovieWindow::treeview_speed_cell_data_func(Gtk::CellRenderer* cell, const G
 
 int MovieWindow::treeview_append_speed_column(Gtk::TreeView& it, const Glib::ustring& title, const Gtk::TreeModelColumn<unsigned>& model_column) {
 	Gtk::TreeViewColumn* const pViewColumn = Gtk::manage( new Gtk::TreeViewColumn(title) );
-	Gtk::CellRenderer* pCellRenderer = manage( new Gtk::CellRendererText() );
+	Gtk::CellRendererText* pCellRenderer = manage( new Gtk::CellRendererText() );
 	pViewColumn->pack_start(*pCellRenderer);
 
 	Gtk::TreeViewColumn::SlotCellData slot = sigc::bind<-1>(
@@ -185,6 +185,13 @@ int MovieWindow::treeview_append_speed_column(Gtk::TreeView& it, const Glib::ust
 	pViewColumn->set_cell_data_func(*pCellRenderer, slot);
 	int rv = it.append_column(*pViewColumn);
 	Gtk::TreeView_Private::_connect_auto_store_editable_signal_handler<unsigned>(&it, pCellRenderer, model_column);
+
+	static Gdk::Color* cellbg = 0;
+	if (!cellbg) {
+		cellbg = new Gdk::Color();
+		cellbg->set_rgb(65535,65535,25344);
+	}
+	pCellRenderer->property_background_gdk() = *cellbg;
 	return rv;
 }
 
@@ -255,7 +262,6 @@ MovieWindow::MovieWindow(MainWindow& _mw, std::shared_ptr<const Prefs> prefs) : 
 	ColumnFVVP("Centre Imag", m_centre_im);
 	ColumnFV("Size Real", m_size_re);
 	ColumnFV("Size Imag", m_size_im);
-	// TODO Would really like to make these columns distinct in some way:
 	ColumnEditable("Hold Frames", m_hold_frames);
 	ColumnSpeed("Zoom Speed", m_speed_zoom);
 	ColumnSpeed("Move Speed", m_speed_translate);
@@ -409,6 +415,7 @@ void MovieWindow::do_render() {
 			ok &= ((*iter).speed_translate != 0);
 		}
 		if (!ok) {
+			// Should never happen now we clamp the cell contents
 			Util::alert(this, "All speeds must be non-0");
 			return;
 		}
