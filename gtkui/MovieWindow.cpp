@@ -173,14 +173,14 @@ void MovieWindow::treeview_integer_cell_data_func(Gtk::CellRenderer* cell, const
 	}
 }
 
-int MovieWindow::treeview_append_speed_column(Gtk::TreeView& it, const Glib::ustring& title, const Gtk::TreeModelColumn<unsigned>& model_column) {
+int MovieWindow::treeview_append_editable_integer_column(Gtk::TreeView& it, const Glib::ustring& title, const Gtk::TreeModelColumn<unsigned>& model_column, unsigned min, unsigned max) {
 	Gtk::TreeViewColumn* const pViewColumn = Gtk::manage( new Gtk::TreeViewColumn(title) );
 	Gtk::CellRendererText* pCellRenderer = manage( new Gtk::CellRendererText() );
 	pViewColumn->pack_start(*pCellRenderer);
 
 	Gtk::TreeViewColumn::SlotCellData slot = sigc::bind(
 			sigc::mem_fun(this, &MovieWindow::treeview_integer_cell_data_func),
-			model_column.index(), 1, 50
+			model_column.index(), min, max
 			);
 	pViewColumn->set_cell_data_func(*pCellRenderer, slot);
 	int rv = it.append_column(*pViewColumn);
@@ -255,16 +255,15 @@ MovieWindow::MovieWindow(MainWindow& _mw, std::shared_ptr<const Prefs> prefs) : 
 	// possible C example: http://scentric.net/tutorial/sec-treeview-col-celldatafunc.html
 #define ColumnFV(_title, _field) do { priv->m_keyframes.append_column_numeric(_title, priv->m_columns._field, "%.5Le"); } while(0)
 #define ColumnFVVP(_title, _field) do { treeview_append_fractal_column(priv->m_keyframes, _title, priv->m_columns._field); } while(0)
-#define ColumnEditable(_title, _field) do { priv->m_keyframes.append_column_editable(_title, priv->m_columns._field); } while(0)
-#define ColumnSpeed(_title, _field) do { treeview_append_speed_column(priv->m_keyframes, _title, priv->m_columns._field); } while(0)
+#define ColumnEditable(_title, _field, _min, _max) do { treeview_append_editable_integer_column(priv->m_keyframes, _title, priv->m_columns._field, _min, _max); } while(0)
 
 	ColumnFVVP("Centre Real", m_centre_re);
 	ColumnFVVP("Centre Imag", m_centre_im);
 	ColumnFV("Size Real", m_size_re);
 	ColumnFV("Size Imag", m_size_im);
-	ColumnEditable("Hold Frames", m_hold_frames);
-	ColumnSpeed("Zoom Speed", m_speed_zoom);
-	ColumnSpeed("Move Speed", m_speed_translate);
+	ColumnEditable("Hold Frames", m_hold_frames, 0, 1000);
+	ColumnEditable("Zoom Speed", m_speed_zoom, 1, 50);
+	ColumnEditable("Move Speed", m_speed_translate, 1, 50);
 	// LATER: Tooltips (doesn't seem possible to retrieve the actual widget of a standard column head with gtk 2.24?)
 	// LATER: cell alignment?
 
