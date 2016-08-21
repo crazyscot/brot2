@@ -355,6 +355,8 @@ bool MovieWindow::update_movie_struct() {
 				(*it)[priv->m_columns.m_hold_frames],
 				(*it)[priv->m_columns.m_speed_zoom], (*it)[priv->m_columns.m_speed_translate]);
 		movie.points.push_back(kf);
+		if (! (*it)[priv->m_columns.m_speed_zoom] || ! (*it)[priv->m_columns.m_speed_translate] ) 
+			ok = false;
 	}
 
 	if (!priv->f_height.read(movie.height) || movie.height<1) {
