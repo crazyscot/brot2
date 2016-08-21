@@ -341,6 +341,7 @@ void MovieWindow::do_reset() {
 	do_update_duration();
 }
 
+// This function may not Alert as it is frequently called internally by GTK (e.g. 6 times when adding a row!)
 bool MovieWindow::update_movie_struct() {
 	std::unique_lock<std::mutex> lock(mux);
 	bool ok = true;
