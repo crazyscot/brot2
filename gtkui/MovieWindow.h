@@ -51,6 +51,9 @@ class MovieWindow: public Gtk::Window, public Movie::IMovieCompleteHandler {
 
 		void treeview_fractal_cell_data_func(Gtk::CellRenderer* cell, const Gtk::TreeModel::iterator& iter, int model_column);
 		int treeview_append_fractal_column(Gtk::TreeView& it, const Glib::ustring& title, const Gtk::TreeModelColumn<Fractal::Value>& model_column);
+		void treeview_speed_cell_data_func(Gtk::CellRenderer* cell, const Gtk::TreeModel::iterator& iter, int model_column);
+		int treeview_append_speed_column(Gtk::TreeView& it, const Glib::ustring& title, const Gtk::TreeModelColumn<unsigned>& model_column);
+
 
 	public:
 		MovieWindow(MainWindow& _mw, std::shared_ptr<const BrotPrefs::Prefs> prefs);

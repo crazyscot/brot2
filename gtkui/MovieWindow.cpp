@@ -145,6 +145,49 @@ int MovieWindow::treeview_append_fractal_column(Gtk::TreeView& it, const Glib::u
 	return it.append_column(*pViewColumn);
 }
 
+void MovieWindow::treeview_speed_cell_data_func(Gtk::CellRenderer* cell, const Gtk::TreeModel::iterator& iter, int model_column) {
+	Gtk::CellRendererText* pTextRenderer = dynamic_cast<Gtk::CellRendererText*>(cell);
+	if(!pTextRenderer) {
+		g_warning("treeview_append_speed_column was used with a non-text field.");
+		return;
+	}
+	if (iter) {
+		//Get the value from the model.
+		Gtk::TreeModel::Row row = *iter;
+		unsigned value;
+		row.get_value(model_column, value);
+
+		{ // Clamp if necessary
+			unsigned newvalue = value;
+			if (value<1) newvalue = 1;
+			if (value>50) newvalue = 50;
+			if (value != newvalue) {
+				row.set_value(model_column, newvalue);
+				value = newvalue;
+			}
+		}
+
+		char buf[5];
+		snprintf(buf, sizeof buf, "%u", value);
+		pTextRenderer->property_text() = buf;
+	}
+}
+
+int MovieWindow::treeview_append_speed_column(Gtk::TreeView& it, const Glib::ustring& title, const Gtk::TreeModelColumn<unsigned>& model_column) {
+	Gtk::TreeViewColumn* const pViewColumn = Gtk::manage( new Gtk::TreeViewColumn(title) );
+	Gtk::CellRenderer* pCellRenderer = manage( new Gtk::CellRendererText() );
+	pViewColumn->pack_start(*pCellRenderer);
+
+	Gtk::TreeViewColumn::SlotCellData slot = sigc::bind<-1>(
+			sigc::mem_fun(this, &MovieWindow::treeview_speed_cell_data_func),
+			model_column.index()
+			);
+	pViewColumn->set_cell_data_func(*pCellRenderer, slot);
+	int rv = it.append_column(*pViewColumn);
+	Gtk::TreeView_Private::_connect_auto_store_editable_signal_handler<unsigned>(&it, pCellRenderer, model_column);
+	return rv;
+}
+
 MovieWindow::MovieWindow(MainWindow& _mw, std::shared_ptr<const Prefs> prefs) : mw(_mw), _prefs(prefs)
 {
 	priv = new MovieWindowPrivate();
@@ -206,6 +249,7 @@ MovieWindow::MovieWindow(MainWindow& _mw, std::shared_ptr<const Prefs> prefs) : 
 #define ColumnFV(_title, _field) do { priv->m_keyframes.append_column_numeric(_title, priv->m_columns._field, "%.5Le"); } while(0)
 #define ColumnFVVP(_title, _field) do { treeview_append_fractal_column(priv->m_keyframes, _title, priv->m_columns._field); } while(0)
 #define ColumnEditable(_title, _field) do { priv->m_keyframes.append_column_editable(_title, priv->m_columns._field); } while(0)
+#define ColumnSpeed(_title, _field) do { treeview_append_speed_column(priv->m_keyframes, _title, priv->m_columns._field); } while(0)
 
 	ColumnFVVP("Centre Real", m_centre_re);
 	ColumnFVVP("Centre Imag", m_centre_im);
@@ -213,8 +257,8 @@ MovieWindow::MovieWindow(MainWindow& _mw, std::shared_ptr<const Prefs> prefs) : 
 	ColumnFV("Size Imag", m_size_im);
 	// TODO Would really like to make these columns distinct in some way:
 	ColumnEditable("Hold Frames", m_hold_frames);
-	ColumnEditable("Zoom Speed", m_speed_zoom);
-	ColumnEditable("Move Speed", m_speed_translate);
+	ColumnSpeed("Zoom Speed", m_speed_zoom);
+	ColumnSpeed("Move Speed", m_speed_translate);
 	// LATER: Tooltips (doesn't seem possible to retrieve the actual widget of a standard column head with gtk 2.24?)
 	// LATER: cell alignment?
 
