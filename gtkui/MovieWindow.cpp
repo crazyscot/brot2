@@ -145,7 +145,7 @@ int MovieWindow::treeview_append_fractal_column(Gtk::TreeView& it, const Glib::u
 	return it.append_column(*pViewColumn);
 }
 
-void MovieWindow::treeview_speed_cell_data_func(Gtk::CellRenderer* cell, const Gtk::TreeModel::iterator& iter, int model_column) {
+void MovieWindow::treeview_integer_cell_data_func(Gtk::CellRenderer* cell, const Gtk::TreeModel::iterator& iter, int model_column, unsigned min, unsigned max) {
 	Gtk::CellRendererText* pTextRenderer = dynamic_cast<Gtk::CellRendererText*>(cell);
 	if(!pTextRenderer) {
 		g_warning("treeview_append_speed_column was used with a non-text field.");
@@ -159,15 +159,15 @@ void MovieWindow::treeview_speed_cell_data_func(Gtk::CellRenderer* cell, const G
 
 		{ // Clamp if necessary
 			unsigned newvalue = value;
-			if (value<1) newvalue = 1;
-			if (value>50) newvalue = 50;
+			if (value<min) newvalue = min;
+			if (value>max) newvalue = max;
 			if (value != newvalue) {
 				row.set_value(model_column, newvalue);
 				value = newvalue;
 			}
 		}
 
-		char buf[5];
+		char buf[10];
 		snprintf(buf, sizeof buf, "%u", value);
 		pTextRenderer->property_text() = buf;
 	}
@@ -178,9 +178,9 @@ int MovieWindow::treeview_append_speed_column(Gtk::TreeView& it, const Glib::ust
 	Gtk::CellRendererText* pCellRenderer = manage( new Gtk::CellRendererText() );
 	pViewColumn->pack_start(*pCellRenderer);
 
-	Gtk::TreeViewColumn::SlotCellData slot = sigc::bind<-1>(
-			sigc::mem_fun(this, &MovieWindow::treeview_speed_cell_data_func),
-			model_column.index()
+	Gtk::TreeViewColumn::SlotCellData slot = sigc::bind(
+			sigc::mem_fun(this, &MovieWindow::treeview_integer_cell_data_func),
+			model_column.index(), 1, 50
 			);
 	pViewColumn->set_cell_data_func(*pCellRenderer, slot);
 	int rv = it.append_column(*pViewColumn);
