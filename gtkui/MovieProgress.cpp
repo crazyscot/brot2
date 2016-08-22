@@ -47,7 +47,7 @@ Movie::Progress::Progress(const struct MovieInfo &_movie, Movie::Renderer& _ren)
 	Gtk::HButtonBox *bbox = Gtk::manage(new Gtk::HButtonBox());
 	vbox->pack_end(*bbox);
 
-	Gtk::Button *cancel_btn = Gtk::manage(new Gtk::Button("Cancel"));
+	cancel_btn = Gtk::manage(new Gtk::Button("Cancel"));
 	cancel_btn->signal_clicked().connect(sigc::mem_fun(*this, &Movie::Progress::do_cancel));
 	bbox->pack_end(*cancel_btn);
 
@@ -114,6 +114,8 @@ bool Movie::Progress::on_timer() {
 	return true;
 }
 void Movie::Progress::do_cancel() {
+	cancel_btn->set_label("Cancel requested");
+	moviebar->set_text("Cancelling at the end of current frame");
 	renderer.request_cancel();
 }
 bool Movie::Progress::on_delete_event(GdkEventAny *) {

@@ -25,6 +25,7 @@
 #include <gtkmm/box.h>
 #include <gtkmm/label.h>
 #include <gtkmm/progressbar.h>
+#include <gtkmm/button.h>
 
 namespace Movie {
 	class Renderer;
@@ -34,6 +35,7 @@ namespace Movie {
 			Movie::Renderer& renderer;
 			Gtk::VBox* vbox;
 			Gtk::ProgressBar *plotbar, *framebar, *moviebar;
+			Gtk::Button *cancel_btn;
 			int chunks_done, chunks_count, frames_done;
 			const unsigned npixels, nframes;
 			const struct MovieInfo& movie;
