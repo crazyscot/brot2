@@ -72,4 +72,11 @@ inline std::ostream& operator<< (std::ostream& out, BrotException val) {
 #define THROW(type,msg) do { throw type(msg,__FILE__,__LINE__); } while(0)
 #define ASSERT(_expr) do { if (!(_expr)) THROW(BrotAssert,#_expr); } while(0)
 
+#define SUBCLASS_BROTEXCEPTION(_clazz) \
+	struct _clazz : public BrotException { \
+		_clazz(const std::string& m) : BrotException(m) {} \
+		_clazz(const std::string& m, const std::string& f, int l) : BrotException(m, f, l) {} \
+		virtual ~_clazz() throw() {} \
+	}
+
 #endif /* EXCEPTION_H_ */
