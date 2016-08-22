@@ -23,6 +23,7 @@
 #include "Fractal.h"
 #include "FractalMaths.h"
 #include "palette.h"
+#include "ThreadPool.h"
 #include <vector>
 
 namespace Movie {
@@ -59,6 +60,9 @@ struct MovieInfo {
 
 	MovieInfo() : fractal(0), palette(0), width(0), height(0), fps(0) {}
 	unsigned count_frames() const;
+
+	private:
+		static std::shared_ptr<ThreadPool> movieinfo_runner_thread;
 };
 
 }; // namespace Movie
