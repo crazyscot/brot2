@@ -552,3 +552,10 @@ void MovieWindow::signal_completion(Movie::RenderJob& job) {
 	renderer = 0;
 	completion_cv.notify_all();
 }
+void MovieWindow::signal_error(Movie::RenderJob&, const std::string& msg) {
+	std::ostringstream buf;
+	buf << "Movie render failed: " << msg;
+	gdk_threads_enter();
+	Util::alert(this, buf.str()); // May need to take threads lock?
+	gdk_threads_leave();
+}

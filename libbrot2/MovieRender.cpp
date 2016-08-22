@@ -75,7 +75,11 @@ Movie::RenderJob::RenderJob(IMovieProgressReporter& reporter, IMovieCompleteHand
 }
 
 void Movie::RenderJob::run() {
-	_renderer.render(this);
+	try {
+		_renderer.render(this);
+	} catch (BrotException e) {
+		_parent.signal_error(*this, e.msg);
+	}
 	_parent.signal_completion(*this);
 }
 Movie::RenderJob::~RenderJob() {

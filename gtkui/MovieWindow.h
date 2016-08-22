@@ -72,6 +72,7 @@ class MovieWindow: public Gtk::Window, public Movie::IMovieCompleteHandler {
 
 		bool run_filename(std::string& filename, std::shared_ptr<Movie::Renderer>& ren);
 		void signal_completion(Movie::RenderJob& job); // IMovieCompleteHandler
+		void signal_error(Movie::RenderJob& job, const std::string& msg); // IMovieCompleteHandler
 
 		void stop(); // Attempts to halt the render ASAP
 		void wait(); // Waits for all movie jobs to complete

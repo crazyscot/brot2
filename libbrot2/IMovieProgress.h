@@ -28,6 +28,7 @@ class IMovieCompleteHandler {
 	public:
 		// Signals that the current movie job has been completed.
 		virtual void signal_completion(RenderJob& job) = 0;
+		virtual void signal_error(RenderJob& job, const std::string& message) = 0;
 		virtual ~IMovieCompleteHandler() {}
 };
 
