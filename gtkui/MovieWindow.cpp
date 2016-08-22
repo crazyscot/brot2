@@ -394,6 +394,12 @@ void MovieWindow::do_render() {
 	}
 	lock.unlock();
 	if (!update_movie_struct()) return;
+	unsigned frames = movie.count_frames();
+
+	if (frames > Movie::FRAME_LIMIT) {
+		Util::alert(this, "This movie is too long to render. Check/change key frame points or speeds.");
+		return;
+	}
 	lock.lock();
 
 	{
@@ -503,6 +509,19 @@ void MovieWindow::do_update_duration() {
 	}
 	std::unique_lock<std::mutex> lock(mux);
 	unsigned frames = movie.count_frames();
+
+	if (frames > Movie::FRAME_LIMIT) {
+		priv->f_duration.set_text("Too long to render");
+		Gdk::Color red;
+		red.set_rgb(65535, 32768, 32768);
+#define red_field(_state) do { priv->f_duration.modify_base(Gtk::StateType::STATE_##_state, red); } while(0)
+		ALL_STATES(red_field);
+		// turn it red
+		return;
+	} else {
+#define clear_field(_state) do { priv->f_duration.unset_base(Gtk::StateType::STATE_##_state); } while(0)
+		ALL_STATES(clear_field);
+	}
 
 	std::ostringstream msg;
 	if (movie.fps > 0) {

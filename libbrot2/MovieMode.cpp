@@ -40,7 +40,10 @@ unsigned MovieInfo::count_frames() const {
 	NullCompletionHandler completion;
 	std::shared_ptr<const BrotPrefs::Prefs> prefs(BrotPrefs::Prefs::getMaster());
 
-	renderer.do_blocking(progress, completion, "" /*filename*/, *this, prefs, movieinfo_runner_thread, "dummy-argv0");
+	try {
+		renderer.do_blocking(progress, completion, "" /*filename*/, *this, prefs, movieinfo_runner_thread, "dummy-argv0");
+	} catch (FrameLimitExceeded) {
+	}
 	return renderer.framecount();
 }
 

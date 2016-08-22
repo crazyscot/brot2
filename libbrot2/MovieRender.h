@@ -27,6 +27,7 @@
 #include "palette.h"
 #include "Registry.h"
 #include "ThreadPool.h"
+#include "Exception.h"
 #include <vector>
 #include <set>
 #include <atomic>
@@ -132,6 +133,13 @@ class RendererFactory {
 // It doesn't have a factory so that it doesn't appear in the list of options.
 // Just instantiate it as a standard class.
 
+const unsigned FRAME_LIMIT=1000000; // At 25fps, this is about 11 hours. More than enough!
+
+// Exception thrown internally, will not be seen outside of MovieInfo::count_frames().
+struct FrameLimitExceeded : public BrotException {
+	FrameLimitExceeded() : BrotException("Frame limit exceeded") {}
+};
+
 class NullRenderer : public Movie::Renderer {
 	public:
 		unsigned framecount_;
@@ -142,6 +150,8 @@ class NullRenderer : public Movie::Renderer {
 		}
 		void render_frame(const struct Movie::Frame&, Movie::RenderInstancePrivate *, const unsigned n_frames) {
 			framecount_ += n_frames;
+			if (framecount_ > Movie::FRAME_LIMIT)
+				throw FrameLimitExceeded();
 		}
 		void render_tail(Movie::RenderInstancePrivate*, bool) {
 		}
