@@ -25,7 +25,7 @@
 #include <gtkmm/messagedialog.h>
 
 Movie::Progress::Progress(const struct MovieInfo &_movie, Movie::Renderer& _ren) : renderer(_ren),
-	chunks_done(0), chunks_count(0), frames_done(0),
+	chunks_done(0), chunks_count(0), frames_done(-1),
 	npixels(_movie.height * _movie.width * (_movie.antialias ? 4 : 1)),
 	nframes(_movie.count_frames()), movie(_movie)
 {
@@ -55,63 +55,76 @@ Movie::Progress::Progress(const struct MovieInfo &_movie, Movie::Renderer& _ren)
 	show_all();
 	Glib::signal_timeout().connect( sigc::mem_fun(*this, &Movie::Progress::on_timer), 300 );
 	// Cannot call plot_complete() here as we already hold the GDK lock
+	frames_traversed_gdklocked(1);
 }
 
 Movie::Progress::~Progress() {}
 
 void Movie::Progress::chunk_done(Plot3::Plot3Chunk* job) {
 	gdk_threads_enter();
+	chunk_done_gdklocked(job);
+	gdk_threads_leave();
+}
+void Movie::Progress::chunk_done_gdklocked(Plot3::Plot3Chunk* job) {
 	if (job == 0)
 		chunks_done = 0;
 	else
 		++chunks_done;
+}
+void Movie::Progress::pass_complete(std::string& msg, unsigned passes_plotted, unsigned maxiter, unsigned pixels_still_live, unsigned total_pixels) {
+	gdk_threads_enter();
+	pass_complete_gdklocked(msg, passes_plotted, maxiter, pixels_still_live, total_pixels);
 	gdk_threads_leave();
 }
-void Movie::Progress::pass_complete(std::string& msg, unsigned /*passes_plotted*/, unsigned /*maxiter*/, unsigned pixels_still_live, unsigned total_pixels) {
-	gdk_threads_enter();
+void Movie::Progress::pass_complete_gdklocked(std::string& msg, unsigned /*passes_plotted*/, unsigned /*maxiter*/, unsigned pixels_still_live, unsigned total_pixels) {
 	framebar->set_fraction( (double) (total_pixels - pixels_still_live) / total_pixels);
 	framebar->set_text(msg);
-	gdk_threads_leave();
-	chunk_done(0 /* indicates start-of-pass */);
-	on_timer(); // force that bar to update
+	chunk_done_gdklocked(0 /* indicates start-of-pass */);
+	update_chunks_bar_gdklocked();
 }
 void Movie::Progress::plot_complete() {
 	frames_traversed(1);
 }
 void Movie::Progress::frames_traversed(int n) {
+	gdk_threads_enter();
+	frames_traversed_gdklocked(n);
+	gdk_threads_leave();
+}
+void Movie::Progress::frames_traversed_gdklocked(int n) {
 	frames_done += n;
 
 	std::ostringstream msg1;
 	msg1 << "0 passes plotted; maxiter = 0; " << npixels << " pixels live";
 	std::string str1(msg1.str());
 
-	gdk_threads_enter();
 	std::ostringstream msg2;
 	msg2 << frames_done << "/" << nframes << " frames";
 	moviebar->set_text(msg2.str());
 	moviebar->set_fraction((double)frames_done / nframes);
-	gdk_threads_leave();
 
-	pass_complete(str1, 0, 0, npixels, npixels);
+	pass_complete_gdklocked(str1, 0, 0, npixels, npixels);
 }
 void Movie::Progress::set_chunks_count(int n) {
 	chunks_count = n;
 }
 bool Movie::Progress::on_timer() {
+	gdk_threads_enter();
+	update_chunks_bar_gdklocked();
+	gdk_threads_leave();
+	return true;
+}
+void Movie::Progress::update_chunks_bar_gdklocked() {
 	std::ostringstream msg1;
 	msg1 << chunks_done;
 	if (chunks_count > 0)
 		msg1 << " / " << chunks_count;
 	msg1 <<	" chunks done";
 
-	gdk_threads_enter();
 	if (chunks_count > 0)
 		plotbar->set_fraction((double)chunks_done / chunks_count);
 	else
 		plotbar->pulse();
 	plotbar->set_text(msg1.str());
-	gdk_threads_leave();
-	return true;
 }
 void Movie::Progress::do_cancel() {
 	cancel_btn->set_label("Cancel requested");

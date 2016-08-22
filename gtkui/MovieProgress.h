@@ -43,16 +43,22 @@ namespace Movie {
 			bool on_delete_event(GdkEventAny *evt);
 			bool on_timer();
 			void do_cancel();
+		protected:
+			virtual void chunk_done_gdklocked(Plot3::Plot3Chunk* job); // Caller must have the gdk threads lock.
+			void update_chunks_bar_gdklocked(); // Caller must have the gdk threads lock.
+			virtual void pass_complete_gdklocked(std::string& msg, unsigned passes_plotted, unsigned maxiter, unsigned pixels_still_live, unsigned total_pixels); // Caller must have the gdk threads lock.
+			virtual void frames_traversed_gdklocked(int n); // Caller must have the gdk threads lock.
+
 		public:
 			Progress(const struct MovieInfo &, Movie::Renderer &); // Must hold the GDK threads lock!
 			virtual ~Progress();
 
+			// These 3 functions, from IPlot3DataSink, all lock the GDK lock.
 			virtual void chunk_done(Plot3::Plot3Chunk* job);
 			virtual void pass_complete(std::string& msg, unsigned passes_plotted, unsigned maxiter, unsigned pixels_still_live, unsigned total_pixels);
 			virtual void plot_complete();
 
-			virtual void frames_traversed(int n);
-
+			virtual void frames_traversed(int n); // Locks the gdk lock, then calls frames_traversed_gdklocked
 			virtual void set_chunks_count(int n);
 	};
 }; // namespace Movie
