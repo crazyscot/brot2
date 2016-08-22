@@ -634,6 +634,11 @@ std::shared_ptr<ThreadPool> MainWindow::get_threadpool()
 	return _threadpool;
 }
 
+void MainWindow::resize_threadpool(unsigned max_threads)
+{
+	_threadpool.reset(new ThreadPool(max_threads));
+}
+
 unsigned MainWindow::get_menubar_height() {
 	if (!menubar)
 		return 0;

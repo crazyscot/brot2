@@ -472,6 +472,10 @@ int PrefsDialog::run() {
 			if (error) {
 				// Any other error cases?
 			} else {
+				// Do we need to change the size of the main worker ThreadPool?
+				if (BrotPrefs::threadpool_size(pp) != BrotPrefs::threadpool_size(p) )
+					mw->resize_threadpool(BrotPrefs::threadpool_size(pp));
+
 				pp->commit();
 				// Poke anything that might want to know.
 			}

@@ -188,6 +188,7 @@ private:
 	std::shared_ptr<ThreadPool> _threadpool;
 public:
 	std::shared_ptr<ThreadPool> get_threadpool(); // singleton-like accessor
+	void resize_threadpool(unsigned max_threads); // Called when Prefs updated
 };
 
 #endif /* MAINWINDOW_H_ */
