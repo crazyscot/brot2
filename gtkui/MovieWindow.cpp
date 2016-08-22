@@ -269,24 +269,21 @@ MovieWindow::MovieWindow(MainWindow& _mw, std::shared_ptr<const Prefs> prefs) : 
 
 	Gtk::HButtonBox *bbox = Gtk::manage(new Gtk::HButtonBox());
 	Gtk::Button *btn;
+
 	btn = Gtk::manage(new Gtk::Button("Add current plot"));
 	btn->signal_clicked().connect(sigc::mem_fun(*this, &MovieWindow::do_add));
 	bbox->pack_start(*btn);
-	btn = Gtk::manage(new Gtk::Button("Render"));
-	btn->signal_clicked().connect(sigc::mem_fun(*this, &MovieWindow::do_render));
-	bbox->pack_start(*btn);
-	vbox->pack_start(*bbox);
 
-	// Second row of buttons
-	bbox = Gtk::manage(new Gtk::HButtonBox());
 	btn = Gtk::manage(new Gtk::Button("Delete selected plot"));
 	btn->signal_clicked().connect(sigc::mem_fun(*this, &MovieWindow::do_delete));
 	bbox->pack_start(*btn);
-	btn = Gtk::manage(new Gtk::Button("Reset"));
-	btn->signal_clicked().connect(sigc::mem_fun(*this, &MovieWindow::do_reset));
+
+	btn = Gtk::manage(new Gtk::Button("Render"));
+	btn->signal_clicked().connect(sigc::mem_fun(*this, &MovieWindow::do_render));
 	bbox->pack_start(*btn);
 
-	vbox->pack_end(*bbox);
+	vbox->pack_start(*bbox);
+
 	this->add(*vbox);
 	hide();
 	vbox->show_all();
