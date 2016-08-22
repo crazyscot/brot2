@@ -57,23 +57,23 @@ static MainWindow* find_main(Gtk::Menu *mnu) {
     return parent;
 }
 
-class MainMenu : public Gtk::Menu {
+class FileMenu : public Gtk::Menu {
 public:
 	Gtk::ImageMenuItem aboutI, saveI, quitI, movieI;
 	Gtk::SeparatorMenuItem sepa;
 
-	MainMenu() : aboutI(Gtk::Stock::ABOUT), saveI(Gtk::Stock::SAVE), quitI(Gtk::Stock::QUIT), movieI(Gtk::Stock::MEDIA_RECORD) {
+	FileMenu() : aboutI(Gtk::Stock::ABOUT), saveI(Gtk::Stock::SAVE), quitI(Gtk::Stock::QUIT), movieI(Gtk::Stock::MEDIA_RECORD) {
 		append(aboutI);
 		aboutI.signal_activate().connect(sigc::ptr_fun(do_about));
 		saveI.set_label("_Save image...");
 		append(saveI);
-		saveI.signal_activate().connect(sigc::mem_fun(this, &MainMenu::do_save));
+		saveI.signal_activate().connect(sigc::mem_fun(this, &FileMenu::do_save));
 		movieI.set_label("Make _movie...");
 		append(movieI);
-		movieI.signal_activate().connect(sigc::mem_fun(this, &MainMenu::do_movie));
+		movieI.signal_activate().connect(sigc::mem_fun(this, &FileMenu::do_movie));
 		append(sepa);
 		append(quitI);
-		quitI.signal_activate().connect(sigc::mem_fun(this, &MainMenu::do_quit));
+		quitI.signal_activate().connect(sigc::mem_fun(this, &FileMenu::do_quit));
 	}
 
 	static void do_about() {
@@ -477,9 +477,9 @@ public:
 };
 
 
-Menus::Menus(MainWindow& parent, std::string& init_fractal, std::string& init_colour) : main("_Main", true), plot("_Plot", true), options("_Options", true), fractal("_Fractal", true), colour("_Colour", true) {
-	append(main);
-	main.set_submenu(*manage(new MainMenu()));
+Menus::Menus(MainWindow& parent, std::string& init_fractal, std::string& init_colour) : file("_File", true), plot("_Plot", true), options("_Options", true), fractal("_Fractal", true), colour("_Colour", true) {
+	append(file);
+	file.set_submenu(*manage(new FileMenu()));
 	append(plot);
 	plot.set_submenu(*manage(new PlotMenu(parent)));
 

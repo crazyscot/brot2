@@ -35,7 +35,7 @@ class Menus: public Gtk::MenuBar {
 public:
 	Menus(MainWindow& parent, std::string& init_fractal, std::string& init_colour);
 
-	Gtk::MenuItem main;
+	Gtk::MenuItem file;
 	Gtk::MenuItem plot;
 	Gtk::MenuItem options;
 	Gtk::MenuItem fractal;
