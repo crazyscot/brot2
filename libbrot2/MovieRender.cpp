@@ -67,7 +67,7 @@ Movie::RenderInstancePrivate::~RenderInstancePrivate()
 
 // ---------------------------------------------------------------------
 
-Movie::RenderJob::RenderJob(IMovieProgressReporter& reporter, IMovieCompleteHandler& parent, Movie::Renderer& renderer, const std::string& filename, const struct Movie::MovieInfo& movie, std::shared_ptr<const BrotPrefs::Prefs> prefs, ThreadPool& threads, const char* argv0) :
+Movie::RenderJob::RenderJob(IMovieProgressReporter& reporter, IMovieCompleteHandler& parent, Movie::Renderer& renderer, const std::string& filename, const struct Movie::MovieInfo& movie, std::shared_ptr<const BrotPrefs::Prefs> prefs, std::shared_ptr<ThreadPool> threads, const char* argv0) :
 	_parent(parent),
 	_reporter(&reporter),
 	_renderer(renderer),
@@ -81,13 +81,13 @@ void Movie::RenderJob::run() {
 Movie::RenderJob::~RenderJob() {
 }
 
-void Movie::Renderer::start(IMovieProgressReporter& reporter, IMovieCompleteHandler& parent, const std::string& filename, const struct Movie::MovieInfo& movie, std::shared_ptr<const BrotPrefs::Prefs> prefs, ThreadPool& worker_threads, const char* argv0) {
+void Movie::Renderer::start(IMovieProgressReporter& reporter, IMovieCompleteHandler& parent, const std::string& filename, const struct Movie::MovieInfo& movie, std::shared_ptr<const BrotPrefs::Prefs> prefs, std::shared_ptr<ThreadPool> worker_threads, const char* argv0) {
 	cancel_requested = false;
 	std::shared_ptr<RenderJob> job (new RenderJob(reporter, parent, *this, filename, movie, prefs, worker_threads, argv0));
 	movie_runner_thread.enqueue<void>([=]{ job->run(); });
 }
 
-void Movie::Renderer::do_blocking(IMovieProgressReporter& reporter, IMovieCompleteHandler& parent, const std::string& filename, const struct Movie::MovieInfo& movie, std::shared_ptr<const BrotPrefs::Prefs> prefs, ThreadPool& threads, const char* argv0) {
+void Movie::Renderer::do_blocking(IMovieProgressReporter& reporter, IMovieCompleteHandler& parent, const std::string& filename, const struct Movie::MovieInfo& movie, std::shared_ptr<const BrotPrefs::Prefs> prefs, std::shared_ptr<ThreadPool> threads, const char* argv0) {
 	cancel_requested = false;
 	std::shared_ptr<RenderJob> job (new RenderJob(reporter, parent, *this, filename, movie, prefs, threads, argv0));
 	job->run();

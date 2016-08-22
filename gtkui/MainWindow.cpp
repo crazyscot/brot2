@@ -68,7 +68,7 @@ MainWindow::MainWindow() : Gtk::Window(),
 			divider(new Plot3::ChunkDivider::SuperpixelVariable(prefs())),
             _chunks_this_pass(0),
 			dragrect(*this),
-			_threadpool(BrotPrefs::threadpool_size(prefs()))
+			_threadpool(new ThreadPool(BrotPrefs::threadpool_size(prefs())))
 {
 	set_title(PACKAGE_NAME); // Renderer will update this
 	vbox = Gtk::manage(new Gtk::VBox());
@@ -629,7 +629,7 @@ bool MainWindow::on_timer()
 	return true;
 }
 
-ThreadPool& MainWindow::get_threadpool()
+std::shared_ptr<ThreadPool> MainWindow::get_threadpool()
 {
 	return _threadpool;
 }

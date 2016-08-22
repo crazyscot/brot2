@@ -43,11 +43,11 @@ struct RenderJob {
 	const std::string _filename;
 	const struct Movie::MovieInfo _movie;
 	std::shared_ptr<const BrotPrefs::Prefs> _prefs;
-	ThreadPool& _threads;
+	std::shared_ptr<ThreadPool> _threads;
 	const char *_argv0; // The CLI used to invoke brot2. This is used in at least one renderer to locate brot2cli.
 
 	// RenderJob takes a ThreadPool for its worker threads. A separate thread will be spawned to wait on the render itself.
-	RenderJob(IMovieProgressReporter& reporter, IMovieCompleteHandler& parent, Movie::Renderer& renderer, const std::string& filename, const struct Movie::MovieInfo& movie, std::shared_ptr<const BrotPrefs::Prefs> prefs, ThreadPool& worker_threads, const char* argv0);
+	RenderJob(IMovieProgressReporter& reporter, IMovieCompleteHandler& parent, Movie::Renderer& renderer, const std::string& filename, const struct Movie::MovieInfo& movie, std::shared_ptr<const BrotPrefs::Prefs> prefs, std::shared_ptr<ThreadPool> worker_threads, const char* argv0);
 	void run();
 	virtual ~RenderJob();
 };
@@ -73,9 +73,9 @@ class Renderer {
 		const std::string pattern; // shell style glob, for Gtk::FileFilter
 
 		// Main entrypoint:
-		void start(IMovieProgressReporter& reporter, IMovieCompleteHandler& completion, const std::string& filename, const struct Movie::MovieInfo& movie, std::shared_ptr<const BrotPrefs::Prefs> prefs, ThreadPool& threads, const char* argv0);
+		void start(IMovieProgressReporter& reporter, IMovieCompleteHandler& completion, const std::string& filename, const struct Movie::MovieInfo& movie, std::shared_ptr<const BrotPrefs::Prefs> prefs, std::shared_ptr<ThreadPool> threads, const char* argv0);
 		// Special entrypoint for unthreaded mode:
-		void do_blocking(IMovieProgressReporter& reporter, IMovieCompleteHandler& completion, const std::string& filename, const struct Movie::MovieInfo& movie, std::shared_ptr<const BrotPrefs::Prefs> prefs, ThreadPool& threads, const char* argv0);
+		void do_blocking(IMovieProgressReporter& reporter, IMovieCompleteHandler& completion, const std::string& filename, const struct Movie::MovieInfo& movie, std::shared_ptr<const BrotPrefs::Prefs> prefs, std::shared_ptr<ThreadPool> threads, const char* argv0);
 
 		// Initialise render run, alloc Private if needed
 		virtual void render_top(Movie::RenderJob& job, Movie::RenderInstancePrivate** priv) = 0;

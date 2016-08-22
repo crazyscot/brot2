@@ -22,7 +22,7 @@ using namespace std;
 
 namespace Plot3 {
 
-Plot3Pass::Plot3Pass(ThreadPool& pool, std::list<Plot3Chunk*>& chunks) :
+Plot3Pass::Plot3Pass(std::shared_ptr<ThreadPool> pool, std::list<Plot3Chunk*>& chunks) :
 	_pool(pool), _chunks(chunks) {
 }
 
@@ -32,7 +32,7 @@ Plot3Pass::~Plot3Pass() {
 void Plot3Pass::run() {
 	list<future<void> > results;
 	for (auto it=_chunks.begin(); it != _chunks.end(); it++) {
-		results.push_back(_pool.enqueue<void>([=]{(*it)->run();}));
+		results.push_back(_pool->enqueue<void>([=]{(*it)->run();}));
 	}
 
 	for (auto it=results.begin(); it != results.end(); it++) {

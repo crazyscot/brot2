@@ -329,9 +329,9 @@ public:
 
 class Plot3PassTest : public ChunkTest {
 protected:
-	ThreadPool pool;
+	std::shared_ptr<ThreadPool> pool;
 
-	Plot3PassTest(): pool(1) {}
+	Plot3PassTest(): pool(new ThreadPool(1)) {}
 };
 
 TEST_F(Plot3PassTest, Basics) {
@@ -420,14 +420,14 @@ class Plot3Test: public ::testing::Test {
 protected:
 	const unsigned _W, _H;
 	MockFractal fract;
-	ThreadPool pool;
+	std::shared_ptr<ThreadPool> pool;
 	ChunkDivider::OneChunk divider;
 	Plot3::Plot3Plot *p3;
 	std::shared_ptr<Prefs> prefs;
 	Fractal::Point CENTRE, SIZE;
 
 	Plot3Test() : _W(11), _H(19),
-			fract(0), pool(1), p3(0), prefs(new MockPrefs()),
+			fract(0), pool(new ThreadPool(1)), p3(0), prefs(new MockPrefs()),
 			CENTRE(-0.4,-0.4),
 			SIZE(0.01,0.2) {}
 
@@ -547,11 +547,11 @@ class ChunkDividerTest : public ::testing::Test {
 	protected:
 		MockFractal fract;
 		TestSink sink;
-		ThreadPool pool;
+		std::shared_ptr<ThreadPool> pool;
 		Plot3::Plot3Plot *p3;
 		Fractal::Point centre, size;
 
-		ChunkDividerTest() : sink(0,0)/*update later*/, pool(1), p3(0),
+		ChunkDividerTest() : sink(0,0)/*update later*/, pool(new ThreadPool(1)), p3(0),
 			centre(-0.4,-0.3), size(0.01,0.02) {}
 
 		virtual void SetUp() {

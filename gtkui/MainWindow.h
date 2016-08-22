@@ -185,9 +185,9 @@ private:
 	void destroy_image();
 	void real_plot_complete();
 
-	ThreadPool _threadpool;
+	std::shared_ptr<ThreadPool> _threadpool;
 public:
-	ThreadPool& get_threadpool(); // singleton-like accessor
+	std::shared_ptr<ThreadPool> get_threadpool(); // singleton-like accessor
 };
 
 #endif /* MAINWINDOW_H_ */

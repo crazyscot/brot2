@@ -40,11 +40,11 @@ class Plot3Pass {
 	 * will never be satisfied so the thread running the pass will block
 	 * forever.
 	 */
-	ThreadPool& _pool;
+	std::shared_ptr<ThreadPool> _pool;
 	std::list<Plot3Chunk*>& _chunks;
 
 public:
-	Plot3Pass(ThreadPool& pool, std::list<Plot3Chunk*>& chunks);
+	Plot3Pass(std::shared_ptr<ThreadPool> pool, std::list<Plot3Chunk*>& chunks);
 	virtual ~Plot3Pass();
 
 	/** Runs all the chunks, blocks until they are done. */

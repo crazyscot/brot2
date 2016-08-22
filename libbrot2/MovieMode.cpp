@@ -36,7 +36,7 @@ unsigned MovieInfo::count_frames() const {
 	NullRenderer renderer;
 	MovieNullProgress progress;
 	NullCompletionHandler completion;
-	ThreadPool threads(0);
+	std::shared_ptr<ThreadPool> threads(new ThreadPool(1)); // FIXME Pass in a threadpool, don't create wantonly
 	std::shared_ptr<const BrotPrefs::Prefs> prefs(BrotPrefs::Prefs::getMaster());
 
 	renderer.do_blocking(progress, completion, "" /*filename*/, *this, prefs, threads, "dummy-argv0");
