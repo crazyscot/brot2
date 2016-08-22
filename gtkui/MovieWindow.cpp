@@ -246,6 +246,7 @@ MovieWindow::MovieWindow(MainWindow& _mw, std::shared_ptr<const Prefs> prefs) : 
 	Gtk::Frame *keyframes = Gtk::manage(new Gtk::Frame("Key Frames"));
 	priv->m_refTreeModel = Gtk::ListStore::create(priv->m_columns);
 	priv->m_keyframes.set_model(priv->m_refTreeModel);
+	priv->m_keyframes.set_reorderable(true);
 	priv->m_refTreeModel->signal_row_changed().connect(sigc::mem_fun(*this, &MovieWindow::do_update_duration2));
 	keyframes->add(priv->m_keyframes);
 	vbox->pack_start(*keyframes);
