@@ -16,7 +16,6 @@ noinst_LIBRARIES=
 bin_PROGRAMS=
 check_LIBRARIES=
 check_PROGRAMS=
-TESTS=
 AUTOGEN=
 CLEANFILES=
 
@@ -123,17 +122,17 @@ endif
 if GTEST
 check_PROGRAMS+=b2test
 export builddir
-TESTS+=b2test
 if TEST_WITH_VALGRIND
-TESTS+=test/b2test.valgrind
-endif
+TEST_VG=test/b2test.valgrind
+endif TEST_WITH_VALGRIND
+TESTS=b2test $(TEST_VG)
 
-else
+else !GTEST
 check :
 	@echo
 	@echo Make check requires GTEST
 	@false
-endif
+endif !GTEST
 
 EXTRA_DIST+=test/b2test.valgrind test/b2test.vgsupp test/thrash
 

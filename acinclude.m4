@@ -69,14 +69,18 @@ dnl Looks for valgrind, defaulting to on.
 dnl Users can --enable-valgrind or --disable-valgrind as they please.
 dnl If enabled, valgrind must be on the PATH.
 dnl If left at default, and valgrind is not found, it will be disabled.
-dnl The result is the USE_VALGRIND conditional.
+dnl The result is the TEST_WITH_VALGRIND conditional.
 AC_DEFUN([VALGRIND_CHECK],
 [
 AC_CHECK_PROG(HAVE_VALGRIND, valgrind, yes, no)
 use_valgrind=not_set
-AC_ARG_ENABLE(valgrind,
+AC_ARG_ENABLE([valgrind],
 	[  --enable-valgrind       Use valgrind when running unit tests. ],
-	[ use_valgrind=true ])
+	[case "${enableval}" in
+		yes) use_valgrind=true ;;
+		no)  use_valgrind=false;;
+		*) AC_MSG_ERROR([bad value ${enableval} for --enable-valgrind]) ;;
+	esac], [use_valgrind=false])
 
 if [[ "$use_valgrind" = "true" ]]; then
 	if [[ "$HAVE_VALGRIND" = "no" ]]; then
@@ -93,6 +97,5 @@ if [[ "$use_valgrind" = "not_set" ]]; then
 	fi
 fi
 
-AM_CONDITIONAL([TEST_WITH_VALGRIND], [test "x${use_valgrind}" = xyes])
+AM_CONDITIONAL([TEST_WITH_VALGRIND], [test "x${use_valgrind}" = xtrue])
 ])
-
