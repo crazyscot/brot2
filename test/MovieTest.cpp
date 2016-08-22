@@ -239,8 +239,13 @@ TEST_F(MovieTest, SpeedHasAnEffect) {
 	InitialiseMovie(2*TEST_SPEED);
 	unsigned count2 = movie.count_frames();
 	//std::cout << "Frame count 2: " << count2 << std::endl;
-	// Doubling the speed for a simple transition without hold, should halve the frame count.
-	EXPECT_EQ(count1/2, count2);
+	/* Doubling the speed for a simple transition without hold, should halve the frame count.
+	 * ... except for viewers watching on Valgrind, where floating point inaccuracies are
+	 * documented behaviour.  http://valgrind.org/docs/manual/manual-core.html#manual-core.limits
+	 *
+	 * EXPECT_EQ(count1/2, count2); // fails on valgrind
+	 */
+	EXPECT_LE(abs(count1/2 - count2), 2);
 }
 
 // Found the need for this test the hard way...
