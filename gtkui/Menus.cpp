@@ -59,12 +59,10 @@ static MainWindow* find_main(Gtk::Menu *mnu) {
 
 class FileMenu : public Gtk::Menu {
 public:
-	Gtk::ImageMenuItem aboutI, saveI, quitI, movieI;
+	Gtk::ImageMenuItem saveI, quitI, movieI;
 	Gtk::SeparatorMenuItem sepa;
 
-	FileMenu() : aboutI(Gtk::Stock::ABOUT), saveI(Gtk::Stock::SAVE), quitI(Gtk::Stock::QUIT), movieI(Gtk::Stock::MEDIA_RECORD) {
-		append(aboutI);
-		aboutI.signal_activate().connect(sigc::ptr_fun(do_about));
+	FileMenu() : saveI(Gtk::Stock::SAVE), quitI(Gtk::Stock::QUIT), movieI(Gtk::Stock::MEDIA_RECORD) {
 		saveI.set_label("_Save image...");
 		append(saveI);
 		saveI.signal_activate().connect(sigc::mem_fun(this, &FileMenu::do_save));
@@ -76,17 +74,6 @@ public:
 		quitI.signal_activate().connect(sigc::mem_fun(this, &FileMenu::do_quit));
 	}
 
-	static void do_about() {
-		Glib::RefPtr<Gdk::Pixbuf> logo = Gdk::Pixbuf::create_from_inline(-1, brot2_logo, false);
-		Gtk::AboutDialog dlg;
-		dlg.set_version(PACKAGE_VERSION);
-		dlg.set_comments("Dedicated to the memory of Benoît B. Mandelbrot.");
-		dlg.set_copyright(copyright_string);
-		dlg.set_license(license_text);
-		dlg.set_wrap_license(true);
-		dlg.set_logo(logo);
-		dlg.run();
-	}
 	void do_quit() {
 		MainWindow *mw = find_main(this);
 		mw->do_quit();
@@ -476,8 +463,30 @@ public:
 	}
 };
 
+class HelpMenu : public Gtk::Menu {
+public:
+	Gtk::ImageMenuItem aboutI;
 
-Menus::Menus(MainWindow& parent, std::string& init_fractal, std::string& init_colour) : file("_File", true), plot("_Plot", true), options("_Options", true), fractal("_Fractal", true), colour("_Colour", true) {
+	HelpMenu() : aboutI(Gtk::Stock::ABOUT) {
+		append(aboutI);
+		aboutI.signal_activate().connect(sigc::ptr_fun(do_about));
+	}
+
+	static void do_about() {
+		Glib::RefPtr<Gdk::Pixbuf> logo = Gdk::Pixbuf::create_from_inline(-1, brot2_logo, false);
+		Gtk::AboutDialog dlg;
+		dlg.set_version(PACKAGE_VERSION);
+		dlg.set_comments("Dedicated to the memory of Benoît B. Mandelbrot.");
+		dlg.set_copyright(copyright_string);
+		dlg.set_license(license_text);
+		dlg.set_wrap_license(true);
+		dlg.set_logo(logo);
+		dlg.run();
+	}
+};
+
+
+Menus::Menus(MainWindow& parent, std::string& init_fractal, std::string& init_colour) : file("_File", true), plot("_Plot", true), options("_Options", true), fractal("_Fractal", true), colour("_Colour", true), help("_Help", true) {
 	append(file);
 	file.set_submenu(*manage(new FileMenu()));
 	append(plot);
@@ -491,6 +500,9 @@ Menus::Menus(MainWindow& parent, std::string& init_fractal, std::string& init_co
 	fractal.set_submenu(*manage(new FractalMenu(parent, init_fractal)));
 	append(colour);
 	colour.set_submenu(*manage(new ColourMenu(parent, init_colour)));
+
+	append(help);
+	help.set_submenu(*manage(new HelpMenu()));
 }
 
 } // end namespace

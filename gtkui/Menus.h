@@ -40,6 +40,7 @@ public:
 	Gtk::MenuItem options;
 	Gtk::MenuItem fractal;
 	Gtk::MenuItem colour;
+	Gtk::MenuItem help;
 
 	AbstractOptionsMenu* optionsMenu;
 
