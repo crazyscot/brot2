@@ -28,6 +28,8 @@
 
 using namespace std;
 
+ThreadPool Movie::Renderer::movie_runner_thread(1);
+
 Movie::Renderer::Renderer(const std::string& _name, const std::string& _pattern) : cancel_requested(false), name(_name), pattern(_pattern) {
 }
 Movie::Renderer::~Renderer() {
@@ -79,10 +81,10 @@ void Movie::RenderJob::run() {
 Movie::RenderJob::~RenderJob() {
 }
 
-void Movie::Renderer::start(IMovieProgressReporter& reporter, IMovieCompleteHandler& parent, const std::string& filename, const struct Movie::MovieInfo& movie, std::shared_ptr<const BrotPrefs::Prefs> prefs, ThreadPool& threads, const char* argv0) {
+void Movie::Renderer::start(IMovieProgressReporter& reporter, IMovieCompleteHandler& parent, const std::string& filename, const struct Movie::MovieInfo& movie, std::shared_ptr<const BrotPrefs::Prefs> prefs, ThreadPool& worker_threads, const char* argv0) {
 	cancel_requested = false;
-	std::shared_ptr<RenderJob> job (new RenderJob(reporter, parent, *this, filename, movie, prefs, threads, argv0));
-	threads.enqueue<void>([=]{ job->run(); });
+	std::shared_ptr<RenderJob> job (new RenderJob(reporter, parent, *this, filename, movie, prefs, worker_threads, argv0));
+	movie_runner_thread.enqueue<void>([=]{ job->run(); });
 }
 
 void Movie::Renderer::do_blocking(IMovieProgressReporter& reporter, IMovieCompleteHandler& parent, const std::string& filename, const struct Movie::MovieInfo& movie, std::shared_ptr<const BrotPrefs::Prefs> prefs, ThreadPool& threads, const char* argv0) {
