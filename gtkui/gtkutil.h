@@ -85,12 +85,12 @@ class HandyEntry: public Gtk::Entry {
 		void set_error() {
 			Gdk::Color red;
 			red.set_rgb(65535, 16384, 16384);
-#define do_red(_state) do { modify_base(Gtk::StateType::STATE_##_state, red); } while(0)
-			ALL_STATES(do_red)
+#define HandyEntry_DO_RED(_state) do { modify_base(Gtk::StateType::STATE_##_state, red); } while(0)
+			ALL_STATES(HandyEntry_DO_RED)
 		}
-#define do_clear(_state) do { unset_base(Gtk::StateType::STATE_##_state); } while(0)
+#define HandyEntry_DO_CLEAR(_state) do { unset_base(Gtk::StateType::STATE_##_state); } while(0)
 		void clear_error() {
-			ALL_STATES(do_clear)
+			ALL_STATES(HandyEntry_DO_CLEAR)
 		}
 };
 
