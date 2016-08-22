@@ -78,7 +78,7 @@ class Renderer {
 		// Special entrypoint for unthreaded mode:
 		void do_blocking(IMovieProgressReporter& reporter, IMovieCompleteHandler& completion, const std::string& filename, const struct Movie::MovieInfo& movie, std::shared_ptr<const BrotPrefs::Prefs> prefs, std::shared_ptr<ThreadPool> threads, const char* argv0);
 
-		// Initialise render run, alloc Private if needed
+		// Initialise render run, alloc Private
 		virtual void render_top(Movie::RenderJob& job, Movie::RenderInstancePrivate** priv) = 0;
 
 		// Called for each frame in turn; "n_frames" is the number of times this frame is to be inserted.
@@ -94,7 +94,9 @@ class Renderer {
 		virtual ~Renderer();
 
 	private:
-		void render(Movie::RenderJob* job);
+		// Main rendering loop, calls render_frame() repeatedly
+		void render(Movie::RenderInstancePrivate *priv);
+
 		static ThreadPool movie_runner_thread;
 };
 
@@ -145,7 +147,8 @@ class NullRenderer : public Movie::Renderer {
 		unsigned framecount_;
 		NullRenderer() : Movie::Renderer("Null renderer", "/dev/null"), framecount_(0) { }
 
-		void render_top(Movie::RenderJob&, Movie::RenderInstancePrivate **) {
+		void render_top(Movie::RenderJob& job, Movie::RenderInstancePrivate **priv) {
+			*priv = new Movie::RenderInstancePrivate(job);
 			framecount_ = 0;
 		}
 		void render_frame(const struct Movie::Frame&, Movie::RenderInstancePrivate *, const unsigned n_frames) {
@@ -153,7 +156,8 @@ class NullRenderer : public Movie::Renderer {
 			if (framecount_ > Movie::FRAME_LIMIT)
 				throw FrameLimitExceeded();
 		}
-		void render_tail(Movie::RenderInstancePrivate*, bool) {
+		void render_tail(Movie::RenderInstancePrivate* priv, bool) {
+			delete priv;
 		}
 		virtual ~NullRenderer() {}
 

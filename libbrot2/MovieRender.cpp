@@ -75,11 +75,14 @@ Movie::RenderJob::RenderJob(IMovieProgressReporter& reporter, IMovieCompleteHand
 }
 
 void Movie::RenderJob::run() {
+	RenderInstancePrivate * priv(0);
+	_renderer.render_top(*this, &priv); // allocs priv
 	try {
-		_renderer.render(this);
+		_renderer.render(priv);
 	} catch (BrotException e) {
 		_parent.signal_error(*this, e.msg);
 	}
+	_renderer.render_tail(priv); // deletes priv; TODO convert all to destructor
 	_parent.signal_completion(*this);
 }
 Movie::RenderJob::~RenderJob() {
@@ -97,15 +100,12 @@ void Movie::Renderer::do_blocking(IMovieProgressReporter& reporter, IMovieComple
 	job->run();
 }
 
-void Movie::Renderer::render(RenderJob* job) {
-	RenderInstancePrivate * priv;
+void Movie::Renderer::render(RenderInstancePrivate *priv) {
+	Movie::RenderJob* job = &priv->job;
 	const struct Movie::MovieInfo& movie(job->_movie);
-	render_top(*job, &priv);
 	// Sanity check - trap incomplete structs
-	if (!movie.points.size()) {
-		render_tail(priv);
+	if (!movie.points.size())
 		return;
-	}
 	{
 		bool ok = true;
 		for (auto iter = movie.points.begin(); iter != movie.points.end(); iter++) {
@@ -116,10 +116,8 @@ void Movie::Renderer::render(RenderJob* job) {
 			ok &= ((*iter).speed_zoom != 0);
 			ok &= ((*iter).speed_translate != 0);
 		}
-		if (!ok) {
-			render_tail(priv);
+		if (!ok)
 			return;
-		}
 	}
 
 	auto iter = movie.points.begin();
@@ -150,7 +148,6 @@ void Movie::Renderer::render(RenderJob* job) {
 
 		f1 = f2;
 	}
-	render_tail(priv);
 }
 
 void Movie::Renderer::request_cancel() {
