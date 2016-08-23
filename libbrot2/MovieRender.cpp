@@ -76,14 +76,14 @@ Movie::RenderJob::RenderJob(IMovieProgressReporter& reporter, IMovieCompleteHand
 
 void Movie::RenderJob::run() {
 	RenderInstancePrivate * priv(0);
-	_renderer.render_top(*this, &priv); // allocs priv of desired subclass
-	ASSERT(priv != 0);
 	try {
+		_renderer.render_top(*this, &priv); // allocs priv of desired subclass
+		ASSERT(priv != 0);
 		_renderer.render(priv);
+		_renderer.render_tail(priv); // Flush file, delete anything that the destructor doesn't catch
 	} catch (BrotException e) {
 		_parent.signal_error(*this, e.msg);
 	}
-	_renderer.render_tail(priv); // Flush file, delete anything that the destructor doesn't catch
 	delete priv;
 	_parent.signal_completion(*this);
 }
