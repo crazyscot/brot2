@@ -155,6 +155,9 @@ public:
 
 	virtual void pixel_done(unsigned X, unsigned Y, const rgb& p);
 	virtual void pixel_get(unsigned X, unsigned Y, rgb& p);
+
+	unsigned pixelstep() { return _pixelstep; }
+	unsigned rowstride() { return _rowstride; }
 };
 
 class PNG : public Base {
