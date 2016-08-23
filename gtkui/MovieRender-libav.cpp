@@ -232,7 +232,7 @@ class LibAV : public Movie::Renderer {
 					pkt.stream_index = mypriv->st->index;
 					ret = av_interleaved_write_frame(mypriv->oc, &pkt);
 				}
-				if (ret<0) THROW(AVException, "Error writing video frame");
+				if (ret<0) THROW(AVException, "Error writing video frame, code "+ret);
 			}
 
 			delete mypriv->plot;
