@@ -71,7 +71,7 @@ class LibAV : public Movie::Renderer {
 
 		Private(Movie::RenderJob& _job) :
 			RenderInstancePrivate(_job),
-			st(0), frame(0), tmp_frame(0), sws_ctx(0), avr(0),
+			st(0), next_pts(0), frame(0), tmp_frame(0), sws_ctx(0), avr(0),
 			plot(0), render(0), render_buf(0), prefs(BrotPrefs::Prefs::getMaster())
 		{
 		}
