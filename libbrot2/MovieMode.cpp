@@ -23,13 +23,6 @@
 
 using namespace Movie;
 
-class NullCompletionHandler : public IMovieCompleteHandler {
-	public:
-		virtual void signal_completion(RenderJob&) {}
-		virtual void signal_error(RenderJob&, const std::string&) {}
-		virtual ~NullCompletionHandler() {}
-};
-
 namespace Movie {
 
 std::shared_ptr<ThreadPool> MovieInfo::movieinfo_runner_thread(new ThreadPool(1));

@@ -24,6 +24,7 @@
 #include "FractalMaths.h"
 #include "palette.h"
 #include "ThreadPool.h"
+#include "IMovieProgress.h"
 #include <vector>
 
 namespace Movie {
@@ -64,6 +65,14 @@ struct MovieInfo {
 	private:
 		static std::shared_ptr<ThreadPool> movieinfo_runner_thread;
 };
+
+class NullCompletionHandler : public IMovieCompleteHandler {
+	public:
+		virtual void signal_completion(RenderJob&) {}
+		virtual void signal_error(RenderJob&, const std::string&) {}
+		virtual ~NullCompletionHandler() {}
+};
+
 
 }; // namespace Movie
 
