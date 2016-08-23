@@ -86,6 +86,7 @@ brot2_SOURCES= \
 	gtkui/ControlsWindow.cpp gtkui/ControlsWindow.h \
 	gtkui/MovieWindow.cpp gtkui/MovieWindow.h \
 	gtkui/MovieRender-PNG.cpp \
+	gtkui/MovieRender-libav.cpp \
 	gtkui/MovieProgress.cpp gtkui/MovieProgress.h \
 	gtkui/Canvas.cpp gtkui/Canvas.h gtkui/HUD.cpp gtkui/HUD.h \
 	gtkui/DragRectangle.cpp gtkui/DragRectangle.h \
