@@ -86,10 +86,7 @@ class BunchOfPNGs : public Movie::Renderer {
 			}
 			// LATER Could kick off all frames in parallel and wait for them in render_bottom?
 		}
-		void render_tail(Movie::RenderInstancePrivate *priv, bool) {
-			Private * mypriv = (Private*)(priv);
-			delete mypriv;
-		}
+		void render_tail(Movie::RenderInstancePrivate *, bool) { }
 		virtual ~BunchOfPNGs() {}
 };
 

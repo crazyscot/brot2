@@ -76,13 +76,15 @@ Movie::RenderJob::RenderJob(IMovieProgressReporter& reporter, IMovieCompleteHand
 
 void Movie::RenderJob::run() {
 	RenderInstancePrivate * priv(0);
-	_renderer.render_top(*this, &priv); // allocs priv
+	_renderer.render_top(*this, &priv); // allocs priv of desired subclass
+	ASSERT(priv != 0);
 	try {
 		_renderer.render(priv);
 	} catch (BrotException e) {
 		_parent.signal_error(*this, e.msg);
 	}
-	_renderer.render_tail(priv); // deletes priv; TODO convert all to destructor
+	_renderer.render_tail(priv); // Flush file, delete anything that the destructor doesn't catch
+	delete priv;
 	_parent.signal_completion(*this);
 }
 Movie::RenderJob::~RenderJob() {
@@ -221,9 +223,7 @@ class ScriptB2CLI : public Movie::Renderer {
 					<< endl;
 			}
 		}
-		void render_tail(Movie::RenderInstancePrivate *priv, bool) {
-			Private * mypriv = (Private*)(priv);
-			delete mypriv;
+		void render_tail(Movie::RenderInstancePrivate *, bool) {
 		}
 		virtual ~ScriptB2CLI() {}
 };

@@ -78,7 +78,7 @@ class Renderer {
 		// Special entrypoint for unthreaded mode:
 		void do_blocking(IMovieProgressReporter& reporter, IMovieCompleteHandler& completion, const std::string& filename, const struct Movie::MovieInfo& movie, std::shared_ptr<const BrotPrefs::Prefs> prefs, std::shared_ptr<ThreadPool> threads, const char* argv0);
 
-		// Initialise render run, alloc Private
+		// Initialise render run, alloc Private (mandatory; must not be left null)
 		virtual void render_top(Movie::RenderJob& job, Movie::RenderInstancePrivate** priv) = 0;
 
 		// Called for each frame in turn; "n_frames" is the number of times this frame is to be inserted.
@@ -86,7 +86,7 @@ class Renderer {
 		// Should NOT call frames_traversed when n_frames>1; that is done for you by Renderer::render().
 		virtual void render_frame(const struct Movie::Frame& kf, Movie::RenderInstancePrivate *priv, const unsigned n_frames=1) = 0;
 
-		// Finish up, flush file, delete Private
+		// Finish up, flush file, do NOT delete Private as the framework does that for you.
 		virtual void render_tail(Movie::RenderInstancePrivate *priv, bool cancelling=false) = 0;
 
 		virtual void request_cancel();
@@ -156,9 +156,7 @@ class NullRenderer : public Movie::Renderer {
 			if (framecount_ > Movie::FRAME_LIMIT)
 				throw FrameLimitExceeded();
 		}
-		void render_tail(Movie::RenderInstancePrivate* priv, bool) {
-			delete priv;
-		}
+		void render_tail(Movie::RenderInstancePrivate*, bool) { }
 		virtual ~NullRenderer() {}
 
 		virtual unsigned framecount() { return framecount_; }
