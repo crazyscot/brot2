@@ -20,6 +20,8 @@
 #include "gtest/gtest.h"
 #include "MovieMode.h"
 #include "MovieMotion.h"
+#include "MovieRender.h"
+#include "IMovieProgress.h"
 #include "libbrot2/Exception.h"
 #include "MockFractal.h"
 #include "MockPalette.h"
@@ -322,4 +324,23 @@ TEST_F(MovieTest, HoldFramesWork) {
 	movie.points[0].hold_frames = 100;
 	movie.points[1].hold_frames = 2;
 	EXPECT_COUNT(count1+102);
+}
+
+TEST_F(MovieTest, AntiAliasDimensions) {
+	Movie::MovieNullProgress prog;
+	Movie::NullCompletionHandler comp;
+	Movie::NullRenderer ren;
+	InitialiseMovie();
+	std::shared_ptr<const BrotPrefs::Prefs> prefs = BrotPrefs::Prefs::getMaster();
+	std::shared_ptr<ThreadPool> threads(new ThreadPool(1));
+
+	movie.antialias = false;
+	Movie::RenderJob job(prog, comp, ren, "", movie, prefs, threads, "");
+	EXPECT_EQ(job._rwidth, movie.width);
+	EXPECT_EQ(job._rheight, movie.height);
+
+	movie.antialias = true;
+	Movie::RenderJob job2(prog, comp, ren, "", movie, prefs, threads, "");
+	EXPECT_EQ(job2._rwidth, movie.width*2);
+	EXPECT_EQ(job2._rheight, movie.height*2);
 }

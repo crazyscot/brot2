@@ -46,6 +46,7 @@ struct RenderJob {
 	std::shared_ptr<const BrotPrefs::Prefs> _prefs;
 	std::shared_ptr<ThreadPool> _threads;
 	const char *_argv0; // The CLI used to invoke brot2. This is used in at least one renderer to locate brot2cli.
+	const unsigned _rwidth, _rheight; // Rendering width and height. Will be larger than movie dimensions if antialias enabled.
 
 	// RenderJob takes a ThreadPool for its worker threads. A separate thread will be spawned to wait on the render itself.
 	RenderJob(IMovieProgressReporter& reporter, IMovieCompleteHandler& parent, Movie::Renderer& renderer, const std::string& filename, const struct Movie::MovieInfo& movie, std::shared_ptr<const BrotPrefs::Prefs> prefs, std::shared_ptr<ThreadPool> worker_threads, const char* argv0);

@@ -71,7 +71,9 @@ Movie::RenderJob::RenderJob(IMovieProgressReporter& reporter, IMovieCompleteHand
 	_parent(parent),
 	_reporter(&reporter),
 	_renderer(renderer),
-	_filename(filename), _movie(movie), _prefs(prefs), _threads(threads), _argv0(argv0) {
+	_filename(filename), _movie(movie), _prefs(prefs), _threads(threads), _argv0(argv0),
+	_rwidth( movie.width * (movie.antialias ? 2 : 1) ),
+	_rheight( movie.height * (movie.antialias ? 2 : 1) ) {
 }
 
 void Movie::RenderJob::run() {
