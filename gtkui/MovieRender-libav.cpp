@@ -76,6 +76,15 @@ class LibAV : public Movie::Renderer {
 		{
 		}
 		virtual ~Private() {
+			avcodec_close(st->codec); // what does the rv mean?
+			av_frame_free(&frame);
+			av_frame_free(&tmp_frame);
+			sws_freeContext(sws_ctx);
+			sws_ctx = 0;
+			avresample_free(&avr);
+			avio_close(oc->pb); // may return error
+			avformat_free_context(oc);
+			oc = 0;
 			delete render;
 			delete render_buf;
 		}
@@ -249,7 +258,7 @@ class LibAV : public Movie::Renderer {
 			AVCodecContext *c = mypriv->st->codec;
 			// A NULL frame flushes the output codec
 			int ret = avcodec_encode_video2(c, &pkt, 0, &got_packet);
-			if (ret<0) THROW(AVException, "Error encoding video frame");
+			if (ret<0) THROW(AVException, "Error encoding video frame, code "+ret);
 			if (got_packet) {
 				av_packet_rescale_ts(&pkt, c->time_base, mypriv->st->time_base);
 				pkt.stream_index = mypriv->st->index;
@@ -259,15 +268,8 @@ class LibAV : public Movie::Renderer {
 			ret = av_interleaved_write_frame(mypriv->oc, 0);
 			if (ret<0) THROW(AVException, "Error writing video flush, code "+ret);
 
-			av_write_trailer(mypriv->oc);
-			// TODO Move these frees into destructor.
-			avcodec_close(mypriv->st->codec);
-			av_frame_free(&mypriv->frame);
-			av_frame_free(&mypriv->tmp_frame);
-			sws_freeContext(mypriv->sws_ctx);
-			avresample_free(&mypriv->avr);
-			avio_close(mypriv->oc->pb);
-			avformat_free_context(mypriv->oc);
+			ret = av_write_trailer(mypriv->oc);
+			if (ret<0) THROW(AVException, "Error writing trailer, code "+ret);
 		}
 		virtual ~LibAV() {}
 };
