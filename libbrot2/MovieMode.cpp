@@ -44,6 +44,9 @@ unsigned MovieInfo::count_frames() const {
 	try {
 		renderer.do_blocking(progress, completion, "" /*filename*/, *this, prefs, movieinfo_runner_thread, "dummy-argv0");
 	} catch (FrameLimitExceeded) {
+	} catch (std::exception &e) {
+		std::cerr << "FATAL: Uncaught exception in renderer: " << e.what() << std::endl << std::endl;
+		exit(5);
 	}
 	return renderer.framecount();
 }
