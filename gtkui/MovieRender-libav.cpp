@@ -245,17 +245,19 @@ class LibAV : public Movie::Renderer {
 
 			AVPacket pkt;
 			memset(&pkt, 0, sizeof pkt);
-			int got_packet = 0;
+			int got_packet = 1, ret;
 			av_init_packet(&pkt);
 			AVCodecContext *c = mypriv->st->codec;
-			// A NULL frame flushes the output codec
-			int ret = avcodec_encode_video2(c, &pkt, 0, &got_packet);
-			if (ret<0) THROW(AVException, "Error encoding video frame, code "+ret);
-			if (got_packet) {
-				av_packet_rescale_ts(&pkt, c->time_base, mypriv->st->time_base);
-				pkt.stream_index = mypriv->st->index;
-				ret = av_interleaved_write_frame(mypriv->oc, &pkt);
-				if (ret<0) THROW(AVException, "Error writing video frame, code "+ret);
+			// Need some NULL frames to flush the output codec
+			while (got_packet) {
+				ret = avcodec_encode_video2(c, &pkt, 0, &got_packet);
+				if (ret<0) THROW(AVException, "Error encoding video frame, code "+ret);
+				if (got_packet) {
+					av_packet_rescale_ts(&pkt, c->time_base, mypriv->st->time_base);
+					pkt.stream_index = mypriv->st->index;
+					ret = av_interleaved_write_frame(mypriv->oc, &pkt);
+					if (ret<0) THROW(AVException, "Error writing video frame, code "+ret);
+				}
 			}
 			ret = av_interleaved_write_frame(mypriv->oc, 0);
 			if (ret<0) THROW(AVException, "Error writing video flush, code "+ret);
