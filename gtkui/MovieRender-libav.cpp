@@ -137,7 +137,7 @@ class LibAV : public Movie::Renderer {
 			c->bit_rate = c->width * c->height * job._movie.fps * 3 / 25; // This magic constant (3/25) determined from "HQ" recommendations in table 1 on http://www.lighterra.com/papers/videoencodingh264/
 			mypriv->st->time_base = (AVRational){ 1, (int)job._movie.fps };
 			c->time_base = mypriv->st->time_base;
-			c->gop_size = 12;
+			c->gop_size = 12; /* Trade-off better compression against the ability to seek. */
 			c->pix_fmt = AV_PIX_FMT_YUV420P; // We generate RGB24, so will convert
 			if (mypriv->oc->oformat->flags & AVFMT_GLOBALHEADER)
 				c->flags |= AV_CODEC_FLAG_GLOBAL_HEADER;
