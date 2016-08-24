@@ -436,7 +436,7 @@ void MovieWindow::do_render() {
 	// reporter will be deleted when completion signalled
 }
 
-bool MovieWindow::run_filename(std::string& filename, std::shared_ptr<Movie::Renderer>& renrv)
+bool MovieWindow::run_filename(std::string& filename, std::shared_ptr<Movie::Renderer>& ren_o)
 {
 	Gtk::FileChooserDialog dialog(*this, "Save Movie", Gtk::FileChooserAction::FILE_CHOOSER_ACTION_SAVE);
 	dialog.set_do_overwrite_confirmation(true);
@@ -465,12 +465,12 @@ bool MovieWindow::run_filename(std::string& filename, std::shared_ptr<Movie::Ren
 	int rv = dialog.run();
 	if (rv != Gtk::ResponseType::RESPONSE_ACCEPT) return false;
 	Gtk::FileFilter *filter = dialog.get_filter();
-	renrv = Movie::RendererFactory::get_factory(filter->get_name())->instantiate();
+	ren_o = Movie::RendererFactory::get_factory(filter->get_name())->instantiate();
 	filename = dialog.get_filename();
 	SavePNG::Base::update_save_dir(filename);
 	{
 		// Attempt to enforce file extension.. there are probably better ways to do this.
-		std::string extn(renrv->pattern);
+		std::string extn(ren_o->pattern);
 		if (extn[0] == '*')
 			extn.erase(0,1);
 		if (!Util::ends_with(filename,extn))
