@@ -165,4 +165,7 @@ class NullRenderer : public Movie::Renderer {
 
 }; // namespace Movie
 
+// Standardised names for renderers are listed here, where it is necessary to refer to them outside of their own compile unit.
+#define MOVIERENDER_NAME_MOV "QuickTime MOV/H264"
+
 #endif // MOVIERENDER_H

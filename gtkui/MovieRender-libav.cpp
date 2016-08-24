@@ -272,4 +272,4 @@ class LibAV : public Movie::Renderer {
 // ------------------------------------------------------------------------------
 // And now some instances to make them live
 
-MOVIERENDER_DECLARE_FACTORY(LibAV, "QuickTime MOV/H264", "*.mov");
+MOVIERENDER_DECLARE_FACTORY(LibAV, MOVIERENDER_NAME_MOV, "*.mov");
