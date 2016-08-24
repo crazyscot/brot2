@@ -176,19 +176,11 @@ class LibAV : public Movie::Renderer {
 			ret = av_frame_make_writable(frame);
 			if (ret < 0) THROW(AVException, "Could not make frame writable");
 
-			unsigned x,y;
 			ASSERT( frame->linesize[0] >= 3 * (int)mypriv->job._movie.width );
-			for (y=0; y < mypriv->job._movie.height; y++) {
-				for (x=0; x < mypriv->job._movie.width; x++) {
-					rgb pix;
-					mypriv->render->pixel_get(x, y, pix);
-					// FIXME XXX: This pixel packing might be totally bogus.
-					// FIXME XXX: If this works (or if not!) try direct copy between buffers. One line at a time, there's a stride in there.
-					// Actually, get the MemoryBuffer to go right in here?
-					frame->data[0][y * frame->linesize[0] + 3*x + 0] = pix.r;
-					frame->data[0][y * frame->linesize[0] + 3*x + 1] = pix.g;
-					frame->data[0][y * frame->linesize[0] + 3*x + 2] = pix.b;
-				}
+			for (unsigned y=0; y < mypriv->job._movie.height; y++) {
+				memcpy(&frame->data[0][y * frame->linesize[0]],
+						&mypriv->render_buf[y * mypriv->render->rowstride()],
+						mypriv->job._movie.width * mypriv->render->pixelstep());
 			}
 		}
 
