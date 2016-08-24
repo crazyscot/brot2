@@ -443,6 +443,12 @@ bool MovieWindow::run_filename(std::string& filename, std::shared_ptr<Movie::Ren
 	dialog.add_button(Gtk::Stock::CANCEL, Gtk::ResponseType::RESPONSE_CANCEL);
 	dialog.add_button(Gtk::Stock::SAVE, Gtk::ResponseType::RESPONSE_ACCEPT);
 
+	auto *default_factory = Movie::RendererFactory::get_factory(MOVIERENDER_NAME_MOV);
+	/*if (!default_factory) default_factory = Movie::RendererFactory::get_factory(SOME OTHER NAME);*/
+	std::string default_factory_name;
+	if (default_factory)
+		default_factory_name.append(default_factory->name);
+
 	auto types = Movie::RendererFactory::all_factory_names();
 	for (auto it=types.begin(); it!=types.end(); it++) {
 		Gtk::FileFilter *filter = Gtk::manage(new Gtk::FileFilter());
@@ -450,7 +456,10 @@ bool MovieWindow::run_filename(std::string& filename, std::shared_ptr<Movie::Ren
 		filter->set_name(ren->name);
 		filter->add_pattern(ren->pattern);
 		dialog.add_filter(*filter);
+		if (ren->name.compare(default_factory_name)==0)
+			dialog.set_filter(*filter);
 	}
+
 	dialog.set_current_folder(SavePNG::Base::default_save_dir());
 
 	int rv = dialog.run();
