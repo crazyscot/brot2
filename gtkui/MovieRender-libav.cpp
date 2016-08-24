@@ -159,12 +159,13 @@ class LibAV : public Movie::Renderer {
 				THROW(AVException,"Could not copy the stream parameters");
 			*/
 				
-			av_dump_format(mypriv->oc, 0, mypriv->oc->filename, 1); // XXX
+			av_dump_format(mypriv->oc, 0, mypriv->oc->filename, 1);
 			if (avio_open(&mypriv->oc->pb, mypriv->oc->filename, AVIO_FLAG_WRITE) < 0)
 				THROW(AVException,"Could not open file");
 			avformat_write_header(mypriv->oc, 0);
 
 			mypriv->render_buf = new unsigned char[3*c->width*c->height];
+			// TODO Get MemoryBuffer to render directly into frame[_tmp].
 			mypriv->render = new Render2::MemoryBuffer(mypriv->render_buf, 3*c->width/*rowstride*/, c->width, c->height,
 					job._movie.antialias, -1/*local_inf*/,
 					Render2::pixpack_format::PACKED_RGB_24, *job._movie.palette);
