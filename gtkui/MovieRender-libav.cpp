@@ -132,8 +132,10 @@ class LibAV : public Movie::Renderer {
 			// NOTE: For later versions of libav, compare:
 			// https://git.libav.org/?p=libav.git;a=commitdiff;h=9897d9f4e074cdc6c7f2409885ddefe300f18dc7
 			AVCodecContext *c = mypriv->st->codec;
-			c->width = job._movie.width;
-			c->height = job._movie.height;
+			// libav throws a rod if width and height are not multiples of 2, quietly enforce this
+			// NOTE: Must use height/width from mypriv->st->codec within the renderer as it may not equal the passed-in dimensions
+			c->width = job._movie.width + (job._movie.width % 2);
+			c->height = job._movie.height + (job._movie.height % 2);
 			c->bit_rate = c->width * c->height * job._movie.fps * 6 / 25;
 			/* The magic constant 6/25 gives us a bit rate in the region of (slightly above) 8Mbps for 1080p and 5Mbps for 720p.
 			 * At 2560x1440 (2K) it comes out at 22.1Mbit, where YouTube recommend 16;
@@ -181,11 +183,12 @@ class LibAV : public Movie::Renderer {
 			ret = av_frame_make_writable(frame);
 			if (ret < 0) THROW(AVException, "Could not make frame writable");
 
-			ASSERT( frame->linesize[0] >= 3 * (int)mypriv->job._movie.width );
-			for (unsigned y=0; y < mypriv->job._movie.height; y++) {
+			ASSERT( frame->linesize[0] >= 3 * mypriv->st->codec->width);
+			// NOTE: Must use height/width from mypriv->st->codec as it may not equal the passed-in dimensions
+			for (int y=0; y < mypriv->st->codec->height; y++) {
 				memcpy(&frame->data[0][y * frame->linesize[0]],
 						&mypriv->render_buf[y * mypriv->render->rowstride()],
-						mypriv->job._movie.width * mypriv->render->pixelstep());
+						mypriv->st->codec->width * mypriv->render->pixelstep());
 			}
 		}
 
