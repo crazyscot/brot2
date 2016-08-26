@@ -134,7 +134,11 @@ class LibAV : public Movie::Renderer {
 			AVCodecContext *c = mypriv->st->codec;
 			c->width = job._movie.width;
 			c->height = job._movie.height;
-			c->bit_rate = c->width * c->height * job._movie.fps * 3 / 25; // This magic constant (3/25) determined from "HQ" recommendations in table 1 on http://www.lighterra.com/papers/videoencodingh264/
+			c->bit_rate = c->width * c->height * job._movie.fps * 6 / 25;
+			/* The magic constant 6/25 gives us a bit rate in the region of (slightly above) 8Mbps for 1080p and 5Mbps for 720p.
+			 * At 2560x1440 (2K) it comes out at 22.1Mbit, where YouTube recommend 16;
+			 * at 3840x2160 (4K) it gives 49.8Mbit against a recommendation of 35-45. */
+			// std::cerr << "Creating video at bit rate " << c->bit_rate << std::endl;
 			mypriv->st->time_base = (AVRational){ 1, (int)job._movie.fps };
 			c->time_base = mypriv->st->time_base;
 			c->gop_size = 12; /* Trade-off better compression against the ability to seek. */
