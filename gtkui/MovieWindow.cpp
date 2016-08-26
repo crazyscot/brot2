@@ -345,18 +345,6 @@ bool MovieWindow::update_movie_struct() {
 	bool ok = true;
 	auto rows = priv->m_refTreeModel->children();
 
-	movie.points.clear();
-	for (auto it = rows.begin(); it != rows.end(); it++) {
-		struct Movie::KeyFrame kf(
-				(*it)[priv->m_columns.m_centre_re], (*it)[priv->m_columns.m_centre_im],
-				(*it)[priv->m_columns.m_size_re], (*it)[priv->m_columns.m_size_im],
-				(*it)[priv->m_columns.m_hold_frames],
-				(*it)[priv->m_columns.m_speed_zoom], (*it)[priv->m_columns.m_speed_translate]);
-		movie.points.push_back(kf);
-		if (! (*it)[priv->m_columns.m_speed_zoom] || ! (*it)[priv->m_columns.m_speed_translate] ) 
-			ok = false;
-	}
-
 	if (!priv->f_height.read(movie.height) || movie.height<1) {
 		priv->f_height.set_error();
 		ok = false;
@@ -369,6 +357,25 @@ bool MovieWindow::update_movie_struct() {
 	} else {
 		priv->f_width.clear_error();
 	}
+
+	double target_aspect = (double) movie.width / movie.height;
+
+	movie.points.clear();
+	for (auto it = rows.begin(); it != rows.end(); it++) {
+		struct Movie::KeyFrame kf(
+				(*it)[priv->m_columns.m_centre_re], (*it)[priv->m_columns.m_centre_im],
+				(*it)[priv->m_columns.m_size_re], (*it)[priv->m_columns.m_size_im],
+				(*it)[priv->m_columns.m_hold_frames],
+				(*it)[priv->m_columns.m_speed_zoom], (*it)[priv->m_columns.m_speed_translate]);
+		// Fix aspect ratio
+		if (imag(kf.size) * target_aspect != real(kf.size))
+			kf.size.imag(real(kf.size) / target_aspect);
+
+		movie.points.push_back(kf);
+		if (! (*it)[priv->m_columns.m_speed_zoom] || ! (*it)[priv->m_columns.m_speed_translate] ) 
+			ok = false;
+	}
+
 	if (!priv->f_fps.read(movie.fps) || movie.fps<1) {
 		priv->f_fps.set_error();
 		ok = false;
