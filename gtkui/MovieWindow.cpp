@@ -215,12 +215,12 @@ MovieWindow::MovieWindow(MainWindow& _mw, std::shared_ptr<const Prefs> prefs) : 
 	priv->f_fractal.set_markup("<i>will appear here</i>");
 	priv->f_palette.set_markup("<i>will appear here</i>");
 
-	lbl = Gtk::manage(new Gtk::Label("Height"));
-	tbl->attach(*lbl, 0, 1, 1, 2, Gtk::AttachOptions::FILL, Gtk::AttachOptions::FILL|Gtk::AttachOptions::EXPAND, 5);
-	tbl->attach(priv->f_height, 1, 2, 1, 2, Gtk::AttachOptions::SHRINK);
 	lbl = Gtk::manage(new Gtk::Label("Width"));
+	tbl->attach(*lbl, 0, 1, 1, 2, Gtk::AttachOptions::FILL, Gtk::AttachOptions::FILL|Gtk::AttachOptions::EXPAND, 5);
+	tbl->attach(priv->f_width, 1, 2, 1, 2, Gtk::AttachOptions::SHRINK);
+	lbl = Gtk::manage(new Gtk::Label("Height"));
 	tbl->attach(*lbl, 2, 3, 1, 2, Gtk::AttachOptions::FILL, Gtk::AttachOptions::FILL|Gtk::AttachOptions::EXPAND, 5);
-	tbl->attach(priv->f_width, 3, 4, 1, 2, Gtk::AttachOptions::SHRINK);
+	tbl->attach(priv->f_height, 3, 4, 1, 2, Gtk::AttachOptions::SHRINK);
 	tbl->attach(priv->f_hud, 4,5, 1, 2);
 	tbl->attach(priv->f_antialias, 5,6, 1, 2);
 	tbl->attach(* Gtk::manage(new Gtk::Label("Frames per second")), 0, 3, 2, 3);
