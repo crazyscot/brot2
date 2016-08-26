@@ -78,14 +78,16 @@ bool Movie::MotionZoom(const Fractal::Point& size_in, const Fractal::Point& size
 	// If we are zooming IN, size is DECREASING, so the delta is NEGATIVE 
 	if (real (size_in) > real(size_target) )
 		speed_z = -speed;
+	int speed_x = speed_z;
+	double speed_y = (double) speed_x * height / width;
 
 	// If we're close enough to target, we're done.
 	// But what does "close enough" mean? Good old floating-point comparisons...
 	// For our purposes we'll say that if zooming would take us beyond target, we're close enough.
 	struct signpair signs_before(calc_signs(size_in, size_target));
 	Fractal::Point tmp_out;
-	tmp_out.real( real(size_in) * (width + speed_z) / width );
-	tmp_out.imag( imag(size_in) * (height + speed_z) / height );
+	tmp_out.real( real(size_in) * (width + speed_x) / width );
+	tmp_out.imag( imag(size_in) * (height + speed_y) / height );
 	struct signpair signs_after(calc_signs(tmp_out, size_target));
 
 	// Action on "close enough": set output dimension precisely from input; next time the Easy Case check will return false.
@@ -115,8 +117,10 @@ bool Movie::MotionTranslate(const Fractal::Point& centre_in, const Fractal::Poin
 	struct signpair signs_before(calc_signs(centre_target, centre_in));
 	Fractal::Point tmp_out;
 
+	unsigned speed_x = speed;
+	double speed_y = (double) speed_x * height / width;
 	Fractal::Point pixel_size ( real(size) / width, imag(size) / height );
-	Fractal::Point delta ( real(pixel_size) * speed, imag(pixel_size) * speed );
+	Fractal::Point delta ( real(pixel_size) * speed_x, imag(pixel_size) * speed_y );
 
 	if (signs_before.real < 0)
 		delta.real(real(delta) * -1.0);
