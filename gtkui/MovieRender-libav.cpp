@@ -181,6 +181,7 @@ class LibAV : public Movie::Renderer {
 		AVFrame *frame;
 		AVFrame *tmp_frame;
 
+		bool finished_cleanly;
 
 		struct SwsContext *sws_ctx;
 		AVAudioResampleContext *avr;
@@ -193,7 +194,7 @@ class LibAV : public Movie::Renderer {
 
 		Private(Movie::RenderJob& _job) :
 			RenderInstancePrivate(_job),
-			fmt(0), oc(0), st(0), next_pts(0), frame(0), tmp_frame(0), sws_ctx(0), avr(0),
+			fmt(0), oc(0), st(0), next_pts(0), frame(0), tmp_frame(0), finished_cleanly(false), sws_ctx(0), avr(0),
 			plot(0), render(0), render_buf(0), prefs(BrotPrefs::Prefs::getMaster())
 		{
 			ConsoleOutputWindow::activate();
@@ -205,12 +206,13 @@ class LibAV : public Movie::Renderer {
 			sws_freeContext(sws_ctx);
 			sws_ctx = 0;
 			avresample_free(&avr);
-			ConsoleOutputWindow::render_finished(); // may hide Console
 			if (oc) {
 				avio_close(oc->pb); // may return error
 				avformat_free_context(oc);
 				oc = 0;
 			}
+			if (finished_cleanly)
+				ConsoleOutputWindow::render_finished(); // may hide Console
 			delete render;
 			delete render_buf;
 		}
@@ -398,6 +400,8 @@ class LibAV : public Movie::Renderer {
 
 			ret = av_write_trailer(mypriv->oc);
 			if (ret<0) THROW(AVException, "Error writing trailer, code "+ret);
+
+			mypriv->finished_cleanly = true;
 		}
 		virtual ~LibAV() {}
 };
