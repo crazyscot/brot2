@@ -49,7 +49,10 @@ SUBCLASS_BROTEXCEPTION(AVException);
 class ConsoleOutputWindow : public Gtk::Window {
 		Gtk::TextView *tv;
 		Glib::RefPtr<Gtk::TextBuffer::Mark> mark;
-	public:
+		static ConsoleOutputWindow * _instance; // SINGLETON
+		static std::mutex mux; // Protects _instance
+
+	// private constructor!
 		ConsoleOutputWindow() : Gtk::Window(), tv(0) {
 			set_title("libav output");
 			tv = Gtk::manage(new Gtk::TextView());
@@ -60,13 +63,50 @@ class ConsoleOutputWindow : public Gtk::Window {
 			tv->set_size_request(500,500); // Arbitrary size
 			tv->set_editable(false);
 			tv->set_cursor_visible(false);
-			show_all();
+			//show_all();
 		}
 		virtual ~ConsoleOutputWindow() {}
+		static void replacement_av_log(void *, int level, const char* fmt, va_list vl) {
+			// ugh, C++ meets C
+			va_list vl2;
+			va_copy(vl2, vl); // vl2 := vl
+			if (level < av_log_get_level()) return;
+			int bfsz = std::vsnprintf(0, 0, fmt, vl)+1;
+			char tmp[bfsz];
+			std::vsnprintf(tmp, bfsz, fmt, vl2);
+			_instance->log(tmp, tmp+strlen(tmp));
+			va_end(vl2);
+		}
+
+		// Must have gdk_threads lock
+		static ConsoleOutputWindow* get_instance() {
+			std::unique_lock<std::mutex> lock(mux);
+			if (!_instance) {
+				_instance = new ConsoleOutputWindow();
+				av_log_set_callback(&ConsoleOutputWindow::replacement_av_log);
+			}
+			return _instance;
+		}
+		// Must have gdk_threads lock
+		void reset() {
+			auto buf = tv->get_buffer();
+			Gtk::TextBuffer::iterator it_begin, it_end;
+			buf->get_bounds(it_begin, it_end);
+			buf->erase(it_begin, it_end);
+			buf->move_mark(mark, --buf->end());
+			tv->scroll_to(buf->create_mark(buf->end()));
+		}
+	public:
+		static void activate() {
+			gdk_threads_enter();
+			auto inst = get_instance();
+			inst->reset();
+			inst->show_all();
+			gdk_threads_leave();
+		}
 		virtual bool on_delete_event(GdkEventAny *) {
-			return true;
-			// We're auto-deleted once the render ends (or is cancelled).
-			// TODO Maybe this merges into the progress window. Much saner !
+			hide();
+			return true; // We only pretend to delete this singleton
 		}
 		void log(const char* begin, const char* end) {
 			gdk_threads_enter();
@@ -76,32 +116,12 @@ class ConsoleOutputWindow : public Gtk::Window {
 			tv->scroll_to(buf->create_mark(buf->end()));
 			gdk_threads_leave();
 		}
-		/* DESIGN:
-		 * Primarily a Gtk TextView.
-		 * When finished we do NOT auto-destruct; stay open until user clicks Dismiss.
-		 * Provide a log function which adds stuff to the TView. Make sure the av_dump goes here too.
-		 */
+		static void render_finished() {
+			// TODO: Hide if not ticked
+		}
 };
-
-static ConsoleOutputWindow* myconsole;
-void brot2_av_log(void *avcl, int level, const char* fmt, va_list vl) {
-	if (myconsole) {
-		va_list vl2;
-		va_copy(vl2, vl);
-		if (level < av_log_get_level()) return;
-		// ugh, C++ meets C
-		int bfsz = std::vsnprintf(0, 0, fmt, vl)+1;
-		char tmp[bfsz];
-		std::vsnprintf(tmp, bfsz, fmt, vl2);
-		myconsole->log(tmp, tmp+strlen(tmp));
-		va_end(vl2);
-	} else {
-		av_log_default_callback(avcl, level, fmt, vl);
-	}
-}
-void set_av_log_dest(ConsoleOutputWindow* console) {
-	myconsole = console;
-}
+ConsoleOutputWindow * ConsoleOutputWindow::_instance; // SINGLETON
+std::mutex ConsoleOutputWindow::mux; // Protects _instance
 
 class LibAV : public Movie::Renderer {
 	class Private : public Movie::RenderInstancePrivate {
@@ -129,14 +149,12 @@ class LibAV : public Movie::Renderer {
 		unsigned char *render_buf;
 		std::shared_ptr<const BrotPrefs::Prefs> prefs;
 
-		ConsoleOutputWindow *console;
-
 		Private(Movie::RenderJob& _job) :
 			RenderInstancePrivate(_job),
 			st(0), next_pts(0), frame(0), tmp_frame(0), sws_ctx(0), avr(0),
 			plot(0), render(0), render_buf(0), prefs(BrotPrefs::Prefs::getMaster())
 		{
-			console = new ConsoleOutputWindow();
+			ConsoleOutputWindow::activate();
 		}
 		virtual ~Private() {
 			avcodec_close(st->codec); // what does the rv mean?
@@ -148,11 +166,7 @@ class LibAV : public Movie::Renderer {
 			avio_close(oc->pb); // may return error
 			avformat_free_context(oc);
 			oc = 0;
-			if (myconsole == this->console) {
-				myconsole = 0;
-				av_log_set_callback( av_log_default_callback );
-				delete console;
-			}
+			ConsoleOutputWindow::render_finished(); // may hide Console
 			delete render;
 			delete render_buf;
 		}
@@ -176,9 +190,6 @@ class LibAV : public Movie::Renderer {
 			av_register_all();
 			Private *mypriv = new Private(job);
 			*priv = mypriv;
-
-			set_av_log_dest(mypriv->console);
-			av_log_set_callback(brot2_av_log);
 
 			mypriv->fmt = av_guess_format(0, job._filename.c_str(), 0);
 			if (!mypriv->fmt)
