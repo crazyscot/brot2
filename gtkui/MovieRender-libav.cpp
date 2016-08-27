@@ -25,10 +25,13 @@
 #include <iostream>
 #include <iomanip>
 #include <errno.h>
+#include <gtkmm/window.h>
+#include <gtkmm/textview.h>
 
 extern "C" {
 #include "libavutil/channel_layout.h"
 #include "libavutil/mathematics.h"
+#include "libavutil/log.h"
 #include "libavutil/opt.h"
 #include "libavformat/avformat.h"
 #include "libavresample/avresample.h"
@@ -42,6 +45,61 @@ using namespace std;
 #define SCALE_FLAGS SWS_BICUBIC
 
 SUBCLASS_BROTEXCEPTION(AVException);
+
+class ConsoleOutputWindow : public Gtk::Window {
+		Gtk::TextView *tv;
+		Glib::RefPtr<Gtk::TextBuffer::Mark> mark;
+	public:
+		ConsoleOutputWindow() : Gtk::Window(), tv(0) {
+			set_title("libav output");
+			tv = Gtk::manage(new Gtk::TextView());
+			add(*tv);
+			auto buf = tv->get_buffer();
+			mark = buf->create_mark(buf->end());
+			tv->set_wrap_mode(Gtk::WrapMode::WRAP_WORD_CHAR);
+			tv->set_size_request(500,500); // Arbitrary size
+			tv->set_editable(false);
+			tv->set_cursor_visible(false);
+			show_all();
+		}
+		virtual ~ConsoleOutputWindow() {}
+		virtual bool on_delete_event(GdkEventAny *) {
+			return true;
+			// We're auto-deleted once the render ends (or is cancelled).
+			// TODO Maybe this merges into the progress window. Much saner !
+		}
+		void log(const char* begin, const char* end) {
+			auto buf = tv->get_buffer();
+			buf->insert(buf->end(), begin, end);
+			buf->move_mark(mark, --buf->end());
+			tv->scroll_to(buf->create_mark(buf->end()));
+		}
+		/* DESIGN:
+		 * Primarily a Gtk TextView.
+		 * When finished we do NOT auto-destruct; stay open until user clicks Dismiss.
+		 * Provide a log function which adds stuff to the TView. Make sure the av_dump goes here too.
+		 */
+};
+
+static ConsoleOutputWindow* myconsole;
+void brot2_av_log(void *avcl, int level, const char* fmt, va_list vl) {
+	if (myconsole) {
+		va_list vl2;
+		va_copy(vl2, vl);
+		if (level < av_log_get_level()) return;
+		// ugh, C++ meets C
+		int bfsz = std::vsnprintf(0, 0, fmt, vl)+1;
+		char tmp[bfsz];
+		std::vsnprintf(tmp, bfsz, fmt, vl2);
+		myconsole->log(tmp, tmp+strlen(tmp));
+		va_end(vl2);
+	} else {
+		av_log_default_callback(avcl, level, fmt, vl);
+	}
+}
+void set_av_log_dest(ConsoleOutputWindow* console) {
+	myconsole = console;
+}
 
 class LibAV : public Movie::Renderer {
 	class Private : public Movie::RenderInstancePrivate {
@@ -69,11 +127,14 @@ class LibAV : public Movie::Renderer {
 		unsigned char *render_buf;
 		std::shared_ptr<const BrotPrefs::Prefs> prefs;
 
+		ConsoleOutputWindow *console;
+
 		Private(Movie::RenderJob& _job) :
 			RenderInstancePrivate(_job),
 			st(0), next_pts(0), frame(0), tmp_frame(0), sws_ctx(0), avr(0),
 			plot(0), render(0), render_buf(0), prefs(BrotPrefs::Prefs::getMaster())
 		{
+			console = new ConsoleOutputWindow();
 		}
 		virtual ~Private() {
 			avcodec_close(st->codec); // what does the rv mean?
@@ -85,6 +146,11 @@ class LibAV : public Movie::Renderer {
 			avio_close(oc->pb); // may return error
 			avformat_free_context(oc);
 			oc = 0;
+			if (myconsole == this->console) {
+				myconsole = 0;
+				av_log_set_callback( av_log_default_callback );
+				delete console;
+			}
 			delete render;
 			delete render_buf;
 		}
@@ -108,6 +174,9 @@ class LibAV : public Movie::Renderer {
 			av_register_all();
 			Private *mypriv = new Private(job);
 			*priv = mypriv;
+
+			set_av_log_dest(mypriv->console);
+			av_log_set_callback(brot2_av_log);
 
 			mypriv->fmt = av_guess_format(0, job._filename.c_str(), 0);
 			if (!mypriv->fmt)
