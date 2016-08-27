@@ -22,12 +22,15 @@
 #include "Plot3Plot.h"
 #include "Exception.h"
 #include "BaseHUD.h"
+#include "gtkutil.h"
 #include <iostream>
 #include <iomanip>
 #include <errno.h>
 #include <gtkmm/window.h>
 #include <gtkmm/textview.h>
 #include <gtkmm/box.h>
+#include <gtkmm/filechooserdialog.h>
+#include <gtkmm/stock.h>
 
 extern "C" {
 #include "libavutil/channel_layout.h"
@@ -61,11 +64,14 @@ class ConsoleOutputWindow : public Gtk::Window {
 			add(*vbox);
 
 			Gtk::HBox *hbox = Gtk::manage(new Gtk::HBox());
-			autoclose = Gtk::manage(new Gtk::CheckButton("Close log when render complete"));
+			autoclose = Gtk::manage(new Gtk::CheckButton("Close this window when render complete"));
 			hbox->pack_start(*autoclose);
 			// TODO: autoclose state could be a Pref?
 
-			// TODO Save button
+			Gtk::Button *save = Gtk::manage(new Gtk::Button("Save log..."));
+			save->signal_clicked().connect(sigc::mem_fun(*this, &ConsoleOutputWindow::do_save));
+			hbox->pack_start(*save);
+
 			vbox->pack_start(*hbox);
 
 			tv = Gtk::manage(new Gtk::TextView());
@@ -108,6 +114,28 @@ class ConsoleOutputWindow : public Gtk::Window {
 			buf->erase(it_begin, it_end);
 			buf->move_mark(mark, --buf->end());
 			tv->scroll_to(buf->create_mark(buf->end()));
+		}
+		void do_save() {
+			Gtk::FileChooserDialog dialog(*this, "Save log", Gtk::FileChooserAction::FILE_CHOOSER_ACTION_SAVE);
+			dialog.set_do_overwrite_confirmation(true);
+			dialog.add_button(Gtk::Stock::CANCEL, Gtk::ResponseType::RESPONSE_CANCEL);
+			dialog.add_button(Gtk::Stock::SAVE, Gtk::ResponseType::RESPONSE_ACCEPT);
+			int rv = dialog.run();
+			if (rv != Gtk::ResponseType::RESPONSE_ACCEPT) return;
+
+			ofstream file;
+			file.open(dialog.get_filename());
+			if (!file.is_open()) {
+				Util::alert(this, "Unable to open file for writing");
+				return;
+			}
+			auto buf = tv->get_buffer();
+			// This is a bit nasty, appears to copy out the whole buffer contents.
+			Gtk::TextBuffer::iterator it_begin, it_end;
+			buf->get_bounds(it_begin, it_end);
+			auto text = buf->get_text(it_begin, it_end);
+			file << text;
+			file.close();
 		}
 	public:
 		static void activate() {
