@@ -27,6 +27,7 @@
 #include <errno.h>
 #include <gtkmm/window.h>
 #include <gtkmm/textview.h>
+#include <gtkmm/box.h>
 
 extern "C" {
 #include "libavutil/channel_layout.h"
@@ -49,21 +50,33 @@ SUBCLASS_BROTEXCEPTION(AVException);
 class ConsoleOutputWindow : public Gtk::Window {
 		Gtk::TextView *tv;
 		Glib::RefPtr<Gtk::TextBuffer::Mark> mark;
+		Gtk::CheckButton *autoclose;
 		static ConsoleOutputWindow * _instance; // SINGLETON
 		static std::mutex mux; // Protects _instance
 
 	// private constructor!
 		ConsoleOutputWindow() : Gtk::Window(), tv(0) {
 			set_title("libav output");
+			Gtk::VBox *vbox = Gtk::manage(new Gtk::VBox());
+			add(*vbox);
+
+			Gtk::HBox *hbox = Gtk::manage(new Gtk::HBox());
+			autoclose = Gtk::manage(new Gtk::CheckButton("Close log when render complete"));
+			hbox->pack_start(*autoclose);
+			// TODO: autoclose state could be a Pref?
+
+			// TODO Save button
+			vbox->pack_start(*hbox);
+
 			tv = Gtk::manage(new Gtk::TextView());
-			add(*tv);
+			vbox->pack_start(*tv);
 			auto buf = tv->get_buffer();
 			mark = buf->create_mark(buf->end());
 			tv->set_wrap_mode(Gtk::WrapMode::WRAP_WORD_CHAR);
 			tv->set_size_request(500,500); // Arbitrary size
 			tv->set_editable(false);
 			tv->set_cursor_visible(false);
-			//show_all();
+			//show_all(); // Don't do this, activate() will do it.
 		}
 		virtual ~ConsoleOutputWindow() {}
 		static void replacement_av_log(void *, int level, const char* fmt, va_list vl) {
@@ -117,7 +130,9 @@ class ConsoleOutputWindow : public Gtk::Window {
 			gdk_threads_leave();
 		}
 		static void render_finished() {
-			// TODO: Hide if not ticked
+			auto in = get_instance();
+			if (in->autoclose->get_active())
+				in->hide();
 		}
 };
 ConsoleOutputWindow * ConsoleOutputWindow::_instance; // SINGLETON
