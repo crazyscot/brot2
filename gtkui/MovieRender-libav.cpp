@@ -69,10 +69,12 @@ class ConsoleOutputWindow : public Gtk::Window {
 			// TODO Maybe this merges into the progress window. Much saner !
 		}
 		void log(const char* begin, const char* end) {
+			gdk_threads_enter();
 			auto buf = tv->get_buffer();
 			buf->insert(buf->end(), begin, end);
 			buf->move_mark(mark, --buf->end());
 			tv->scroll_to(buf->create_mark(buf->end()));
+			gdk_threads_leave();
 		}
 		/* DESIGN:
 		 * Primarily a Gtk TextView.
