@@ -181,7 +181,6 @@ class LibAV : public Movie::Renderer {
 		AVFrame *frame;
 		AVFrame *tmp_frame;
 
-		float t, tincr, tincr2;
 
 		struct SwsContext *sws_ctx;
 		AVAudioResampleContext *avr;
