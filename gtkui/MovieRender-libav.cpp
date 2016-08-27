@@ -193,22 +193,24 @@ class LibAV : public Movie::Renderer {
 
 		Private(Movie::RenderJob& _job) :
 			RenderInstancePrivate(_job),
-			st(0), next_pts(0), frame(0), tmp_frame(0), sws_ctx(0), avr(0),
+			fmt(0), oc(0), st(0), next_pts(0), frame(0), tmp_frame(0), sws_ctx(0), avr(0),
 			plot(0), render(0), render_buf(0), prefs(BrotPrefs::Prefs::getMaster())
 		{
 			ConsoleOutputWindow::activate();
 		}
 		virtual ~Private() {
-			avcodec_close(st->codec); // what does the rv mean?
+			if (st) avcodec_close(st->codec); // what does the rv mean?
 			av_frame_free(&frame);
 			av_frame_free(&tmp_frame);
 			sws_freeContext(sws_ctx);
 			sws_ctx = 0;
 			avresample_free(&avr);
-			avio_close(oc->pb); // may return error
-			avformat_free_context(oc);
-			oc = 0;
 			ConsoleOutputWindow::render_finished(); // may hide Console
+			if (oc) {
+				avio_close(oc->pb); // may return error
+				avformat_free_context(oc);
+				oc = 0;
+			}
 			delete render;
 			delete render_buf;
 		}
