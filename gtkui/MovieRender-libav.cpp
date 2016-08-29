@@ -86,10 +86,17 @@ class ConsoleOutputWindow : public Gtk::Window {
 			//show_all(); // Don't do this, activate() will do it.
 		}
 		virtual ~ConsoleOutputWindow() {}
-		static void replacement_av_log(void *, int level, const char* fmt, va_list vl) {
+		static void replacement_av_log(void *ptr, int level, const char* fmt, va_list vl) {
 			if (level > av_log_get_level()) return;
 			char line[LIBAV_LINE_SIZE];
-			vsnprintf(line, sizeof(line), fmt, vl);
+			int print_prefix = 1;
+			av_log_format_line(ptr, level, fmt, vl, line, sizeof(line), &print_prefix);
+			// libav sanitises the log line, so let's do that as well
+			char *tmp = line;
+			while (*tmp) {
+				if (*tmp < 8 || (*tmp > 0xd && *tmp < 32)) *tmp = '?';
+				++tmp;
+			}
 			_instance->log(line, line+strlen(line));
 		}
 
