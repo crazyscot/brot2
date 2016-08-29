@@ -87,7 +87,7 @@ class ConsoleOutputWindow : public Gtk::Window {
 		}
 		virtual ~ConsoleOutputWindow() {}
 		static void replacement_av_log(void *, int level, const char* fmt, va_list vl) {
-			if (level < av_log_get_level()) return;
+			if (level > av_log_get_level()) return;
 			char line[LIBAV_LINE_SIZE];
 			vsnprintf(line, sizeof(line), fmt, vl);
 			_instance->log(line, line+strlen(line));
