@@ -47,6 +47,7 @@ using namespace std;
 // ------------------------------------------------------------------------------
 
 #define SCALE_FLAGS SWS_BICUBIC
+#define LIBAV_LINE_SIZE 1024 // Source: https://www.ffmpeg.org/doxygen/2.7/log_8c_source.html
 
 SUBCLASS_BROTEXCEPTION(AVException);
 
@@ -86,15 +87,10 @@ class ConsoleOutputWindow : public Gtk::Window {
 		}
 		virtual ~ConsoleOutputWindow() {}
 		static void replacement_av_log(void *, int level, const char* fmt, va_list vl) {
-			// ugh, C++ meets C
-			va_list vl2;
-			va_copy(vl2, vl); // vl2 := vl
 			if (level < av_log_get_level()) return;
-			int bfsz = std::vsnprintf(0, 0, fmt, vl)+1;
-			char tmp[bfsz];
-			std::vsnprintf(tmp, bfsz, fmt, vl2);
-			_instance->log(tmp, tmp+strlen(tmp));
-			va_end(vl2);
+			char line[LIBAV_LINE_SIZE];
+			vsnprintf(line, sizeof(line), fmt, vl);
+			_instance->log(line, line+strlen(line));
 		}
 
 		// Must have gdk_threads lock
