@@ -31,6 +31,7 @@
 #include <gtkmm/box.h>
 #include <gtkmm/filechooserdialog.h>
 #include <gtkmm/stock.h>
+#include <gtkmm/texttag.h>
 
 extern "C" {
 #include "libavutil/channel_layout.h"
@@ -58,6 +59,12 @@ class ConsoleOutputWindow : public Gtk::Window {
 		static ConsoleOutputWindow * _instance; // SINGLETON
 		static std::mutex mux; // Protects _instance
 
+		Glib::RefPtr<Gtk::TextTag> t_panic;
+		Glib::RefPtr<Gtk::TextTag> t_fatal;
+		Glib::RefPtr<Gtk::TextTag> t_error;
+		Glib::RefPtr<Gtk::TextTag> t_warning;
+		Glib::RefPtr<Gtk::TextTag> t_info;
+
 	// private constructor!
 		ConsoleOutputWindow() : Gtk::Window(), tv(0) {
 			set_title("libav output");
@@ -84,10 +91,38 @@ class ConsoleOutputWindow : public Gtk::Window {
 			tv->set_editable(false);
 			tv->set_cursor_visible(false);
 			//show_all(); // Don't do this, activate() will do it.
+			auto tags = buf->get_tag_table();
+			// Info - blue
+			t_info=Gtk::TextTag::create("info");
+			t_info->property_foreground().set_value("blue");
+			tags->add(t_info);
+			// Warning - yellow on black
+			t_warning=Gtk::TextTag::create("warning");
+			t_warning->property_foreground().set_value("yellow");
+			t_warning->property_background().set_value("black");
+			tags->add(t_warning);
+			// Error - red on black
+			t_error=Gtk::TextTag::create("error");
+			t_error->property_foreground().set_value("red");
+			t_error->property_background().set_value("black");
+			tags->add(t_error);
+			// Fatal - red on yellow
+			t_fatal=Gtk::TextTag::create("fatal");
+			t_fatal->property_foreground().set_value("red");
+			t_fatal->property_background().set_value("yellow");
+			tags->add(t_fatal);
+			// Panic - red on orange
+			t_panic=Gtk::TextTag::create("panic");
+			t_panic->property_foreground().set_value("blue");
+			t_panic->property_background().set_value("orange");
+			tags->add(t_panic);
 		}
 		virtual ~ConsoleOutputWindow() {}
 		static void replacement_av_log(void *ptr, int level, const char* fmt, va_list vl) {
-			if (level > av_log_get_level()) return;
+			if (level > av_log_get_level()) {
+				//std::cerr << "level " << level << ":" << fmt << std::endl;
+				return;
+			}
 			char line[LIBAV_LINE_SIZE];
 			int print_prefix = 1;
 			av_log_format_line(ptr, level, fmt, vl, line, sizeof(line), &print_prefix);
@@ -97,7 +132,7 @@ class ConsoleOutputWindow : public Gtk::Window {
 				if (*tmp < 8 || (*tmp > 0xd && *tmp < 32)) *tmp = '?';
 				++tmp;
 			}
-			_instance->log(line, line+strlen(line));
+			_instance->log(level, line, line+strlen(line));
 		}
 
 		// Must have gdk_threads lock
@@ -106,6 +141,9 @@ class ConsoleOutputWindow : public Gtk::Window {
 			if (!_instance) {
 				_instance = new ConsoleOutputWindow();
 				av_log_set_callback(&ConsoleOutputWindow::replacement_av_log);
+				av_log_set_level(AV_LOG_VERBOSE);
+				// Debug level contains one line per frame encoded.
+				// Trace inclues flushing details.
 			}
 			return _instance;
 		}
@@ -147,15 +185,33 @@ class ConsoleOutputWindow : public Gtk::Window {
 			inst->reset();
 			inst->show_all();
 			gdk_threads_leave();
+			/*
+			av_log(0, AV_LOG_INFO, "test info\n");
+			av_log(0, AV_LOG_WARNING, "test warning\n");
+			av_log(0, AV_LOG_ERROR, "test error\n");
+			av_log(0, AV_LOG_FATAL, "test fatal\n");
+			av_log(0, AV_LOG_PANIC, "test panic\n");
+			*/
 		}
 		virtual bool on_delete_event(GdkEventAny *) {
 			hide();
 			return true; // We only pretend to delete this singleton
 		}
-		void log(const char* begin, const char* end) {
+		void log(int level, const char* begin, const char* end) {
 			gdk_threads_enter();
 			auto buf = tv->get_buffer();
-			buf->insert(buf->end(), begin, end);
+			Glib::RefPtr<Gtk::TextTag> tag(0);
+			switch(level) {
+				case AV_LOG_INFO: tag = t_info; break;
+				case AV_LOG_WARNING: tag = t_warning; break;
+				case AV_LOG_ERROR: tag = t_error; break;
+				case AV_LOG_FATAL: tag = t_fatal; break;
+				case AV_LOG_PANIC: tag = t_panic; break;
+			}
+			if (tag)
+				buf->insert_with_tag(buf->end(), begin, end, tag);
+			else
+				buf->insert(buf->end(), begin, end);
 			buf->move_mark(mark, --buf->end());
 			tv->scroll_to(buf->create_mark(buf->end()));
 			gdk_threads_leave();
