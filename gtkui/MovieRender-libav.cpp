@@ -27,6 +27,7 @@
 #include <iomanip>
 #include <errno.h>
 #include <gtkmm/window.h>
+#include <gtkmm/scrolledwindow.h>
 #include <gtkmm/textview.h>
 #include <gtkmm/box.h>
 #include <gtkmm/filechooserdialog.h>
@@ -68,6 +69,7 @@ class ConsoleOutputWindow : public Gtk::Window {
 	// private constructor!
 		ConsoleOutputWindow() : Gtk::Window(), tv(0) {
 			set_title("libav output");
+
 			Gtk::VBox *vbox = Gtk::manage(new Gtk::VBox());
 			add(*vbox);
 
@@ -82,8 +84,12 @@ class ConsoleOutputWindow : public Gtk::Window {
 
 			vbox->pack_start(*hbox);
 
+			Gtk::ScrolledWindow * swin = Gtk::manage(new Gtk::ScrolledWindow());
+			vbox->pack_start(*swin);
+			swin->set_policy(Gtk::PolicyType::POLICY_AUTOMATIC, Gtk::PolicyType::POLICY_AUTOMATIC);
+
 			tv = Gtk::manage(new Gtk::TextView());
-			vbox->pack_start(*tv);
+			swin->add(*tv);
 			auto buf = tv->get_buffer();
 			mark = buf->create_mark(buf->end());
 			tv->set_wrap_mode(Gtk::WrapMode::WRAP_WORD_CHAR);
@@ -91,6 +97,8 @@ class ConsoleOutputWindow : public Gtk::Window {
 			tv->set_editable(false);
 			tv->set_cursor_visible(false);
 			//show_all(); // Don't do this, activate() will do it.
+
+			// Set up some tags to format our text.
 			auto tags = buf->get_tag_table();
 			// Info - blue
 			t_info=Gtk::TextTag::create("info");
