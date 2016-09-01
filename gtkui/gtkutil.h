@@ -94,6 +94,11 @@ class HandyEntry: public Gtk::Entry {
 		}
 };
 
+// Reads out the geometry for the screen on which the given window appears
+void get_screen_geometry(const Gtk::Window& window, int& x, int& y);
+
+// Ensures that the given X and Y co-ordinates lie within a window's screen area, moving them if not
+void fix_window_coords(const Gtk::Window& window, int& x, int& y);
 
 }; // namespace Util
 
