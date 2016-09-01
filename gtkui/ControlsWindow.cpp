@@ -21,6 +21,7 @@
 #include "MainWindow.h"
 #include "Fractal.h"
 #include "misc.h"
+#include "gtkutil.h"
 #include "Prefs.h"
 #include "Exception.h"
 
@@ -335,11 +336,16 @@ ControlsWindow::ControlsWindow(MainWindow& _mw, std::shared_ptr<const Prefs> pre
 }
 
 void ControlsWindow::starting_position() {
-	/* By default the main window is centred at size 300x300, and this window
-	 * centres as well, so let's move ourselves along a bit */
-	int xx,yy;
-	mw.get_position(xx,yy);
-	move(xx+MainWindow::DEFAULT_INITIAL_SIZE+10,yy); // allow a little for window decoration
+	/* This window will attempt to appear in line with the main window, offset to the right.
+	 * If this is not possible it will appear at an edge. */
+	int ww, hh, mx, my;
+	Util::get_screen_geometry(*this, ww, hh);
+	mw.get_position(mx, my);
+	int xx = mx + mw.get_width();
+	int yy = my;
+	if (xx+get_width() > ww) xx = mx-get_width(); // Off screen? Try the left.
+	Util::fix_window_coords(*this, xx, yy); // No? (test case: Main is fullscreen) Just put it flush left.
+	move(xx,yy);
 }
 
 void ControlsWindow::on_defaults() {
