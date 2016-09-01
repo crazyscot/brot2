@@ -23,6 +23,7 @@
 #include "Exception.h"
 #include "BaseHUD.h"
 #include "gtkutil.h"
+#include "IMovieProgress.h"
 #include <iostream>
 #include <iomanip>
 #include <errno.h>
@@ -69,6 +70,7 @@ class ConsoleOutputWindow : public Gtk::Window {
 	// private constructor!
 		ConsoleOutputWindow() : Gtk::Window(), tv(0) {
 			set_title("libav output");
+			set_type_hint(Gdk::WindowTypeHint::WINDOW_TYPE_HINT_UTILITY);
 
 			Gtk::VBox *vbox = Gtk::manage(new Gtk::VBox());
 			add(*vbox);
@@ -186,12 +188,30 @@ class ConsoleOutputWindow : public Gtk::Window {
 			file << text;
 			file.close();
 		}
+		void position_for(Movie::IMovieProgressReporter * parent) {
+			Gtk::Window * pw = dynamic_cast<Gtk::Window*> (parent);
+			if (!pw) return; // We only know how to deal with Gtk::Windows...
+			int ww, hh, px, py;
+			Util::get_screen_geometry(*this, ww, hh);
+			pw->get_position(px, py);
+			// Try to position below the progress window.
+			int xx = px;
+			int yy = py + pw->get_height();
+			// Off the bottom? Try above.
+			if (yy + get_height() > hh) yy = py - get_height() - 20;
+			// Off the top? Don't bother trying to be smart, let it go where it goes.
+			if (yy >= 0) {
+				Util::fix_window_coords(*this, xx, yy); // Sanity check
+				move(xx,yy);
+			}
+		}
 	public:
-		static void activate() {
+		static void activate(Movie::IMovieProgressReporter * parent) {
 			gdk_threads_enter();
 			auto inst = get_instance();
 			inst->reset();
 			inst->show_all();
+			inst->position_for(parent);
 			gdk_threads_leave();
 			/*
 			av_log(0, AV_LOG_INFO, "test info\n");
@@ -264,7 +284,7 @@ class LibAV : public Movie::Renderer {
 			fmt(0), oc(0), st(0), next_pts(0), frame(0), tmp_frame(0), finished_cleanly(false), sws_ctx(0), avr(0),
 			plot(0), render(0), render_buf(0), prefs(BrotPrefs::Prefs::getMaster())
 		{
-			ConsoleOutputWindow::activate();
+			ConsoleOutputWindow::activate(_job._reporter);
 		}
 		virtual ~Private() {
 			if (st) avcodec_close(st->codec); // what does the rv mean?
