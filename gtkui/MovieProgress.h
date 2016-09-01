@@ -27,11 +27,14 @@
 #include <gtkmm/progressbar.h>
 #include <gtkmm/button.h>
 
+class MovieWindow;
+
 namespace Movie {
 	class Renderer;
 
 	class Progress: public Gtk::Window, public Movie::IMovieProgressReporter {
 		private:
+			MovieWindow& parent;
 			Movie::Renderer& renderer;
 			Gtk::VBox* vbox;
 			Gtk::ProgressBar *plotbar, *framebar, *moviebar;
@@ -50,7 +53,7 @@ namespace Movie {
 			virtual void frames_traversed_gdklocked(int n); // Caller must have the gdk threads lock.
 
 		public:
-			Progress(const struct MovieInfo &, Movie::Renderer &); // Must hold the GDK threads lock!
+			Progress(MovieWindow& parent, const struct MovieInfo &, Movie::Renderer &); // Must hold the GDK threads lock!
 			virtual ~Progress();
 
 			// These 3 functions, from IPlot3DataSink, all lock the GDK lock.

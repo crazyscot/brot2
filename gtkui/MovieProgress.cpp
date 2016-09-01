@@ -19,12 +19,14 @@
 #include "MovieProgress.h"
 #include "MovieMode.h"
 #include "MovieRender.h"
+#include "MovieWindow.h"
+#include "gtkutil.h"
 #include <sstream>
 #include <gtkmm/button.h>
 #include <gtkmm/buttonbox.h>
 #include <gtkmm/messagedialog.h>
 
-Movie::Progress::Progress(const struct MovieInfo &_movie, Movie::Renderer& _ren) : renderer(_ren),
+Movie::Progress::Progress(MovieWindow& _parent, const struct MovieInfo &_movie, Movie::Renderer& _ren) : parent(_parent), renderer(_ren),
 	chunks_done(0), chunks_count(0), frames_done(-1),
 	npixels(_movie.height * _movie.width * (_movie.antialias ? 4 : 1)),
 	nframes(_movie.count_frames()), movie(_movie)
@@ -35,6 +37,8 @@ Movie::Progress::Progress(const struct MovieInfo &_movie, Movie::Renderer& _ren)
 	framebar = Gtk::manage(new Gtk::ProgressBar());
 	moviebar = Gtk::manage(new Gtk::ProgressBar());
 	set_title("Movie progress");
+	set_type_hint(Gdk::WindowTypeHint::WINDOW_TYPE_HINT_UTILITY);
+
 	Gtk::Label *lbl;
 #define LABEL(_txt) do { lbl = Gtk::manage(new Gtk::Label(_txt)); vbox->pack_start(*lbl); } while(0)
 	LABEL("Current pass");
@@ -56,6 +60,20 @@ Movie::Progress::Progress(const struct MovieInfo &_movie, Movie::Renderer& _ren)
 	Glib::signal_timeout().connect( sigc::mem_fun(*this, &Movie::Progress::on_timer), 300 );
 	// Cannot call plot_complete() here as we already hold the GDK lock
 	frames_traversed_gdklocked(1);
+
+	// And set up an initial position.. Try to put this left of the Movie window.
+	// This is tricky as the window resizes itself around its content soon after construction.
+	// For now I'm going to cheat horribly and hard-wire what it ends up as on my machine :-)
+#define ASSUMED_PROGRESS_WIDTH 280
+	int ww, hh, px, py;
+	Util::get_screen_geometry(*this, ww, hh);
+	parent.get_position(px, py);
+	int xx = px - ASSUMED_PROGRESS_WIDTH;
+	int yy = py;
+	// Put at same Y placement as parent, unless we don't fit
+	if (yy + get_height() + 20 > hh) yy = hh - get_height() - 20;
+	Util::fix_window_coords(*this, xx, yy); // Sanity check
+	move(xx,yy);
 }
 
 Movie::Progress::~Progress() {}

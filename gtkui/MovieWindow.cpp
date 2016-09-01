@@ -450,7 +450,7 @@ void MovieWindow::do_render() {
 	if (!run_filename(filename, renderer))
 		return;
 
-	Movie::Progress* reporter = new Movie::Progress(movie, *renderer);
+	Movie::Progress* reporter = new Movie::Progress(*this, movie, *renderer);
 	renderer->start(*reporter, *this, filename, movie, mw.prefs(), mw.get_threadpool(), brot2_argv0);
 	// reporter will be deleted when completion signalled
 }
