@@ -199,6 +199,7 @@ MovieWindow::MovieWindow(MainWindow& _mw, std::shared_ptr<const Prefs> prefs) : 
 {
 	priv = new MovieWindowPrivate();
 	set_title("Make movie");
+	set_type_hint(Gdk::WindowTypeHint::WINDOW_TYPE_HINT_UTILITY);
 
 	Gtk::VBox *vbox = Gtk::manage(new Gtk::VBox());
 
@@ -288,12 +289,23 @@ MovieWindow::MovieWindow(MainWindow& _mw, std::shared_ptr<const Prefs> prefs) : 
 	this->add(*vbox);
 	hide();
 	vbox->show_all();
-
-	// LATER this window shouldn't appear over the main window if possible
 }
 
 MovieWindow::~MovieWindow() {
 	delete priv;
+}
+
+void MovieWindow::initial_position() {
+	int ww, hh, mx, my;
+	Util::get_screen_geometry(*this, ww, hh);
+	mw.get_position(mx, my);
+	// First position: In line with main, offset to the left.
+	int xx = mx - get_width();
+	int yy = my;
+	if (xx < 0) xx = mx + mw.get_width(); // Off screen? Try the right.
+	if (xx+get_width() > ww) xx = 0; // Off to the right? Just put it flush left. (test case: Main is full width)
+	Util::fix_window_coords(*this, xx, yy); // Sanity check
+	move(xx,yy);
 }
 
 void MovieWindow::do_add() {

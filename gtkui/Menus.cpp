@@ -90,6 +90,7 @@ public:
 	void do_movie() {
 		MainWindow *mw = find_main(this);
 		mw->movieWindow().present();
+		mw->movieWindow().initial_position();
 	}
 };
 

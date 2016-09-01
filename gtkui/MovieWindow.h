@@ -59,6 +59,8 @@ class MovieWindow: public Gtk::Window, public Movie::IMovieCompleteHandler {
 		MovieWindow(MainWindow& _mw, std::shared_ptr<const BrotPrefs::Prefs> prefs);
 		~MovieWindow();
 
+		void initial_position(); // Repositions the window to its intended initial position, if this is the first time it has been opened.
+
 		bool on_delete_event(GdkEventAny *evt);
 
 		void do_add();
