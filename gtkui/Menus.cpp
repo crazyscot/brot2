@@ -62,13 +62,18 @@ public:
 	Gtk::ImageMenuItem saveI, quitI, movieI;
 	Gtk::SeparatorMenuItem sepa;
 
-	FileMenu() : saveI(Gtk::Stock::SAVE), quitI(Gtk::Stock::QUIT), movieI(Gtk::Stock::MEDIA_RECORD) {
+	FileMenu(MainWindow& parent) : saveI(Gtk::Stock::SAVE), quitI(Gtk::Stock::QUIT), movieI(Gtk::Stock::MEDIA_RECORD) {
+		Glib::RefPtr<Gtk::AccelGroup> ag = Gtk::AccelGroup::create();
+		set_accel_group(ag);
+		parent.add_accel_group(ag);
+
 		saveI.set_label("_Save image...");
 		append(saveI);
 		saveI.signal_activate().connect(sigc::mem_fun(this, &FileMenu::do_save));
 		movieI.set_label("Make _movie...");
 		append(movieI);
 		movieI.signal_activate().connect(sigc::mem_fun(this, &FileMenu::do_movie));
+		movieI.add_accelerator("activate", ag, GDK_S, Gdk::ModifierType::CONTROL_MASK|Gdk::ModifierType::SHIFT_MASK, Gtk::ACCEL_VISIBLE);
 		append(sepa);
 		append(quitI);
 		quitI.signal_activate().connect(sigc::mem_fun(this, &FileMenu::do_quit));
@@ -488,7 +493,7 @@ public:
 
 Menus::Menus(MainWindow& parent, std::string& init_fractal, std::string& init_colour) : file("_File", true), plot("_Plot", true), options("_Options", true), fractal("_Fractal", true), colour("_Colour", true), help("_Help", true) {
 	append(file);
-	file.set_submenu(*manage(new FileMenu()));
+	file.set_submenu(*manage(new FileMenu(parent)));
 	append(plot);
 	plot.set_submenu(*manage(new PlotMenu(parent)));
 
