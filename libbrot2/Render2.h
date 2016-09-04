@@ -160,7 +160,16 @@ public:
 	unsigned rowstride() { return _rowstride; }
 };
 
-class PNG : public Base {
+class Writable : public Base {
+	/* Base class for renders which can write to a file */
+	public:
+		Writable(unsigned width, unsigned height, int local_inf, bool antialias, const BasePalette& pal);
+		virtual void write(const std::string& filename) = 0;
+		virtual void write(std::ostream& ostream) = 0;
+		virtual ~Writable();
+};
+
+class PNG : public Writable {
 	/*
 	 * Renders a plot as a PNG file.
 	 * Workflow:
@@ -187,8 +196,12 @@ public:
 	PNG(unsigned width, unsigned height, const BasePalette& palette, int local_inf, bool antialias=false);
 	virtual ~PNG();
 
-	void write(const std::string& filename);
-	void write(std::ostream& ostream);
+	virtual void write(const std::string& filename);
+	virtual void write(std::ostream& ostream);
+
+	virtual void pixel_done(unsigned X, unsigned Y, const rgb& p);
+	virtual void pixel_get(unsigned X, unsigned Y, rgb& p);
+};
 
 	virtual void pixel_done(unsigned X, unsigned Y, const rgb& p);
 	virtual void pixel_get(unsigned X, unsigned Y, rgb& p);

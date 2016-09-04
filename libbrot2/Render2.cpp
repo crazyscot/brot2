@@ -201,9 +201,15 @@ void MemoryBuffer::pixel_get(unsigned X, unsigned Y, rgb& pix)
 
 /////////////////////////////////////////////////////////////////////////////////////////////
 
+Writable::Writable(unsigned width, unsigned height, int local_inf, bool antialias, const BasePalette& pal) :
+	Base(width, height, local_inf, antialias, pal) {}
+Writable::~Writable() {}
+
+/////////////////////////////////////////////////////////////////////////////////////////////
+
 PNG::PNG(unsigned width, unsigned height,
 		const BasePalette& palette, int local_inf, bool antialias) :
-				Base(width, height, local_inf, antialias, palette),
+				Writable(width, height, local_inf, antialias, palette),
 				_png(_width, _height)
 {
 }
