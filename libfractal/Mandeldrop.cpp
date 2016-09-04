@@ -25,7 +25,7 @@ using namespace Fractal;
 // Abstract base class for common unoptimized code
 class Mandeldrop_Generic : public FractalImpl {
 public:
-	Mandeldrop_Generic(std::string name_, std::string desc_, Value xmin_=-3.0, Value xmax_=3.0, Value ymin_=-3.0, Value ymax_=3.0) : FractalImpl(name_, desc_, xmin_, xmax_, ymin_, ymax_, 30) {};
+	Mandeldrop_Generic(std::string name_, std::string desc_, Value xmin_=-3.0, Value xmax_=5.0, Value ymin_=-3.0, Value ymax_=3.0) : FractalImpl(name_, desc_, xmin_, xmax_, ymin_, ymax_, 30) {};
 	~Mandeldrop_Generic() {};
 
 protected:
