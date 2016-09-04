@@ -98,3 +98,36 @@ fi
 
 AM_CONDITIONAL([TEST_WITH_VALGRIND], [test "x${use_valgrind}" = xtrue])
 ])
+
+dnl LIBAV_CHECK
+dnl Looks for the ffmpeg/libav libraries.
+dnl Users can --enable-libav or --disable-libav as they please.
+dnl If left at default, and libav is not found, it will be disabled.
+dnl The result is the TEST_WITH_LIBAV conditional.
+AC_DEFUN([LIBAV_CHECK],
+[
+AC_ARG_WITH([libav],
+	    AS_HELP_STRING([--with-libav[=DIR]], [Build with libav support]),
+	    [with_libav=$withval],
+	    [with_libav=yes])
+
+AS_IF([test "x$with_libav" != "xno"], [
+       AS_IF([test "x$with_libav" != "xyes"], [
+	      PKG_CONFIG_PATH=${with_libav}/lib/pkgconfig:$PKG_CONFIG_PATH
+	      export PKG_CONFIG_PATH
+	])
+
+       AC_SUBST(LIBAV_LIBS)
+       AC_SUBST(LIBAV_CFLAGS)
+       LIBAV_DEPS="libavutil libavformat libavcodec libswscale libavresample"
+       if pkg-config $LIBAV_DEPS; then
+               LIBAV_CFLAGS=`pkg-config --cflags $LIBAV_DEPS`
+               LIBAV_LIBS=`pkg-config --libs $LIBAV_DEPS`
+               HAVE_LIBAV="yes"
+       else
+              AC_MSG_ERROR([The ffmpeg packages 'libavutil-dev libavformat-dev libavcodec-dev libswscale-dev libavresample-dev' were requested, but not found. Please check your installation, install any necessary dependencies or use the '--without-libav' configuration option.])
+       fi
+])
+
+AM_CONDITIONAL([LIBAV], [test "x${with_libav}" = xyes])
+])

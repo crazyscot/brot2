@@ -86,15 +86,18 @@ brot2_SOURCES= \
 	gtkui/ControlsWindow.cpp gtkui/ControlsWindow.h \
 	gtkui/MovieWindow.cpp gtkui/MovieWindow.h \
 	gtkui/MovieRender-PNG.cpp \
-	gtkui/MovieRender-libav.cpp \
 	gtkui/MovieProgress.cpp gtkui/MovieProgress.h \
 	gtkui/Canvas.cpp gtkui/Canvas.h gtkui/HUD.cpp gtkui/HUD.h \
 	gtkui/DragRectangle.cpp gtkui/DragRectangle.h \
 	gtkui/ColourPanel.cpp gtkui/ColourPanel.h \
 	gtkui/SaveAsPNG.cpp gtkui/SaveAsPNG.h
 
-brot2_CPPFLAGS=$(AM_CPPFLAGS) @brot2gui_CFLAGS@ @libav_CFLAGS@
-brot2_LDADD=$(all_ldadd) @brot2gui_LIBS@ @libav_LIBS@
+if LIBAV
+brot2_SOURCES+= gtkui/MovieRender-libav.cpp
+endif
+
+brot2_CPPFLAGS=$(AM_CPPFLAGS) @brot2gui_CFLAGS@ @LIBAV_CFLAGS@
+brot2_LDADD=$(all_ldadd) @brot2gui_LIBS@ @LIBAV_LIBS@
 
 ################################################################
 
