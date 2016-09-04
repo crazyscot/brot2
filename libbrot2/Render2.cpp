@@ -241,4 +241,90 @@ void PNG::write(std::ostream& os)
 	_png.write_stream<std::ostream>(os);
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////////
+
+CSV::CSV(unsigned width, unsigned height,
+		const BasePalette& palette, int local_inf, bool antialias) :
+				Writable(width, height, local_inf, antialias, palette) {
+	_points = new Fractal::PointData[width*height];
+}
+
+CSV::~CSV() {
+	delete[] _points;
+}
+
+void CSV::process(const Plot3::Plot3Chunk& chunk) {
+	if (_antialias)
+		return raw_process_antialias(chunk);
+	else
+		return raw_process_plain(chunk);
+}
+
+void CSV::raw_process_plain(const Plot3::Plot3Chunk& chunk) {
+	// This is the same as Base::process_plain but with the serial numbers filed off.
+	const Fractal::PointData * data = chunk.get_data();
+	unsigned i,j;
+	// Sanity checks
+	ASSERT( chunk._offX + chunk._width <= _width );
+	ASSERT( chunk._offY + chunk._height <= _height );
+	for (j=0; j<chunk._height; j++) {
+		const Fractal::PointData * src = &data[j*chunk._width];
+		for (i=0; i<chunk._width; i++) {
+			_point(i+chunk._offX, _height-(1+j+chunk._offY)) = src[i];
+		}
+	}
+}
+
+void CSV::raw_process_antialias(const Plot3::Plot3Chunk& chunk) {
+	// It doesn't make much sense to average over four fractal points, so we'll just take the base point.
+	const Fractal::PointData * data = chunk.get_data();
+	unsigned i,j;
+	const unsigned outW = chunk._width / 2,
+				   outH = chunk._height / 2,
+				   outOffX = chunk._offX / 2,
+				   outOffY = chunk._offY / 2;
+	ASSERT( chunk._width % 2 == 0);
+	ASSERT( chunk._height % 2 == 0);
+	ASSERT( chunk._offX + chunk._width <= _width*2 );
+	ASSERT( chunk._offY + chunk._height <= _height*2 );
+	ASSERT( outOffX + outW <= _width );
+	ASSERT( outOffY + outH <= _height);
+	for (j=0; j<outH; j++) {
+		const Fractal::PointData * base = &data[2*j*chunk._width];
+		for (i=0; i<outW; i++) {
+			_point(i+outOffX, _height-(1+j+outOffY)) = base[2*i];
+		}
+	}
+}
+
+void CSV::write(const std::string& filename) {
+	std::ofstream fs;
+	fs.open(filename, std::fstream::out);
+	write(fs);
+	fs.close();
+}
+
+std::ostream& operator<<(std::ostream &stream, const Fractal::PointData& pd) {
+	stream << "\"" << pd.iterf << "\"";
+	return stream;
+}
+
+void CSV::write(std::ostream& os) {
+	for (unsigned j=0; j<_height; j++) {
+		os << _point(0,j);
+		for (unsigned i=1; i<_width; i++) {
+			os << "," << _point(i,j);
+		}
+		os << std::endl;
+	}
+
+}
+
+
+// The required abstract functions for dealing with the HUD make no sense here, so we'll just quietly ignore them:
+void CSV::pixel_done(unsigned, unsigned, const rgb&) {
+}
+void CSV::pixel_get(unsigned, unsigned, rgb&) {
+}
+
 }; // namespace Render2

@@ -77,9 +77,9 @@ public:
 	virtual ~Base() {}
 
 	/** Processes a single chunk. */
-	void process(const Plot3::Plot3Chunk& chunk);
+	virtual void process(const Plot3::Plot3Chunk& chunk);
 	/** Processes a list of chunks. This leads to repeated calls to process(chunk). */
-	void process(const std::list<Plot3::Plot3Chunk*>& chunks);
+	virtual void process(const std::list<Plot3::Plot3Chunk*>& chunks);
 
 	/**
 	 * If you want to re-process a render for a new local_inf and/or palette, call fresh_*(), then process(your chunks).
@@ -203,6 +203,44 @@ public:
 	virtual void pixel_get(unsigned X, unsigned Y, rgb& p);
 };
 
+class CSV : public Writable {
+	/*
+	 * Renders a plot as a CSV file.
+	 * Workflow:
+	 * 1. Determine your filename
+	 * 2. Instantiate this class
+	 * 3. Process your chunks
+	 * 4. Call write() when you're ready to write the file.
+	 *
+	 * Note that this class contains a nontrivial memory buffer throughout its lifetime.
+	 */
+protected:
+	// Raw data array and accessor
+	Fractal::PointData* _points;
+	Fractal::PointData& _point(unsigned x, unsigned y) { return _points[y*_width+x]; }
+	const Fractal::PointData& _point(unsigned x, unsigned y) const { return _points[y*_width+x]; }
+public:
+	/*
+	 * Width and height are in pixels.
+	 *
+	 * If antialias is true we apply a 2x downscale in either direction.
+	 * Specify only the output height and width; we expect to process
+	 * 4x as many pixels via the chunks system.
+	 *
+	 * CAUTION: Chunk widths and heights of antialiased plots must be even!
+	 */
+	CSV(unsigned width, unsigned height, const BasePalette& palette, int local_inf, bool antialias=false);
+	virtual ~CSV();
+
+	using Base::process; // for virtual void process(const std::list<Plot3::Plot3Chunk*>& chunks);
+	virtual void process(const Plot3::Plot3Chunk& chunk);
+	void raw_process_plain(const Plot3::Plot3Chunk& chunk);
+	void raw_process_antialias(const Plot3::Plot3Chunk& chunk);
+
+	virtual void write(const std::string& filename);
+	virtual void write(std::ostream& ostream);
+
+	/* We need to provide these but they don't make sense for us: */
 	virtual void pixel_done(unsigned X, unsigned Y, const rgb& p);
 	virtual void pixel_get(unsigned X, unsigned Y, rgb& p);
 };
