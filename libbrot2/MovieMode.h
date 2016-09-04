@@ -55,11 +55,11 @@ struct MovieInfo {
 	const Fractal::FractalImpl * fractal;
 	const BasePalette * palette;
 	unsigned width, height;
-	bool draw_hud, antialias;
+	bool draw_hud, antialias, preview;
 	unsigned fps;
 	std::vector<KeyFrame> points;
 
-	MovieInfo() : fractal(0), palette(0), width(0), height(0), fps(0) {}
+	MovieInfo() : fractal(0), palette(0), width(0), height(0), draw_hud(false), antialias(true), preview(false), fps(0) {}
 	unsigned count_frames() const;
 
 	private:

@@ -73,11 +73,11 @@ class MovieWindowPrivate {
 	Gtk::TreeView m_keyframes;
 	Glib::RefPtr<Gtk::ListStore> m_refTreeModel;
 	Util::HandyEntry<unsigned> f_height, f_width, f_fps;
-	Gtk::CheckButton f_hud, f_antialias;
+	Gtk::CheckButton f_hud, f_antialias, f_preview;
 	Gtk::Entry f_duration;
 	Gtk::Label f_fractal, f_palette;
 
-	MovieWindowPrivate() : f_height(5), f_width(5), f_fps(5), f_hud("Draw HUD"), f_antialias("Antialias")
+	MovieWindowPrivate() : f_height(5), f_width(5), f_fps(5), f_hud("Draw HUD"), f_antialias("Antialias"), f_preview("Preview")
 	{
 		f_duration.set_editable(false);
 		f_fractal.set_alignment(Gtk::ALIGN_START);
@@ -224,10 +224,11 @@ MovieWindow::MovieWindow(MainWindow& _mw, std::shared_ptr<const Prefs> prefs) : 
 	tbl->attach(priv->f_height, 3, 4, 1, 2, Gtk::AttachOptions::SHRINK);
 	tbl->attach(priv->f_hud, 4,5, 1, 2);
 	tbl->attach(priv->f_antialias, 5,6, 1, 2);
+	tbl->attach(priv->f_preview, 6,7, 1, 2);
 	tbl->attach(* Gtk::manage(new Gtk::Label("Frames per second")), 0, 3, 2, 3);
 	tbl->attach(priv->f_fps, 3, 4, 2, 3, Gtk::AttachOptions::SHRINK);
 	tbl->attach(* Gtk::manage(new Gtk::Label("Duration")), 4, 5, 2, 3);
-	tbl->attach(priv->f_duration, 5, 6, 2, 3);
+	tbl->attach(priv->f_duration, 5, 7, 2, 3);
 
 	// Defaults.
 	// LATER: Could remember these from last time?
@@ -235,6 +236,7 @@ MovieWindow::MovieWindow(MainWindow& _mw, std::shared_ptr<const Prefs> prefs) : 
 	priv->f_width.update(300);
 	priv->f_fps.update(25);
 	priv->f_antialias.set_active(true);
+	priv->f_preview.set_active(false);
 	priv->f_hud.set_active(false);
 
 	priv->f_height.signal_changed().connect(sigc::mem_fun(*this, &MovieWindow::do_update_duration)); // Must do this after setting initial value
@@ -396,6 +398,7 @@ bool MovieWindow::update_movie_struct() {
 	}
 	movie.draw_hud = priv->f_hud.get_active();
 	movie.antialias = priv->f_antialias.get_active();
+	movie.preview = priv->f_preview.get_active();
 	return ok;
 }
 
