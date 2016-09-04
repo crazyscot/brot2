@@ -131,6 +131,8 @@ void Movie::Renderer::render(RenderInstancePrivate *priv) {
 	job->_reporter->frames_traversed(f1.hold_frames);
 	iter++;
 
+	bool skip_next = false;
+
 	for (; iter != movie.points.end() && !cancel_requested; iter++) {
 		struct Movie::Frame ft(f1);
 		struct Movie::KeyFrame f2(*iter);
@@ -140,8 +142,10 @@ void Movie::Renderer::render(RenderInstancePrivate *priv) {
 			still_moving = false;
 			still_moving |= Movie::MotionZoom(ft.size, f2.size, movie.width, movie.height, f1.speed_zoom, ft.size);
 			still_moving |= Movie::MotionTranslate(ft.centre, f2.centre, ft.size, movie.width, movie.height, f1.speed_translate, ft.centre);
-			if (still_moving)
+			if (still_moving && !skip_next)
 				render_frame(ft, priv, 1);
+			if (movie.preview)
+				skip_next = !skip_next;
 		} while (still_moving && !cancel_requested);
 
 		// We've just output a single frame of the destination keyframe.

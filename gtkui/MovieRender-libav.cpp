@@ -284,12 +284,18 @@ class LibAV : public Movie::Renderer {
 		Render2::MemoryBuffer *render;
 		std::shared_ptr<const BrotPrefs::Prefs> prefs;
 
+		unsigned actual_fps;
+
 		Private(Movie::RenderJob& _job) :
 			RenderInstancePrivate(_job),
 			fmt(0), oc(0), st(0), next_pts(0), frame(0), tmp_frame(0), finished_cleanly(false), sws_ctx(0), avr(0),
 			plot(0), render(0), prefs(BrotPrefs::Prefs::getMaster())
 		{
 			ConsoleOutputWindow::activate(_job._reporter, prefs);
+
+			// In preview mode, we divide the timebase by 2 so it matches the number of frames we're actually putting out, e.g. 1/25 fps -> 1/12 fps.
+			actual_fps = job._movie.fps / (job._movie.preview ? 2 : 1);
+			if (actual_fps == 0) actual_fps = 1;
 		}
 		virtual ~Private() {
 			if (st) avcodec_close(st->codec); // what does the rv mean?
@@ -355,12 +361,12 @@ class LibAV : public Movie::Renderer {
 			// NOTE: Must use height/width from mypriv->st->codec within the renderer as it may not equal the passed-in dimensions
 			c->width = job._movie.width + (job._movie.width % 2);
 			c->height = job._movie.height + (job._movie.height % 2);
-			c->bit_rate = c->width * c->height * job._movie.fps * 6 / 25;
+			c->bit_rate = c->width * c->height * mypriv->actual_fps * 6 / 25;
 			/* The magic constant 6/25 gives us a bit rate in the region of (slightly above) 8Mbps for 1080p and 5Mbps for 720p.
 			 * At 2560x1440 (2K) it comes out at 22.1Mbit, where YouTube recommend 16;
 			 * at 3840x2160 (4K) it gives 49.8Mbit against a recommendation of 35-45. */
 			// std::cerr << "Creating video at bit rate " << c->bit_rate << std::endl;
-			mypriv->st->time_base = (AVRational){ 1, (int)job._movie.fps };
+			mypriv->st->time_base = (AVRational){ 1, (int)mypriv->actual_fps };
 			c->time_base = mypriv->st->time_base;
 			c->gop_size = 12; /* Trade-off better compression against the ability to seek. */
 			c->pix_fmt = AV_PIX_FMT_YUV420P; // We generate RGB24, so will convert

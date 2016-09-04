@@ -345,3 +345,14 @@ TEST_F(MovieTest, AntiAliasDimensions) {
 	EXPECT_EQ(job2._rwidth, movie.width*2);
 	EXPECT_EQ(job2._rheight, movie.height*2);
 }
+
+TEST_F(MovieTest, PreviewWorks) {
+	// Expect half the number of frames actually rendered
+	InitialiseMovie();
+	unsigned count1 = movie.count_frames();
+	//std::cout << "Frame count 1: " << count1 << std::endl;
+	InitialiseMovie();
+	movie.preview = true;
+	unsigned count2 = movie.count_frames();
+	EXPECT_LE(abs(count1/2 - count2), 2);
+}
