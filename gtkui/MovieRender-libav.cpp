@@ -56,6 +56,8 @@ SUBCLASS_BROTEXCEPTION(AVException);
 
 class ConsoleOutputWindow : public Gtk::Window {
 		Gtk::TextView *tv;
+		bool verbose;
+
 		Glib::RefPtr<Gtk::TextBuffer::Mark> mark;
 		Gtk::CheckButton *autoclose;
 		static ConsoleOutputWindow * _instance; // SINGLETON
@@ -68,7 +70,7 @@ class ConsoleOutputWindow : public Gtk::Window {
 		Glib::RefPtr<Gtk::TextTag> t_info;
 
 	// private constructor!
-		ConsoleOutputWindow() : Gtk::Window(), tv(0) {
+		ConsoleOutputWindow() : Gtk::Window(), tv(0), verbose(false) {
 			set_title("libav output");
 			set_type_hint(Gdk::WindowTypeHint::WINDOW_TYPE_HINT_UTILITY);
 
@@ -146,12 +148,15 @@ class ConsoleOutputWindow : public Gtk::Window {
 		}
 
 		// Must have gdk_threads lock
-		static ConsoleOutputWindow* get_instance() {
+		static ConsoleOutputWindow* get_instance(bool verbose=false) {
 			std::unique_lock<std::mutex> lock(mux);
 			if (!_instance) {
 				_instance = new ConsoleOutputWindow();
 				av_log_set_callback(&ConsoleOutputWindow::replacement_av_log);
-				av_log_set_level(AV_LOG_VERBOSE);
+				if (verbose)
+					av_log_set_level(AV_LOG_DEBUG);
+				else
+					av_log_set_level(AV_LOG_VERBOSE);
 				// Debug level contains one line per frame encoded.
 				// Trace inclues flushing details.
 			}
@@ -206,9 +211,10 @@ class ConsoleOutputWindow : public Gtk::Window {
 			}
 		}
 	public:
-		static void activate(Movie::IMovieProgressReporter * parent) {
+		static void activate(Movie::IMovieProgressReporter * parent, std::shared_ptr<const BrotPrefs::Prefs> prefs) {
 			gdk_threads_enter();
-			auto inst = get_instance();
+
+			auto inst = get_instance(prefs->get(PREF(LibAVLogVerbose)));
 			inst->reset();
 			inst->show_all();
 			inst->position_for(parent);
@@ -284,7 +290,7 @@ class LibAV : public Movie::Renderer {
 			fmt(0), oc(0), st(0), next_pts(0), frame(0), tmp_frame(0), finished_cleanly(false), sws_ctx(0), avr(0),
 			plot(0), render(0), render_buf(0), prefs(BrotPrefs::Prefs::getMaster())
 		{
-			ConsoleOutputWindow::activate(_job._reporter);
+			ConsoleOutputWindow::activate(_job._reporter, prefs);
 		}
 		virtual ~Private() {
 			if (st) avcodec_close(st->codec); // what does the rv mean?
