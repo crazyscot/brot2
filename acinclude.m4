@@ -73,14 +73,13 @@ dnl The result is the TEST_WITH_VALGRIND conditional.
 AC_DEFUN([VALGRIND_CHECK],
 [
 AC_CHECK_PROG(HAVE_VALGRIND, valgrind, yes, no)
-use_valgrind=not_set
 AC_ARG_ENABLE([valgrind],
 	[  --enable-valgrind       Use valgrind when running unit tests. ],
 	[case "${enableval}" in
 		yes) use_valgrind=true ;;
 		no)  use_valgrind=false;;
 		*) AC_MSG_ERROR([bad value ${enableval} for --enable-valgrind]) ;;
-	esac], [use_valgrind=false])
+	esac], [use_valgrind=not_set])
 
 if [[ "$use_valgrind" = "true" ]]; then
 	if [[ "$HAVE_VALGRIND" = "no" ]]; then
