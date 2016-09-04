@@ -163,10 +163,10 @@ void BaseHUD::apply(Render2::Base& target,
 	ASSERT(surface->get_height() == rheight);
 	ASSERT(surface->get_width() == rwidth);
 	unsigned char *rowptr = image_data;
-	for (unsigned y = 0; y<rheight; y++) {
+	for (int y = 0; y<rheight; y++) {
 		unsigned char *src = rowptr;
 		rgb current;
-		for (unsigned x = 0; x<rwidth; x++) {
+		for (int x = 0; x<rwidth; x++) {
 			// This is hard-coded for FORMAT_ARGB32.
 			// Cairo stores bytes native-endian.
 			uint32_t* src32 = (uint32_t*)src;

@@ -70,6 +70,7 @@ hsvf::operator rgb() {
 		case 4: return rgbf(t, p, v);
 		case 5: return rgbf(v, p, q);
 	}
+	ASSERT(false); // cannot reach here
 }
 
 std::ostream& operator<<(std::ostream &stream, hsvf o) {
