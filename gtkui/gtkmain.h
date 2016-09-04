@@ -20,5 +20,6 @@
 
 extern const char* license_text;
 extern const char *copyright_string;
+extern const char *brot2_argv0;
 
 #endif /* GTKMAIN_H_ */

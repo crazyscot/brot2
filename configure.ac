@@ -17,8 +17,9 @@ AC_CHECK_LIB(pthread, pthread_create)
 AC_GNU_SOURCE
 AC_C_BIGENDIAN
 
-pkg_cflags="-std=c11"
+pkg_cflags=""
 pkg_cxxflags="-std=c++11"
+pkg_cppflags="-std=c++11"
 if test "x$GXX" = xyes; then
 	pkg_cxxflags="${pkg_cxxflags} -Wall -Wextra -Werror -Wpointer-arith -Wwrite-strings -Woverloaded-virtual -Wnon-virtual-dtor -Wno-ctor-dtor-privacy -Wstrict-null-sentinel -Wnon-template-friend -Woverloaded-virtual -Wpmf-conversions -Wsign-promo -Wundef"
     # libsigc++ can't be included with -Wctor-dtor-privacy at the present time
@@ -27,13 +28,12 @@ if test "x$GCC" = xyes; then
 	pkg_cflags="${pkg_cflags} -Wall -Wextra -Werror -Wpointer-arith -Wwrite-strings"
 fi
 
-PKG_CHECK_MODULES([libbrot2_a],[glibmm-2.4 libpng12 sigc++-2.0 gdkmm-2.4 pangomm-1.4 pangocairo cairomm-1.0 cairo pango])
-PKG_CHECK_MODULES([brot2gui],[glibmm-2.4 gtkmm-2.4 gdkmm-2.4 pangocairo cairo pango libpng12 sigc++-2.0])
-AC_SUBST([libbrot2_a_CXXFLAGS], [${libbrot2_a_CFLAGS}])
-PKG_CHECK_MODULES([libfractal_a],[glibmm-2.4])
-AC_SUBST([libfractal_a_CXXFLAGS], [${libfractal_a_CFLAGS}])
-AC_SUBST([brot2cli_CXXFLAGS], [${libbrot2_a_CFLAGS}])
-AC_SUBST([b2test_CXXFLAGS], [${libfractal_a_CFLAGS}])
+LIBAV_CHECK
+PKG_CHECK_MODULES([glibmm],[glibmm-2.4])
+PKG_CHECK_MODULES([pango],[pangomm-1.4 pangocairo cairomm-1.0 cairo pango])
+PKG_CHECK_MODULES([gtkmm],[gtkmm-2.4 gdkmm-2.4 sigc++-2.0])
+PKG_CHECK_MODULES([gdkmm],[gdkmm-2.4 sigc++-2.0])
+PKG_CHECK_MODULES([libpng12],[libpng12])
 
 GTEST_SRC_CHECK
 VALGRIND_CHECK

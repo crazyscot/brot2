@@ -38,6 +38,7 @@
 #include "MainWindow.h"
 #include "ParamsDialog.h"
 #include "ControlsWindow.h"
+#include "MovieWindow.h"
 #include "SaveAsPNG.h"
 
 using namespace BrotPrefs;
@@ -56,39 +57,40 @@ static MainWindow* find_main(Gtk::Menu *mnu) {
     return parent;
 }
 
-class MainMenu : public Gtk::Menu {
+class FileMenu : public Gtk::Menu {
 public:
-	Gtk::ImageMenuItem aboutI, saveI, quitI;
+	Gtk::ImageMenuItem saveI, quitI, movieI;
 	Gtk::SeparatorMenuItem sepa;
 
-	MainMenu() : aboutI(Gtk::Stock::ABOUT), saveI(Gtk::Stock::SAVE), quitI(Gtk::Stock::QUIT) {
-		append(aboutI);
-		aboutI.signal_activate().connect(sigc::ptr_fun(do_about));
+	FileMenu(MainWindow& parent) : saveI(Gtk::Stock::SAVE), quitI(Gtk::Stock::QUIT), movieI(Gtk::Stock::MEDIA_RECORD) {
+		Glib::RefPtr<Gtk::AccelGroup> ag = Gtk::AccelGroup::create();
+		set_accel_group(ag);
+		parent.add_accel_group(ag);
+
 		saveI.set_label("_Save image...");
 		append(saveI);
-		saveI.signal_activate().connect(sigc::mem_fun(this, &MainMenu::do_save));
+		saveI.signal_activate().connect(sigc::mem_fun(this, &FileMenu::do_save));
+		movieI.set_label("Make _movie...");
+		append(movieI);
+		movieI.signal_activate().connect(sigc::mem_fun(this, &FileMenu::do_movie));
+		movieI.add_accelerator("activate", ag, GDK_S, Gdk::ModifierType::CONTROL_MASK|Gdk::ModifierType::SHIFT_MASK, Gtk::ACCEL_VISIBLE);
 		append(sepa);
 		append(quitI);
-		quitI.signal_activate().connect(sigc::ptr_fun(do_quit));
+		quitI.signal_activate().connect(sigc::mem_fun(this, &FileMenu::do_quit));
 	}
 
-	static void do_about() {
-		Glib::RefPtr<Gdk::Pixbuf> logo = Gdk::Pixbuf::create_from_inline(-1, brot2_logo, false);
-		Gtk::AboutDialog dlg;
-		dlg.set_version(PACKAGE_VERSION);
-		dlg.set_comments("Dedicated to the memory of Benoît B. Mandelbrot.");
-		dlg.set_copyright(copyright_string);
-		dlg.set_license(license_text);
-		dlg.set_wrap_license(true);
-		dlg.set_logo(logo);
-		dlg.run();
-	}
-	static void do_quit() {
-		Gtk::Main::instance()->quit();
+	void do_quit() {
+		MainWindow *mw = find_main(this);
+		mw->do_quit();
 	}
 	void do_save() {
 		MainWindow *mw = find_main(this);
-		SaveAsPNG::do_save(mw);
+		SavePNG::Single::do_save(mw);
+	}
+	void do_movie() {
+		MainWindow *mw = find_main(this);
+		mw->movieWindow().present();
+		mw->movieWindow().initial_position();
 	}
 };
 
@@ -467,10 +469,32 @@ public:
 	}
 };
 
+class HelpMenu : public Gtk::Menu {
+public:
+	Gtk::ImageMenuItem aboutI;
 
-Menus::Menus(MainWindow& parent, std::string& init_fractal, std::string& init_colour) : main("_Main", true), plot("_Plot", true), options("_Options", true), fractal("_Fractal", true), colour("_Colour", true) {
-	append(main);
-	main.set_submenu(*manage(new MainMenu()));
+	HelpMenu() : aboutI(Gtk::Stock::ABOUT) {
+		append(aboutI);
+		aboutI.signal_activate().connect(sigc::ptr_fun(do_about));
+	}
+
+	static void do_about() {
+		Glib::RefPtr<Gdk::Pixbuf> logo = Gdk::Pixbuf::create_from_inline(-1, brot2_logo, false);
+		Gtk::AboutDialog dlg;
+		dlg.set_version(PACKAGE_VERSION);
+		dlg.set_comments("Dedicated to the memory of Benoît B. Mandelbrot.");
+		dlg.set_copyright(copyright_string);
+		dlg.set_license(license_text);
+		dlg.set_wrap_license(true);
+		dlg.set_logo(logo);
+		dlg.run();
+	}
+};
+
+
+Menus::Menus(MainWindow& parent, std::string& init_fractal, std::string& init_colour) : file("_File", true), plot("_Plot", true), options("_Options", true), fractal("_Fractal", true), colour("_Colour", true), help("_Help", true) {
+	append(file);
+	file.set_submenu(*manage(new FileMenu(parent)));
 	append(plot);
 	plot.set_submenu(*manage(new PlotMenu(parent)));
 
@@ -482,6 +506,9 @@ Menus::Menus(MainWindow& parent, std::string& init_fractal, std::string& init_co
 	fractal.set_submenu(*manage(new FractalMenu(parent, init_fractal)));
 	append(colour);
 	colour.set_submenu(*manage(new ColourMenu(parent, init_colour)));
+
+	append(help);
+	help.set_submenu(*manage(new HelpMenu()));
 }
 
 } // end namespace

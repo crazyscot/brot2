@@ -26,8 +26,10 @@ freely, subject to the following restrictions:
    3. This notice may not be removed or altered from any source
    distribution.
 */
+/* THIS IS AN ALTERED VERSION OF THE ORIGINAL SOURCE -wry */
 
 #include "libbrot2/ThreadPool.h"
+#include "libbrot2/Exception.h"
 
 void Worker::operator()()
 {
@@ -41,7 +43,13 @@ void Worker::operator()()
         any_packaged_task task(pool.tasks.front());
         pool.tasks.pop_front();
         lock.unlock();
-        task();
+		/* Added exception handler around task() -wry */
+		try {
+			task();
+		} catch (std::exception& e) {
+			std::cerr << "FATAL: Uncaught exception in worker: " << e.what() << std::endl;
+			exit(5);
+		}
     }
 }
 

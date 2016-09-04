@@ -1,6 +1,6 @@
 /*
-    misc.h: General miscellanea that didn't fit anywhere else
-    Copyright (C) 2011 Ross Younger
+    gtkutil.h: General GTK miscellanea that didn't fit anywhere else
+    Copyright (C) 2011-6 Ross Younger
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,49 +16,16 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef MISC_H_
-#define MISC_H_
+#ifndef GTKUTIL_H_
+#define GTKUTIL_H_
 
-#include <sys/time.h>
+#include <gdkmm/color.h>
 #include <gtkmm/window.h>
 #include <gtkmm/entry.h>
 #include <gtkmm/messagedialog.h>
 #include <string>
 
-#ifdef UNUSED
-#elif defined(__GNUC__)
-# define UNUSED(x) UNUSED_ ## x __attribute__((unused))
-#elif defined(__LCLINT__)
-# define UNUSED(x) /*@unused@*/ x
-#else
-# define UNUSED(x) x
-#endif
-
-
 namespace Util {
-
-inline struct timeval tv_subtract (struct timeval tv1, struct timeval tv2)
-{
-	struct timeval rv;
-	rv.tv_sec = tv1.tv_sec - tv2.tv_sec;
-	if (tv1.tv_usec < tv2.tv_usec) {
-		rv.tv_usec = tv1.tv_usec + 1e6 - tv2.tv_usec;
-		--rv.tv_sec;
-	} else {
-		rv.tv_usec = tv1.tv_usec - tv2.tv_usec;
-	}
-
-	return rv;
-}
-
-class xy {
-	// Represents a point in some integer space
-public:
-	int x, y;
-	xy() : x(0), y(0) {};
-	xy(int &xx, int &yy) : x(xx), y(yy) {};
-	void reinit(int xx, int yy) { x=xx; y=yy; }
-};
 
 inline void alert(Gtk::Window *parent, const std::string& message, Gtk::MessageType type = Gtk::MessageType::MESSAGE_ERROR)
 {
@@ -107,9 +74,32 @@ class HandyEntry: public Gtk::Entry {
 			tmp << val;
 			this->set_text(tmp.str().c_str());
 		}
+// 2nd-order macro for all Gtk::StateType
+#define ALL_STATES(DO) \
+		DO(NORMAL); \
+		DO(ACTIVE); \
+		DO(PRELIGHT); \
+		DO(SELECTED); \
+		DO(INSENSITIVE);
+		// Highlights this field, for use when its contents are in error in some way (e.g. unparseable numeric)
+		void set_error() {
+			Gdk::Color red;
+			red.set_rgb(65535, 16384, 16384);
+#define HandyEntry_DO_RED(_state) do { modify_base(Gtk::StateType::STATE_##_state, red); } while(0)
+			ALL_STATES(HandyEntry_DO_RED)
+		}
+#define HandyEntry_DO_CLEAR(_state) do { unset_base(Gtk::StateType::STATE_##_state); } while(0)
+		void clear_error() {
+			ALL_STATES(HandyEntry_DO_CLEAR)
+		}
 };
+
+// Reads out the geometry for the screen on which the given window appears
+void get_screen_geometry(const Gtk::Window& window, int& x, int& y);
+
+// Ensures that the given X and Y co-ordinates lie within a window's screen area, moving them if not
+void fix_window_coords(const Gtk::Window& window, int& x, int& y);
 
 }; // namespace Util
 
-#endif // MISC_H_
-
+#endif // GTKUTIL_H_

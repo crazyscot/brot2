@@ -69,14 +69,17 @@ dnl Looks for valgrind, defaulting to on.
 dnl Users can --enable-valgrind or --disable-valgrind as they please.
 dnl If enabled, valgrind must be on the PATH.
 dnl If left at default, and valgrind is not found, it will be disabled.
-dnl The result is the USE_VALGRIND conditional.
+dnl The result is the TEST_WITH_VALGRIND conditional.
 AC_DEFUN([VALGRIND_CHECK],
 [
 AC_CHECK_PROG(HAVE_VALGRIND, valgrind, yes, no)
-use_valgrind=not_set
-AC_ARG_ENABLE(valgrind,
+AC_ARG_ENABLE([valgrind],
 	[  --enable-valgrind       Use valgrind when running unit tests. ],
-	[ use_valgrind=true ])
+	[case "${enableval}" in
+		yes) use_valgrind=true ;;
+		no)  use_valgrind=false;;
+		*) AC_MSG_ERROR([bad value ${enableval} for --enable-valgrind]) ;;
+	esac], [use_valgrind=not_set])
 
 if [[ "$use_valgrind" = "true" ]]; then
 	if [[ "$HAVE_VALGRIND" = "no" ]]; then
@@ -93,6 +96,38 @@ if [[ "$use_valgrind" = "not_set" ]]; then
 	fi
 fi
 
-AM_CONDITIONAL(USE_VALGRIND, $use_valgrind)
+AM_CONDITIONAL([TEST_WITH_VALGRIND], [test "x${use_valgrind}" = xtrue])
 ])
 
+dnl LIBAV_CHECK
+dnl Looks for the ffmpeg/libav libraries.
+dnl Users can --enable-libav or --disable-libav as they please.
+dnl If left at default, and libav is not found, it will be disabled.
+dnl The result is the TEST_WITH_LIBAV conditional.
+AC_DEFUN([LIBAV_CHECK],
+[
+AC_ARG_WITH([libav],
+	    AS_HELP_STRING([--with-libav[=DIR]], [Build with libav support]),
+	    [with_libav=$withval],
+	    [with_libav=yes])
+
+AS_IF([test "x$with_libav" != "xno"], [
+       AS_IF([test "x$with_libav" != "xyes"], [
+	      PKG_CONFIG_PATH=${with_libav}/lib/pkgconfig:$PKG_CONFIG_PATH
+	      export PKG_CONFIG_PATH
+	])
+
+       AC_SUBST(LIBAV_LIBS)
+       AC_SUBST(LIBAV_CFLAGS)
+       LIBAV_DEPS="libavutil libavformat libavcodec libswscale libavresample"
+       if pkg-config $LIBAV_DEPS; then
+               LIBAV_CFLAGS=`pkg-config --cflags $LIBAV_DEPS`
+               LIBAV_LIBS=`pkg-config --libs $LIBAV_DEPS`
+               HAVE_LIBAV="yes"
+       else
+              AC_MSG_ERROR([The ffmpeg packages 'libavutil-dev libavformat-dev libavcodec-dev libswscale-dev libavresample-dev' were requested, but not found. Please check your installation, install any necessary dependencies or use the '--without-libav' configuration option.])
+       fi
+])
+
+AM_CONDITIONAL([LIBAV], [test "x${with_libav}" = xyes])
+])

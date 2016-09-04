@@ -31,7 +31,7 @@ class CLIDataSink : public Plot3::IPlot3DataSink {
 		void set_plot(Plot3::Plot3Plot* plot);
 
 		virtual void chunk_done(Plot3::Plot3Chunk* job);
-		virtual void pass_complete(std::string&);
+		virtual void pass_complete(std::string&, unsigned passes_plotted, unsigned maxiter, unsigned pixels_still_live, unsigned total_pixels);
 		virtual void plot_complete();
 
 		virtual ~CLIDataSink() {}

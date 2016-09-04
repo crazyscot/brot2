@@ -1,6 +1,6 @@
 /*
-    Plot3Pass.cpp: One computation pass of a Plot.
-    Copyright (C) 2012 Ross Younger
+    gtkutil.cpp: General GTK miscellanea that didn't fit anywhere else
+    Copyright (C) 2011-6 Ross Younger
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,28 +16,27 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "Plot3Pass.h"
+#include "gtkutil.h"
+#include <gdkmm/screen.h>
 
-using namespace std;
+namespace Util {
 
-namespace Plot3 {
-
-Plot3Pass::Plot3Pass(std::shared_ptr<ThreadPool> pool, std::list<Plot3Chunk*>& chunks) :
-	_pool(pool), _chunks(chunks) {
+void get_screen_geometry(const Gtk::Window& window, int& x, int& y)
+{
+	auto screen = window.get_screen();
+	x = screen->get_width();
+	y = screen->get_height();
 }
 
-Plot3Pass::~Plot3Pass() {
+void fix_window_coords(const Gtk::Window& window, int& x, int& y)
+{
+	auto screen = window.get_screen();
+	int width = screen->get_width(),
+		height = screen->get_height();
+	x = MAX(x, 0);
+	x = MIN(x, width);
+	y = MAX(y, 0);
+	y = MIN(y, height);
 }
 
-void Plot3Pass::run() {
-	list<future<void> > results;
-	for (auto it=_chunks.begin(); it != _chunks.end(); it++) {
-		results.push_back(_pool->enqueue<void>([=]{(*it)->run();}));
-	}
-
-	for (auto it=results.begin(); it != results.end(); it++) {
-		(*it).get(); // Throws if anything went wrong.
-	}
-}
-
-} // namespace
+}; // Util

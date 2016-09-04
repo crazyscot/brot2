@@ -1,6 +1,6 @@
 /*
-    Plot3Pass.cpp: One computation pass of a Plot.
-    Copyright (C) 2012 Ross Younger
+    MovieNullProgress.cpp: Dummy movie progress reporter
+    Copyright (C) 2016 Ross Younger
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,28 +16,15 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "Plot3Pass.h"
+#include "IMovieProgress.h"
 
-using namespace std;
+Movie::MovieNullProgress::MovieNullProgress() {}
+Movie::MovieNullProgress::~MovieNullProgress() {}
 
-namespace Plot3 {
+void Movie::MovieNullProgress::set_chunks_count(int) {}
+void Movie::MovieNullProgress::frames_traversed(int) {}
 
-Plot3Pass::Plot3Pass(std::shared_ptr<ThreadPool> pool, std::list<Plot3Chunk*>& chunks) :
-	_pool(pool), _chunks(chunks) {
-}
+void Movie::MovieNullProgress::chunk_done(Plot3::Plot3Chunk*) {}
+void Movie::MovieNullProgress::pass_complete(std::string&, unsigned, unsigned, unsigned, unsigned) {}
+void Movie::MovieNullProgress::plot_complete() {}
 
-Plot3Pass::~Plot3Pass() {
-}
-
-void Plot3Pass::run() {
-	list<future<void> > results;
-	for (auto it=_chunks.begin(); it != _chunks.end(); it++) {
-		results.push_back(_pool->enqueue<void>([=]{(*it)->run();}));
-	}
-
-	for (auto it=results.begin(); it != results.end(); it++) {
-		(*it).get(); // Throws if anything went wrong.
-	}
-}
-
-} // namespace

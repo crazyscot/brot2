@@ -68,7 +68,7 @@ public:
 class NullSink : public IPlot3DataSink {
 public:
 	virtual void chunk_done(Plot3Chunk*) {}
-	virtual void pass_complete(string&) {}
+	virtual void pass_complete(string&, unsigned, unsigned, unsigned, unsigned) {}
 	virtual void plot_complete() {}
 };
 
@@ -181,7 +181,7 @@ public:
 		EXPECT_EQ(0,nfailed) << " double-touches in job " << std::hex << (void*)(job);
 	}
 
-	virtual void pass_complete(string&) {}
+	virtual void pass_complete(string&, unsigned, unsigned, unsigned, unsigned) {}
 	virtual void plot_complete() {}
 
 	virtual void final_check() {
@@ -329,9 +329,9 @@ public:
 
 class Plot3PassTest : public ChunkTest {
 protected:
-	ThreadPool pool;
+	std::shared_ptr<ThreadPool> pool;
 
-	Plot3PassTest(): pool(1) {}
+	Plot3PassTest(): pool(new ThreadPool(1)) {}
 };
 
 TEST_F(Plot3PassTest, Basics) {
@@ -404,7 +404,7 @@ public:
 	virtual void chunk_done(Plot3Chunk*) {
 		++chunks;
 	}
-	virtual void pass_complete(std::string&) {
+	virtual void pass_complete(std::string&, unsigned, unsigned, unsigned, unsigned) {
 		++passes;
 	}
 	virtual void plot_complete() {
@@ -420,14 +420,14 @@ class Plot3Test: public ::testing::Test {
 protected:
 	const unsigned _W, _H;
 	MockFractal fract;
-	ThreadPool pool;
+	std::shared_ptr<ThreadPool> pool;
 	ChunkDivider::OneChunk divider;
 	Plot3::Plot3Plot *p3;
 	std::shared_ptr<Prefs> prefs;
 	Fractal::Point CENTRE, SIZE;
 
 	Plot3Test() : _W(11), _H(19),
-			fract(0), pool(1), p3(0), prefs(new MockPrefs()),
+			fract(0), pool(new ThreadPool(1)), p3(0), prefs(new MockPrefs()),
 			CENTRE(-0.4,-0.4),
 			SIZE(0.01,0.2) {}
 
@@ -547,11 +547,11 @@ class ChunkDividerTest : public ::testing::Test {
 	protected:
 		MockFractal fract;
 		TestSink sink;
-		ThreadPool pool;
+		std::shared_ptr<ThreadPool> pool;
 		Plot3::Plot3Plot *p3;
 		Fractal::Point centre, size;
 
-		ChunkDividerTest() : sink(0,0)/*update later*/, pool(1), p3(0),
+		ChunkDividerTest() : sink(0,0)/*update later*/, pool(new ThreadPool(1)), p3(0),
 			centre(-0.4,-0.3), size(0.01,0.02) {}
 
 		virtual void SetUp() {

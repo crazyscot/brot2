@@ -61,6 +61,18 @@ public:
 	static Value smallest_min_pixel_size();
 };
 
+
+/* Calculates the decimal precision required to satisfactorily express a fractal part co-ordinate,
+ * given the size of the field (height or width).
+ * LP#783087 */
+inline unsigned precision_for(const Fractal::Value& fieldsize, unsigned npixels) {
+	Fractal::Value pixsize = fieldsize / npixels;
+	/* Need two guard digits to correctly reconstruct to desired accuracy.
+	 * http://docs.oracle.com/cd/E19957-01/806-3568/ncg_goldberg.html#693 refers. */
+	return 2+ceill(0-log10(pixsize));
+}
+
+
 }; // namespace Fractal
 
 ////////////////////////////////////////////////////////////////////////////

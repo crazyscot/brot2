@@ -21,7 +21,7 @@
 #include "SaveAsPNG.h"
 #include "libbrot2/Render2.h"
 #include "libbrot2/ChunkDivider.h"
-#include "misc.h"
+#include "gtkutil.h"
 #include "BaseHUD.h"
 
 #include "MainWindow.h"
@@ -40,16 +40,16 @@
 using namespace std;
 using namespace Plot3;
 using namespace BrotPrefs;
+using namespace SavePNG;
 
-std::string SaveAsPNG::last_saved_dirname = "";
-
-void SaveAsPNG::instance_to_png(MainWindow *mw)
+void SavePNG::Base::save_png(Gtk::Window *parent)
 {
-	SaveAsPNG::to_png(mw, _width, _height, &plot, pal, _do_antialias, _do_hud, filename);
+	SavePNG::Base::to_png(parent, _width, _height, &plot, pal, _do_antialias, _do_hud, filename);
 }
 
-void SaveAsPNG::to_png(MainWindow *mw, unsigned rwidth, unsigned rheight,
-		Plot3Plot* plot, BasePalette* pal, bool antialias, bool show_hud,
+/*STATIC*/
+void SavePNG::Base::to_png(Gtk::Window *parent, unsigned rwidth, unsigned rheight,
+		Plot3Plot* plot, const BasePalette* pal, bool antialias, bool show_hud,
 		std::string& filename)
 {
     std::shared_ptr<const Prefs> prefs = Prefs::getMaster();
@@ -62,16 +62,16 @@ void SaveAsPNG::to_png(MainWindow *mw, unsigned rwidth, unsigned rheight,
 		}
 		png.write(filename);
 		if (f.bad()) {
-			Util::alert(mw, "Writing failed");
+			Util::alert(parent, "Writing failed");
 		}
 	} else {
 		ostringstream str;
 		str << "Could not open " << filename << " for writing.";
-		Util::alert(mw, str.str());
+		Util::alert(parent, str.str());
 	}
 }
 
-PNGProgressWindow::PNGProgressWindow(MainWindow& p, SaveAsPNG& j) : parent(p), job(j), _chunks_this_pass(0) {
+SingleProgressWindow::SingleProgressWindow(MainWindow& p, Single& j) : parent(p), job(j), _chunks_this_pass(0) {
 	set_transient_for(parent);
 	set_title("Save as PNG");
 	Gtk::VBox* box = Gtk::manage(new Gtk::VBox());
@@ -83,7 +83,7 @@ PNGProgressWindow::PNGProgressWindow(MainWindow& p, SaveAsPNG& j) : parent(p), j
 	show_all();
 }
 
-void PNGProgressWindow::chunk_done(Plot3Chunk*) {
+void SingleProgressWindow::chunk_done(Plot3Chunk*) {
 	// We're not doing anything with the completed chunks, they're picked up en masse at the end.
 	_chunks_this_pass++;
 	float workdone = (float) _chunks_this_pass / job.get_chunks_count();
@@ -95,7 +95,7 @@ void PNGProgressWindow::chunk_done(Plot3Chunk*) {
 	gdk_threads_leave();
 }
 
-void PNGProgressWindow::pass_complete(std::string& commentary) {
+void SingleProgressWindow::pass_complete(std::string& commentary, unsigned, unsigned, unsigned, unsigned) {
 	_chunks_this_pass=0;
 	gdk_threads_enter();
 	progbar->set_text(commentary);
@@ -105,8 +105,8 @@ void PNGProgressWindow::pass_complete(std::string& commentary) {
 	gdk_threads_leave();
 }
 
-void PNGProgressWindow::plot_complete() {
-	std::shared_ptr<SaveAsPNG> png (&job);
+void SingleProgressWindow::plot_complete() {
+	std::shared_ptr<Single> png (&job);
 	parent.queue_png(png);
 }
 
@@ -172,7 +172,7 @@ class FileChooserExtra : public Gtk::VBox {
 };
 
 /* STATIC */
-void SaveAsPNG::do_save(MainWindow *mw)
+void Single::do_save(MainWindow *mw)
 {
 	std::string filename;
 	int newx=0, newy=0;
@@ -195,28 +195,7 @@ void SaveAsPNG::do_save(MainWindow *mw)
 					mw->get_rwidth(), mw->get_rheight() ));
 		dialog.set_extra_widget(*extra);
 
-		if (!last_saved_dirname.length()) {
-            last_saved_dirname = prefs->get(PREF(LastSaveDir));
-        }
-		if (!last_saved_dirname.length()) {
-            const char *homedir;
-            if ((homedir = getenv("HOME")) == NULL) {
-                homedir = getpwuid(getuid())->pw_dir;
-            }
-            // Try $HOME/Documents
-			std::ostringstream str;
-			str << homedir << "/Documents/";
-            if (Glib::file_test(str.str(), Glib::FILE_TEST_IS_DIR)) {
-                // use str as-is
-            } else {
-                str.flush();
-                str << homedir;
-            }
-			dialog.set_current_folder(str.str().c_str());
-		} else {
-			dialog.set_current_folder(last_saved_dirname.c_str());
-		}
-
+		dialog.set_current_folder(default_save_dir());
 		{
 			std::ostringstream str;
 			str << mw->get_plot().info().c_str() << ".png";
@@ -240,17 +219,7 @@ void SaveAsPNG::do_save(MainWindow *mw)
 			filename = dialog.get_filename();
 		} while(0);
 	}
-	last_saved_dirname.clear();
-	last_saved_dirname.append(filename);
-	// Trim the filename to leave the dir:
-	int spos = last_saved_dirname.rfind('/');
-	if (spos >= 0)
-		last_saved_dirname.erase(spos+1);
-    {
-        std::shared_ptr<Prefs> prefs2 = prefs->getWorkingCopy();
-        prefs2->set(PREF(LastSaveDir), last_saved_dirname);
-        prefs2->commit();
-    }
+	update_save_dir(filename);
 
 	if (do_extra) {
 		// HARD CASE: Launch a new job in the background to rerender.
@@ -263,7 +232,7 @@ void SaveAsPNG::do_save(MainWindow *mw)
 		if (imag(size) * aspect != real(size))
 			size.imag(real(size) / aspect);
 
-		SaveAsPNG* job = new SaveAsPNG(mw, centre, size, newx, newy, do_antialias, do_hud, filename);
+		Single* job = new Single(mw, centre, size, newx, newy, do_antialias, do_hud, filename);
 
 		job->start();
 		// and commit it to the four winds. Will be deleted later by mw...
@@ -276,25 +245,92 @@ void SaveAsPNG::do_save(MainWindow *mw)
 	}
 }
 
-SaveAsPNG::SaveAsPNG(MainWindow* mw, Fractal::Point centre, Fractal::Point size, unsigned width, unsigned height, bool antialias, bool do_hud, string& name) :
-		reporter(*mw,*this), divider(new Plot3::ChunkDivider::Horizontal10px()), aafactor(antialias ? 2 : 1),
-		plot(mw->get_threadpool(), &reporter, *mw->fractal, *divider, centre, size, width*aafactor, height*aafactor, 0),
-		pal(mw->pal), filename(name), _width(width), _height(height), _do_antialias(antialias), _do_hud(do_hud)
+SavePNG::Base::Base(std::shared_ptr<const Prefs> _prefs, std::shared_ptr<ThreadPool> threads, const Fractal::FractalImpl& fractal, const BasePalette& palette, Plot3::IPlot3DataSink& sink, Fractal::Point centre, Fractal::Point size, unsigned width, unsigned height, bool antialias, bool do_hud, string& fname) :
+		prefs(_prefs),
+		divider(new Plot3::ChunkDivider::Horizontal10px()), aafactor(antialias ? 2 : 1),
+		plot(threads, &sink, fractal, *divider, centre, size, width*aafactor, height*aafactor, 0),
+		pal(&palette), filename(fname), _width(width), _height(height), _do_antialias(antialias), _do_hud(do_hud)
 {
-	std::shared_ptr<const Prefs> pp = mw->prefs();
-	plot.set_prefs(pp);
+	plot.set_prefs(_prefs);
 }
 
-void SaveAsPNG::start(void)
+Single::Single(MainWindow* mw, Fractal::Point centre, Fractal::Point size, unsigned width, unsigned height, bool antialias, bool do_hud, string& filename) :
+		Base(mw->prefs(), mw->get_threadpool(), *mw->fractal, *mw->pal, reporter, centre, size, width, height, antialias, do_hud, filename),
+		reporter(*mw, *this)
+{
+}
+
+MovieFrame::MovieFrame(std::shared_ptr<const Prefs> prefs, std::shared_ptr<ThreadPool> threads, const Fractal::FractalImpl& fractal, const BasePalette& palette, Plot3::IPlot3DataSink& sink, Fractal::Point centre, Fractal::Point size, unsigned width, unsigned height, bool antialias, bool do_hud, string& filename) :
+		Base(prefs, threads, fractal, palette, sink, centre, size, width, height, antialias, do_hud, filename)
+{
+}
+
+
+void SavePNG::Base::start(void)
 {
 	plot.start();
 }
 
-void SaveAsPNG::wait(void)
+void SavePNG::Base::wait(void)
 {
 	plot.wait();
 }
 
-SaveAsPNG::~SaveAsPNG()
+SavePNG::Base::~Base()
 {
+}
+
+SavePNG::Single::~Single()
+{
+}
+
+SavePNG::MovieFrame::~MovieFrame()
+{
+}
+
+
+std::string SavePNG::Base::last_saved_dirname = "";
+
+/*STATIC*/
+std::string SavePNG::Base::default_save_dir()
+{
+	if (!last_saved_dirname.length()) {
+		std::shared_ptr<const Prefs> prefs = Prefs::getMaster();
+		last_saved_dirname = prefs->get(PREF(LastSaveDir));
+	}
+	if (!last_saved_dirname.length()) {
+		const char *homedir;
+		if ((homedir = getenv("HOME")) == NULL) {
+			homedir = getpwuid(getuid())->pw_dir;
+		}
+		// Try $HOME/Documents
+		std::ostringstream str;
+		str << homedir << "/Documents/";
+		if (Glib::file_test(str.str(), Glib::FILE_TEST_IS_DIR)) {
+			// use str as-is
+		} else {
+			str.flush();
+			str << homedir;
+		}
+		return str.str();
+	} else {
+		return last_saved_dirname;
+	}
+}
+
+/*STATIC*/
+void SavePNG::Base::update_save_dir(const std::string& filename)
+{
+	last_saved_dirname.clear();
+	last_saved_dirname.append(filename);
+	// Trim the filename to leave the dir:
+	int spos = last_saved_dirname.rfind('/');
+	if (spos >= 0)
+		last_saved_dirname.erase(spos+1);
+    {
+		std::shared_ptr<const Prefs> prefs = Prefs::getMaster();
+        std::shared_ptr<Prefs> prefs2 = prefs->getWorkingCopy();
+        prefs2->set(PREF(LastSaveDir), last_saved_dirname);
+        prefs2->commit();
+    }
 }

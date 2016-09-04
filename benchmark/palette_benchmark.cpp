@@ -28,7 +28,7 @@ using namespace Fractal;
 using namespace std;
 using namespace Plot3;
 
-ThreadPool threads(1);
+std::shared_ptr<ThreadPool> threads(new ThreadPool(1));
 
 class PaletteBM : public Benchmarkable
 {

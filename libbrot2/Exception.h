@@ -19,6 +19,7 @@
 #ifndef EXCEPTION_H_
 #define EXCEPTION_H_
 
+#include <string.h>
 #include <string>
 #include <iostream>
 #include <sstream>
@@ -28,25 +29,30 @@ struct BrotException : public std::exception {
 	const std::string msg;
 	const std::string file;
 	const int line;
+	private:
+		std::string detail_;
+	public:
 
 	BrotException(const std::string& m) : msg(m), file(""), line(-1) { }
-	BrotException(const std::string& m, const std::string& f, int l) : msg(m), file(f), line(l) { }
-	virtual std::string detail() const {
+	BrotException(const std::string& m, const std::string& f, int l) : msg(m), file(f), line(l) {
 		std::stringstream str;
 		str << msg;
 		if (file.length())
 			str << " at " << file << " line " << line;
 		else
 			str << " (unknown location)";
-		return str.str();
+		detail_ = str.str();
+	}
+	virtual std::string detail() const {
+		return detail_;
 	}
 	virtual operator const std::string() const {
-		return detail();
+		return detail_;
 	}
 	virtual const char* what() const throw() {
-		return detail().c_str();
+		return detail_.c_str();
 	}
-	virtual ~BrotException() throw() {}
+	virtual ~BrotException() throw() { }
 };
 
 struct BrotAssert : BrotException {
@@ -71,5 +77,12 @@ inline std::ostream& operator<< (std::ostream& out, BrotException val) {
 
 #define THROW(type,msg) do { throw type(msg,__FILE__,__LINE__); } while(0)
 #define ASSERT(_expr) do { if (!(_expr)) THROW(BrotAssert,#_expr); } while(0)
+
+#define SUBCLASS_BROTEXCEPTION(_clazz) \
+	struct _clazz : public BrotException { \
+		_clazz(const std::string& m) : BrotException(m) {} \
+		_clazz(const std::string& m, const std::string& f, int l) : BrotException(m, f, l) {} \
+		virtual ~_clazz() throw() {} \
+	}
 
 #endif /* EXCEPTION_H_ */

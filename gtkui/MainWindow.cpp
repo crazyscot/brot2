@@ -23,7 +23,7 @@
 #include "HUD.h"
 #include "libbrot2/Render2.h"
 #include "libbrot2/Plot3Plot.h"
-#include "misc.h"
+#include "gtkutil.h"
 #include "config.h"
 #include "ControlsWindow.h"
 #include "SaveAsPNG.h"
@@ -59,6 +59,7 @@ static inline void surface_error_check(MainWindow& mw, Cairo::RefPtr<Cairo::Imag
 MainWindow::MainWindow() : Gtk::Window(),
 			hud(*this, prefs()),
 			controlsWin(*this, prefs()),
+			movieWin(*this, prefs()),
 			imgbuf(0), plot(0), plot_prev(0), renderer(0),
 			rwidth(0), rheight(0),
 			draw_hud(true), antialias(false),
@@ -67,7 +68,7 @@ MainWindow::MainWindow() : Gtk::Window(),
 			divider(new Plot3::ChunkDivider::SuperpixelVariable(prefs())),
             _chunks_this_pass(0),
 			dragrect(*this),
-			_threadpool(BrotPrefs::threadpool_size(prefs()))
+			_threadpool(new ThreadPool(BrotPrefs::threadpool_size(prefs())))
 {
 	set_title(PACKAGE_NAME); // Renderer will update this
 	vbox = Gtk::manage(new Gtk::VBox());
@@ -122,6 +123,8 @@ MainWindow::~MainWindow() {
 		plot->stop();
 		plot->wait();
 	}
+	movieWindow().stop();
+	movieWindow().wait();
 	delete plot;
 	delete plot_prev;
 	delete divider;
@@ -204,9 +207,15 @@ bool MainWindow::on_key_release_event(GdkEventKey *event) {
 	return false;
 }
 
-bool MainWindow::on_delete_event(GdkEventAny * UNUSED(e)) {
+bool MainWindow::do_quit() {
+	if (movieWin.on_delete_event(0))
+		return true; // i.e. event was squashed
 	Gtk::Main::instance()->quit(); // NORETURN
-	return true;
+	return false;
+}
+
+bool MainWindow::on_delete_event(GdkEventAny * UNUSED(e)) {
+	return do_quit();
 }
 
 void MainWindow::render_prep(int local_inf) {
@@ -388,7 +397,7 @@ void MainWindow::chunk_done(Plot3Chunk* job)
 	gdk_threads_leave();
 }
 
-void MainWindow::pass_complete(std::string& commentary)
+void MainWindow::pass_complete(std::string& commentary, unsigned, unsigned, unsigned, unsigned)
 {
 	_chunks_this_pass=0;
 
@@ -588,9 +597,9 @@ void MainWindow::toggle_fullscreen()
 		unfullscreen();
 }
 
-static std::queue<std::shared_ptr<SaveAsPNG>> png_q; // protected by gdk threads lock.
+static std::queue<std::shared_ptr<SavePNG::Single>> png_q; // protected by gdk threads lock.
 
-void MainWindow::queue_png(std::shared_ptr<SaveAsPNG> png)
+void MainWindow::queue_png(std::shared_ptr<SavePNG::Single> png)
 {
 	gdk_threads_enter();
 	png_q.push(png);
@@ -601,12 +610,12 @@ void MainWindow::png_save_completion()
 {
 	// must have the gdk threads lock.
 	if (!png_q.empty()) {
-		std::shared_ptr<SaveAsPNG> png(png_q.front());
+		std::shared_ptr<SavePNG::Single> png(png_q.front());
 		png_q.pop();
 		//gdk_threads_leave(); // Don't do this, it deadlocks.
 		Plot3Plot& pngplot = png->plot;
 		pngplot.wait();
-		png->instance_to_png(this);
+		png->save_png(this);
 		//gdk_threads_enter();
 	} else {
 	}
@@ -614,13 +623,20 @@ void MainWindow::png_save_completion()
 
 bool MainWindow::on_timer()
 {
+	gdk_threads_enter();
 	png_save_completion();
+	gdk_threads_leave();
 	return true;
 }
 
-ThreadPool& MainWindow::get_threadpool()
+std::shared_ptr<ThreadPool> MainWindow::get_threadpool()
 {
 	return _threadpool;
+}
+
+void MainWindow::resize_threadpool(unsigned max_threads)
+{
+	_threadpool.reset(new ThreadPool(max_threads));
 }
 
 unsigned MainWindow::get_menubar_height() {

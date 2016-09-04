@@ -28,10 +28,12 @@
 #include "DragRectangle.h"
 #include "HUD.h"
 #include "ControlsWindow.h"
+#include "MovieWindow.h"
 #include "Prefs.h"
 #include "Menus.h"
 #include "Render2.h"
 #include "libbrot2/ThreadPool.h"
+#include "SaveAsPNG.h"
 
 #include <iostream>
 #include <memory>
@@ -46,7 +48,7 @@
 
 class HUD;
 class ControlsWindow;
-class SaveAsPNG;
+class MovieWindow;
 
 class MainWindow : public Gtk::Window, Plot3::IPlot3DataSink {
 	Gtk::VBox *vbox; // Main layout widget
@@ -55,6 +57,7 @@ class MainWindow : public Gtk::Window, Plot3::IPlot3DataSink {
 	Gtk::ProgressBar *progbar;
 	HUD hud;
 	ControlsWindow controlsWin;
+	MovieWindow movieWin;
 
 	unsigned char *imgbuf;
 
@@ -101,6 +104,7 @@ public:
 
     virtual bool on_key_release_event(GdkEventKey *);
     virtual bool on_delete_event(GdkEventAny *);
+    bool do_quit();
 
     void do_resize(unsigned width, unsigned height);
     void do_plot(bool is_same_plot = false);
@@ -153,6 +157,10 @@ public:
 		return controlsWin;
 	}
 
+	MovieWindow& movieWindow() {
+		return movieWin;
+	}
+
 	std::shared_ptr<const BrotPrefs::Prefs> prefs() {
 		return BrotPrefs::Prefs::getMaster();
 	}
@@ -161,11 +169,11 @@ public:
 		return menubar->optionsMenu;
 	}
 
-	void queue_png(std::shared_ptr<SaveAsPNG> png);
+	void queue_png(std::shared_ptr<SavePNG::Single> png);
 
 	// IPlot3DataSink:
 	virtual void chunk_done(Plot3::Plot3Chunk* job);
-	virtual void pass_complete(std::string& commentary);
+	virtual void pass_complete(std::string& commentary, unsigned passes_plotted, unsigned maxiter, unsigned pixels_still_live, unsigned total_pixels);
 	virtual void plot_complete();
 
 	static const unsigned DEFAULT_INITIAL_SIZE = 300;
@@ -177,9 +185,10 @@ private:
 	void destroy_image();
 	void real_plot_complete();
 
-	ThreadPool _threadpool;
+	std::shared_ptr<ThreadPool> _threadpool;
 public:
-	ThreadPool& get_threadpool(); // singleton-like accessor
+	std::shared_ptr<ThreadPool> get_threadpool(); // singleton-like accessor
+	void resize_threadpool(unsigned max_threads); // Called when Prefs updated
 };
 
 #endif /* MAINWINDOW_H_ */

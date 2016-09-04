@@ -18,6 +18,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.";
 
 const char *copyright_string = "(c) 2010-2016 Ross Younger";
 
+const char* brot2_argv0;
+
 #include "png.h" // must be first, see launchpad 218409
 #include <memory>
 #include <iostream>
@@ -77,6 +79,7 @@ static int realmain(int argc, char**argv)
 
 int main (int argc, char**argv)
 {
+	brot2_argv0 = argv[0];
 	try {
 		realmain(argc,argv);
 	} catch (BrotException& e) {

@@ -37,7 +37,7 @@ public:
 	 * The string provides optional commentary about the plot so far.
 	 * The implementor should not take too long here, as the next pass won't
 	 * start until this function returns. */
-	virtual void pass_complete(std::string&) = 0;
+	virtual void pass_complete(std::string&, unsigned passes_plotted, unsigned maxiter, unsigned pixels_still_live, unsigned total_pixels) = 0;
 
 	/**Signals that the plot has finished work.
 	 * It might have completed, or it might have been told to stop. */

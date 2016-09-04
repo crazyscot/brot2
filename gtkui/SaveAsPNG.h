@@ -31,58 +31,80 @@ class MainWindow;
 #include <string>
 #include <memory>
 
-class SaveAsPNG;
+namespace SavePNG {
 
-struct PNGProgressWindow: public Gtk::Window, Plot3::IPlot3DataSink {
+class Single;
+
+struct SingleProgressWindow: public Gtk::Window, Plot3::IPlot3DataSink {
 	MainWindow& parent;
-	SaveAsPNG& job;
+	Single& job;
 	Gtk::ProgressBar *progbar;
 	int _chunks_this_pass;
-	PNGProgressWindow(MainWindow& p, SaveAsPNG& j);
+	SingleProgressWindow(MainWindow& p, Single& j);
 	virtual void chunk_done(Plot3::Plot3Chunk* chunk);
-	virtual void pass_complete(std::string& commentary);
+	virtual void pass_complete(std::string& commentary, unsigned passes_plotted, unsigned maxiter, unsigned pixels_still_live, unsigned total_pixels);
 	virtual void plot_complete();
 };
 
-class SaveAsPNG {
-	friend class MainWindow;
-	friend class PNGProgressWindow;
+class Base {
+	public:
+		static std::string last_saved_dirname;
+		static std::string default_save_dir(void);
+		static void update_save_dir(const std::string& filename);
 
-	// Private constructor! Called by do_save().
-	SaveAsPNG(MainWindow* mw, Fractal::Point centre, Fractal::Point size, unsigned width, unsigned height, bool antialias, bool do_hud, std::string&name);
+		void start(); // ->plot.start()
+		void wait(); // -> plot.wait()
+		void save_png(Gtk::Window *parent);
+		unsigned get_chunks_count() const { return plot.chunks_total(); }
 
+		static void to_png(Gtk::Window *parent, unsigned rwidth, unsigned rheight,
+				Plot3::Plot3Plot* plot, const BasePalette* pal, bool antialias,
+				bool show_hud, std::string& filename);
+	protected:
+		Base(std::shared_ptr<const BrotPrefs::Prefs> prefs, std::shared_ptr<ThreadPool> threads,
+				const Fractal::FractalImpl& fractal, const BasePalette& palette,
+				Plot3::IPlot3DataSink& sink,
+				Fractal::Point centre, Fractal::Point size,
+				unsigned width, unsigned height, bool antialias, bool do_hud, std::string&name);
+
+		std::shared_ptr<const BrotPrefs::Prefs> prefs;
+		std::shared_ptr<Plot3::ChunkDivider::Base> divider;
+		const int aafactor;
+		Plot3::Plot3Plot plot;
+		const BasePalette *pal; // do NOT delete
+		std::string filename;
+		const unsigned _width, _height;
+		const bool _do_antialias, _do_hud;
+
+		virtual ~Base();
+};
+
+class Single : Base {
 	// Interface for MainWindow to trigger save actions.
 	// An instance of this class is an outstanding PNG-save job.
+	friend class ::MainWindow;
+	friend class SingleProgressWindow;
+
+	// Private constructor! Called by do_save().
+	Single(MainWindow* mw, Fractal::Point centre, Fractal::Point size, unsigned width, unsigned height, bool antialias, bool do_hud, std::string&name);
+
 private:
-	static void to_png(MainWindow *mw, unsigned rwidth, unsigned rheight,
-			Plot3::Plot3Plot* plot, BasePalette* pal, bool antialias,
-			bool show_hud, std::string& filename);
-	void instance_to_png(MainWindow *mw);
-
-	// Delete on destruct:
-	PNGProgressWindow reporter;
-	std::shared_ptr<Plot3::ChunkDivider::Base> divider;
-	const int aafactor;
-	Plot3::Plot3Plot plot;
-
-	// do NOT delete:
-	BasePalette *pal;
-	std::string filename;
-	const unsigned _width, _height;
-	const bool _do_antialias, _do_hud;
-
-	void start(); // ->plot.start()
-	void wait(); // -> plot.wait()
+	SingleProgressWindow reporter;
 
 public:
-	static std::string last_saved_dirname;
-
 	// main entrypoint: runs the save dialog and DTRTs
 	static void do_save(MainWindow *mw);
 
-	unsigned get_chunks_count() const { return plot.chunks_total(); }
-
-	virtual ~SaveAsPNG();
+	virtual ~Single();
 };
+
+
+class MovieFrame : public Base {
+	public:
+		MovieFrame(std::shared_ptr<const BrotPrefs::Prefs> prefs, std::shared_ptr<ThreadPool> threads, const Fractal::FractalImpl& fractal, const BasePalette& palette, Plot3::IPlot3DataSink& sink, Fractal::Point centre, Fractal::Point size, unsigned width, unsigned height, bool antialias, bool do_hud, std::string& name);
+		virtual ~MovieFrame();
+};
+
+}; // namespace SavePNG
 
 #endif /* SAVEASPNG_H_ */

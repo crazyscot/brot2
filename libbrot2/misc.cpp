@@ -1,6 +1,6 @@
 /*
-    Plot3Pass.cpp: One computation pass of a Plot.
-    Copyright (C) 2012 Ross Younger
+    misc.cpp: General miscellanea that didn't fit anywhere else
+    Copyright (C) 2016 Ross Younger
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,28 +16,24 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "Plot3Pass.h"
+#include "misc.h"
+#include <string>
+#include <fcntl.h>
+#include <sys/sendfile.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <unistd.h>
 
-using namespace std;
+int Util::copy_file(const std::string& from, const std::string& to) {
+	int src = open(from.c_str(), O_RDONLY, 0);
+	if (src==-1) return errno;
+	int dest = open(to.c_str(), O_WRONLY|O_CREAT, 0644);
+	if (dest==-1) return errno;
 
-namespace Plot3 {
-
-Plot3Pass::Plot3Pass(std::shared_ptr<ThreadPool> pool, std::list<Plot3Chunk*>& chunks) :
-	_pool(pool), _chunks(chunks) {
+	struct stat stat1;
+	fstat(src, &stat1);
+	sendfile(dest, src, 0, stat1.st_size);
+	if (close(src) == -1) return errno;
+	if (close(dest) == -1) return errno;
+	return 0;
 }
-
-Plot3Pass::~Plot3Pass() {
-}
-
-void Plot3Pass::run() {
-	list<future<void> > results;
-	for (auto it=_chunks.begin(); it != _chunks.end(); it++) {
-		results.push_back(_pool->enqueue<void>([=]{(*it)->run();}));
-	}
-
-	for (auto it=results.begin(); it != results.end(); it++) {
-		(*it).get(); // Throws if anything went wrong.
-	}
-}
-
-} // namespace

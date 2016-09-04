@@ -71,7 +71,7 @@ void CLIDataSink::chunk_done(Plot3Chunk* job)
 	std::cerr << '\r';
 }
 
-void CLIDataSink::pass_complete(std::string& commentary)
+void CLIDataSink::pass_complete(std::string& commentary, unsigned, unsigned, unsigned, unsigned)
 {
 	_chunks_this_pass=0;
 	if (quiet) return;
