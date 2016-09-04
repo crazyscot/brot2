@@ -42,7 +42,7 @@ const char *copyright_string = "Copyright (c) 2010-2016 Ross Younger";
 using namespace Plot3;
 using namespace BrotPrefs;
 
-static bool do_version, do_license, do_list_fractals, do_list_palettes, quiet, do_antialias, do_info, do_hud;
+static bool do_version, do_license, do_list_fractals, do_list_palettes, quiet, do_antialias, do_csv, do_info, do_hud;
 static Glib::ustring c_re_x, c_im_y, length_x;
 static Glib::ustring entered_fractal = "Mandelbrot";
 static Glib::ustring entered_palette = "Linear rainbow";
@@ -86,6 +86,7 @@ static void setup_options(Glib::OptionGroup& options)
 
 	OPTION('q', "quiet", "Inhibits progress reporting", quiet);
 	OPTION('a', "antialias", "Enables linear antialiasing", do_antialias);
+	OPTION(0,   "csv", "Outputs as a CSV file", do_csv);
 
 	OPTION('i', "info", "Outputs the plot's info string on completion", do_info);
 	OPTION('v', "version", "Outputs this program's version number", do_version);
@@ -298,8 +299,11 @@ int main (int argc, char**argv)
 
 	Render2::Writable * render = 0;
 
-	Render2::PNG * png = new Render2::PNG(output_w, output_h, *selected_palette, -1, do_antialias);
-	render = png;
+	if (do_csv) {
+		render = new Render2::CSV(output_w, output_h, *selected_palette, -1, do_antialias);
+	} else {
+		render = new Render2::PNG(output_w, output_h, *selected_palette, -1, do_antialias);
+	}
 
 	for (auto it : sink.get_chunks_done())
 		render->process(*it);
