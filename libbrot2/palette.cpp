@@ -57,6 +57,9 @@ hsvf::operator rgb() {
 		ASSERT(false); // should never happen
 		return rgb(0,0,0); // eek, not a real number
 	}
+	float tmp;
+	h = modff(h,&tmp); // -1..h..1
+	if (h<0) h+=1; // 0..h..1
 	int i = h * 6.0;
 	float f = h * 6.0 - i;
 	float p = v * (1.0 - s);
@@ -70,7 +73,7 @@ hsvf::operator rgb() {
 		case 4: return rgbf(t, p, v);
 		case 5: return rgbf(v, p, q);
 	}
-	ASSERT(false); // cannot reach here
+	ASSERT(false); // unreachable
 }
 
 std::ostream& operator<<(std::ostream &stream, hsvf o) {
