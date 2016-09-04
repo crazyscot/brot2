@@ -78,6 +78,8 @@ typedef Base<std::string> String;
 	DO(Boolean,HUDShowZoom)\
     \
     DO(String,LastSaveDir)\
+    \
+    DO(Boolean,LibAVLogVerbose)\
 
 struct Registry {
 #define DO(type,name) BrotPrefs::type name;

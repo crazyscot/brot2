@@ -99,6 +99,12 @@ namespace BrotPrefs {
 				"Last directory we saved a PNG in",
 				"",
 				Groups::UI, "lastsavedir"),
+
+		LibAVLogVerbose("Verbose libav logging",
+				"Enables super-verbose logging (AV_LOG_DEBUG level) when rendering a movie with libav",
+				false,
+				Groups::UI, "libav_verbose"),
+
 		end()
 	{ }
 
