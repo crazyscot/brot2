@@ -218,6 +218,7 @@ class MovieTest : public ::testing::Test {
 			movie.palette = &pal;
 			movie.width = TEST_WIDTH;
 			movie.height = TEST_HEIGHT;
+			movie.antialias = false;
 			Movie::KeyFrame f1( 0.1, 0.1, 0.1, 0.1, 0, speed, speed );
 			Movie::KeyFrame f2( 0.0, 0.0, 0.1, 0.1, 0, speed, speed );
 			movie.points.clear();
