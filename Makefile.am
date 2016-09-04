@@ -3,16 +3,17 @@ EXTRA_DIST=debian misc
 AM_CPPFLAGS=@BROT2_GLOBAL_CPPFLAGS@ \
 			-I$(top_srcdir) -I$(top_srcdir)/libfractal \
 			-I$(top_srcdir)/libbrot2
-AM_CFLAGS=@BROT2_GLOBAL_CFLAGS@
-AM_CXXFLAGS=@BROT2_GLOBAL_CXXFLAGS@
+AM_CFLAGS=@BROT2_GLOBAL_CFLAGS@ @glibmm_CFLAGS@ @pango_CFLAGS@ @gdkmm_CFLAGS@
+AM_CXXFLAGS=@BROT2_GLOBAL_CXXFLAGS@ @glibmm_CFLAGS@ @pango_CFLAGS@ @gdkmm_CFLAGS@
 
 all_libs= \
 		  libfractal.a \
 		  libbrot2.a
 
-all_ldadd=$(all_libs) @libbrot2_a_LIBS@ -lm
+all_ldadd=$(all_libs) @glibmm_LIBS@ -lm
 
 noinst_LIBRARIES=
+noinst_PROGRAMS=
 bin_PROGRAMS=
 check_LIBRARIES=
 check_PROGRAMS=
@@ -28,6 +29,8 @@ libfractal_a_SOURCES= \
 	libfractal/FractalMaths.h libfractal/Fractal-internals.h \
 	libfractal/Mandelbrots.cpp libfractal/Mandelbar.cpp \
 	libfractal/Mandeldrop.cpp libfractal/Misc.cpp
+
+libfractal_a_CXXFLAGS=@glibmm_CFLAGS@
 
 ################################################################
 
@@ -64,6 +67,9 @@ logo_auto.c: $(LOGO_IN)
 	$(AM_V_GEN) gdk-pixbuf-csource --raw --extern --name=brot2_logo $(LOGO_IN) >> $@.new
 	$(AM_V_at) mv -f $@.new $@
 
+libbrot2_a_CFLAGS=@pango_CFLAGS@
+libbrot2_a_LIBS=@pango_LIBS@
+
 ################################################################
 
 bin_PROGRAMS+=brot2cli
@@ -71,7 +77,7 @@ bin_PROGRAMS+=brot2cli
 brot2cli_SOURCES=cli/climain.cpp cli/climain.h \
 				 cli/CLIDataSink.cpp cli/CLIDataSink.h
 
-brot2cli_LDADD= $(all_ldadd)
+brot2cli_LDADD= $(all_ldadd) @gdkmm_LIBS@ @pango_LIBS@ @libpng12_LIBS@
 
 ################################################################
 
@@ -96,8 +102,10 @@ if LIBAV
 brot2_SOURCES+= gtkui/MovieRender-libav.cpp
 endif
 
-brot2_CPPFLAGS=$(AM_CPPFLAGS) @brot2gui_CFLAGS@ @LIBAV_CFLAGS@
-brot2_LDADD=$(all_ldadd) @brot2gui_LIBS@ @LIBAV_LIBS@
+brot2_CPPFLAGS=$(AM_CPPFLAGS)
+brot2_CFLAGS=$(AM_CFLAGS) @pango_CFLAGS@ @LIBAV_CFLAGS@
+brot2_CXXFLAGS=$(AM_CXXFLAGS) @pango_CFLAGS@ @LIBAV_CFLAGS@ @gtkmm_CFLAGS@ @gdkmm_CFLAGS@ @libpng12_CFLAGS@ @glibmm_CFLAGS@
+brot2_LDADD=$(all_ldadd) @pango_LIBS@ @LIBAV_LIBS@ @gtkmm_LIBS@ @gdkmm_LIBS@ @libpng12_LIBS@ @glibmm_LIBS@
 
 ################################################################
 
@@ -125,11 +133,12 @@ endif
 
 if GTEST
 check_PROGRAMS+=b2test
+noinst_PROGRAMS+=b2test # necessary so 'make all' builds it
 export builddir
+TESTS=b2test
 if TEST_WITH_VALGRIND
-TEST_VG=test/b2test.valgrind
+TESTS+=test/b2test.valgrind
 endif TEST_WITH_VALGRIND
-TESTS=b2test $(TEST_VG)
 
 else !GTEST
 check :
@@ -148,10 +157,11 @@ b2test_SOURCES=test/b2test.cpp \
 					test/Plot3Test.cpp test/Render2Test.cpp \
 					test/FractalKAT.cpp test/MovieTest.cpp
 
-b2test_LDADD= libgtest.a $(all_ldadd)
+b2test_LDADD= libgtest.a $(all_ldadd) @libpng12_LIBS@
 b2test_DEPENDENCIES= libgtest.a $(all_libs)
 
-b2test_CPPFLAGS=$(AM_CPPFLAGS) -I$(GTEST_INC)
+b2test_CPPFLAGS=$(AM_CPPFLAGS) -I$(GTEST_INC) @glibmm_CFLAGS@
+b2test_CXXFLAGS=
 
 ################################################################
 
@@ -169,9 +179,9 @@ plot_benchmark_CPPFLAGS=$(AM_CPPFLAGS)
 palette_benchmark_SOURCES=$(benchmark_SOURCES) benchmark/palette_benchmark.cpp \
 				 cli/CLIDataSink.cpp cli/CLIDataSink.h
 
-palette_benchmark_LDADD= $(all_ldadd)
+palette_benchmark_LDADD= $(all_ldadd) @libpng12_LIBS@
 palette_benchmark_DEPENDENCIES= $(all_ldadd)
-palette_benchmark_CPPFLAGS=$(AM_CPPFLAGS) @brot2gui_CFLAGS@
+palette_benchmark_CPPFLAGS=$(AM_CPPFLAGS)
 
 benchmark: $(benchmark_PROGRAMS)
 	for p in $(benchmark_PROGRAMS); do ./$$p; done
