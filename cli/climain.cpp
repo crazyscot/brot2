@@ -296,15 +296,21 @@ int main (int argc, char**argv)
 	if (!quiet)
 		std::cerr << std::endl << "Complete!" << std::endl;
 
-	Render2::PNG png(output_w, output_h, *selected_palette, -1, do_antialias);
+	Render2::Writable * render = 0;
+
+	Render2::PNG * png = new Render2::PNG(output_w, output_h, *selected_palette, -1, do_antialias);
+	render = png;
+
 	for (auto it : sink.get_chunks_done())
-		png.process(*it);
+		render->process(*it);
 	if (do_hud)
-		BaseHUD::apply(png, prefs, &plot, false, false);
+		BaseHUD::apply(*render, prefs, &plot, false, false);
 	if (do_stdout)
-		png.write(std::cout);
+		render->write(std::cout);
 	else
-		png.write(filename);
+		render->write(filename);
+	delete render;
+
 	if (do_info)
 		std::cout << plot.info(true) << std::endl;
 	return 0;
