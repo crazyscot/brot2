@@ -282,13 +282,12 @@ class LibAV : public Movie::Renderer {
 		Plot3::Plot3Plot *plot;
 		Plot3::ChunkDivider::Horizontal10px divider;
 		Render2::MemoryBuffer *render;
-		unsigned char *render_buf;
 		std::shared_ptr<const BrotPrefs::Prefs> prefs;
 
 		Private(Movie::RenderJob& _job) :
 			RenderInstancePrivate(_job),
 			fmt(0), oc(0), st(0), next_pts(0), frame(0), tmp_frame(0), finished_cleanly(false), sws_ctx(0), avr(0),
-			plot(0), render(0), render_buf(0), prefs(BrotPrefs::Prefs::getMaster())
+			plot(0), render(0), prefs(BrotPrefs::Prefs::getMaster())
 		{
 			ConsoleOutputWindow::activate(_job._reporter, prefs);
 		}
@@ -307,7 +306,6 @@ class LibAV : public Movie::Renderer {
 			if (finished_cleanly)
 				ConsoleOutputWindow::render_finished(); // may hide Console
 			delete render;
-			delete render_buf;
 		}
 	};
 	public:
@@ -391,26 +389,14 @@ class LibAV : public Movie::Renderer {
 				THROW(AVException,"Could not open file");
 			avformat_write_header(mypriv->oc, 0);
 
-			mypriv->render_buf = new unsigned char[3*c->width*c->height];
-			// TODO Get MemoryBuffer to render directly into frame[_tmp].
-			mypriv->render = new Render2::MemoryBuffer(mypriv->render_buf, 3*c->width/*rowstride*/, c->width, c->height,
+			AVFrame * ren_frame = mypriv->tmp_frame ? mypriv->tmp_frame : mypriv->frame;
+			mypriv->render = new Render2::MemoryBuffer(
+					ren_frame->data[0],
+					ren_frame->linesize[0],
+					c->width, c->height,
 					job._movie.antialias, -1/*local_inf*/,
 					Render2::pixpack_format::PACKED_RGB_24, *job._movie.palette);
 			// Update local_inf later with mypriv->render->fresh_local_inf() if needed.
-		}
-
-		void render_to_frame(Private * mypriv, AVFrame * frame) {
-			int ret;
-			ret = av_frame_make_writable(frame);
-			if (ret < 0) THROW(AVException, "Could not make frame writable");
-
-			ASSERT( frame->linesize[0] >= 3 * mypriv->st->codec->width);
-			// NOTE: Must use height/width from mypriv->st->codec as it may not equal the passed-in dimensions
-			for (int y=0; y < mypriv->st->codec->height; y++) {
-				memcpy(&frame->data[0][y * frame->linesize[0]],
-						&mypriv->render_buf[y * mypriv->render->rowstride()],
-						mypriv->st->codec->width * mypriv->render->pixelstep());
-			}
 		}
 
 		void render_frame(const struct Movie::Frame& fr, Movie::RenderInstancePrivate *priv, unsigned n_frames) {
@@ -423,6 +409,13 @@ class LibAV : public Movie::Renderer {
 			mypriv->plot->start();
 			mypriv->job._reporter->set_chunks_count(mypriv->plot->chunks_total());
 			mypriv->plot->wait();
+
+			int ret=0;
+			if (mypriv->tmp_frame)
+				ret = av_frame_make_writable(mypriv->tmp_frame);
+			else
+				ret = av_frame_make_writable(mypriv->frame);
+			if (ret < 0) THROW(AVException, "Could not make frame writeable");
 
 			mypriv->render->process(mypriv->plot->get_chunks__only_after_completion());
 			if (mypriv->job._movie.draw_hud)
@@ -441,11 +434,10 @@ class LibAV : public Movie::Renderer {
 					if (!mypriv->sws_ctx)
 						THROW(AVException, "Cannot allocate conversion context");
 				}
-				render_to_frame(mypriv, mypriv->tmp_frame);
 				sws_scale(mypriv->sws_ctx, mypriv->tmp_frame->data, mypriv->tmp_frame->linesize,
 						0, c->height, mypriv->frame->data, mypriv->frame->linesize);
 			} else {
-				render_to_frame(mypriv, mypriv->frame);
+				// All good, nothing to do
 			}
 
 			// Write the video frame
