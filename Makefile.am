@@ -93,8 +93,8 @@ brot2_SOURCES= \
 	gtkui/ColourPanel.cpp gtkui/ColourPanel.h \
 	gtkui/SaveAsPNG.cpp gtkui/SaveAsPNG.h
 
-brot2_CPPFLAGS=$(AM_CPPFLAGS) @brot2gui_CFLAGS@
-brot2_LDADD=$(all_ldadd) @brot2gui_LIBS@
+brot2_CPPFLAGS=$(AM_CPPFLAGS) @brot2gui_CFLAGS@ @libav_CFLAGS@
+brot2_LDADD=$(all_ldadd) @brot2gui_LIBS@ @libav_LIBS@
 
 ################################################################
 

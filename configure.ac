@@ -27,8 +27,9 @@ if test "x$GCC" = xyes; then
 	pkg_cflags="${pkg_cflags} -Wall -Wextra -Werror -Wpointer-arith -Wwrite-strings"
 fi
 
-PKG_CHECK_MODULES([libbrot2_a],[glibmm-2.4 libpng12 sigc++-2.0 gdkmm-2.4 pangomm-1.4 pangocairo cairomm-1.0 cairo pango libavformat-ffmpeg libavcodec-ffmpeg libswscale-ffmpeg libavresample-ffmpeg libavutil-ffmpeg])
-PKG_CHECK_MODULES([brot2gui],[glibmm-2.4 gtkmm-2.4 gdkmm-2.4 pangocairo cairo pango libpng12 sigc++-2.0 libavformat-ffmpeg libavcodec-ffmpeg libswscale-ffmpeg libavresample-ffmpeg])
+PKG_CHECK_MODULES([libbrot2_a],[glibmm-2.4 libpng12 sigc++-2.0 gdkmm-2.4 pangomm-1.4 pangocairo cairomm-1.0 cairo pango])
+PKG_CHECK_MODULES([brot2gui],[glibmm-2.4 gtkmm-2.4 gdkmm-2.4 pangocairo cairo pango libpng12 sigc++-2.0])
+PKG_CHECK_MODULES([libav], [libavformat-ffmpeg libavcodec-ffmpeg libswscale-ffmpeg libavresample-ffmpeg libavutil-ffmpeg])
 AC_SUBST([libbrot2_a_CXXFLAGS], [${libbrot2_a_CFLAGS}])
 PKG_CHECK_MODULES([libfractal_a],[glibmm-2.4])
 AC_SUBST([libfractal_a_CXXFLAGS], [${libfractal_a_CFLAGS}])
