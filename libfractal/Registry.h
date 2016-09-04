@@ -38,7 +38,11 @@ class SimpleRegistry
 
 		// Retrieve an instance
 		T* get(const std::string& name) {
-			return instances[name];
+			try {
+				return instances.at(name);
+			} catch (std::out_of_range) {
+				return nullptr;
+			}
 		}
 
 		// Computes and returns the set of names. Potentially expensive,
