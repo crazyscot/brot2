@@ -2,6 +2,7 @@ brot2 (2.0~unreleased) UNRELEASED; urgency=medium
 
   * GTK UI: tweak fractal/colour menu hotkeys; improve controls window default
   position; add Reset and Fulscreen
+  * New feature: Movie mode (only available in GUI)
 
  -- Ross Younger <0ryoungerk.launchpad@coriolis.greenend.org.uk>  Sun, 17 Jul 2016 16:31:11 +1200
 

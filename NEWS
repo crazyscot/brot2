@@ -1,1 +1,5 @@
-Not much to report right now.
+New in version 2.0
+==================
+
+Movie mode. Find a plot you like, then add it as a keyframe to the movie
+window. Add as many keyframes as you like (within reason!), then hit Render.
