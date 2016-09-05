@@ -231,7 +231,7 @@ protected:
 	Render2::PNG* _png;
 
 	Render2PNG() :
-			_TestW(37), _TestH(41),
+			_TestW(38), _TestH(42), // H must be a multiple of 2 for the upscaler test to work; W must too to avoid a valgrind failure
 			_origin(0.6,0.7), _size(0.001, 0.01), _png(0) {
 	}
 	virtual void SetUp() {
@@ -453,6 +453,27 @@ TEST_F(PNGAntiAlias, OddHeightAsserts) {
 		_png.process(chunk2);
 	}
 }
+
+// -----------------------------------------------------------------------------
+
+
+class Render2PNGUpscaled: public Render2PNG {
+	/* This checks that Render touches every pixel in the output buffer. */
+protected:
+	Render2PNGUpscaled() : Render2PNG() {}
+	virtual void SetUp() {
+		_png = new Render2::PNG(_TestW, _TestH, _palette, -1, false, true);
+	}
+};
+
+TEST_F(Render2PNGUpscaled, Works) {
+	Plot3Chunk chunk(NULL, _fract, 0.5*(_TestW+1), 0.5*(_TestH+1), 0, 0, _origin, _size, Fractal::Maths::MathsType::LongDouble, 10);
+	chunk.run();
+	_png->process(chunk);
+	EXPECT_EQ(_TestH, _png->png_height());
+	EXPECT_EQ(_TestW, _png->png_width() );
+}
+
 
 // -----------------------------------------------------------------------------
 

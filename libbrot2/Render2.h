@@ -73,7 +73,8 @@ inline rgb antialias_pixel4(const rgb * const pix) { // Assumes pix array length
 
 class Base {
 public:
-	// If @upscale@ set, we render to TWICE the given width/height by a simple 2x2 upscale.
+	// width and height are the OUTPUT size. The caller is expected to pass in 4x (or 0.25x) the pixels via the chunks mechanism.
+	// Width and height MUST be even if antialias or upscale are selected.
 	Base(unsigned width, unsigned height, int local_inf, bool antialias, const BasePalette& pal, bool upscale);
 	virtual ~Base() {}
 
@@ -104,6 +105,8 @@ protected:
 	 * Anti-aliased chunk processing.
 	 */
 	void process_antialias(const Plot3::Plot3Chunk& chunk);
+	/* And the upscaled version */
+	void process_upscale(const Plot3::Plot3Chunk& chunk);
 public:
 	/**
 	 * Called by process_* functions for each output pixel.
@@ -192,11 +195,12 @@ public:
 	/*
 	 * Width and height are in pixels.
 	 *
-	 * If antialias is true we apply a 2x downscale in either direction.
+	 * If antialias is true we apply a 2x downscale in either direction to create
+	 * the output PNG from the plot; if upscale is true we upscale.
 	 * Specify only the output height and width; we expect to process
-	 * 4x as many pixels via the chunks system.
+	 * 4x as many (1/4x as many) pixels via the chunks system.
 	 *
-	 * CAUTION: Chunk widths and heights of antialiased plots must be even!
+	 * CAUTION: Chunk widths and heights of antialiased and upscaled plots must be even!
 	 */
 	PNG(unsigned width, unsigned height, const BasePalette& palette, int local_inf, bool antialias=false, bool upscale=false);
 	virtual ~PNG();
@@ -206,6 +210,9 @@ public:
 
 	virtual void pixel_done(unsigned X, unsigned Y, const rgb& p);
 	virtual void pixel_get(unsigned X, unsigned Y, rgb& p);
+
+	size_t png_height() { return _png.get_height(); }
+	size_t png_width() { return _png.get_width(); }
 };
 
 class CSV : public Writable {

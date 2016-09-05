@@ -29,12 +29,20 @@ namespace Render2 {
 using namespace Plot3;
 
 Base::Base(unsigned width, unsigned height, int local_inf, bool antialias, const BasePalette& pal, bool upscale) :
-		_width(width), _height(height), _local_inf(local_inf), _antialias(antialias), _upscale(upscale), _pal(&pal) {}
+		_width(width), _height(height), _local_inf(local_inf), _antialias(antialias), _upscale(upscale), _pal(&pal) {
+	ASSERT( ! (_antialias && _upscale) ); // These two are not compatible, UI should prevent both being selected
+	if (_antialias || _upscale) {
+		ASSERT(!(width%2));
+		ASSERT(!(height%2));
+	}
+}
 
 void Base::process(const Plot3Chunk& chunk)
 {
 	if (_antialias)
 		return process_antialias(chunk);
+	else if (_upscale)
+		return process_upscale(chunk);
 	else
 		return process_plain(chunk);
 }
@@ -65,7 +73,38 @@ void Base::process_plain(const Plot3Chunk& chunk)
 
 		for (i=0; i<chunk._width; i++) {
 			rgb pix = render_pixel(src[i], _local_inf, _pal);
-			pixel_done(i+chunk._offX, _height-(1+j+chunk._offY), pix);
+			int xx = i+chunk._offX, yy = _height-(1+j+chunk._offY);
+			pixel_done(xx, yy, pix);
+		}
+	}
+}
+
+void Base::process_upscale(const Plot3Chunk& chunk)
+{
+	const Fractal::PointData * data = chunk.get_data();
+
+	unsigned i,j;
+	const unsigned outW = chunk._width * 2,
+				   outH = chunk._height * 2,
+				   outOffX = chunk._offX * 2,
+				   outOffY = chunk._offY * 2;
+	ASSERT( chunk._offX + chunk._width <= _width/2 + 1 );
+	ASSERT( chunk._offY + chunk._height <= _height/2 + 1);
+	ASSERT( outOffX + outW <= _width + 1 );
+	ASSERT( outOffY + outH <= _height + 1);
+
+	for (j=0; j<chunk._height; j++) {
+		const Fractal::PointData * src = &data[j*chunk._width];
+
+		for (i=0; i<chunk._width; i++) {
+			rgb pix = render_pixel(src[i], _local_inf, _pal);
+			// Same co-ordinate conversion as in process_plain(), then we upscale
+			int xx = 2*(i+chunk._offX), yy = _height - 2 *(1 + j + chunk._offY);
+			if ((xx<0) || (yy<0)) continue; // This stops us from running over the edge where output size is not a multiple of 2. We could be fancier here but it's only a draft render so it's not worth the complexity.
+			pixel_done(xx+0, yy+0, pix);
+			pixel_done(xx+1, yy+0, pix);
+			pixel_done(xx+0, yy+1, pix);
+			pixel_done(xx+1, yy+1, pix);
 		}
 	}
 }
@@ -129,6 +168,8 @@ MemoryBuffer::MemoryBuffer(unsigned char *buf, int rowstride, unsigned width, un
 {
 	ASSERT(buf);
 	ASSERT((unsigned)rowstride >= RGB_BYTES_PER_PIXEL * width);
+	if (upscale)
+		ASSERT((unsigned)rowstride >= RGB_BYTES_PER_PIXEL * width * 2);
 
 	switch(_fmt) {
 	case CAIRO_FORMAT_ARGB32:
@@ -247,6 +288,7 @@ CSV::CSV(unsigned width, unsigned height,
 		const BasePalette& palette, int local_inf, bool antialias) :
 				Writable(width, height, local_inf, antialias, palette, false) {
 	_points = new Fractal::PointData[width*height];
+	ASSERT(!_upscale); // Not compatible, this mode only does raw
 }
 
 CSV::~CSV() {
@@ -261,7 +303,7 @@ void CSV::process(const Plot3::Plot3Chunk& chunk) {
 }
 
 void CSV::raw_process_plain(const Plot3::Plot3Chunk& chunk) {
-	// This is the same as Base::process_plain but with the serial numbers filed off.
+	// This is the same as the original Base::process_plain but with the serial numbers filed off.
 	const Fractal::PointData * data = chunk.get_data();
 	unsigned i,j;
 	// Sanity checks
