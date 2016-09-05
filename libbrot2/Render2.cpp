@@ -28,8 +28,8 @@ namespace Render2 {
 
 using namespace Plot3;
 
-Base::Base(unsigned width, unsigned height, int local_inf, bool antialias, const BasePalette& pal) :
-		_width(width), _height(height), _local_inf(local_inf), _antialias(antialias), _pal(&pal) {}
+Base::Base(unsigned width, unsigned height, int local_inf, bool antialias, const BasePalette& pal, bool upscale) :
+		_width(width), _height(height), _local_inf(local_inf), _antialias(antialias), _upscale(upscale), _pal(&pal) {}
 
 void Base::process(const Plot3Chunk& chunk)
 {
@@ -123,8 +123,8 @@ void Base::pixel_overlay(unsigned X, unsigned Y, const rgba& other)
 /////////////////////////////////////////////////////////////////////////////////////////////
 
 MemoryBuffer::MemoryBuffer(unsigned char *buf, int rowstride, unsigned width, unsigned height,
-		bool antialias, const int local_inf, pixpack_format fmt, const BasePalette& pal) :
-					Base(width, height, local_inf, antialias, pal),
+		bool antialias, const int local_inf, pixpack_format fmt, const BasePalette& pal, bool upscale) :
+					Base(width, height, local_inf, antialias, pal, upscale),
 					_buf(buf), _rowstride(rowstride), _fmt(fmt)
 {
 	ASSERT(buf);
@@ -201,15 +201,15 @@ void MemoryBuffer::pixel_get(unsigned X, unsigned Y, rgb& pix)
 
 /////////////////////////////////////////////////////////////////////////////////////////////
 
-Writable::Writable(unsigned width, unsigned height, int local_inf, bool antialias, const BasePalette& pal) :
-	Base(width, height, local_inf, antialias, pal) {}
+Writable::Writable(unsigned width, unsigned height, int local_inf, bool antialias, const BasePalette& pal, bool upscale) :
+	Base(width, height, local_inf, antialias, pal, upscale) {}
 Writable::~Writable() {}
 
 /////////////////////////////////////////////////////////////////////////////////////////////
 
 PNG::PNG(unsigned width, unsigned height,
-		const BasePalette& palette, int local_inf, bool antialias) :
-				Writable(width, height, local_inf, antialias, palette),
+		const BasePalette& palette, int local_inf, bool antialias, bool upscale) :
+				Writable(width, height, local_inf, antialias, palette, upscale),
 				_png(_width, _height)
 {
 }
@@ -245,7 +245,7 @@ void PNG::write(std::ostream& os)
 
 CSV::CSV(unsigned width, unsigned height,
 		const BasePalette& palette, int local_inf, bool antialias) :
-				Writable(width, height, local_inf, antialias, palette) {
+				Writable(width, height, local_inf, antialias, palette, false) {
 	_points = new Fractal::PointData[width*height];
 }
 

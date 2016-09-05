@@ -73,7 +73,8 @@ inline rgb antialias_pixel4(const rgb * const pix) { // Assumes pix array length
 
 class Base {
 public:
-	Base(unsigned width, unsigned height, int local_inf, bool antialias, const BasePalette& pal);
+	// If @upscale@ set, we render to TWICE the given width/height by a simple 2x2 upscale.
+	Base(unsigned width, unsigned height, int local_inf, bool antialias, const BasePalette& pal, bool upscale);
 	virtual ~Base() {}
 
 	/** Processes a single chunk. */
@@ -92,7 +93,7 @@ public:
 
 protected:
 	unsigned _width, _height, _local_inf;
-	bool _antialias;
+	bool _antialias, _upscale;
 	const BasePalette* _pal;
 
 	/**
@@ -147,9 +148,13 @@ public:
 	 *
 	 * fmt: The byte format to use. This may be a CAIRO_FORMAT_* or our
 	 * internal PACKED_RGB_24 (used for png output).
+	 *
+	 * upscale: If set, we render to TWICE the given width/height by a simple 2x2 upscale.
+	 * In this case buf should be at least (2 * rowstride * height) bytes long, and
+	 * rowstride at least 2 * bytes per pixel * width.
 	 */
 	MemoryBuffer(unsigned char *buf, const int rowstride, unsigned width, unsigned height,
-			bool antialias, const int local_inf, pixpack_format fmt, const BasePalette& pal);
+			bool antialias, const int local_inf, pixpack_format fmt, const BasePalette& pal, bool upscale=false);
 
 	virtual ~MemoryBuffer();
 
@@ -163,7 +168,7 @@ public:
 class Writable : public Base {
 	/* Base class for renders which can write to a file */
 	public:
-		Writable(unsigned width, unsigned height, int local_inf, bool antialias, const BasePalette& pal);
+		Writable(unsigned width, unsigned height, int local_inf, bool antialias, const BasePalette& pal, bool upscale);
 		virtual void write(const std::string& filename) = 0;
 		virtual void write(std::ostream& ostream) = 0;
 		virtual ~Writable();
@@ -193,7 +198,7 @@ public:
 	 *
 	 * CAUTION: Chunk widths and heights of antialiased plots must be even!
 	 */
-	PNG(unsigned width, unsigned height, const BasePalette& palette, int local_inf, bool antialias=false);
+	PNG(unsigned width, unsigned height, const BasePalette& palette, int local_inf, bool antialias=false, bool upscale=false);
 	virtual ~PNG();
 
 	virtual void write(const std::string& filename);
@@ -213,6 +218,8 @@ class CSV : public Writable {
 	 * 4. Call write() when you're ready to write the file.
 	 *
 	 * Note that this class contains a nontrivial memory buffer throughout its lifetime.
+	 *
+	 * Upscaling doesn't make sense for CSV files, so this option isn't offered.
 	 */
 protected:
 	// Raw data array and accessor
