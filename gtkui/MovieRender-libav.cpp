@@ -401,17 +401,19 @@ class LibAV : public Movie::Renderer {
 					ren_frame->linesize[0],
 					c->width, c->height,
 					job._movie.antialias, -1/*local_inf*/,
-					Render2::pixpack_format::PACKED_RGB_24, *job._movie.palette);
+					Render2::pixpack_format::PACKED_RGB_24, *job._movie.palette, job._movie.preview/*upscale*/);
 			// Update local_inf later with mypriv->render->fresh_local_inf() if needed.
 		}
 
 		void render_frame(const struct Movie::Frame& fr, Movie::RenderInstancePrivate *priv, unsigned n_frames) {
 			Private * mypriv = (Private*)(priv);
 
+			const int upfactor = mypriv->job._movie.preview ? 2 : 1;
 			mypriv->plot = new Plot3::Plot3Plot(mypriv->job._threads, mypriv->job._reporter,
 					*mypriv->job._movie.fractal, mypriv->divider,
 					fr.centre, fr.size,
-					mypriv->job._rwidth, mypriv->job._rheight);
+					mypriv->job._rwidth / upfactor, mypriv->job._rheight / upfactor);
+			// LATER: Why not apply the upfactor to _rwidth in MovieRender?
 			mypriv->plot->start();
 			mypriv->job._reporter->set_chunks_count(mypriv->plot->chunks_total());
 			mypriv->plot->wait();

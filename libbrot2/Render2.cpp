@@ -168,8 +168,6 @@ MemoryBuffer::MemoryBuffer(unsigned char *buf, int rowstride, unsigned width, un
 {
 	ASSERT(buf);
 	ASSERT((unsigned)rowstride >= RGB_BYTES_PER_PIXEL * width);
-	if (upscale)
-		ASSERT((unsigned)rowstride >= RGB_BYTES_PER_PIXEL * width * 2);
 
 	switch(_fmt) {
 	case CAIRO_FORMAT_ARGB32:
