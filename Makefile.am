@@ -2,15 +2,16 @@ EXTRA_DIST=debian misc
 
 AM_CPPFLAGS=@BROT2_GLOBAL_CPPFLAGS@ \
 			-I$(top_srcdir) -I$(top_srcdir)/libfractal \
-			-I$(top_srcdir)/libbrot2
-AM_CFLAGS=@BROT2_GLOBAL_CFLAGS@ @glibmm_CFLAGS@ @pango_CFLAGS@ @gdkmm_CFLAGS@
-AM_CXXFLAGS=@BROT2_GLOBAL_CXXFLAGS@ @glibmm_CFLAGS@ @pango_CFLAGS@ @gdkmm_CFLAGS@
+			-I$(top_srcdir)/libbrot2 -pthread
+AM_CFLAGS=@BROT2_GLOBAL_CFLAGS@ @glibmm_CFLAGS@ @pango_CFLAGS@ @gdkmm_CFLAGS@ @protobuf_CFLAGS@
+AM_CXXFLAGS=@BROT2_GLOBAL_CXXFLAGS@ @glibmm_CFLAGS@ @pango_CFLAGS@ @gdkmm_CFLAGS@ @protobuf_CFLAGS@
 
 all_libs= \
 		  libfractal.a \
-		  libbrot2.a
+		  libbrot2.a \
+		  libmessages.a
 
-all_ldadd=$(all_libs) @glibmm_LIBS@ -lm
+all_ldadd=$(all_libs) @glibmm_LIBS@ -lm @protobuf_LIBS@
 
 noinst_LIBRARIES=
 noinst_PROGRAMS=

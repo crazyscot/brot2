@@ -34,6 +34,7 @@ PKG_CHECK_MODULES([pango],[pangomm-1.4 pangocairo cairomm-1.0 cairo pango])
 PKG_CHECK_MODULES([gtkmm],[gtkmm-2.4 gdkmm-2.4 sigc++-2.0])
 PKG_CHECK_MODULES([gdkmm],[gdkmm-2.4 sigc++-2.0])
 PKG_CHECK_MODULES([libpng12],[libpng12])
+PKG_CHECK_MODULES([protobuf],[protobuf])
 
 GTEST_SRC_CHECK
 VALGRIND_CHECK
