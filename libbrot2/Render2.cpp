@@ -31,7 +31,7 @@ using namespace Plot3;
 Base::Base(unsigned width, unsigned height, int local_inf, bool antialias, const BasePalette& pal, bool upscale) :
 		_width(width), _height(height), _local_inf(local_inf), _antialias(antialias), _upscale(upscale), _pal(&pal) {
 	ASSERT( ! (_antialias && _upscale) ); // These two are not compatible, UI should prevent both being selected
-	if (_antialias || _upscale) {
+	if (_upscale) {
 		ASSERT(!(width%2));
 		ASSERT(!(height%2));
 	}
