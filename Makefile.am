@@ -194,7 +194,7 @@ palette_benchmark_SOURCES=$(benchmark_SOURCES) benchmark/palette_benchmark.cpp \
 				 cli/CLIDataSink.cpp cli/CLIDataSink.h
 
 palette_benchmark_LDADD= $(all_ldadd) @libpng12_LIBS@
-palette_benchmark_DEPENDENCIES= $(all_ldadd)
+palette_benchmark_DEPENDENCIES= $(all_libs)
 palette_benchmark_CPPFLAGS=$(AM_CPPFLAGS)
 
 benchmark: $(benchmark_PROGRAMS)
