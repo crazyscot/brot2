@@ -73,15 +73,30 @@ class MovieWindowPrivate {
 	Gtk::TreeView m_keyframes;
 	Glib::RefPtr<Gtk::ListStore> m_refTreeModel;
 	Util::HandyEntry<unsigned> f_height, f_width, f_fps;
-	Gtk::CheckButton f_hud, f_antialias, f_preview;
+	Gtk::CheckButton f_hud;
 	Gtk::Entry f_duration;
 	Gtk::Label f_fractal, f_palette;
+	Gtk::ComboBoxText f_quality;
 
-	MovieWindowPrivate() : f_height(5), f_width(5), f_fps(5), f_hud("Draw HUD"), f_antialias("Antialias"), f_preview("Preview")
+#define ALL_QUALITY(DO) \
+	DO(Best) \
+	DO(Standard) \
+	DO(Draft) \
+
+#define DO_ENUMDEF(Str) #Str,
+	//enum Quality { Start_Quality = -1, ALL_QUALITY(DO_ENUMDEF) End_Quality };
+	enum Quality { Q_INVAL = -1, Q_Best, Q_Standard, Q_Draft, Q_SENTINEL};
+	// CAUTION: This is a little fragile, assumes that the ComboBox items are only ever created in order (by us) and that the first item in a ComboBox will always be index 0.
+
+	MovieWindowPrivate() : f_height(5), f_width(5), f_fps(5), f_hud("Draw HUD")
 	{
 		f_duration.set_editable(false);
 		f_fractal.set_alignment(Gtk::ALIGN_START);
 		f_palette.set_alignment(Gtk::ALIGN_START);
+
+#define DO_APPEND(Str) do { f_quality.append(#Str); } while(0);
+		ALL_QUALITY(DO_APPEND);
+		f_quality.set_active(Q_Best);
 	}
 };
 
@@ -222,9 +237,13 @@ MovieWindow::MovieWindow(MainWindow& _mw, std::shared_ptr<const Prefs> prefs) : 
 	lbl = Gtk::manage(new Gtk::Label("Height"));
 	tbl->attach(*lbl, 2, 3, 1, 2, Gtk::AttachOptions::FILL, Gtk::AttachOptions::FILL|Gtk::AttachOptions::EXPAND, 5);
 	tbl->attach(priv->f_height, 3, 4, 1, 2, Gtk::AttachOptions::SHRINK);
-	tbl->attach(priv->f_hud, 4,5, 1, 2);
-	tbl->attach(priv->f_antialias, 5,6, 1, 2);
-	tbl->attach(priv->f_preview, 6,7, 1, 2);
+
+	lbl = Gtk::manage(new Gtk::Label("Quality"));
+	tbl->attach(*lbl, 4, 5, 1, 2, Gtk::AttachOptions::FILL, Gtk::AttachOptions::FILL|Gtk::AttachOptions::EXPAND, 5);
+	tbl->attach(priv->f_quality, 5,6, 1, 2);
+
+	tbl->attach(priv->f_hud, 6,7, 1, 2);
+
 	tbl->attach(* Gtk::manage(new Gtk::Label("Frames per second")), 0, 3, 2, 3);
 	tbl->attach(priv->f_fps, 3, 4, 2, 3, Gtk::AttachOptions::SHRINK);
 	tbl->attach(* Gtk::manage(new Gtk::Label("Duration")), 4, 5, 2, 3);
@@ -235,8 +254,6 @@ MovieWindow::MovieWindow(MainWindow& _mw, std::shared_ptr<const Prefs> prefs) : 
 	priv->f_height.update(300);
 	priv->f_width.update(300);
 	priv->f_fps.update(25);
-	priv->f_antialias.set_active(true);
-	priv->f_preview.set_active(false);
 	priv->f_hud.set_active(false);
 
 	priv->f_height.signal_changed().connect(sigc::mem_fun(*this, &MovieWindow::do_update_duration)); // Must do this after setting initial value
@@ -397,8 +414,22 @@ bool MovieWindow::update_movie_struct() {
 		priv->f_fps.clear_error();
 	}
 	movie.draw_hud = priv->f_hud.get_active();
-	movie.antialias = priv->f_antialias.get_active();
-	movie.preview = priv->f_preview.get_active();
+	switch(priv->f_quality.get_active_row_number()) {
+		case MovieWindowPrivate::Q_INVAL: // -1 is also what get_active_row_number might return if nothing selected
+		case MovieWindowPrivate::Q_SENTINEL:
+		case MovieWindowPrivate::Q_Best:
+			movie.antialias = true;
+			movie.preview = false;
+			break;
+		case MovieWindowPrivate::Q_Standard:
+			movie.antialias = false;
+			movie.preview = false;
+			break;
+		case MovieWindowPrivate::Q_Draft:
+			movie.antialias = false;
+			movie.preview = true;
+			break;
+	}
 	return ok;
 }
 
