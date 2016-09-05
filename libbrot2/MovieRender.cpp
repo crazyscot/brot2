@@ -220,6 +220,8 @@ class ScriptB2CLI : public Movie::Renderer {
 				mypriv->fs << " -H";
 			if (mypriv->job._movie.antialias)
 				mypriv->fs << " -a";
+			if (mypriv->job._movie.preview)
+				mypriv->fs << " --upscale";
 			mypriv->fs << endl;
 
 			for (unsigned i=1; i<n_frames; i++) {
