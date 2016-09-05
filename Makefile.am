@@ -72,6 +72,20 @@ libbrot2_a_LIBS=@pango_LIBS@
 
 ################################################################
 
+noinst_LIBRARIES+=libmessages.a
+
+MSGDIR=messages
+MSG_IN=messages/brot2msgs.proto
+MSG_AUTO=messages/brot2msgs.pb.cc messages/brot2msgs.pb.h
+AUTOGEN+=$(MSG_AUTO)
+
+$(MSG_AUTO): $(MSG_IN)
+	protoc --proto_path $(top_srcdir) $< --cpp_out=.
+
+libmessages_a_SOURCES=$(MSG_AUTO)
+
+################################################################
+
 bin_PROGRAMS+=brot2cli
 
 brot2cli_SOURCES=cli/climain.cpp cli/climain.h \

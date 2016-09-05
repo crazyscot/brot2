@@ -33,3 +33,5 @@ stamp-h1
 .dirstamp
 gtest
 *.sw?
+messages/brot2msgs.pb.cc
+messages/brot2msgs.pb.h

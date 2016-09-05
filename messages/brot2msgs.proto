@@ -1,0 +1,51 @@
+
+// Fractal values are larger than doubles (see FractalMaths.h) -- so we already need a
+// special type encoding of our own.
+message Float {
+	oneof val {
+		float Float = 1;
+		double Double = 2;
+		bytes LongDouble = 3; // Locally-defined encoding
+	}
+}
+
+message Point { // A complex number
+	required Float Real = 1;
+	required Float Imag = 2;
+}
+
+message Frame {
+	required Point centre = 1;
+	required Point size = 2;
+}
+
+message KeyFrame {
+	required Frame frame = 1;
+	required uint32 hold_frames = 2;
+	required uint32 speed_zoom = 3;
+	required uint32 speed_translate = 4;
+}
+
+message PlotInfo {
+	required string fractal = 1;
+	required string palette = 2;
+	required uint32 width = 3;
+	required uint32 height = 4;
+	required bool hud = 5;
+	required bool antialias = 6;
+	required bool preview = 7; // Turns on upscaling, turns down frame rate
+}
+
+// Co-ordinates for a single plotted frame (remote render)
+message Plot {
+	required PlotInfo info = 1;
+	required Frame coords = 2;
+}
+
+// Details for an entire movie (save, load)
+message Movie {
+	required PlotInfo info = 1;
+	required uint32 fps = 2;
+	repeated KeyFrame frames = 3;
+}
+
