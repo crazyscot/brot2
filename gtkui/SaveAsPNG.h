@@ -59,22 +59,22 @@ class Base {
 
 		static void to_png(Gtk::Window *parent, unsigned rwidth, unsigned rheight,
 				Plot3::Plot3Plot* plot, const BasePalette* pal, bool antialias,
-				bool show_hud, std::string& filename);
+				bool show_hud, std::string& filename, bool upscale=false);
 	protected:
 		Base(std::shared_ptr<const BrotPrefs::Prefs> prefs, std::shared_ptr<ThreadPool> threads,
 				const Fractal::FractalImpl& fractal, const BasePalette& palette,
 				Plot3::IPlot3DataSink& sink,
 				Fractal::Point centre, Fractal::Point size,
-				unsigned width, unsigned height, bool antialias, bool do_hud, std::string&name);
+				unsigned width, unsigned height, bool antialias, bool do_hud, std::string&name, bool upscale=false);
 
 		std::shared_ptr<const BrotPrefs::Prefs> prefs;
 		std::shared_ptr<Plot3::ChunkDivider::Base> divider;
-		const int aafactor;
+		const int aafactor, upfactor;
 		Plot3::Plot3Plot plot;
 		const BasePalette *pal; // do NOT delete
 		std::string filename;
 		const unsigned _width, _height;
-		const bool _do_antialias, _do_hud;
+		const bool _do_antialias, _do_hud, _upscale;
 
 		virtual ~Base();
 };
@@ -101,7 +101,7 @@ public:
 
 class MovieFrame : public Base {
 	public:
-		MovieFrame(std::shared_ptr<const BrotPrefs::Prefs> prefs, std::shared_ptr<ThreadPool> threads, const Fractal::FractalImpl& fractal, const BasePalette& palette, Plot3::IPlot3DataSink& sink, Fractal::Point centre, Fractal::Point size, unsigned width, unsigned height, bool antialias, bool do_hud, std::string& name);
+		MovieFrame(std::shared_ptr<const BrotPrefs::Prefs> prefs, std::shared_ptr<ThreadPool> threads, const Fractal::FractalImpl& fractal, const BasePalette& palette, Plot3::IPlot3DataSink& sink, Fractal::Point centre, Fractal::Point size, unsigned width, unsigned height, bool antialias, bool do_hud, std::string& name, bool upscale);
 		virtual ~MovieFrame();
 };
 

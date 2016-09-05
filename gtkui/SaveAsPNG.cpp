@@ -44,18 +44,18 @@ using namespace SavePNG;
 
 void SavePNG::Base::save_png(Gtk::Window *parent)
 {
-	SavePNG::Base::to_png(parent, _width, _height, &plot, pal, _do_antialias, _do_hud, filename);
+	SavePNG::Base::to_png(parent, _width, _height, &plot, pal, _do_antialias, _do_hud, filename, _upscale);
 }
 
 /*STATIC*/
 void SavePNG::Base::to_png(Gtk::Window *parent, unsigned rwidth, unsigned rheight,
 		Plot3Plot* plot, const BasePalette* pal, bool antialias, bool show_hud,
-		std::string& filename)
+		std::string& filename, bool upscale)
 {
     std::shared_ptr<const Prefs> prefs = Prefs::getMaster();
 	ofstream f(filename, ios::out | ios::trunc | ios::binary);
 	if (f.is_open()) {
-		Render2::PNG png(rwidth, rheight, *pal, -1, antialias);
+		Render2::PNG png(rwidth, rheight, *pal, -1, antialias, upscale);
 		png.process(plot->get_chunks__only_after_completion());
 		if (show_hud) {
 			BaseHUD::apply(png, prefs, plot, false, false);
@@ -245,11 +245,11 @@ void Single::do_save(MainWindow *mw)
 	}
 }
 
-SavePNG::Base::Base(std::shared_ptr<const Prefs> _prefs, std::shared_ptr<ThreadPool> threads, const Fractal::FractalImpl& fractal, const BasePalette& palette, Plot3::IPlot3DataSink& sink, Fractal::Point centre, Fractal::Point size, unsigned width, unsigned height, bool antialias, bool do_hud, string& fname) :
+SavePNG::Base::Base(std::shared_ptr<const Prefs> _prefs, std::shared_ptr<ThreadPool> threads, const Fractal::FractalImpl& fractal, const BasePalette& palette, Plot3::IPlot3DataSink& sink, Fractal::Point centre, Fractal::Point size, unsigned width, unsigned height, bool antialias, bool do_hud, string& fname, bool upscale) :
 		prefs(_prefs),
-		divider(new Plot3::ChunkDivider::Horizontal10px()), aafactor(antialias ? 2 : 1),
-		plot(threads, &sink, fractal, *divider, centre, size, width*aafactor, height*aafactor, 0),
-		pal(&palette), filename(fname), _width(width), _height(height), _do_antialias(antialias), _do_hud(do_hud)
+		divider(new Plot3::ChunkDivider::Horizontal10px()), aafactor(antialias ? 2 : 1), upfactor(upscale?2:1),
+		plot(threads, &sink, fractal, *divider, centre, size, width*aafactor/upfactor, height*aafactor/upfactor, 0),
+		pal(&palette), filename(fname), _width(width), _height(height), _do_antialias(antialias), _do_hud(do_hud), _upscale(upscale)
 {
 	plot.set_prefs(_prefs);
 }
@@ -260,8 +260,8 @@ Single::Single(MainWindow* mw, Fractal::Point centre, Fractal::Point size, unsig
 {
 }
 
-MovieFrame::MovieFrame(std::shared_ptr<const Prefs> prefs, std::shared_ptr<ThreadPool> threads, const Fractal::FractalImpl& fractal, const BasePalette& palette, Plot3::IPlot3DataSink& sink, Fractal::Point centre, Fractal::Point size, unsigned width, unsigned height, bool antialias, bool do_hud, string& filename) :
-		Base(prefs, threads, fractal, palette, sink, centre, size, width, height, antialias, do_hud, filename)
+MovieFrame::MovieFrame(std::shared_ptr<const Prefs> prefs, std::shared_ptr<ThreadPool> threads, const Fractal::FractalImpl& fractal, const BasePalette& palette, Plot3::IPlot3DataSink& sink, Fractal::Point centre, Fractal::Point size, unsigned width, unsigned height, bool antialias, bool do_hud, string& filename, bool upscale) :
+		Base(prefs, threads, fractal, palette, sink, centre, size, width, height, antialias, do_hud, filename, upscale)
 {
 }
 

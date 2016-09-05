@@ -70,7 +70,7 @@ class BunchOfPNGs : public Movie::Renderer {
 					fr.centre, fr.size,
 					mypriv->job._movie.width, mypriv->job._movie.height,
 					mypriv->job._movie.antialias, mypriv->job._movie.draw_hud,
-					filename2);
+					filename2, mypriv->job._movie.preview/*upscale*/);
 			saver.start();
 			mypriv->job._reporter->set_chunks_count(saver.get_chunks_count());
 			saver.wait();
