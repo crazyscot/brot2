@@ -230,7 +230,7 @@ void MainWindow::render_prep(int local_inf) {
 		renderer = 0;
 	}
 	if (!renderer)
-		renderer = new Render2::MemoryBuffer(imgbuf, rowstride, rwidth, rheight, antialias, local_inf, FORMAT, *pal);
+		renderer = new Render2::MemoryBuffer(imgbuf, rowstride, rwidth, rheight, antialias, local_inf, FORMAT, *pal, false /*no upscale*/);
 	else
 		renderer->fresh_local_inf(local_inf);
 
