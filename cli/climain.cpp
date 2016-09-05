@@ -42,7 +42,7 @@ const char *copyright_string = "Copyright (c) 2010-2016 Ross Younger";
 using namespace Plot3;
 using namespace BrotPrefs;
 
-static bool do_version, do_license, do_list_fractals, do_list_palettes, quiet, do_antialias, do_csv, do_info, do_hud;
+static bool do_version, do_license, do_list_fractals, do_list_palettes, quiet, do_antialias, do_csv, do_info, do_hud, do_upscale;
 static Glib::ustring c_re_x, c_im_y, length_x;
 static Glib::ustring entered_fractal = "Mandelbrot";
 static Glib::ustring entered_palette = "Linear rainbow";
@@ -87,6 +87,7 @@ static void setup_options(Glib::OptionGroup& options)
 	OPTION('q', "quiet", "Inhibits progress reporting", quiet);
 	OPTION('a', "antialias", "Enables linear antialiasing", do_antialias);
 	OPTION(0,   "csv", "Outputs as a CSV file", do_csv);
+	OPTION(0,   "upscale", "Upscales the output by a factor of 2", do_upscale);
 
 	OPTION('i', "info", "Outputs the plot's info string on completion", do_info);
 	OPTION('v', "version", "Outputs this program's version number", do_version);
@@ -212,6 +213,14 @@ int main (int argc, char**argv)
 		std::cerr << "output filename is required (use '-' for stdout)" << std::endl;
 		fail = true;
 	}
+	if (do_csv && do_upscale) {
+		std::cerr << "ERROR: --csv and --upscale are incompatible" << std::endl;
+		fail = true;
+	}
+	if (do_antialias && do_upscale) {
+		std::cerr << "ERROR: --antialias and --upscale are incompatible" << std::endl;
+		fail = true;
+	}
 	if (fail) return 4;
 
 	std::shared_ptr<const Prefs> mprefs = Prefs::getMaster();
@@ -247,6 +256,10 @@ int main (int argc, char**argv)
 	Fractal::Point centre(CRe, CIm);
 	const unsigned antialias= do_antialias ? 2 : 1;
 	unsigned plot_h=output_h*antialias, plot_w=output_w*antialias;
+	if (do_upscale) {
+		plot_h /= 2;
+		plot_w /= 2;
+	}
 
 	double aspect = (double)plot_w / plot_h;
 	Fractal::Value YAxisLength = XAxisLength / aspect;
@@ -302,7 +315,7 @@ int main (int argc, char**argv)
 	if (do_csv) {
 		render = new Render2::CSV(output_w, output_h, *selected_palette, -1, do_antialias);
 	} else {
-		render = new Render2::PNG(output_w, output_h, *selected_palette, -1, do_antialias);
+		render = new Render2::PNG(output_w, output_h, *selected_palette, -1, do_antialias, do_upscale);
 	}
 
 	for (auto it : sink.get_chunks_done())
