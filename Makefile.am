@@ -85,6 +85,12 @@ $(MSG_AUTO): $(MSG_IN)
 
 libmessages_a_SOURCES=$(MSG_AUTO)
 
+noinst_PROGRAMS+=b2dumpmsg
+
+b2dumpmsg_SOURCES= messages/b2dumpmsg.cpp
+b2dumpmsg_LDADD=$(all_ldadd) libmessages.a
+
+
 ################################################################
 
 bin_PROGRAMS+=brot2cli

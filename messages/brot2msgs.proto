@@ -1,3 +1,9 @@
+/*
+ * brot2msgs.proto: Protobuf definitions for brot2
+ * Copyright (C) 2016 Ross Younger
+ */
+
+package b2msg;
 
 // Fractal values are larger than doubles (see FractalMaths.h) -- so we already need a
 // special type encoding of our own.
@@ -27,8 +33,20 @@ message KeyFrame {
 }
 
 message PlotInfo {
-	required string fractal = 1;
-	required string palette = 2;
+	message Fractal {
+		oneof f {
+			string name = 1;
+			// Other ways reserved for future expansion
+		}
+	}
+	message Palette {
+		oneof p {
+			string name = 1;
+			// Other ways reserved for future expansion
+		}
+	}
+	required Fractal fractal = 1;
+	required Palette palette = 2;
 	required uint32 width = 3;
 	required uint32 height = 4;
 	required bool hud = 5;
@@ -47,5 +65,18 @@ message Movie {
 	required PlotInfo info = 1;
 	required uint32 fps = 2;
 	repeated KeyFrame frames = 3;
+}
+
+// A saved file. Has distinct tags to try and identify it unambiguously.
+message savefile {
+	enum Magic {
+		id1 = 1651666804; // 0x62726f74 = "brot"
+		id2 = 846422390; // 0x32736176 = "2sav"
+	}
+	required Magic magic1 = 4444 [default = id1];
+	required Magic magic2 = 4445 [default = id2];
+	oneof contents {
+		Movie movie = 4446;
+	}
 }
 
