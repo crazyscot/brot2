@@ -9,9 +9,8 @@ package b2msg;
 // special type encoding of our own.
 message Float {
 	oneof val {
-		float Float = 1;
-		double Double = 2;
-		bytes LongDouble = 3; // Locally-defined encoding
+		string LongDouble = 1; // print as decimal, with precision governed by local std::numeric_limits<long double>::digits
+		// Other methods reserved for future expansion
 	}
 }
 
