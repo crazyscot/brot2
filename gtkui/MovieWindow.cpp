@@ -29,6 +29,7 @@
 #include "Plot3Plot.h"
 #include "SaveAsPNG.h"
 #include "gtkmain.h"
+#include "marshal.h"
 
 #include <gtkmm/dialog.h>
 #include <gtkmm/filechooserdialog.h>
@@ -645,7 +646,111 @@ void MovieWindow::signal_error(Movie::RenderJob&, const std::string& msg) {
 	Util::alert(this, buf.str()); // May need to take threads lock?
 	gdk_threads_leave();
 }
+
 void MovieWindow::do_save() {
+	if (!movie.points.size()) {
+		Util::alert(this, "Cannot save without at least one point", Gtk::MessageType::MESSAGE_WARNING);
+		return;
+	}
+
+	b2msg::savefile file;
+	file.set_magic1(b2msg::savefile_Magic_id1);
+	file.set_magic2(b2msg::savefile_Magic_id2);
+	b2marsh::Movie2Wire(movie, file.mutable_movie());
+
+	// Filename dialog
+	Gtk::FileChooserDialog dialog(*this, "Save Movie Parameters", Gtk::FileChooserAction::FILE_CHOOSER_ACTION_SAVE);
+	dialog.set_do_overwrite_confirmation(true);
+	dialog.add_button(Gtk::Stock::CANCEL, Gtk::ResponseType::RESPONSE_CANCEL);
+	dialog.add_button(Gtk::Stock::SAVE, Gtk::ResponseType::RESPONSE_ACCEPT);
+	Gtk::FileFilter *filter = Gtk::manage(new Gtk::FileFilter());
+	filter->set_name("brot2 movie parameters");
+	filter->add_pattern("*.b2mov");
+	dialog.add_filter(*filter);
+	dialog.set_filter(*filter);
+
+	dialog.set_current_folder(SavePNG::Base::default_save_dir());
+
+	if (dialog.run() != Gtk::ResponseType::RESPONSE_ACCEPT) return;
+	std::string filename = dialog.get_filename();
+	SavePNG::Base::update_save_dir(filename);
+
+	if (!Util::ends_with(filename, ".b2mov"))
+		filename.append(".b2mov");
+	// marshal it out
+	std::fstream out(filename, std::ios::out | std::ios::binary);
+	if (!file.SerializeToOstream(&out)) {
+		Util::alert(this, "Failed to write to file", Gtk::MessageType::MESSAGE_WARNING);
+	}
 }
+
 void MovieWindow::do_load() {
+	struct Movie::MovieInfo newinfo;
+	// Get the filename
+	Gtk::FileChooserDialog dialog(*this, "Load Movie Parameters", Gtk::FileChooserAction::FILE_CHOOSER_ACTION_OPEN);
+	dialog.add_button(Gtk::Stock::CANCEL, Gtk::ResponseType::RESPONSE_CANCEL);
+	dialog.add_button(Gtk::Stock::OPEN, Gtk::ResponseType::RESPONSE_ACCEPT);
+	Gtk::FileFilter *filter = Gtk::manage(new Gtk::FileFilter());
+	filter->set_name("brot2 movie parameters");
+	filter->add_pattern("*.b2mov");
+	dialog.add_filter(*filter);
+	dialog.set_filter(*filter);
+	Gtk::FileFilter *filter2 = Gtk::manage(new Gtk::FileFilter());
+	filter2->set_name("all files");
+	filter2->add_pattern("*.*");
+	dialog.add_filter(*filter2);
+
+	dialog.set_current_folder(SavePNG::Base::default_save_dir());
+	if (dialog.run() != Gtk::ResponseType::RESPONSE_ACCEPT) return;
+	std::string filename = dialog.get_filename();
+
+	// marshal it in
+	std::fstream in(filename, std::ios::in | std::ios::binary);
+	b2msg::savefile file;
+	if (!file.ParseFromIstream(&in)) {
+		Util::alert(this, "Failed to read from file", Gtk::MessageType::MESSAGE_ERROR);
+		return;
+	}
+
+	// convert back
+	file.set_magic1(b2msg::savefile_Magic_id1);
+	file.set_magic2(b2msg::savefile_Magic_id2);
+	b2marsh::Wire2Movie(file.movie(), newinfo);
+
+	// And push it all back to the tree model.
+	update_from_movieinfo(newinfo);
+}
+
+void MovieWindow::update_from_movieinfo(const struct Movie::MovieInfo& new1) {
+	// Must not insert rows until all the other fields have been updated, or all our hard work will be undone!
+	freeze_child_notify();
+	priv->m_refTreeModel->freeze_notify();
+	priv->m_refTreeModel->clear(); // Do this first, in case there are any crazy points in the table
+
+	movie.fractal = new1.fractal;
+	movie.palette = new1.palette;
+	// TODO update fields in dialog
+	priv->f_height.update(new1.height);
+	priv->f_width.update(new1.width);
+	priv->f_fps.update(new1.fps);
+	priv->f_hud.set_active(new1.draw_hud);
+	if (new1.antialias)
+		priv->f_quality.set_active(MovieWindowPrivate::Q_Best);
+	else if (new1.preview)
+		priv->f_quality.set_active(MovieWindowPrivate::Q_Draft);
+	else
+		priv->f_quality.set_active(MovieWindowPrivate::Q_Standard);
+
+	for (auto it = new1.points.begin(); it != new1.points.end(); it++) {
+		Gtk::TreeModel::Row row = *(priv->m_refTreeModel->append());
+		row[priv->m_columns.m_centre_re] = (*it).centre.real();
+		row[priv->m_columns.m_centre_im] = (*it).centre.imag();
+		row[priv->m_columns.m_size_re] = (*it).size.real();
+		row[priv->m_columns.m_size_im] = (*it).size.imag();
+		row[priv->m_columns.m_hold_frames] = (*it).hold_frames;
+		row[priv->m_columns.m_speed_zoom] = (*it).speed_zoom;
+		row[priv->m_columns.m_speed_translate] = (*it).speed_translate;
+	}
+	priv->m_refTreeModel->thaw_notify();
+	thaw_child_notify();
 }

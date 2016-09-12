@@ -73,6 +73,7 @@ class MovieWindow: public Gtk::Window, public Movie::IMovieCompleteHandler {
 		void do_update_duration2(const Gtk::TreeModel::Path&, const Gtk::TreeModel::iterator&);
 
 		bool update_movie_struct(); // Populates @movie@ from the Gtk tree; returns true on success. On unparseable fields, alerts and returns false.
+		void update_from_movieinfo(const struct Movie::MovieInfo& new1); // Updates the window from the struct contents (if we've just loaded). The opposite of update_movie_struct().
 
 		bool run_filename(std::string& filename, std::shared_ptr<Movie::Renderer>& ren);
 		void signal_completion(Movie::RenderJob& job); // IMovieCompleteHandler
