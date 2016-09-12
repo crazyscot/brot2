@@ -65,8 +65,10 @@ class MovieWindow: public Gtk::Window, public Movie::IMovieCompleteHandler {
 
 		void do_add();
 		void do_delete();
-		void do_reset(); // Reset button clicked
+		void do_reset();
 		void do_render();
+		void do_save();
+		void do_load();
 		void do_update_duration();
 		void do_update_duration2(const Gtk::TreeModel::Path&, const Gtk::TreeModel::iterator&);
 

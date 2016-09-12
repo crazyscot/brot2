@@ -218,6 +218,28 @@ MovieWindow::MovieWindow(MainWindow& _mw, std::shared_ptr<const Prefs> prefs) : 
 
 	Gtk::VBox *vbox = Gtk::manage(new Gtk::VBox());
 
+	Gtk::HButtonBox *bbox;
+	Gtk::Button *btn;
+
+	bbox = Gtk::manage(new Gtk::HButtonBox());
+
+	btn = Gtk::manage(new Gtk::Button(Gtk::Stock::OPEN));
+	btn->set_tooltip_text("Load movie from a save file");
+	btn->signal_clicked().connect(sigc::mem_fun(*this, &MovieWindow::do_load));
+	bbox->pack_start(*btn);
+
+	btn = Gtk::manage(new Gtk::Button(Gtk::Stock::SAVE));
+	btn->set_tooltip_text("Save this movie to file");
+	btn->signal_clicked().connect(sigc::mem_fun(*this, &MovieWindow::do_save));
+	bbox->pack_start(*btn);
+
+	btn = Gtk::manage(new Gtk::Button(Gtk::Stock::CLEAR));
+	btn->set_tooltip_text("Clear out all keyframes and start fresh");
+	btn->signal_clicked().connect(sigc::mem_fun(*this, &MovieWindow::do_reset));
+	bbox->pack_start(*btn);
+
+	vbox->pack_start(*bbox); // ---------------------------------------------------
+
 	Gtk::Table *tbl;
 	Gtk::Label *lbl;
 
@@ -288,8 +310,7 @@ MovieWindow::MovieWindow(MainWindow& _mw, std::shared_ptr<const Prefs> prefs) : 
 	// LATER: Tooltips (doesn't seem possible to retrieve the actual widget of a standard column head with gtk 2.24?)
 	// LATER: cell alignment?
 
-	Gtk::HButtonBox *bbox = Gtk::manage(new Gtk::HButtonBox());
-	Gtk::Button *btn;
+	bbox = Gtk::manage(new Gtk::HButtonBox());
 
 	btn = Gtk::manage(new Gtk::Button(Gtk::Stock::ADD));
 	btn->set_tooltip_text("Add current plot as keyframe");
@@ -306,7 +327,7 @@ MovieWindow::MovieWindow(MainWindow& _mw, std::shared_ptr<const Prefs> prefs) : 
 	btn->signal_clicked().connect(sigc::mem_fun(*this, &MovieWindow::do_render));
 	bbox->pack_start(*btn);
 
-	vbox->pack_start(*bbox);
+	vbox->pack_start(*bbox); // ---------------------------------------------------
 
 	this->add(*vbox);
 	hide();
@@ -623,4 +644,8 @@ void MovieWindow::signal_error(Movie::RenderJob&, const std::string& msg) {
 	gdk_threads_enter();
 	Util::alert(this, buf.str()); // May need to take threads lock?
 	gdk_threads_leave();
+}
+void MovieWindow::do_save() {
+}
+void MovieWindow::do_load() {
 }
