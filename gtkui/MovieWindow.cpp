@@ -355,6 +355,7 @@ void MovieWindow::initial_position() {
 void MovieWindow::do_add() {
 	Plot3::Plot3Plot& plot = mw.get_plot();
 
+	priv->m_refTreeModel->freeze_notify();
 	Gtk::TreeModel::Row row = *(priv->m_refTreeModel->append());
 	row[priv->m_columns.m_centre_re] = plot.centre.real();
 	row[priv->m_columns.m_centre_im] = plot.centre.imag();
@@ -363,7 +364,7 @@ void MovieWindow::do_add() {
 	row[priv->m_columns.m_hold_frames] = 0;
 	row[priv->m_columns.m_speed_zoom] = 10;
 	row[priv->m_columns.m_speed_translate] = 2;
-	Gtk::TreePath path(row);
+	priv->m_refTreeModel->thaw_notify();
 
 	bool changed=false;
 	if (movie.fractal != &plot.fract) {
