@@ -482,6 +482,14 @@ void MovieWindow::do_render() {
 		Util::alert(this, "You need to specify at least two key frames to make a movie");
 		return;
 	}
+	if (!movie.fractal) {
+		Util::alert(this, "No fractal selected");
+		return;
+	}
+	if (!movie.palette) {
+		Util::alert(this, "No palette selected");
+		return;
+	}
 	lock.unlock();
 	if (!update_movie_struct()) return;
 	unsigned frames = movie.count_frames();
