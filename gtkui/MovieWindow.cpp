@@ -291,15 +291,18 @@ MovieWindow::MovieWindow(MainWindow& _mw, std::shared_ptr<const Prefs> prefs) : 
 	Gtk::HButtonBox *bbox = Gtk::manage(new Gtk::HButtonBox());
 	Gtk::Button *btn;
 
-	btn = Gtk::manage(new Gtk::Button("Add current plot as keyframe"));
+	btn = Gtk::manage(new Gtk::Button(Gtk::Stock::ADD));
+	btn->set_tooltip_text("Add current plot as keyframe");
 	btn->signal_clicked().connect(sigc::mem_fun(*this, &MovieWindow::do_add));
 	bbox->pack_start(*btn);
 
-	btn = Gtk::manage(new Gtk::Button("Delete selected keyframe"));
+	btn = Gtk::manage(new Gtk::Button(Gtk::Stock::REMOVE));
+	btn->set_tooltip_text("Delete selected keyframe");
 	btn->signal_clicked().connect(sigc::mem_fun(*this, &MovieWindow::do_delete));
 	bbox->pack_start(*btn);
 
-	btn = Gtk::manage(new Gtk::Button("Render"));
+	btn = Gtk::manage(new Gtk::Button(Gtk::Stock::EXECUTE));
+	btn->set_tooltip_text("Render this movie");
 	btn->signal_clicked().connect(sigc::mem_fun(*this, &MovieWindow::do_render));
 	bbox->pack_start(*btn);
 
