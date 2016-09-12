@@ -251,8 +251,7 @@ MovieWindow::MovieWindow(MainWindow& _mw, std::shared_ptr<const Prefs> prefs) : 
 	tbl->attach(priv->f_fractal, 1, 4, 0, 1);
 	tbl->attach(* Gtk::manage(new Gtk::Label("Palette:")), 4, 5, 0, 1);
 	tbl->attach(priv->f_palette, 5, 7, 0, 1);
-	priv->f_fractal.set_markup("<i>will appear here</i>");
-	priv->f_palette.set_markup("<i>will appear here</i>");
+	update_fractal_palette_display();
 
 	lbl = Gtk::manage(new Gtk::Label("Width"));
 	tbl->attach(*lbl, 0, 1, 1, 2, Gtk::AttachOptions::FILL, Gtk::AttachOptions::FILL|Gtk::AttachOptions::EXPAND, 5);
@@ -352,6 +351,23 @@ void MovieWindow::initial_position() {
 	move(xx,yy);
 }
 
+void MovieWindow::update_fractal_palette_display() {
+	if (movie.fractal) {
+		std::ostringstream str;
+		str << "<b>" << movie.fractal->name << "</b>";
+		priv->f_fractal.set_markup(str.str());
+	} else {
+		priv->f_fractal.set_markup("<i>will appear here</i>");
+	}
+	if (movie.palette) {
+		std::ostringstream str;
+		str << "<b>" << movie.palette->name << "</b>";
+		priv->f_palette.set_markup(str.str());
+	} else {
+		priv->f_palette.set_markup("<i>will appear here</i>");
+	}
+}
+
 void MovieWindow::do_add() {
 	Plot3::Plot3Plot& plot = mw.get_plot();
 
@@ -368,21 +384,16 @@ void MovieWindow::do_add() {
 
 	bool changed=false;
 	if (movie.fractal != &plot.fract) {
-		std::ostringstream str;
-		str << "<b>" << plot.fract.name << "</b>";
-		priv->f_fractal.set_markup(str.str());
 		if (movie.fractal)
 			changed = true;
 		movie.fractal = &plot.fract;
 	}
 	if (movie.palette != mw.pal) {
-		std::ostringstream str;
-		str << "<b>" << mw.pal->name << "</b>";
-		priv->f_palette.set_markup(str.str());
 		if (movie.palette)
 			changed = true;
 		movie.palette = mw.pal;
 	}
+	update_fractal_palette_display();
 	if (changed)
 		Util::alert(this, "Fractal or palette have changed, only the last specified will be used to make the movie", Gtk::MessageType::MESSAGE_WARNING);
 }
@@ -730,7 +741,7 @@ void MovieWindow::update_from_movieinfo(const struct Movie::MovieInfo& new1) {
 
 	movie.fractal = new1.fractal;
 	movie.palette = new1.palette;
-	// TODO update fields in dialog
+	update_fractal_palette_display();
 	priv->f_height.update(new1.height);
 	priv->f_width.update(new1.width);
 	priv->f_fps.update(new1.fps);
