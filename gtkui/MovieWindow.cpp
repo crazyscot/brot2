@@ -322,6 +322,11 @@ MovieWindow::MovieWindow(MainWindow& _mw, std::shared_ptr<const Prefs> prefs) : 
 	btn->signal_clicked().connect(sigc::mem_fun(*this, &MovieWindow::do_delete));
 	bbox->pack_start(*btn);
 
+	btn = Gtk::manage(new Gtk::Button("Show"));
+	btn->set_tooltip_text("Shows this keyframe in the main window");
+	btn->signal_clicked().connect(sigc::mem_fun(*this, &MovieWindow::do_show));
+	bbox->pack_start(*btn);
+
 	btn = Gtk::manage(new Gtk::Button(Gtk::Stock::EXECUTE));
 	btn->set_tooltip_text("Render this movie");
 	btn->signal_clicked().connect(sigc::mem_fun(*this, &MovieWindow::do_render));
@@ -773,4 +778,15 @@ void MovieWindow::update_from_movieinfo(const struct Movie::MovieInfo& new1) {
 	}
 	priv->m_refTreeModel->thaw_notify();
 	thaw_child_notify();
+}
+
+void MovieWindow::do_show() {
+	auto it = priv->m_keyframes.get_selection()->get_selected();
+	if (!*it) return; // Nothing selected
+	Fractal::Point centre ( (*it)[priv->m_columns.m_centre_re],
+			(*it)[priv->m_columns.m_centre_im] );
+	Fractal::Point size ( (*it)[priv->m_columns.m_size_re],
+			(*it)[priv->m_columns.m_size_im] );
+	mw.update_params(centre, size);
+	mw.do_plot();
 }
