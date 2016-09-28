@@ -10,6 +10,7 @@ Vcs-Browser: http://www.chiark.greenend.org.uk/ucgi/~ryounger/git?p=brot2.git;a=
 Package: brot2
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
+Suggests: parallel, ffmpeg
 Description: Yet Another interactive Mandelbrot plotter
  This is a GTK+-based interactive plotter for the Mandelbrot set and
  other fractals. 
