@@ -81,6 +81,8 @@ MSG_IN=messages/brot2msgs.proto
 MSG_AUTO=messages/brot2msgs.pb.cc messages/brot2msgs.pb.h
 AUTOGEN+=$(MSG_AUTO)
 
+libbrot2/marshal.$(OBJEXT): messages/brot2msgs.pb.h
+
 $(MSG_AUTO): $(MSG_IN)
 	protoc --proto_path $(top_srcdir) $< --cpp_out=.
 
