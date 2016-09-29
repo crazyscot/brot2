@@ -35,6 +35,32 @@ AC_SUBST([libfractal_a_CXXFLAGS], [${libfractal_a_CFLAGS}])
 AC_SUBST([brot2cli_CXXFLAGS], [${libbrot2_a_CFLAGS}])
 AC_SUBST([b2test_CXXFLAGS], [${libfractal_a_CFLAGS}])
 
+
+AC_CACHE_CHECK([for png++],
+	[ac_cv_pngpp],
+	[AC_COMPILE_IFELSE(
+	 [AC_LANG_PROGRAM([#include <png++/png.hpp>], [return 0;])],
+	 [ac_cv_pngpp=yes],
+	 [AC_MSG_ERROR([<png++/png.hpp> not found or unusable.
+
+	  Please download and install png++ <http://download.savannah.gnu.org/releases/pngpp/>.
+	  See config.log for failure messages if required.])
+	 ]
+	 )]
+	)
+
+AC_CACHE_CHECK([if png++ is new enough],
+	[ac_cv_pngpp_ver],
+	[AC_COMPILE_IFELSE(
+	 [AC_LANG_PROGRAM([#include <png++/png.hpp>], [std::string fn; png::image<png::rgb_pixel> png(fn); png.get_height(); return 0;])],
+	 [ac_cv_pngpp_ver=yes],
+	 [AC_MSG_ERROR([png++ is too old.
+
+	  Please download and install png++ 0.2.5 or newer <http://download.savannah.gnu.org/releases/pngpp/>])
+	 ]
+	 )]
+	)
+
 GTEST_SRC_CHECK
 VALGRIND_CHECK
 
