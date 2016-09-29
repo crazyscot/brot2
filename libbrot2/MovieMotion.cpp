@@ -51,17 +51,6 @@ struct signpair calc_signs(const Fractal::Point a, const Fractal::Point b)
 	return rv;
 }
 
-// Determines the sign of (a-b) for each dimension independently.
-Fractal::Point Xcalc_signs(const Fractal::Point a, const Fractal::Point b)
-{
-	Fractal::Point rv;
-	rv.real( real(a) == real(b) ? 0 :
-			 real(a) > real(b) ? 1 : -1 );
-	rv.imag( imag(a) == imag(b) ? 0 :
-			 imag(a) > imag(b) ? 1 : -1 );
-	return rv;
-}
-
 /* Performs a zoom motion.
  * The current and target are compared; if a zoom would help move us from A to B,
  * we move the corners by up to @speed@ pixels.
