@@ -57,6 +57,7 @@ libbrot2_a_SOURCES= \
 	libbrot2/MovieMotion.h libbrot2/MovieMotion.cpp \
 	libbrot2/MovieRender.cpp libbrot2/MovieRender.h \
 	libbrot2/marshal.cpp libbrot2/marshal.h \
+	libbrot2/Easing.h libbrot2/Easing.cpp \
 	libbrot2/PrefsRegistry.h libbrot2/PrefsRegistry.cpp
 
 AUTOGEN+=logo_auto.c
