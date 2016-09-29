@@ -4,8 +4,10 @@
 *.a
 brot2
 brot2cli
-b2benchmark
 b2test
+b2dumpmsg
+palette_benchmark
+plot_benchmark
 debian/brot2.debhelper.log
 debian/brot2.postinst.debhelper
 debian/brot2.postrm.debhelper
