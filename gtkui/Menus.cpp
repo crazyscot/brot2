@@ -33,7 +33,7 @@
 #include <gdkmm/pixbuf.h>
 
 #include "config.h"
-#include "gtkmain.h"
+#include "license.h"
 #include "logo.h" // in libbrot2
 #include "MainWindow.h"
 #include "ParamsDialog.h"

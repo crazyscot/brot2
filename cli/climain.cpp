@@ -1,22 +1,20 @@
-/* climain.cpp: main GTK program for non-gtk brot2, license text follows
- * brot2: Yet Another Mandelbrot Plotter
- * Copyright (c) 2010-2016 Ross Younger
- */
-const char* license_text = "\
-This program is free software: you can redistribute it and/or modify \
-it under the terms of the GNU General Public License as published by \
-the Free Software Foundation, either version 3 of the License, or \
-(at your option) any later version.\n\
-\n\
-This program is distributed in the hope that it will be useful, \
-but WITHOUT ANY WARRANTY; without even the implied warranty of \
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the \
-GNU General Public License for more details.\n\
-\n\
-You should have received a copy of the GNU General Public License \
-along with this program.  If not, see <http://www.gnu.org/licenses/>.";
+/*
+    climain.cpp: main GTK program for CLI (non-gtk) brot2
+    Copyright (C) 2010-6 Ross Younger
 
-const char *copyright_string = "Copyright (c) 2010-2016 Ross Younger";
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
 
 #include <memory>
 #include <iostream>
@@ -28,7 +26,7 @@ const char *copyright_string = "Copyright (c) 2010-2016 Ross Younger";
 #include <X11/Xlib.h>
 
 #include "config.h"
-#include "climain.h"
+#include "license.h"
 #include "libbrot2/Plot3Plot.h"
 #include "libbrot2/ChunkDivider.h"
 #include "libbrot2/palette.h"

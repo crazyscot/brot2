@@ -38,6 +38,7 @@ libfractal_a_CXXFLAGS=@glibmm_CFLAGS@
 noinst_LIBRARIES+=libbrot2.a
 
 libbrot2_a_SOURCES= \
+	libbrot2/license.h libbrot2/license.cpp \
 	libbrot2/Exception.h \
 	libbrot2/misc.h libbrot2/misc.cpp \
 	libbrot2/logo.h logo_auto.c \
@@ -98,7 +99,7 @@ b2dumpmsg_LDADD=$(all_ldadd) libmessages.a
 
 bin_PROGRAMS+=brot2cli
 
-brot2cli_SOURCES=cli/climain.cpp cli/climain.h \
+brot2cli_SOURCES=cli/climain.cpp \
 				 cli/CLIDataSink.cpp cli/CLIDataSink.h
 
 brot2cli_LDADD= $(all_ldadd) @gdkmm_LIBS@ @pango_LIBS@ @libpng12_LIBS@
