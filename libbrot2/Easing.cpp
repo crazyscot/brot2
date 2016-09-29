@@ -40,6 +40,7 @@
  */
 
 #include "Easing.h"
+#include <cmath>
 
 float Cubic::easeIn (float t, float b, float c, float d) {
 	t/=d;
@@ -66,4 +67,15 @@ float Linear::easeOut(float t, float b, float c, float d) {
 }
 float Linear::easeInOut(float t, float b, float c, float d) {
 	return c*t/d + b;
+}
+
+float Sine::easeIn (float t,float b , float c, float d) {
+		return -c * cos(t/d * (M_PI/2)) + c + b;
+}
+float Sine::easeOut(float t,float b , float c, float d) {
+		return c * sin(t/d * (M_PI/2)) + b;
+}
+
+float Sine::easeInOut(float t,float b , float c, float d) {
+		return -c/2 * (cos(M_PI*t/d) - 1) + b;
 }
