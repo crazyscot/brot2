@@ -79,3 +79,14 @@ float Sine::easeOut(float t,float b , float c, float d) {
 float Sine::easeInOut(float t,float b , float c, float d) {
 		return -c/2 * (cos(M_PI*t/d) - 1) + b;
 }
+
+/* Take the second derivative of the ease functions gives their acceleration */
+float Sine::AccelIn(float t, float c, float d) {
+	return c * cos( (M_PI / 2) * t / d);
+}
+float Sine::AccelOut(float t, float c, float d) {
+	return -c * sin( (M_PI / 2) * t / d);
+}
+float Sine::AccelInOut(float t, float c, float d) {
+	return (c/2) * cos( M_PI * t / d);
+}
