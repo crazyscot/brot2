@@ -74,10 +74,10 @@ bool Movie::MotionZoom(const Fractal::Point& size_in, const Fractal::Point& size
 	if ( real(size_in) == real(size_target)  ||  imag(size_in) == imag(size_target) )
 		return false;
 
-	int speed_z = speed;
+	int speed_z = speed * width / 300;
 	// If we are zooming IN, size is DECREASING, so the delta is NEGATIVE 
 	if (real (size_in) > real(size_target) )
-		speed_z = -speed;
+		speed_z = -speed_z;
 	int speed_x = speed_z;
 	double speed_y = (double) speed_x * height / width;
 
@@ -117,7 +117,7 @@ bool Movie::MotionTranslate(const Fractal::Point& centre_in, const Fractal::Poin
 	struct signpair signs_before(calc_signs(centre_target, centre_in));
 	Fractal::Point tmp_out;
 
-	unsigned speed_x = speed;
+	unsigned speed_x = speed * width / 300;
 	double speed_y = (double) speed_x * height / width;
 	Fractal::Point pixel_size ( real(size) / width, imag(size) / height );
 	Fractal::Point delta ( real(pixel_size) * speed_x, imag(pixel_size) * speed_y );
