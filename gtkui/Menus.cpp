@@ -483,8 +483,8 @@ public:
 		Gtk::AboutDialog dlg;
 		dlg.set_version(PACKAGE_VERSION);
 		dlg.set_comments("Dedicated to the memory of Benoît B. Mandelbrot.");
-		dlg.set_copyright(copyright_string);
-		dlg.set_license(license_text);
+		dlg.set_copyright(brot2_copyright_string);
+		dlg.set_license(brot2_license_text);
 		dlg.set_wrap_license(true);
 		dlg.set_logo(logo);
 		dlg.run();

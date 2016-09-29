@@ -156,12 +156,12 @@ int main (int argc, char**argv)
 
 	bool did_something=false;
 	if (do_license) {
-		std::cout << PACKAGE_STRING << " " << copyright_string << std::endl;
-		std::cout << license_text << std::endl;
+		std::cout << PACKAGE_STRING << " " << brot2_copyright_string << std::endl;
+		std::cout << brot2_license_text << std::endl;
 		did_something=true;
 	}
 	if (do_version && !do_license) {
-		std::cout << PACKAGE_STRING << " " << copyright_string << std::endl;
+		std::cout << PACKAGE_STRING << " " << brot2_copyright_string << std::endl;
 		std::cout << "To see the license for this software, run " << argv[0] << " --license" << std::endl;
 		did_something=true;
 	}
