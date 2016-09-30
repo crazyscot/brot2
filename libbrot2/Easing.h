@@ -47,3 +47,9 @@ class Cubic {
 		static float SpeedOut(float t, float c, float d);
 		static float SpeedInOut(float t, float c, float d);
 };
+
+class NullEase {
+	public:
+		static float ease(float t, float b, float c, float d);
+		static float speed(float t, float c, float d);
+};

@@ -137,6 +137,21 @@ void Movie::Renderer::render(RenderInstancePrivate *priv) {
 	for (; iter != movie.points.end() && !cancel_requested; iter++) {
 		struct Movie::KeyFrame f2(*iter);
 		unsigned frame_count=0, zoom_count=0, move_count=0;
+		typedef float(*speedFunc_t)(float,float,float);
+		speedFunc_t speedFunc;
+		if (f1.ease_in) {
+			if (f1.ease_out)
+				speedFunc = Cubic::SpeedInOut;
+			else
+				speedFunc = Cubic::SpeedIn;
+		} else {
+			if (f1.ease_out)
+				speedFunc = Cubic::SpeedOut;
+			else
+				speedFunc = NullEase::speed;
+		}
+
+
 		for (int i=0; i<2; i++) {
 			/* We do this twice: Once to count the number of frames, then again applying any ease requested */
 			struct Movie::Frame ft(f1);
@@ -146,23 +161,9 @@ void Movie::Renderer::render(RenderInstancePrivate *priv) {
 			bool still_moving;
 			do {
 				if (i==1) {
-					if (f1.ease_in) {
-						if (f1.ease_out) {
-							speed_zoom = Cubic::SpeedInOut(frame_acc, zoom_count, frame_count);
-							speed_translate = Cubic::SpeedInOut(frame_acc, move_count, frame_count);
-						} else {
-							speed_zoom = Cubic::SpeedIn(frame_acc, zoom_count, frame_count);
-							speed_translate = Cubic::SpeedIn(frame_acc, move_count, frame_count);
-						}
-					} else {
-						if (f1.ease_out) {
-							speed_zoom = Cubic::SpeedOut(frame_acc, zoom_count, frame_count);
-							speed_translate = Cubic::SpeedOut(frame_acc, move_count, frame_count);
-						} else {
-							// no easing, do nothing
-						}
-					}
-				} // else if i==0: Linear progression - fixed speed.
+					speed_zoom = speedFunc(frame_acc, zoom_count, frame_count);
+					speed_translate = speedFunc(frame_acc, move_count, frame_count);
+				} // else if i==0: Linear progression - fixed speed to measure it.
 				still_moving = false;
 				still_moving |= Movie::MotionZoom(ft.size, f2.size, movie.width, movie.height, speed_zoom, ft.size);
 				still_moving |= Movie::MotionTranslate(ft.centre, f2.centre, ft.size, movie.width, movie.height, speed_translate, ft.centre);

@@ -69,3 +69,10 @@ float Cubic::SpeedOut(float t, float c, float d) {
 float Cubic::SpeedInOut(float t, float c, float d) {
 	return Cubic::easeInOut(t+1,0,c,d) - Cubic::easeInOut(t,0,c,d);
 }
+
+float NullEase::ease (float t, float b, float c, float d) {
+	return b + c*t/d;
+}
+float NullEase::speed(float t, float c, float d) {
+	return NullEase::ease(t+1,0,c,d) - NullEase::ease(t,0,c,d);
+}
