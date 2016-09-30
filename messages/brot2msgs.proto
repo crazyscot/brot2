@@ -29,6 +29,8 @@ message KeyFrame {
 	required uint32 hold_frames = 2;
 	required uint32 speed_zoom = 3;
 	required uint32 speed_translate = 4;
+	optional bool ease_in = 5 [default = false];
+	optional bool ease_out = 6 [default = false];
 }
 
 message PlotInfo {

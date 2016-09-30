@@ -83,6 +83,8 @@ void Movie2Wire(const struct Movie::MovieInfo& mov, b2msg::Movie* wire)
 		kf->set_hold_frames( (*it).hold_frames );
 		kf->set_speed_zoom ( (*it).speed_zoom );
 		kf->set_speed_translate( (*it).speed_translate );
+		kf->set_ease_in( (*it).ease_in );
+		kf->set_ease_out( (*it).ease_out );
 	}
 }
 
@@ -107,7 +109,7 @@ bool Wire2Movie(const b2msg::Movie& wire, struct Movie::MovieInfo& mov)
 		Fractal::Point cen, siz;
 		Wire2Point(ff.centre(), cen);
 		Wire2Point(ff.size(), siz);
-		Movie::KeyFrame mkf(cen, siz, kf.hold_frames(), kf.speed_zoom(), kf.speed_translate());
+		Movie::KeyFrame mkf(cen, siz, kf.hold_frames(), kf.speed_zoom(), kf.speed_translate(), kf.ease_in(), kf.ease_out());
 		mov.points.push_back(mkf);
 	}
 	return (mov.fractal && mov.palette);
