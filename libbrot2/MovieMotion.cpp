@@ -56,11 +56,11 @@ struct signpair calc_signs(const Fractal::Point a, const Fractal::Point b)
  * we move the corners by up to @speed@ pixels.
  * Returns true if we did something, false if not. */
 bool Movie::MotionZoom(const Fractal::Point& size_in, const Fractal::Point& size_target,
-		const unsigned width, const unsigned height, const float speed, Fractal::Point& size_out)
+		const unsigned width, const unsigned height, const float speed, Fractal::Point& size_out, bool force)
 {
 	// Easy case
 	size_out = size_in;
-	if ( real(size_in) == real(size_target)  ||  imag(size_in) == imag(size_target) )
+	if ( (real(size_in) == real(size_target)  ||  imag(size_in) == imag(size_target)) && !force )
 		return false;
 
 	float speed_z = speed * width / 300;
@@ -94,12 +94,12 @@ bool Movie::MotionZoom(const Fractal::Point& size_in, const Fractal::Point& size
  * Returns true if we did something, false if not. */
 bool Movie::MotionTranslate(const Fractal::Point& centre_in, const Fractal::Point& centre_target,
 		const Fractal::Point& size,
-		const unsigned width, const unsigned height, const float speed, Fractal::Point& centre_out)
+		const unsigned width, const unsigned height, const float speed, Fractal::Point& centre_out, bool force)
 {
 
 	centre_out = centre_in;
 	// Easy case. Note BOTH must match.
-	if ( real(centre_in) == real(centre_target)  &&  imag(centre_in) == imag(centre_target) )
+	if ( real(centre_in) == real(centre_target)  &&  imag(centre_in) == imag(centre_target) && !force )
 		return false;
 
 	// Like with zooming, if moving would take us beyond the target, we're close enough.
