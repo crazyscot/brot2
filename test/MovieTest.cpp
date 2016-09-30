@@ -356,3 +356,24 @@ TEST_F(MovieTest, PreviewWorks) {
 	unsigned count2 = movie.count_frames();
 	EXPECT_LE(abs(count1/2 - count2), 2);
 }
+
+#include "Easing.h"
+
+TEST(Ease, Sanity) {
+	/* Scenario:
+	 * 100 time steps to get from A (0) to B (1).
+	 * Integrate speed to get change in position, which should match the distance from A to B. */
+	double acc = 0;
+	for (int t=0; t<100; t++) {
+		acc += Sine::SpeedIn(t, 1.0, 100);
+	}
+	EXPECT_GT(0.000001, fabs(acc - 1.0)); // good old floating point...
+
+	acc = 0;
+	for (int t=0; t<100; t++) acc += Sine::SpeedOut(t, 1.0, 100);
+	EXPECT_GT(0.000001, fabs(acc - 1.0)); // good old floating point...
+
+	acc = 0;
+	for (int t=0; t<100; t++) acc += Sine::SpeedInOut(t, 1.0, 100);
+	EXPECT_GT(0.000001, fabs(acc - 1.0)); // good old floating point...
+}

@@ -58,7 +58,7 @@ class Sine {
 		static float easeIn(float t,float b , float c, float d);
 		static float easeOut(float t,float b , float c, float d);
 		static float easeInOut(float t,float b , float c, float d);
-		static float AccelIn(float t, float c, float d);
-		static float AccelOut(float t, float c, float d);
-		static float AccelInOut(float t, float c, float d);
+		static float SpeedIn(float t, float c, float d);
+		static float SpeedOut(float t, float c, float d);
+		static float SpeedInOut(float t, float c, float d);
 };

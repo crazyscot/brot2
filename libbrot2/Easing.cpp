@@ -80,13 +80,13 @@ float Sine::easeInOut(float t,float b , float c, float d) {
 		return -c/2 * (cos(M_PI*t/d) - 1) + b;
 }
 
-/* Take the second derivative of the ease functions gives their acceleration */
-float Sine::AccelIn(float t, float c, float d) {
-	return c * cos( (M_PI / 2) * t / d);
+/* The discrete speed of the function is the distance between two successive steps */
+float Sine::SpeedIn(float t, float c, float d) {
+	return Sine::easeIn(t+1,0,c,d) - Sine::easeIn(t,0,c,d);
 }
-float Sine::AccelOut(float t, float c, float d) {
-	return -c * sin( (M_PI / 2) * t / d);
+float Sine::SpeedOut(float t, float c, float d) {
+	return Sine::easeOut(t+1,0,c,d) - Sine::easeOut(t,0,c,d);
 }
-float Sine::AccelInOut(float t, float c, float d) {
-	return (c/2) * cos( M_PI * t / d);
+float Sine::SpeedInOut(float t, float c, float d) {
+	return Sine::easeInOut(t+1,0,c,d) - Sine::easeInOut(t,0,c,d);
 }
