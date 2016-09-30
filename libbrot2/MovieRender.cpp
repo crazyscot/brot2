@@ -21,6 +21,7 @@
 #include "MovieMode.h"
 #include "MovieMotion.h"
 #include "misc.h"
+#include "Easing.h"
 #include <iostream>
 #include <fstream>
 #include <iomanip>
@@ -134,19 +135,52 @@ void Movie::Renderer::render(RenderInstancePrivate *priv) {
 	bool skip_next = false;
 
 	for (; iter != movie.points.end() && !cancel_requested; iter++) {
-		struct Movie::Frame ft(f1);
 		struct Movie::KeyFrame f2(*iter);
+		unsigned frame_count=0, zoom_count=0, move_count=0;
+		for (int i=0; i<2; i++) {
+			/* We do this twice: Once to count the number of frames, then again applying any ease requested */
+			struct Movie::Frame ft(f1);
+			float speed_zoom = f1.speed_zoom, speed_translate = f1.speed_translate;
+			unsigned frame_acc=0, zoom_acc=0, move_acc=0;
 
-		bool still_moving;
-		do {
-			still_moving = false;
-			still_moving |= Movie::MotionZoom(ft.size, f2.size, movie.width, movie.height, f1.speed_zoom, ft.size);
-			still_moving |= Movie::MotionTranslate(ft.centre, f2.centre, ft.size, movie.width, movie.height, f1.speed_translate, ft.centre);
-			if (still_moving && !skip_next)
-				render_frame(ft, priv, 1);
-			if (movie.preview)
-				skip_next = !skip_next;
-		} while (still_moving && !cancel_requested);
+			bool still_moving;
+			do {
+				if (i==1) {
+					if (f1.ease_in) {
+						if (f1.ease_out) {
+							speed_zoom = Sine::SpeedInOut(frame_acc, zoom_count, frame_count);
+							speed_translate = Sine::SpeedInOut(frame_acc, move_count, frame_count);
+						} else {
+							speed_zoom = Sine::SpeedIn(frame_acc, zoom_count, frame_count);
+							speed_translate = Sine::SpeedIn(frame_acc, move_count, frame_count);
+						}
+					} else {
+						if (f1.ease_out) {
+							speed_zoom = Sine::SpeedOut(frame_acc, zoom_count, frame_count);
+							speed_translate = Sine::SpeedOut(frame_acc, move_count, frame_count);
+						} else {
+							// no easing, do nothing
+						}
+					}
+				} // else if i==0: Linear progression - fixed speed.
+				still_moving = false;
+				still_moving |= Movie::MotionZoom(ft.size, f2.size, movie.width, movie.height, speed_zoom, ft.size);
+				still_moving |= Movie::MotionTranslate(ft.centre, f2.centre, ft.size, movie.width, movie.height, speed_translate, ft.centre);
+				if (still_moving) {
+					++frame_acc;
+					zoom_acc += speed_zoom;
+					move_acc += speed_translate;
+				}
+				if (i && still_moving && !skip_next) {
+					render_frame(ft, priv, 1);
+				}
+				if (movie.preview)
+					skip_next = !skip_next;
+			} while (still_moving && !cancel_requested);
+			frame_count = frame_acc;
+			move_count = move_acc;
+			zoom_count = zoom_acc;
+		}
 
 		// We've just output a single frame of the destination keyframe.
 		if (f2.hold_frames) {
