@@ -380,8 +380,8 @@ class ParallelB2CLI : public Movie::Renderer {
 			}
 			mypriv->fs << "# End of hold frames" << endl << endl;
 
-			mypriv->fs << "echo Render complete. To make a movie use a command like:" << endl
-				<< "echo ffmpeg -i \"" << mypriv->filepart << ".%06d.png\" -c:v libx264 -pix_fmt yuv420p \"" << mypriv->filepart << ".mp4\"" << endl;
+			mypriv->fs << "echo Render complete. Now running ffmpeg..." << endl
+				<< "ffmpeg -i \"" << mypriv->filepart << ".%06d.png\" -c:v libx264 -pix_fmt yuv420p \"" << mypriv->filepart << ".mp4\"" << endl;
 		}
 		virtual ~ParallelB2CLI() {}
 };
