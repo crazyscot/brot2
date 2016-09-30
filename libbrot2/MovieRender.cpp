@@ -264,7 +264,7 @@ class ParallelB2CLI : public Movie::Renderer {
 
 		void render_top(Movie::RenderJob& job, Movie::RenderInstancePrivate **priv) {
 			std::string parallel = "parallel"; // Could make a pref
-			std::string parallel_extra_args = "--cleanup --controlmaster --sshlogin .. --bar"; // Could make a pref
+			std::string parallel_extra_args = "--cleanup --controlmaster --sshlogin .. --bar --resume-failed"; // Could make a pref
 			// --bar works with zenity, see man parallel_tutorial.
 			std::string remote_b2cli = "brot2cli"; // Could make this a pref ?
 
@@ -288,6 +288,7 @@ class ParallelB2CLI : public Movie::Renderer {
 				<< parallel
 				<< " --colsep ' '"
 			    << " --return \"" << mypriv->filepart << ".{1}.png\""
+			    << " --joblog \"" << mypriv->filepart << ".joblog\""
 				<< " " << parallel_extra_args
 				<< " " << remote_b2cli
 					   << " -X {2} -Y {3} -l {4}"
