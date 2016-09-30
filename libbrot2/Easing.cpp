@@ -90,3 +90,13 @@ float Sine::SpeedOut(float t, float c, float d) {
 float Sine::SpeedInOut(float t, float c, float d) {
 	return Sine::easeInOut(t+1,0,c,d) - Sine::easeInOut(t,0,c,d);
 }
+/* The discrete speed of the function is the distance between two successive steps */
+float Cubic::SpeedIn(float t, float c, float d) {
+	return Cubic::easeIn(t+1,0,c,d) - Cubic::easeIn(t,0,c,d);
+}
+float Cubic::SpeedOut(float t, float c, float d) {
+	return Cubic::easeOut(t+1,0,c,d) - Cubic::easeOut(t,0,c,d);
+}
+float Cubic::SpeedInOut(float t, float c, float d) {
+	return Cubic::easeInOut(t+1,0,c,d) - Cubic::easeInOut(t,0,c,d);
+}
