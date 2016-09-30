@@ -59,6 +59,23 @@ float Cubic::easeInOut(float t, float b, float c, float d) {
 	return c/2*(t*t*t + 2) + b;
 }
 
+float Quintic::easeIn (float t, float b, float c, float d) {
+	t/=d;
+	return c*t*t*t*t*t + b;
+}
+float Quintic::easeOut(float t, float b, float c, float d) {
+	t=t/d-1;
+	return c*(t*t*t*t*t + 1) + b;
+}
+
+float Quintic::easeInOut(float t, float b, float c, float d) {
+	t/=d/2;
+	if (t < 1)
+		return c/2*t*t*t*t*t + b;
+	t-=2;
+	return c/2*(t*t*t*t*t + 2) + b;
+}
+
 float Linear::easeIn (float t, float b, float c, float d) {
 	return c*t/d + b;
 }
@@ -99,4 +116,14 @@ float Cubic::SpeedOut(float t, float c, float d) {
 }
 float Cubic::SpeedInOut(float t, float c, float d) {
 	return Cubic::easeInOut(t+1,0,c,d) - Cubic::easeInOut(t,0,c,d);
+}
+/* The discrete speed of the function is the distance between two successive steps */
+float Quintic::SpeedIn(float t, float c, float d) {
+	return Quintic::easeIn(t+1,0,c,d) - Quintic::easeIn(t,0,c,d);
+}
+float Quintic::SpeedOut(float t, float c, float d) {
+	return Quintic::easeOut(t+1,0,c,d) - Quintic::easeOut(t,0,c,d);
+}
+float Quintic::SpeedInOut(float t, float c, float d) {
+	return Quintic::easeInOut(t+1,0,c,d) - Quintic::easeInOut(t,0,c,d);
 }

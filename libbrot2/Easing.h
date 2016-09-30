@@ -48,6 +48,16 @@ class Cubic {
 		static float SpeedInOut(float t, float c, float d);
 };
 
+class Quintic {
+	public:
+		static float easeIn(float t, float b, float c, float d);
+		static float easeOut(float t, float b, float c, float d);
+		static float easeInOut(float t, float b, float c, float d);
+		static float SpeedIn(float t, float c, float d);
+		static float SpeedOut(float t, float c, float d);
+		static float SpeedInOut(float t, float c, float d);
+};
+
 class Linear {
 	public:
 		static float easeIn(float t, float b, float c, float d);
