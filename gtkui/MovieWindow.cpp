@@ -21,6 +21,7 @@
 #include "MovieRender.h"
 #include "MovieProgress.h"
 #include "MainWindow.h"
+#include "MovieMode.h"
 #include "Fractal.h"
 #include "Prefs.h"
 #include "Exception.h"
@@ -58,6 +59,7 @@ class ModelColumns : public Gtk::TreeModel::ColumnRecord {
 			add(m_centre_re); add(m_centre_im);
 			add(m_size_re); add(m_size_im);
 			add(m_hold_frames); add(m_speed_zoom); add(m_speed_translate);
+			add(m_ease_in); add(m_ease_out);
 		}
 		Gtk::TreeModelColumn<Fractal::Value> m_centre_re;
 		Gtk::TreeModelColumn<Fractal::Value> m_centre_im;
@@ -66,6 +68,7 @@ class ModelColumns : public Gtk::TreeModel::ColumnRecord {
 		Gtk::TreeModelColumn<unsigned> m_hold_frames;
 		Gtk::TreeModelColumn<unsigned> m_speed_zoom;
 		Gtk::TreeModelColumn<unsigned> m_speed_translate;
+		Gtk::TreeModelColumn<bool> m_ease_in, m_ease_out;
 };
 
 class MovieWindowPrivate {
@@ -307,6 +310,8 @@ MovieWindow::MovieWindow(MainWindow& _mw, std::shared_ptr<const Prefs> prefs) : 
 	ColumnEditable("Hold Frames", m_hold_frames, 0, 1000);
 	ColumnEditable("Zoom Speed", m_speed_zoom, 1, 50);
 	ColumnEditable("Move Speed", m_speed_translate, 1, 50);
+	priv->m_keyframes.append_column_editable("Ease In", priv->m_columns.m_ease_in);
+	priv->m_keyframes.append_column_editable("Ease Out", priv->m_columns.m_ease_out);
 	// LATER: Tooltips (doesn't seem possible to retrieve the actual widget of a standard column head with gtk 2.24?)
 	// LATER: cell alignment?
 
@@ -385,6 +390,8 @@ void MovieWindow::do_add() {
 	row[priv->m_columns.m_hold_frames] = 0;
 	row[priv->m_columns.m_speed_zoom] = 10;
 	row[priv->m_columns.m_speed_translate] = 2;
+	row[priv->m_columns.m_ease_in] = false;
+	row[priv->m_columns.m_ease_out] = false;
 	priv->m_refTreeModel->thaw_notify();
 
 	bool changed=false;
@@ -435,11 +442,24 @@ bool MovieWindow::update_movie_struct() {
 
 	movie.points.clear();
 	for (auto it = rows.begin(); it != rows.end(); it++) {
+		Movie::eEase ease;
+		if ( (*it)[priv->m_columns.m_ease_in] ) {
+			if ( (*it)[priv->m_columns.m_ease_out] )
+				ease=Movie::EaseInOut;
+			else
+				ease=Movie::EaseIn;
+		} else {
+			if ( (*it)[priv->m_columns.m_ease_out] )
+				ease=Movie::EaseOut;
+			else
+				ease=Movie::NoEase;
+		}
 		struct Movie::KeyFrame kf(
 				(*it)[priv->m_columns.m_centre_re], (*it)[priv->m_columns.m_centre_im],
 				(*it)[priv->m_columns.m_size_re], (*it)[priv->m_columns.m_size_im],
 				(*it)[priv->m_columns.m_hold_frames],
-				(*it)[priv->m_columns.m_speed_zoom], (*it)[priv->m_columns.m_speed_translate]);
+				(*it)[priv->m_columns.m_speed_zoom], (*it)[priv->m_columns.m_speed_translate],
+				ease);
 		// Fix aspect ratio
 		if (imag(kf.size) * target_aspect != real(kf.size))
 			kf.size.imag(real(kf.size) / target_aspect);
@@ -775,6 +795,20 @@ void MovieWindow::update_from_movieinfo(const struct Movie::MovieInfo& new1) {
 		row[priv->m_columns.m_hold_frames] = (*it).hold_frames;
 		row[priv->m_columns.m_speed_zoom] = (*it).speed_zoom;
 		row[priv->m_columns.m_speed_translate] = (*it).speed_translate;
+		switch ((*it).easing) {
+			case Movie::NoEase:
+				break;
+			case Movie::EaseIn:
+				row[priv->m_columns.m_ease_in] = true;
+				break;
+			case Movie::EaseOut:
+				row[priv->m_columns.m_ease_out] = true;
+				break;
+			case Movie::EaseInOut:
+				row[priv->m_columns.m_ease_in] = true;
+				row[priv->m_columns.m_ease_out] = true;
+				break;
+		}
 	}
 	priv->m_refTreeModel->thaw_notify();
 	thaw_child_notify();
