@@ -148,16 +148,16 @@ void Movie::Renderer::render(RenderInstancePrivate *priv) {
 				if (i==1) {
 					if (f1.ease_in) {
 						if (f1.ease_out) {
-							speed_zoom = Quintic::SpeedInOut(frame_acc, zoom_count, frame_count);
-							speed_translate = Quintic::SpeedInOut(frame_acc, move_count, frame_count);
+							speed_zoom = Cubic::SpeedInOut(frame_acc, zoom_count, frame_count);
+							speed_translate = Cubic::SpeedInOut(frame_acc, move_count, frame_count);
 						} else {
-							speed_zoom = Quintic::SpeedIn(frame_acc, zoom_count, frame_count);
-							speed_translate = Quintic::SpeedIn(frame_acc, move_count, frame_count);
+							speed_zoom = Cubic::SpeedIn(frame_acc, zoom_count, frame_count);
+							speed_translate = Cubic::SpeedIn(frame_acc, move_count, frame_count);
 						}
 					} else {
 						if (f1.ease_out) {
-							speed_zoom = Quintic::SpeedOut(frame_acc, zoom_count, frame_count);
-							speed_translate = Quintic::SpeedOut(frame_acc, move_count, frame_count);
+							speed_zoom = Cubic::SpeedOut(frame_acc, zoom_count, frame_count);
+							speed_translate = Cubic::SpeedOut(frame_acc, move_count, frame_count);
 						} else {
 							// no easing, do nothing
 						}
