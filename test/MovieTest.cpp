@@ -365,15 +365,15 @@ TEST(Ease, Sanity) {
 	 * Integrate speed to get change in position, which should match the distance from A to B. */
 	double acc = 0;
 	for (int t=0; t<100; t++) {
-		acc += Sine::SpeedIn(t, 1.0, 100);
+		acc += Cubic::SpeedIn(t, 1.0, 100);
 	}
 	EXPECT_GT(0.000001, fabs(acc - 1.0)); // good old floating point...
 
 	acc = 0;
-	for (int t=0; t<100; t++) acc += Sine::SpeedOut(t, 1.0, 100);
+	for (int t=0; t<100; t++) acc += Cubic::SpeedOut(t, 1.0, 100);
 	EXPECT_GT(0.000001, fabs(acc - 1.0)); // good old floating point...
 
 	acc = 0;
-	for (int t=0; t<100; t++) acc += Sine::SpeedInOut(t, 1.0, 100);
+	for (int t=0; t<100; t++) acc += Cubic::SpeedInOut(t, 1.0, 100);
 	EXPECT_GT(0.000001, fabs(acc - 1.0)); // good old floating point...
 }
