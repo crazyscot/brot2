@@ -442,24 +442,12 @@ bool MovieWindow::update_movie_struct() {
 
 	movie.points.clear();
 	for (auto it = rows.begin(); it != rows.end(); it++) {
-		Movie::eEase ease;
-		if ( (*it)[priv->m_columns.m_ease_in] ) {
-			if ( (*it)[priv->m_columns.m_ease_out] )
-				ease=Movie::EaseInOut;
-			else
-				ease=Movie::EaseIn;
-		} else {
-			if ( (*it)[priv->m_columns.m_ease_out] )
-				ease=Movie::EaseOut;
-			else
-				ease=Movie::NoEase;
-		}
 		struct Movie::KeyFrame kf(
 				(*it)[priv->m_columns.m_centre_re], (*it)[priv->m_columns.m_centre_im],
 				(*it)[priv->m_columns.m_size_re], (*it)[priv->m_columns.m_size_im],
 				(*it)[priv->m_columns.m_hold_frames],
 				(*it)[priv->m_columns.m_speed_zoom], (*it)[priv->m_columns.m_speed_translate],
-				ease);
+				(*it)[priv->m_columns.m_ease_in], (*it)[priv->m_columns.m_ease_out]);
 		// Fix aspect ratio
 		if (imag(kf.size) * target_aspect != real(kf.size))
 			kf.size.imag(real(kf.size) / target_aspect);
@@ -795,20 +783,8 @@ void MovieWindow::update_from_movieinfo(const struct Movie::MovieInfo& new1) {
 		row[priv->m_columns.m_hold_frames] = (*it).hold_frames;
 		row[priv->m_columns.m_speed_zoom] = (*it).speed_zoom;
 		row[priv->m_columns.m_speed_translate] = (*it).speed_translate;
-		switch ((*it).easing) {
-			case Movie::NoEase:
-				break;
-			case Movie::EaseIn:
-				row[priv->m_columns.m_ease_in] = true;
-				break;
-			case Movie::EaseOut:
-				row[priv->m_columns.m_ease_out] = true;
-				break;
-			case Movie::EaseInOut:
-				row[priv->m_columns.m_ease_in] = true;
-				row[priv->m_columns.m_ease_out] = true;
-				break;
-		}
+		row[priv->m_columns.m_ease_in] = (*it).ease_in;
+		row[priv->m_columns.m_ease_out] = (*it).ease_out;
 	}
 	priv->m_refTreeModel->thaw_notify();
 	thaw_child_notify();

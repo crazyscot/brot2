@@ -29,24 +29,17 @@
 
 namespace Movie {
 
-enum eEase {
-	NoEase,
-	EaseIn,
-	EaseOut,
-	EaseInOut
-};
-
 struct KeyFrame {
 	Fractal::Point centre, size;
 	unsigned hold_frames; // How many video frames to linger on this render
 	unsigned speed_zoom, speed_translate; // Speeds for motion to next key frame (ignored if this is last)
-	KeyFrame(Fractal::Point _c, Fractal::Point _s, unsigned _h, unsigned _sz, unsigned _st, eEase _ease=NoEase) :
-		centre(_c), size(_s), hold_frames(_h), speed_zoom(_sz), speed_translate(_st), easing(_ease) {}
+	bool ease_in, ease_out;
+	KeyFrame(Fractal::Point _c, Fractal::Point _s, unsigned _h, unsigned _sz, unsigned _st, bool _ease_in=false, bool _ease_out=false) :
+		centre(_c), size(_s), hold_frames(_h), speed_zoom(_sz), speed_translate(_st), ease_in(_ease_in), ease_out(_ease_out) {}
 	KeyFrame( Fractal::Value _cr, Fractal::Value _ci,
 			Fractal::Value _sr, Fractal::Value _si,
-			unsigned _h, unsigned _sz, unsigned _st, eEase _ease=NoEase) :
-		centre(_cr, _ci), size(_sr, _si), hold_frames(_h), speed_zoom(_sz), speed_translate(_st), easing(_ease) {}
-	eEase easing;
+			unsigned _h, unsigned _sz, unsigned _st, bool _ease_in=false, bool _ease_out=false) :
+		centre(_cr, _ci), size(_sr, _si), hold_frames(_h), speed_zoom(_sz), speed_translate(_st), ease_in(_ease_in), ease_out(_ease_out) {}
 };
 
 struct Frame {
