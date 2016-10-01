@@ -377,3 +377,39 @@ TEST(Ease, Sanity) {
 	for (int t=0; t<100; t++) acc += Cubic::SpeedInOut(t, 1.0, 100);
 	EXPECT_GT(0.000001, fabs(acc - 1.0)); // good old floating point...
 }
+
+bool FP_compare(const Fractal::Point &p1, const Fractal::Point &p2) {
+	if ( fabs( real(p1) - real(p2) ) > 0.000001 ) return false;
+	if ( fabs( imag(p1) - real(p2) ) > 0.000001 ) return false;
+	return true;
+}
+
+TEST(Vector, XY) {
+	Movie::KeyFrame f1( 0.0, 0.0, 1.0, 1.0, 0, 1, 1);
+	Movie::KeyFrame f2( 1.0, 2.0, 1.0, 1.0, 0, 1, 1);
+	Movie::Vector vv(f1, f2);
+	Movie::KeyFrame f3 = vv.apply(f1);
+	EXPECT_EQ(f2.centre, f3.centre);
+}
+
+TEST(Vector, Zin) {
+	double tval[] = { 1, 10, 1e6, 1e16 };
+	for (auto t : tval) {
+		Movie::KeyFrame f1( 0.0, 0.0, 1.0  , 1.0  , 0, 1, 1);
+		Movie::KeyFrame f2( 0.0, 0.0, 1.0/t, 1.0/t, 0, 1, 1);
+		Movie::Vector vv(f1, f2);
+		Movie::KeyFrame f3 = vv.apply(f1);
+		EXPECT_TRUE(FP_compare(f2.size, f3.size));
+	}
+}
+
+TEST(Vector, Zout) {
+	double tval[] = { 1, 10, 1e6, 1e16 };
+	for (auto t : tval) {
+		Movie::KeyFrame f1( 0.0, 0.0, 1.0/t, 1.0/t, 0, 1, 1);
+		Movie::KeyFrame f2( 0.0, 0.0, 1.0  , 1.0  , 0, 1, 1);
+		Movie::Vector vv(f1, f2);
+		Movie::KeyFrame f3 = vv.apply(f1);
+		EXPECT_TRUE(FP_compare(f2.size, f3.size));
+	}
+}

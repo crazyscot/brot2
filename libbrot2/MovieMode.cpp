@@ -44,4 +44,29 @@ unsigned MovieInfo::count_frames() const {
 	return renderer.framecount();
 }
 
+double KeyFrame::zoom() const {
+	// TODO: Largest complex viewport on any current fractal is 8x6; most are 6x6. We'll take 6 units as zoom 1.0. This may need to be changed later.
+	return 6.0 / real(size);
+}
+
+double KeyFrame::logzoom() const {
+	return log(zoom());
+}
+
+KeyFrame Vector::apply(const KeyFrame& _base) const {
+	Fractal::Value xout, yout, zout;
+	// X,Y easy
+	xout = real(_base.centre) + x;
+	yout = imag(_base.centre) + y;
+	// Z a bit harder
+	zout = 6.0 / exp( _base.logzoom() + z );
+	double aspect = real(_base.size) / imag(_base.size);
+	return KeyFrame(xout, yout, zout, zout / aspect, _base.speed_zoom, _base.speed_translate, _base.ease_in, _base.ease_out);
+}
+
+Vector::Vector(const struct KeyFrame& f1, const struct KeyFrame& f2) {
+	x = real(f2.centre) - real(f1.centre);
+	y = imag(f2.centre) - imag(f1.centre);
+	z = f2.logzoom() - f1.logzoom();
+}
 };
