@@ -20,6 +20,8 @@ check_LIBRARIES=
 check_PROGRAMS=
 AUTOGEN=
 CLEANFILES=
+dist_noinst_DATA=
+BUILT_SOURCES=
 
 ################################################################
 
@@ -80,14 +82,16 @@ noinst_LIBRARIES+=libmessages.a
 MSGDIR=messages
 MSG_IN=messages/brot2msgs.proto
 MSG_AUTO=messages/brot2msgs.pb.cc messages/brot2msgs.pb.h
+
 AUTOGEN+=$(MSG_AUTO)
+dist_noinst_DATA+=$(MSG_IN)
+nodist_libmessages_a_SOURCES=$(MSG_AUTO)
+BUILT_SOURCES+=$(MSG_AUTO)
 
 libbrot2/marshal.$(OBJEXT): messages/brot2msgs.pb.h
 
 $(MSG_AUTO): $(MSG_IN)
 	protoc --proto_path $(top_srcdir) $< --cpp_out=.
-
-libmessages_a_SOURCES=$(MSG_AUTO)
 
 noinst_PROGRAMS+=b2dumpmsg
 
