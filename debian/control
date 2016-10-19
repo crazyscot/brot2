@@ -2,10 +2,10 @@ Source: brot2
 Section: graphics
 Priority: optional
 Maintainer: Ross Younger <0ryoungerk.launchpad@coriolis.greenend.org.uk>
-Build-Depends: debhelper (>= 7.0.50~), autoconf (>= 2.67), automake (>=1.15), libgtk2.0-dev (>=2.24), libglib2.0-dev (>= 2.28), libgtkmm-2.4-dev (>= 2.24), libglibmm-2.4-dev (>= 2.28), libpng12-dev (>= 1.2.41), libgdk-pixbuf2.0-dev, libcairo2-dev (>= 1.10), libpango1.0-dev (>= 1.28), libgtest-dev (>= 1.6.0), valgrind, libsigc++-2.0-dev, libpng++-dev (>= 0.2.5), libavformat-dev, libavcodec-dev, libswscale-dev, libavresample-dev, libavutil-dev, libprotobuf-dev, protobuf-compiler
-Standards-Version: 3.9.1
-Vcs-Git: git://git.chiark.greenend.org.uk/~ryounger/brot2.git
-Vcs-Browser: http://www.chiark.greenend.org.uk/ucgi/~ryounger/git?p=brot2.git;a=summary
+Build-Depends: debhelper (>= 7.0.50~), autoconf (>= 2.67), automake (>=1.15), libgtk2.0-dev (>=2.24), libglib2.0-dev (>= 2.28), libgtkmm-2.4-dev (>= 2.24), libglibmm-2.4-dev (>= 2.28), libpng12-dev (>= 1.2.41), libgdk-pixbuf2.0-dev, libcairo2-dev (>= 1.10), libpango1.0-dev (>= 1.28), libgtest-dev (>= 1.6.0), valgrind, libsigc++-2.0-dev, libpng++-dev (>= 0.2.5), libavformat-dev, libavcodec-dev, libswscale-dev, libavresample-dev, libavutil-dev, libprotobuf-dev, protobuf-compiler, autotools-dev
+Standards-Version: 3.9.8
+Vcs-Git: https://github.com/crazyscot/brot2.git
+Vcs-Browser: https://github.com/crazyscot/brot2
 
 Package: brot2
 Architecture: any

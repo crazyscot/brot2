@@ -156,7 +156,6 @@ int main (int argc, char**argv)
 
 	bool did_something=false;
 	if (do_license) {
-		std::cout << PACKAGE_STRING << " " << brot2_copyright_string << std::endl;
 		std::cout << brot2_license_text << std::endl;
 		did_something=true;
 	}
