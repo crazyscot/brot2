@@ -194,11 +194,12 @@ b2test_CXXFLAGS=
 
 ################################################################
 
-benchmark_PROGRAMS=plot_benchmark palette_benchmark
+BENCHMARKERS=plot_benchmark palette_benchmark
+noinst_PROGRAMS+=$(BENCHMARKERS)
 benchmarkdir=benchmark
 benchmark_SOURCES=benchmark/Benchmarkable.cpp benchmark/Benchmarkable.h
 
-check_PROGRAMS+=$(benchmark_PROGRAMS)
+check_PROGRAMS+=$(BENCHMARKERS)
 plot_benchmark_SOURCES=$(benchmark_SOURCES) benchmark/plot_benchmark.cpp
 
 plot_benchmark_LDADD= libfractal.a
@@ -212,7 +213,8 @@ palette_benchmark_LDADD= $(all_ldadd) @libpng12_LIBS@
 palette_benchmark_DEPENDENCIES= $(all_libs)
 palette_benchmark_CPPFLAGS=$(AM_CPPFLAGS)
 
-benchmark: $(benchmark_PROGRAMS)
-	for p in $(benchmark_PROGRAMS); do ./$$p; done
+.PHONY: benchmark
+benchmark: $(BENCHMARKERS)
+	for p in $(BENCHMARKERS); do ./$$p; done
 
 ################################################################
