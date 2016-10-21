@@ -72,7 +72,7 @@ bin_PROGRAMS+=brot2cli
 brot2cli_SOURCES=cli/climain.cpp cli/climain.h \
 				 cli/CLIDataSink.cpp cli/CLIDataSink.h
 
-brot2cli_LDADD= $(all_ldadd) @gdkmm_LIBS@ @pango_LIBS@ @libpng12_LIBS@
+brot2cli_LDADD= $(all_ldadd) @gdkmm_LIBS@ @pango_LIBS@ @libpng_LIBS@
 
 ################################################################
 
@@ -92,8 +92,8 @@ brot2_SOURCES= \
 
 brot2_CPPFLAGS=$(AM_CPPFLAGS)
 brot2_CFLAGS=$(AM_CFLAGS) @pango_CFLAGS@ @LIBAV_CFLAGS@
-brot2_CXXFLAGS=$(AM_CXXFLAGS) @pango_CFLAGS@ @LIBAV_CFLAGS@ @gtkmm_CFLAGS@ @gdkmm_CFLAGS@ @libpng12_CFLAGS@ @glibmm_CFLAGS@
-brot2_LDADD=$(all_ldadd) @pango_LIBS@ @LIBAV_LIBS@ @gtkmm_LIBS@ @gdkmm_LIBS@ @libpng12_LIBS@ @glibmm_LIBS@
+brot2_CXXFLAGS=$(AM_CXXFLAGS) @pango_CFLAGS@ @LIBAV_CFLAGS@ @gtkmm_CFLAGS@ @gdkmm_CFLAGS@ @libpng_CFLAGS@ @glibmm_CFLAGS@
+brot2_LDADD=$(all_ldadd) @pango_LIBS@ @LIBAV_LIBS@ @gtkmm_LIBS@ @gdkmm_LIBS@ @libpng_LIBS@ @glibmm_LIBS@
 
 ################################################################
 
@@ -145,7 +145,7 @@ b2test_SOURCES=test/b2test.cpp \
 					test/Plot3Test.cpp test/Render2Test.cpp \
 					test/FractalKAT.cpp
 
-b2test_LDADD= libgtest.a $(all_ldadd) @libpng12_LIBS@
+b2test_LDADD= libgtest.a $(all_ldadd) @libpng_LIBS@
 b2test_DEPENDENCIES= libgtest.a $(all_libs)
 
 b2test_CPPFLAGS=$(AM_CPPFLAGS) -I$(GTEST_INC) @glibmm_CFLAGS@
@@ -167,8 +167,8 @@ plot_benchmark_CPPFLAGS=$(AM_CPPFLAGS)
 palette_benchmark_SOURCES=$(benchmark_SOURCES) benchmark/palette_benchmark.cpp \
 				 cli/CLIDataSink.cpp cli/CLIDataSink.h
 
-palette_benchmark_LDADD= $(all_ldadd) @libpng12_LIBS@
-palette_benchmark_DEPENDENCIES= $(all_ldadd)
+palette_benchmark_LDADD= $(all_ldadd) @libpng_LIBS@
+palette_benchmark_DEPENDENCIES= $(all_libs)
 palette_benchmark_CPPFLAGS=$(AM_CPPFLAGS)
 
 benchmark: $(benchmark_PROGRAMS)
