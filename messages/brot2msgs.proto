@@ -3,6 +3,7 @@
  * Copyright (C) 2016 Ross Younger
  */
 
+syntax = "proto2";
 package b2msg;
 
 // Fractal values are larger than doubles (see FractalMaths.h) -- so we already need a
