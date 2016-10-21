@@ -237,10 +237,10 @@ TEST_F(MovieTest, RenderWorks) {
 // This tests that changing the speed changes the number of frames.
 TEST_F(MovieTest, SpeedHasAnEffect) {
 	InitialiseMovie(TEST_SPEED);
-	unsigned count1 = movie.count_frames();
+	long count1 = movie.count_frames();
 	//std::cout << "Frame count 1: " << count1 << std::endl;
 	InitialiseMovie(2*TEST_SPEED);
-	unsigned count2 = movie.count_frames();
+	long count2 = movie.count_frames();
 	//std::cout << "Frame count 2: " << count2 << std::endl;
 	/* Doubling the speed for a simple transition without hold, should halve the frame count.
 	 * ... except for viewers watching on Valgrind, where floating point inaccuracies are
@@ -248,7 +248,7 @@ TEST_F(MovieTest, SpeedHasAnEffect) {
 	 *
 	 * EXPECT_EQ(count1/2, count2); // fails on valgrind
 	 */
-	EXPECT_LE(abs(count1/2 - count2), 2);
+	EXPECT_LE(labs(count1/2 - count2), 2);
 }
 
 // Found the need for this test the hard way...
@@ -349,10 +349,10 @@ TEST_F(MovieTest, AntiAliasDimensions) {
 TEST_F(MovieTest, PreviewWorks) {
 	// Expect half the number of frames actually rendered
 	InitialiseMovie();
-	unsigned count1 = movie.count_frames();
+	long count1 = movie.count_frames();
 	//std::cout << "Frame count 1: " << count1 << std::endl;
 	InitialiseMovie();
 	movie.preview = true;
-	unsigned count2 = movie.count_frames();
-	EXPECT_LE(abs(count1/2 - count2), 2);
+	long count2 = movie.count_frames();
+	EXPECT_LE(labs(count1/2 - count2), 2);
 }
