@@ -65,7 +65,7 @@ public:
 	unsigned maxiter() const { return _max_passes; }
 
 	/* Read-only access to the plot data. There are pixel_count() pixels. */
-	const Fractal::PointData * get_data() const { if (!this) return 0; return _data; }
+	const Fractal::PointData * get_data() const { return _data; }
 
 	// How many pixels are live?
 	unsigned livecount() const { return _live_pixels; }
