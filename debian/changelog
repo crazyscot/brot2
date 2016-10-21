@@ -1,3 +1,9 @@
+brot2 (2.0ubuntu1) UNRELEASED; urgency=low
+
+  * Updates to allow build on yakkety.
+
+ -- Ross Younger <0ryoungerk.launchpad@coriolis.greenend.org.uk>  Fri, 21 Oct 2016 18:42:54 +1300
+
 brot2 (2.0) xenial; urgency=medium
 
   * GTK UI: tweak fractal/colour menu hotkeys; improve controls window default
