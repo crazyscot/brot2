@@ -271,10 +271,10 @@ void MainWindow::render(int local_inf, bool do_reprocess, bool may_do_hud, Plot3
 	if (may_do_hud && draw_hud)
 		hud.draw(plot, rwidth, rheight);
 
-    if (job)
-        canvas->surface->mark_dirty(job->_offX, job->_offY, job->_width, job->_height);
-    else
-        canvas->surface->mark_dirty();
+	if (job)
+		canvas->surface->mark_dirty(job->_offX, job->_offY, job->_width, job->_height);
+	else
+		canvas->surface->mark_dirty();
 	canvas->surface->unreference();
     gdk_threads_add_idle(idle_queue_draw, this);
 }

@@ -393,7 +393,8 @@ class LibAV : public Movie::Renderer {
 			av_dump_format(mypriv->oc, 0, mypriv->oc->filename, 1);
 			if (avio_open(&mypriv->oc->pb, mypriv->oc->filename, AVIO_FLAG_WRITE) < 0)
 				THROW(AVException,"Could not open file");
-			avformat_write_header(mypriv->oc, 0);
+			if (avformat_write_header(mypriv->oc, 0))
+				THROW(AVException,"Could not write header");
 
 			AVFrame * ren_frame = mypriv->tmp_frame ? mypriv->tmp_frame : mypriv->frame;
 			mypriv->render = new Render2::MemoryBuffer(
