@@ -79,6 +79,7 @@ libbrot2_a_LIBS=@pango_LIBS@
 ################################################################
 
 noinst_LIBRARIES+=libmessages.a
+libmessages_a_CXXFLAGS='-Wno-unused-parameter'
 
 MSGDIR=messages
 MSG_IN=messages/brot2msgs.proto
