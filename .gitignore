@@ -37,3 +37,10 @@ gtest
 *.sw?
 messages/brot2msgs.pb.cc
 messages/brot2msgs.pb.h
+b2test.log
+b2test.trs
+test-suite.log
+test/b2test.valgrind.log
+test/b2test.valgrind.trs
+debian/debhelper-build-stamp
+debian/.debhelper
