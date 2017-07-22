@@ -19,7 +19,7 @@ AC_C_BIGENDIAN
 
 pkg_cflags=""
 pkg_cxxflags="-std=c++11"
-pkg_cppflags="-std=c++11"
+pkg_cppflags="-std=c++11 -Ofast"
 if test "x$GXX" = xyes; then
 	pkg_cxxflags="${pkg_cxxflags} -Wall -Wextra -Werror -Wpointer-arith -Wwrite-strings -Woverloaded-virtual -Wnon-virtual-dtor -Wno-ctor-dtor-privacy -Wstrict-null-sentinel -Wnon-template-friend -Woverloaded-virtual -Wpmf-conversions -Wsign-promo -Wundef"
     # libsigc++ can't be included with -Wctor-dtor-privacy at the present time
