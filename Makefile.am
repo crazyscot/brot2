@@ -137,6 +137,7 @@ brot2_CPPFLAGS=$(AM_CPPFLAGS)
 brot2_CFLAGS=$(AM_CFLAGS) @pango_CFLAGS@ @LIBAV_CFLAGS@
 brot2_CXXFLAGS=$(AM_CXXFLAGS) @pango_CFLAGS@ @LIBAV_CFLAGS@ @gtkmm_CFLAGS@ @gdkmm_CFLAGS@ @libpng_CFLAGS@ @glibmm_CFLAGS@
 brot2_LDADD=$(all_ldadd) @pango_LIBS@ @LIBAV_LIBS@ @gtkmm_LIBS@ @gdkmm_LIBS@ @libpng_LIBS@ @glibmm_LIBS@
+brot2_CXXFLAGS+=-Wno-deprecated-declarations
 
 ################################################################
 
@@ -192,7 +193,7 @@ b2test_LDADD= libgtest.a $(all_ldadd) @libpng_LIBS@
 b2test_DEPENDENCIES= libgtest.a $(all_libs)
 
 b2test_CPPFLAGS=$(AM_CPPFLAGS) -I$(GTEST_INC) @glibmm_CFLAGS@
-b2test_CXXFLAGS=
+b2test_CXXFLAGS=-Wno-deprecated-declarations
 
 ################################################################
 
