@@ -1,10 +1,10 @@
-brot2 (2.0ubuntu1) UNRELEASED; urgency=low
+brot2 (2.0.1) xenial; urgency=low
 
   * Updates to allow build on xenial and yakkety.
   * Switch off deprecation warning to allow build with libav 7:3.x (Debian
     stretch)
 
- -- Ross Younger <0ryoungerk.launchpad@coriolis.greenend.org.uk>  Fri, 21 Oct 2016 18:42:54 +1300
+ -- Ross Younger <0ryoungerk.launchpad@coriolis.greenend.org.uk>  Fri, 05 Oct 2018 17:56:28 +1300
 
 brot2 (2.0) xenial; urgency=medium
 
