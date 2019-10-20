@@ -1,1 +1,6 @@
+misc/brot2.desktop /usr/share/applications
 misc/brot2.xpm usr/share/pixmaps/
+misc/brot2.png usr/share/icons/hicolor/128x128/apps
+misc/48x48/brot2.png usr/share/icons/hicolor/48x48/apps
+misc/192x192/brot2.png usr/share/icons/hicolor/192x192/apps
+misc/512x512/brot2.png usr/share/icons/hicolor/512x512/apps

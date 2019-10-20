@@ -21,7 +21,7 @@ check_LIBRARIES=
 check_PROGRAMS=
 AUTOGEN=
 CLEANFILES=
-dist_noinst_DATA=
+dist_noinst_DATA=misc/48x48/brot2.png misc/192x192/brot2.png misc/512x512/brot2.png misc/brot2.xpm misc/brot2.desktop
 BUILT_SOURCES=
 
 ################################################################

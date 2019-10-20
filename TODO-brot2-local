@@ -1,0 +1,45 @@
+Movie mode:
+
+STATUS:
+- Improvements...
+
+TIP: ffmpeg -i render.000%03d.png -c:v libx264 -pix_fmt yuv420p output.mp4
+# yuv420 needed for many online video services
+   fanf uses: ffmpeg -f image2 -i mandel.%d.ppm -vcodec libx264 -vpre slow -crf 20 -threads 0 foo.mp4
+   https://trac.ffmpeg.org/wiki/Encode/H.264
+   https://git.libav.org/?p=libav.git;a=blob;f=doc/examples/avcodec.c
+TIP: valgrind --vgdb=yes --vgdb-error=1 ./brot2
+TIP: valgrind --vgdb=yes --vgdb-error=1 ./b2test --gtest_filter=...
+
+ - UI rework for something more gmap-like tile-based. Drag viewport around during render, render only those tiles which are visible; zoom uses blown-up tiles first; tile data cached on an LRU basis.
+ - Deprecation warnings from libav - needs rework
+
+
+WISHLIST:
+ - Add a note to the UI that keyframes can be reordered by dragging them
+ - ease in/out of holds?
+   (( MovieRender / MovieMotion.cpp
+	  What to do? Ramp speed up/down, that's what...
+	  MovieRender keeps "current" speed, which we ramp.
+	  *** Robert Penner's easing functions ***
+	  For ease in: How far from end do we start ramping down...? We know when the end is coming, so we can decide on a frame number N to start ramping down from.
+	  Maybe speed becomes a float?
+	  What size/profile the ramp up/down? Maybe 10 frames? 20? 30?? Is it linear ramp or more complex? (What does AE do?)
+
+ - Port to OSX and get going on moonstone... at least the CLI... for parallel :)
+ - Amazon EC2 for a really big render? Price it out. Maybe as part of a parallel run.
+ - Windows port & ability to ssh/parallel to it. Need a network packet format (hello protobuf...)
+
+LATER:
+ - revisit palette, can I do better with mine? rjk's is particularly pretty. Analyse the raw numbers with brot2cli --csv mode.
+ - prefs such as initial maxiter, are these being passed on to all movie renders? What about cli/remote? Hahaha.
+- Test HUD in PNG & with valgrind.
+- IWBNI we would show the duration of each segment, so we can see which is blowing up.
+* Run helgrind and/or DRD some time, look for thread issues. Note that helgrind recommends using semaphores in preference to condvars...
+- Consider 50 as a speed clamp. Seems to be OK from limited testing.
+- Show a non-keyframe in main window?? (Build/show a list of keyframes...)
+
+MAYBE SOME TIME:
+- Maybe some time.. Animate maxiter as keyframeable?
+- IWBNI we could tweak the prefs (specifically re the HUD position etc) for the render, as opposed to inheriting master.
+
