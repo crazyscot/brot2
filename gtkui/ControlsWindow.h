@@ -20,7 +20,10 @@
 #define CONTROLSWINDOW_H
 
 #include "Prefs.h"
+#include "misc.h"
+BROT2_GTKMM_BEFORE
 #include <gtkmm/dialog.h>
+BROT2_GTKMM_AFTER
 #include <gtkmm/entry.h>
 
 class MainWindow;

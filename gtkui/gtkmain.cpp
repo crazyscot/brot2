@@ -22,8 +22,12 @@ const char *copyright_string = "(c) 2010-2016 Ross Younger";
 #include <memory>
 #include <iostream>
 
+#include "misc.h"
+BROT2_GTKMM_BEFORE
 #include <glibmm.h>
+BROT2_GTKMM_AFTER
 #include <gtkmm.h>
+
 #include <X11/Xlib.h>
 
 #include "config.h"

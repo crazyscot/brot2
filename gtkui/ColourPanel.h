@@ -20,7 +20,10 @@
 #ifndef COLOURPANEL_H_
 #define COLOURPANEL_H_
 
+#include "misc.h"
+BROT2_GTKMM_BEFORE
 #include <gtkmm/drawingarea.h>
+BROT2_GTKMM_AFTER
 #include <gtkmm/frame.h>
 #include <gtkmm/label.h>
 #include <cairomm/cairomm.h>

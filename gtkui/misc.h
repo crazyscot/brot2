@@ -20,9 +20,15 @@
 #define MISC_H_
 
 #include <sys/time.h>
+#include "misc.h"
+
+#include <gdkmm/color.h>
+BROT2_GTKMM_BEFORE
 #include <gtkmm/window.h>
+BROT2_GTKMM_AFTER
 #include <gtkmm/entry.h>
 #include <gtkmm/messagedialog.h>
+
 #include <string>
 
 #ifdef UNUSED
