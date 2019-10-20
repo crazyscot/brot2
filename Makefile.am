@@ -173,10 +173,7 @@ TESTS+=test/b2test.valgrind
 endif TEST_WITH_VALGRIND
 
 else !GTEST
-check :
-	@echo
-	@echo Make check requires GTEST
-	@false
+check_PROGRAMS+=b2test_nonexistent
 endif !GTEST
 
 EXTRA_DIST+=test/b2test.valgrind test/b2test.vgsupp test/thrash
