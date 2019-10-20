@@ -60,7 +60,7 @@ void ScrollActions::set_to_default() {
 	a[3] = Action::NO_ACTION; // GDK_SCROLL_RIGHT
 }
 
-KeyfilePrefs::KeyfilePrefs() throw(PrefsException) : kf(), mouse_cache(), scroll_cache(), _parent(NULL) {
+KeyfilePrefs::KeyfilePrefs() : kf(), mouse_cache(), scroll_cache(), _parent(NULL) {
 	initialise();
 }
 
@@ -79,11 +79,11 @@ KeyfilePrefs::~KeyfilePrefs() {
 	// Do NOT commit here.
 }
 
-void KeyfilePrefs::reread() throw (PrefsException) {
+void KeyfilePrefs::reread() {
 	initialise();
 }
 
-void KeyfilePrefs::initialise() throw(PrefsException) {
+void KeyfilePrefs::initialise() {
 	kf.set_integer(META_GROUP, KEY_VERSION, CURRENT_VERSION);
 
 	std::string fn = filename();
@@ -128,7 +128,7 @@ std::string KeyfilePrefs::filename(bool temp) {
 	return rv;
 }
 
-void KeyfilePrefs::commit() throw(PrefsException) {
+void KeyfilePrefs::commit() {
 	// This is sneaky... We write to the backing store, and
 	// prod the parent to reread.
 	if (!_parent)
@@ -303,11 +303,11 @@ std::shared_ptr<Prefs> DefaultPrefs::_MASTER;
 std::mutex DefaultPrefs::_MASTER_lock;
 
 // Default accessor, singleton-like.
-std::shared_ptr<const Prefs> Prefs::getMaster() throw(PrefsException) {
+std::shared_ptr<const Prefs> Prefs::getMaster() {
 	return DefaultPrefs::getMaster();
 }
 
-std::shared_ptr<const Prefs> DefaultPrefs::getMaster() throw(PrefsException) {
+std::shared_ptr<const Prefs> DefaultPrefs::getMaster() {
 	std::unique_lock<std::mutex> lock(_MASTER_lock);
 	if (!_MASTER) {
 		_MASTER = std::shared_ptr<Prefs>(new KeyfilePrefs());
@@ -315,7 +315,7 @@ std::shared_ptr<const Prefs> DefaultPrefs::getMaster() throw(PrefsException) {
 	return _MASTER;
 }
 
-std::shared_ptr<Prefs> KeyfilePrefs::getWorkingCopy() const throw(PrefsException) {
+std::shared_ptr<Prefs> KeyfilePrefs::getWorkingCopy() const {
 	if (_parent != NULL)
 		THROW(PrefsException,"Prefs: Cannot make a working copy of a working copy!");
 	if (_childCount)

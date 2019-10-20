@@ -23,15 +23,15 @@
 class TestingKeyfilePrefs: public BrotPrefs::KeyfilePrefs {
 public:
 	// Need to use named constructors as our initialise() calls a virtual function :-(
-	static TestingKeyfilePrefs* getInstance() throw(PrefsException);
-	static TestingKeyfilePrefs* getInstance(const BrotPrefs::KeyfilePrefs& src, BrotPrefs::KeyfilePrefs* parent) throw(PrefsException);
+	static TestingKeyfilePrefs* getInstance();
+	static TestingKeyfilePrefs* getInstance(const BrotPrefs::KeyfilePrefs& src, BrotPrefs::KeyfilePrefs* parent);
 	virtual ~TestingKeyfilePrefs();
 
 	virtual std::shared_ptr<BrotPrefs::Prefs> getWorkingCopy() const throw();
 	virtual std::string filename(bool temp=false);
 
 protected:
-	TestingKeyfilePrefs() throw(PrefsException);
+	TestingKeyfilePrefs();
 	TestingKeyfilePrefs(const BrotPrefs::KeyfilePrefs& src, BrotPrefs::KeyfilePrefs* parent);
 };
 

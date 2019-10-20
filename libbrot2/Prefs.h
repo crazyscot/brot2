@@ -30,7 +30,7 @@ struct PrefsException : BrotException {
 	PrefsException(const std::string& m) : BrotException(m) {}
 	PrefsException(const std::string& m, const std::string& f, int l) :
 		BrotException(m,f,l) {}
-	virtual ~PrefsException() throw() {}
+	virtual ~PrefsException() {}
 };
 
 
@@ -81,7 +81,7 @@ struct Action {
 		return name(value);
 	}
 
-	inline Action& operator=(int newval) throw(PrefsException) {
+	inline Action& operator=(int newval) {
 		if ((newval < MIN) || (newval > MAX) )
 			THROW(PrefsException,"Illegal enum value");
 		value = newval;
@@ -90,7 +90,7 @@ struct Action {
 	inline operator int() const { return value; }
 	inline operator std::string() const { return name(); }
 
-	inline Action& operator=(std::string newname) throw(PrefsException) {
+	inline Action& operator=(std::string newname) {
 		int newval = lookup(newname);
 		if (newval==-1) THROW(PrefsException,"Unrecognised enum string");
 		value = newval;
@@ -154,7 +154,7 @@ class Prefs {
 		//
 		// If something went wrong (e.g. backing store I/O error), throws a
 		// PrefsException explaining what; it's up to the caller to inform the user.
-		static std::shared_ptr<const Prefs> getMaster() throw(PrefsException);
+		static std::shared_ptr<const Prefs> getMaster();
 
 		// Creates a working copy of a Prefs object.
 		// Call commit() causes it to update the object it was cloned
@@ -168,13 +168,13 @@ class Prefs {
 		// Commit (currently) overwrites the entire destination!
 		// Because of this it is an error (assert fail) to have more
 		// than one working copy outstanding.
-		virtual std::shared_ptr<Prefs> getWorkingCopy() const throw(PrefsException) = 0;
+		virtual std::shared_ptr<Prefs> getWorkingCopy() const = 0;
 
 		// Commits all outstanding writes of a working copy to the master
 		// instance, and thence to backing store.
 		// If something went wrong, throws a PrefsException explaining what; it's
 		// up to the caller to inform the user suitably.
-		virtual void commit() throw(PrefsException) = 0;
+		virtual void commit() = 0;
 
 		// Data accessors. Note that the getters may change internal state
 		// if the relevant backing store did not contain the relevant
@@ -202,10 +202,10 @@ class Prefs {
 class KeyfilePrefs : public Prefs {
 
 public:
-	KeyfilePrefs() throw(PrefsException);
-	virtual void commit() throw(PrefsException);
+	KeyfilePrefs();
+	virtual void commit();
 
-	virtual std::shared_ptr<Prefs> getWorkingCopy() const throw(PrefsException);
+	virtual std::shared_ptr<Prefs> getWorkingCopy() const;
 
 	virtual const MouseActions& mouseActions() const;
 	virtual void mouseActions(const MouseActions& mouse);
@@ -238,8 +238,8 @@ protected:
 
 	KeyfilePrefs(const KeyfilePrefs& src, KeyfilePrefs* parent);
 
-	void reread() throw (PrefsException);
-	void initialise() throw(PrefsException);
+	void reread();
+	void initialise();
 	void reread_scroll_actions();
 	void reread_mouse_actions();
 
@@ -281,7 +281,7 @@ public:
 	//
 	// If something went wrong (e.g. backing store I/O error), throws a
 	// PrefsException explaining what; it's up to the caller to inform the user.
-	static std::shared_ptr<const Prefs> getMaster() throw(PrefsException);
+	static std::shared_ptr<const Prefs> getMaster();
 
 private:
 	DefaultPrefs(){}; // Not instantiable
