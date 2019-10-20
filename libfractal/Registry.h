@@ -40,7 +40,7 @@ class SimpleRegistry
 		T* get(const std::string& name) {
 			try {
 				return instances.at(name);
-			} catch (std::out_of_range) {
+			} catch (std::out_of_range&) {
 				return nullptr;
 			}
 		}
