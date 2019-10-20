@@ -22,13 +22,15 @@
 #include "IMovieProgress.h"
 #include "MovieRender.h"
 #include "misc.h"
+BROT2_GLIBMM_BEFORE
 BROT2_GTKMM_BEFORE
 #include <gtkmm/window.h>
-BROT2_GTKMM_AFTER
 #include <gtkmm/box.h>
 #include <gtkmm/label.h>
 #include <gtkmm/progressbar.h>
 #include <gtkmm/button.h>
+BROT2_GTKMM_AFTER
+BROT2_GLIBMM_AFTER
 
 class MovieWindow;
 

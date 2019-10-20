@@ -21,9 +21,12 @@
 
 #include <string>
 #include "Exception.h"
+#include "misc.h"
 #include <memory> //for unique_ptr
 #include <mutex>
+BROT2_GLIBMM_BEFORE
 #include <glibmm/keyfile.h>
+BROT2_GLIBMM_AFTER
 #include "PrefsRegistry.h"
 
 struct PrefsException : BrotException {

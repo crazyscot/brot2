@@ -26,8 +26,11 @@
 #include <errno.h>
 #include <string.h>
 #include <unistd.h>
+#include "misc.h"
+BROT2_GLIBMM_BEFORE
 #include <glibmm/keyfile.h>
 #include <glibmm/fileutils.h>
+BROT2_GLIBMM_AFTER
 
 namespace BrotPrefs {
 

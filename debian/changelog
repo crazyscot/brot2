@@ -1,3 +1,10 @@
+brot2 (2.0.2~) UNRELEASED; urgency=low
+
+  * Updates to build with gcc 9, libc 2.30, and eoan's mildly-incompatible combination of
+  libglibmm, libgtkmm and friends.
+
+ -- Ross Younger <0ryoungerk.launchpad@coriolis.greenend.org.uk>  Sun, 20 Oct 2019 15:43:12 +1300
+
 brot2 (2.0.1) xenial; urgency=low
 
   * Updates to allow build on xenial and yakkety.

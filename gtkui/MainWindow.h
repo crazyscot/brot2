@@ -40,12 +40,12 @@
 #include <set>
 BROT2_GTKMM_BEFORE
 #include <gtkmm/window.h>
-BROT2_GTKMM_AFTER
 #include <gtkmm/menubar.h>
 #include <gtkmm/box.h>
 #include <gtkmm/drawingarea.h>
 #include <gtkmm/uimanager.h>
 #include <gtkmm/progressbar.h>
+BROT2_GTKMM_AFTER
 #include <sys/time.h>
 
 class HUD;

@@ -21,8 +21,10 @@
 
 #include "MainWindow.h"
 #include "gtkutil.h"
+BROT2_GLIBMM_BEFORE
 #include <gtkmm/dialog.h>
 #include <gtkmm/entry.h>
+BROT2_GLIBMM_AFTER
 
 class ZoomControl;
 

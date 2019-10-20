@@ -25,7 +25,10 @@
 #include <memory>
 #include <cairomm/cairomm.h>
 #include <gdkmm/color.h>
+#include "misc.h"
+BROT2_GLIBMM_BEFORE
 #include <pangomm.h>
+BROT2_GLIBMM_AFTER
 
 class BaseHUD {
 	BaseHUD(BaseHUD&) = delete;

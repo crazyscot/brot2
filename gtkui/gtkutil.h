@@ -21,12 +21,14 @@
 
 #include "misc.h"
 
-#include <gdkmm/color.h>
+BROT2_GLIBMM_BEFORE
 BROT2_GTKMM_BEFORE
+#include <gdkmm/color.h>
 #include <gtkmm/window.h>
-BROT2_GTKMM_AFTER
 #include <gtkmm/entry.h>
 #include <gtkmm/messagedialog.h>
+BROT2_GTKMM_AFTER
+BROT2_GLIBMM_AFTER
 
 #include <string>
 

@@ -22,10 +22,12 @@
 #include "libbrot2/Plot3Plot.h"
 #include "libbrot2/Prefs.h"
 #include "misc.h"
+BROT2_GLIBMM_BEFORE
 BROT2_GTKMM_BEFORE
 #include <gtkmm/window.h>
-BROT2_GTKMM_AFTER
 #include <gdkmm/color.h>
+BROT2_GTKMM_AFTER
+BROT2_GLIBMM_AFTER
 #include <cairomm/cairomm.h>
 #include <mutex>
 #include <memory>

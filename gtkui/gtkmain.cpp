@@ -23,10 +23,12 @@ const char* brot2_argv0;
 #include <iostream>
 
 #include "misc.h"
+BROT2_GLIBMM_BEFORE
 BROT2_GTKMM_BEFORE
 #include <glibmm.h>
-BROT2_GTKMM_AFTER
 #include <gtkmm.h>
+BROT2_GTKMM_AFTER
+BROT2_GLIBMM_AFTER
 
 #include <X11/Xlib.h>
 

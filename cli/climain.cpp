@@ -22,7 +22,10 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "misc.h"
+BROT2_GLIBMM_BEFORE
 #include <glibmm.h>
+BROT2_GLIBMM_AFTER
 #include <X11/Xlib.h>
 
 #include "config.h"
