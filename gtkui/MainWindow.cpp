@@ -362,7 +362,7 @@ void MainWindow::do_plot(bool is_same_plot)
 		hud.draw(plot, rwidth, rheight);
 	try {
 		plot->start();
-	} catch (BrotException e) {
+	} catch (BrotException &e) {
 		progbar->set_text("Plot failed to start!");
 		std::cerr << e.detail() << std::endl;
 	}

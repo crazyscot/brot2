@@ -83,7 +83,7 @@ void Movie::RenderJob::run() {
 		ASSERT(priv != 0);
 		_renderer.render(priv);
 		_renderer.render_tail(priv); // Flush file, delete anything that the destructor doesn't catch
-	} catch (BrotException e) {
+	} catch (BrotException &e) {
 		_parent.signal_error(*this, e.msg);
 	}
 	delete priv;

@@ -43,16 +43,15 @@ struct BrotException : public std::exception {
 			str << " (unknown location)";
 		detail_ = str.str();
 	}
-	virtual std::string detail() const {
+	std::string detail() const {
 		return detail_;
 	}
-	virtual operator const std::string() const {
+	operator const std::string() const {
 		return detail_;
 	}
-	virtual const char* what() const throw() {
+	const char* what() const throw() {
 		return detail_.c_str();
 	}
-	virtual ~BrotException() throw() { }
 };
 
 struct BrotAssert : BrotException {
@@ -60,17 +59,15 @@ struct BrotAssert : BrotException {
 		BrotException("Assertion failed: "+m) { }
 	BrotAssert(const std::string& m, const std::string& f, int l) :
 		BrotException("Assertion failed: "+m,f,l) { }
-	virtual ~BrotAssert() throw() {}
 };
 
 struct BrotFatalException : BrotException {
 	BrotFatalException(const std::string& m) : BrotException("FATAL: "+m) {}
 	BrotFatalException(const std::string& m, const std::string& f, int l) :
 		BrotException("FATAL: "+m,f,l) {}
-	virtual ~BrotFatalException() throw() {}
 };
 
-inline std::ostream& operator<< (std::ostream& out, BrotException val) {
+inline std::ostream& operator<< (std::ostream& out, BrotException& val) {
 	out << val.detail();
 	return out;
 }
@@ -82,7 +79,6 @@ inline std::ostream& operator<< (std::ostream& out, BrotException val) {
 	struct _clazz : public BrotException { \
 		_clazz(const std::string& m) : BrotException(m) {} \
 		_clazz(const std::string& m, const std::string& f, int l) : BrotException(m, f, l) {} \
-		virtual ~_clazz() throw() {} \
 	}
 
 #endif /* EXCEPTION_H_ */

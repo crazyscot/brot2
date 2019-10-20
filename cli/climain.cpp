@@ -297,7 +297,7 @@ int main (int argc, char**argv)
 
 	try {
 		plot.start();
-	} catch (BrotException e) {
+	} catch (BrotException &e) {
 		// Usually means the pixels are too small for all known types.
 		std::cerr << "Plot failed to start: " << e.msg << std::endl;
 		return 4;
