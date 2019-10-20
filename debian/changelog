@@ -4,7 +4,7 @@ brot2 (2.0.2~) UNRELEASED; urgency=low
   libglibmm, libgtkmm and friends.
   * Work through libav deprecations (built against libav 4.1.4)
 
- -- Ross Younger <0ryoungerk.launchpad@coriolis.greenend.org.uk>  Sun, 20 Oct 2019 15:43:12 +1300
+ -- Ross Younger <crazyscot@gmail.com>  Sun, 20 Oct 2019 15:43:12 +1300
 
 brot2 (2.0.1) xenial; urgency=low
 

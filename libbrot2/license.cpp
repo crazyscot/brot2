@@ -1,7 +1,7 @@
 /* license text for brot2 */
 const char* brot2_license_text = "\
 brot2: Yet Another Mandelbrot Plotter\n\
-Copyright (c) 2010-2016 Ross Younger\n\
+Copyright (c) 2010-2019 Ross Younger\n\
 \n\
 This program is free software: you can redistribute it and/or modify \
 it under the terms of the GNU General Public License as published by \
@@ -16,4 +16,4 @@ GNU General Public License for more details.\n\
 You should have received a copy of the GNU General Public License \
 along with this program.  If not, see <http://www.gnu.org/licenses/>.";
 
-const char *brot2_copyright_string = "(c) 2010-2016 Ross Younger";
+const char *brot2_copyright_string = "(c) 2010-2019 Ross Younger";
