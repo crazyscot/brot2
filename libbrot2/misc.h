@@ -31,6 +31,34 @@
 # define UNUSED(x) x
 #endif
 
+#define BROT2_STRINGIFY(x) BROT2_STRINGIFY2(x)
+#define BROT2_STRINGIFY2(x) #x
+
+#define BROT2_JOIN(X, Y) BROT2_JOIN2(X, Y)
+#define BROT2_JOIN2(X, Y) BROT2_JOIN3(X, Y)
+#define BROT2_JOIN3(X, Y) X##Y
+
+/*
+ * Pragma wrangling. So many different compilers...
+ */
+#if defined(__GNUC__)
+#define BROT2_PRAGMA(x) _Pragma(BROT2_STRINGIFY(x))
+#define BROT2_DIAG_PRAGMA(x) BROT2_PRAGMA(GCC diagnostic x)
+#define BROT2_DIAG_OFF(x) \
+    BROT2_DIAG_PRAGMA(ignored BROT2_STRINGIFY(BROT2_JOIN(-W,x)))
+
+#define BROT2_DIAG_PUSH BROT2_DIAG_PRAGMA(push)
+#define BROT2_DIAG_POP  BROT2_DIAG_PRAGMA(pop)
+#else
+#define BROT2_DIAG_PUSH
+#define BROT2_DIAG_POP
+#define BROT2_DIAG_OFF(x)
+#endif
+
+// Until gtkmm and friends are updated to be warning-clean, switch those warnings off:
+#define BROT2_GTKMM_BEFORE BROT2_DIAG_PUSH BROT2_DIAG_OFF(unused-variable) BROT2_DIAG_OFF(deprecated-copy)
+#define BROT2_GTKMM_AFTER BROT2_DIAG_POP
+
 namespace Util {
 
 inline struct timeval tv_subtract (struct timeval tv1, struct timeval tv2)
