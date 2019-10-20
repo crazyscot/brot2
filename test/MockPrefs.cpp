@@ -27,9 +27,9 @@ MockPrefs::~MockPrefs() {
 }
 
 #define UNSUPPORTED { THROW(PrefsException,"Unsupported"); }
-std::shared_ptr<Prefs> MockPrefs::getWorkingCopy() const throw(PrefsException)
+std::shared_ptr<Prefs> MockPrefs::getWorkingCopy() const throw()
 UNSUPPORTED;
-void MockPrefs::commit() throw(PrefsException)
+void MockPrefs::commit() throw()
 UNSUPPORTED;
 
 const MouseActions& MockPrefs::mouseActions() const

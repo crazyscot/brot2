@@ -165,7 +165,7 @@ namespace PrefsDialogBits {
 			f_live_threshold->update(PREF(LiveThreshold)._default, 4);
 		}
 
-		void readout(Prefs& prefs) throw(PrefsException) {
+		void readout(Prefs& prefs) {
 			unsigned tmpu;
 			int tmpi=0;
 
@@ -233,7 +233,7 @@ namespace PrefsDialogBits {
 			f_tile_size->update(PREF(TileSize)._default);
 		}
 
-		void readout(Prefs& prefs) throw(PrefsException) {
+		void readout(Prefs& prefs) {
 			unsigned tmpu;
 			int tmpi=0;
 
@@ -411,7 +411,7 @@ namespace PrefsDialogBits {
 			sample->prod();
 		}
 
-		void readout(Prefs& prefs) throw(PrefsException) {
+		void readout(Prefs& prefs) {
 			prefs.set(PREF(HUDHorizontalOffset), horiz->get_value());
 			prefs.set(PREF(HUDVerticalOffset), vert->get_value());
 			prefs.set(PREF(HUDTransparency), nalpha->get_value());

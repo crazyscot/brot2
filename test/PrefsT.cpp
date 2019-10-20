@@ -27,10 +27,10 @@
 
 using namespace BrotPrefs;
 
-TestingKeyfilePrefs::TestingKeyfilePrefs() throw(PrefsException) : KeyfilePrefs() {
+TestingKeyfilePrefs::TestingKeyfilePrefs() : KeyfilePrefs() {
 }
 
-TestingKeyfilePrefs* TestingKeyfilePrefs::getInstance() throw(PrefsException) {
+TestingKeyfilePrefs* TestingKeyfilePrefs::getInstance() {
 	TestingKeyfilePrefs* rv = new TestingKeyfilePrefs();
 	rv->initialise();
 	return rv;
@@ -39,7 +39,7 @@ TestingKeyfilePrefs* TestingKeyfilePrefs::getInstance() throw(PrefsException) {
 TestingKeyfilePrefs::TestingKeyfilePrefs(const KeyfilePrefs& src, KeyfilePrefs* parent) : KeyfilePrefs(src,parent) {
 }
 
-TestingKeyfilePrefs* TestingKeyfilePrefs::getInstance(const KeyfilePrefs& src, KeyfilePrefs* parent) throw(PrefsException) {
+TestingKeyfilePrefs* TestingKeyfilePrefs::getInstance(const KeyfilePrefs& src, KeyfilePrefs* parent) {
 	TestingKeyfilePrefs* rv = new TestingKeyfilePrefs(src,parent);
 	rv->initialise();
 	return rv;
