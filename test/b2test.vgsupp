@@ -191,3 +191,17 @@
     fun:_dl_init
     obj:/lib/*/ld-2.2*.so
 }
+
+{
+    <eoan-dl-init>
+    Memcheck:Leak
+    match-leak-kinds: possible
+    fun:calloc
+    fun:g_malloc0
+    obj:/usr/lib/x86_64-linux-gnu/libgobject-2.0.*
+    ...
+    fun:call_init.part.0
+    fun:call_init
+    fun:_dl_init
+    obj:/usr/lib/x86_64-linux-gnu/ld-2.3*.so
+}
