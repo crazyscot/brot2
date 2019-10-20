@@ -38,7 +38,9 @@
 #include <iostream>
 #include <memory>
 #include <set>
+BROT2_GTKMM_BEFORE
 #include <gtkmm/window.h>
+BROT2_GTKMM_AFTER
 #include <gtkmm/menubar.h>
 #include <gtkmm/box.h>
 #include <gtkmm/drawingarea.h>

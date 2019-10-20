@@ -19,10 +19,15 @@
 #ifndef GTKUTIL_H_
 #define GTKUTIL_H_
 
+#include "misc.h"
+
 #include <gdkmm/color.h>
+BROT2_GTKMM_BEFORE
 #include <gtkmm/window.h>
+BROT2_GTKMM_AFTER
 #include <gtkmm/entry.h>
 #include <gtkmm/messagedialog.h>
+
 #include <string>
 
 namespace Util {

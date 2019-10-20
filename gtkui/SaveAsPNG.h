@@ -20,7 +20,10 @@
 #define SAVEASPNG_H_
 
 class MainWindow;
+#include "misc.h"
+BROT2_GTKMM_BEFORE
 #include <gtkmm/progressbar.h>
+BROT2_GTKMM_AFTER
 #include <gtkmm/window.h>
 
 #include "Plot3Plot.h"

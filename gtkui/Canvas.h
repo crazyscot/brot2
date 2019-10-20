@@ -23,7 +23,10 @@
 class MainWindow;
 #include "Fractal.h"
 
+#include "misc.h"
+BROT2_GTKMM_BEFORE
 #include <gtkmm/drawingarea.h>
+BROT2_GTKMM_AFTER
 #include <cairomm/cairomm.h>
 
 class Canvas : public Gtk::DrawingArea {

@@ -19,7 +19,10 @@
 #ifndef MENUS_H_
 #define MENUS_H_
 
+#include "misc.h"
+BROT2_GTKMM_BEFORE
 #include <gtkmm/menubar.h>
+BROT2_GTKMM_AFTER
 #include <gtkmm/menu.h>
 
 class MainWindow;
