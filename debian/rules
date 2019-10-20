@@ -7,5 +7,5 @@ export VERBOSE=1
 		echo autoreconf -i;\
 		autoreconf -i;\
 		fi
-	dh $@ --with autoreconf --parallel
+	dh $@ --with autoreconf
 
