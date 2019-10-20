@@ -267,6 +267,7 @@ class LibAV : public Movie::Renderer {
 		AVFormatContext *oc;
 
 		AVStream *st;
+		AVCodecContext *avctx;
 
 		/* pts of the next frame that will be generated */
 		int64_t next_pts;
@@ -298,12 +299,10 @@ class LibAV : public Movie::Renderer {
 			if (actual_fps == 0) actual_fps = 1;
 		}
 		virtual ~Private() {
-			if (st) avcodec_close(st->codec); // what does the rv mean?
 			av_frame_free(&frame);
 			av_frame_free(&tmp_frame);
 			sws_freeContext(sws_ctx);
 			sws_ctx = 0;
-			avresample_free(&avr);
 			if (oc) {
 				avio_close(oc->pb); // may return error
 				avformat_free_context(oc);
@@ -330,7 +329,6 @@ class LibAV : public Movie::Renderer {
 		}
 
 		void render_top(Movie::RenderJob& job, Movie::RenderInstancePrivate **priv) {
-			av_register_all();
 			Private *mypriv = new Private(job);
 			*priv = mypriv;
 
@@ -339,13 +337,14 @@ class LibAV : public Movie::Renderer {
 				mypriv->fmt = av_guess_format("mov", 0, 0);
 			if (!mypriv->fmt)
 				THROW(AVException,"Could not find output format");
-			
+
 			// Set up video stream
 			mypriv->oc = avformat_alloc_context();
 			if (!mypriv->oc)
 				THROW(AVException,"Could not alloc format context");
 			mypriv->oc->oformat = mypriv->fmt;
-			snprintf(mypriv->oc->filename, sizeof(mypriv->oc->filename), "%s", job._filename.c_str());
+			std::string url = "file://" + job._filename;
+			mypriv->oc->url = strdup(url.c_str());
 
 			AVCodec * codec = avcodec_find_encoder(mypriv->fmt->video_codec);
 			if (!codec)
@@ -356,42 +355,64 @@ class LibAV : public Movie::Renderer {
 			// grab https://git.libav.org/?p=libav.git;a=history;f=doc/examples/output.c;h=44a55f564545d66681914aa905cdc069d2233363;hb=HEAD
 			// NOTE: For later versions of libav, compare:
 			// https://git.libav.org/?p=libav.git;a=commitdiff;h=9897d9f4e074cdc6c7f2409885ddefe300f18dc7
-			AVCodecContext *c = mypriv->st->codec;
+			//AVCodecContext *c = mypriv->st->codec;
+			AVCodecParameters *cp = mypriv->st->codecpar;
 			// libav throws a rod if width and height are not multiples of 2, quietly enforce this
 			// NOTE: Must use height/width from mypriv->st->codec within the renderer as it may not equal the passed-in dimensions
-			c->width = job._movie.width + (job._movie.width % 2);
-			c->height = job._movie.height + (job._movie.height % 2);
-			c->bit_rate = c->width * c->height * mypriv->actual_fps * 6 / 25;
+
+			mypriv->st->time_base = (AVRational){ 1, (int)mypriv->actual_fps };
+			//if (mypriv->oc->oformat->flags & AVFMT_GLOBALHEADER)
+				//c->flags |= AV_CODEC_FLAG_GLOBAL_HEADER;
+
+			// Open video codec
+			mypriv->avctx = avcodec_alloc_context3(nullptr);
+
+			cp->codec_id = AV_CODEC_ID_H264;
+			cp->codec_type = AVMEDIA_TYPE_VIDEO;
+			cp->format = AV_PIX_FMT_YUV420P;
+			cp->width = job._movie.width + (job._movie.width % 2);
+			cp->height = job._movie.height + (job._movie.height % 2);
+			cp->bit_rate = cp->width * cp->height * mypriv->actual_fps * 6 / 25;
 			/* The magic constant 6/25 gives us a bit rate in the region of (slightly above) 8Mbps for 1080p and 5Mbps for 720p.
 			 * At 2560x1440 (2K) it comes out at 22.1Mbit, where YouTube recommend 16;
 			 * at 3840x2160 (4K) it gives 49.8Mbit against a recommendation of 35-45. */
-			// std::cerr << "Creating video at bit rate " << c->bit_rate << std::endl;
-			mypriv->st->time_base = (AVRational){ 1, (int)mypriv->actual_fps };
-			c->time_base = mypriv->st->time_base;
-			c->gop_size = 12; /* Trade-off better compression against the ability to seek. */
-			c->pix_fmt = AV_PIX_FMT_YUV420P; // We generate RGB24, so will convert
-			if (mypriv->oc->oformat->flags & AVFMT_GLOBALHEADER)
-				c->flags |= AV_CODEC_FLAG_GLOBAL_HEADER;
+			// std::cerr << "Creating video at bit rate " << cp->bit_rate << std::endl;
 
-			// Open video codec
-			if (avcodec_open2(c, 0, 0) < 0)
+			if (avcodec_parameters_to_context(mypriv->avctx, cp) < 0)
+				THROW(AVException,"Could not convert codec parameters");
+			mypriv->avctx->time_base = mypriv->st->time_base;
+			mypriv->avctx->gop_size = 12; /* Trade-off better compression against the ability to seek. */
+			mypriv->avctx->qmin = 10;
+			mypriv->avctx->qmax = 51;
+
+			assert(mypriv->avctx->width == cp->width);
+
+			AVDictionary* options = nullptr;
+			// These options taken from x264's default preset (see x264/common/common.c):
+			av_dict_set(&options, "tune", "zerolatency", 0);
+			av_dict_set(&options, "me-range", "12", 0);
+			av_dict_set(&options, "qpstep", "4", 0);
+			av_dict_set(&options, "keyint", "250", 0);
+			av_dict_set(&options, "qp-min", "0", 0);
+			av_dict_set(&options, "qp-max", "69", 0);
+			av_dict_set(&options, "qcomp", "0.6", 0);
+			av_dict_set(&options, "ip-factor", "1.4", 0);
+			av_dict_set(&options, "pb-factor", "1.3", 0);
+			av_dict_set(&options, "subq", "7", 0);
+
+			if (avcodec_open2(mypriv->avctx, codec, &options) < 0)
 				THROW(AVException,"Could not open codec");
-			mypriv->frame = alloc_picture(c->pix_fmt, c->width, c->height);
+			mypriv->frame = alloc_picture(AV_PIX_FMT_YUV420P, cp->width, cp->height);
 			if (!mypriv->frame)
 				THROW(AVException,"Could not alloc picture");
-			if (c->pix_fmt != AV_PIX_FMT_RGB24) {
-				mypriv->tmp_frame = alloc_picture(AV_PIX_FMT_RGB24, c->width, c->height);
+			{
+				mypriv->tmp_frame = alloc_picture(AV_PIX_FMT_RGB24, cp->width, cp->height);
 				if (!mypriv->tmp_frame)
 					THROW(AVException,"Could not alloc 2nd picture");
 			}
-			/* Not present in this version of libavcodec...
-			int ret = avcodec_parameters_from_context(mypriv->st->codecpar, c);
-			if (ret<0)
-				THROW(AVException,"Could not copy the stream parameters");
-			*/
-				
-			av_dump_format(mypriv->oc, 0, mypriv->oc->filename, 1);
-			if (avio_open(&mypriv->oc->pb, mypriv->oc->filename, AVIO_FLAG_WRITE) < 0)
+
+			av_dump_format(mypriv->oc, 0, url.c_str(), 1);
+			if (avio_open(&mypriv->oc->pb, url.c_str(), AVIO_FLAG_WRITE) < 0)
 				THROW(AVException,"Could not open file");
 			if (avformat_write_header(mypriv->oc, 0))
 				THROW(AVException,"Could not write header");
@@ -400,7 +421,7 @@ class LibAV : public Movie::Renderer {
 			mypriv->render = new Render2::MemoryBuffer(
 					ren_frame->data[0],
 					ren_frame->linesize[0],
-					c->width, c->height,
+					cp->width, cp->height,
 					job._movie.antialias, -1/*local_inf*/,
 					Render2::pixpack_format::PACKED_RGB_24, *job._movie.palette, job._movie.preview/*upscale*/);
 			// Update local_inf later with mypriv->render->fresh_local_inf() if needed.
@@ -431,22 +452,20 @@ class LibAV : public Movie::Renderer {
 				BaseHUD::apply(*mypriv->render, mypriv->prefs, mypriv->plot, false, false);
 
 			// Prepare the video frame
-			AVCodecContext *c = mypriv->st->codec;
+			AVCodecParameters *cp = mypriv->st->codecpar;
 			// We generate in RGB24 but libav wants YUV420P, so convert
-			if (c->pix_fmt != AV_PIX_FMT_RGB24) {
+			{
 				if (!mypriv->sws_ctx) {
-					mypriv->sws_ctx = sws_getContext(c->width, c->height,
+					mypriv->sws_ctx = sws_getContext(cp->width, cp->height,
 							AV_PIX_FMT_RGB24,
-							c->width, c->height,
-							c->pix_fmt,
+							cp->width, cp->height,
+							AV_PIX_FMT_YUV420P,
 							SCALE_FLAGS, 0, 0, 0);
 					if (!mypriv->sws_ctx)
 						THROW(AVException, "Cannot allocate conversion context");
 				}
 				sws_scale(mypriv->sws_ctx, mypriv->tmp_frame->data, mypriv->tmp_frame->linesize,
-						0, c->height, mypriv->frame->data, mypriv->frame->linesize);
-			} else {
-				// All good, nothing to do
+						0, cp->height, mypriv->frame->data, mypriv->frame->linesize);
 			}
 
 			// Write the video frame
@@ -454,16 +473,26 @@ class LibAV : public Movie::Renderer {
 				mypriv->frame->pts = mypriv->next_pts++;
 				AVPacket pkt;
 				memset(&pkt, 0, sizeof pkt);
-				int got_packet = 0;
 				av_init_packet(&pkt);
-				int ret = avcodec_encode_video2(c, &pkt, mypriv->frame, &got_packet);
+				int ret = avcodec_send_frame(mypriv->avctx, mypriv->frame);
 				if (ret<0) THROW(AVException, "Error encoding video frame");
-				if (got_packet) {
-					av_packet_rescale_ts(&pkt, c->time_base, mypriv->st->time_base);
-					pkt.stream_index = mypriv->st->index;
-					ret = av_interleaved_write_frame(mypriv->oc, &pkt);
+				bool done = false;
+				while (!done) {
+					ret = avcodec_receive_packet(mypriv->avctx, &pkt);
+					switch(ret) {
+						case 0:
+							av_packet_rescale_ts(&pkt, mypriv->avctx->time_base, mypriv->st->time_base);
+							pkt.stream_index = mypriv->st->index;
+							ret = av_interleaved_write_frame(mypriv->oc, &pkt);
+							if (ret<0) THROW(AVException, "Error writing video frame, code "+ret);
+							break; // go round again
+						case AVERROR(EAGAIN):
+							done = true;
+							break;
+						default:
+							THROW(AVException, "Error preparing video frame, code "+ret);
+					}
 				}
-				if (ret<0) THROW(AVException, "Error writing video frame, code "+ret);
 			}
 
 			delete mypriv->plot;
@@ -475,20 +504,33 @@ class LibAV : public Movie::Renderer {
 
 			AVPacket pkt;
 			memset(&pkt, 0, sizeof pkt);
-			int got_packet = 1, ret;
+			int ret;
 			av_init_packet(&pkt);
-			AVCodecContext *c = mypriv->st->codec;
 			// Need some NULL frames to flush the output codec
-			while (got_packet) {
-				ret = avcodec_encode_video2(c, &pkt, 0, &got_packet);
-				if (ret<0) THROW(AVException, "Error encoding video frame, code "+ret);
-				if (got_packet) {
-					av_packet_rescale_ts(&pkt, c->time_base, mypriv->st->time_base);
-					pkt.stream_index = mypriv->st->index;
-					ret = av_interleaved_write_frame(mypriv->oc, &pkt);
-					if (ret<0) THROW(AVException, "Error writing video frame, code "+ret);
+			ret = avcodec_send_frame(mypriv->avctx, nullptr);
+			if (ret<0) THROW(AVException, "Error encoding video frame, code "+ret);
+			bool done=false;
+			while (!done) {
+				ret = avcodec_receive_packet(mypriv->avctx, &pkt);
+				switch(ret) {
+					case 0:
+						av_packet_rescale_ts(&pkt, mypriv->avctx->time_base, mypriv->st->time_base);
+						pkt.stream_index = mypriv->st->index;
+						ret = av_interleaved_write_frame(mypriv->oc, &pkt);
+						if (ret<0) THROW(AVException, "Error writing video frame, code "+ret);
+						break; // go round again
+					case AVERROR(EAGAIN):
+						ret = avcodec_send_frame(mypriv->avctx, nullptr);
+						if (ret<0) THROW(AVException, "Error sending video frame, code "+ret);
+						break;
+					case AVERROR_EOF:
+						done=true;
+						break;
+					default:
+						THROW(AVException, "Error preparing video frame, code "+ret);
 				}
 			}
+
 			ret = av_interleaved_write_frame(mypriv->oc, 0);
 			if (ret<0) THROW(AVException, "Error writing video flush, code "+ret);
 
