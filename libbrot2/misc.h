@@ -49,14 +49,24 @@
 
 #define BROT2_DIAG_PUSH BROT2_DIAG_PRAGMA(push)
 #define BROT2_DIAG_POP  BROT2_DIAG_PRAGMA(pop)
+
+#if __GNUC__ >= 9
+#define BROT2_DIAG_EXTRAS_1 BROT2_DIAG_OFF(deprecated-copy)
+#endif
 #else
 #define BROT2_DIAG_PUSH
 #define BROT2_DIAG_POP
 #define BROT2_DIAG_OFF(x)
 #endif
 
+#ifndef BROT2_DIAG_EXTRAS_1
+#define BROT2_DIAG_EXTRAS_1
+#endif
+
 // Until gtkmm and friends are updated to be warning-clean, switch those warnings off:
-#define BROT2_GTKMM_BEFORE BROT2_DIAG_PUSH BROT2_DIAG_OFF(unused-variable) BROT2_DIAG_OFF(deprecated-copy)
+
+
+#define BROT2_GTKMM_BEFORE BROT2_DIAG_PUSH BROT2_DIAG_OFF(unused-variable) BROT2_DIAG_EXTRAS_1
 #define BROT2_GTKMM_AFTER BROT2_DIAG_POP
 #define BROT2_GLIBMM_BEFORE BROT2_DIAG_PUSH BROT2_DIAG_OFF(deprecated-declarations)
 #define BROT2_GLIBMM_AFTER BROT2_DIAG_POP

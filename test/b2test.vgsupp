@@ -186,7 +186,6 @@
     fun:g_malloc0
     obj:/usr/lib/*-linux-gnu/libgobject-2.0.*
     ...
-    fun:call_init.part.0
     fun:call_init
     fun:_dl_init
     obj:*/lib/*-linux-gnu/ld-2.*.so

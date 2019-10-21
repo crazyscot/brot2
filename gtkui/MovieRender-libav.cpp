@@ -344,7 +344,11 @@ class LibAV : public Movie::Renderer {
 				THROW(AVException,"Could not alloc format context");
 			mypriv->oc->oformat = mypriv->fmt;
 			std::string url = "file://" + job._filename;
+#if LIBAVFORMAT_VERSION_INT > AV_VERSION_INT(58,7,0)
 			mypriv->oc->url = strdup(url.c_str());
+#else
+            snprintf(mypriv->oc->filename, sizeof(mypriv->oc->filename), "%s", job._filename.c_str());
+#endif
 
 			AVCodec * codec = avcodec_find_encoder(mypriv->fmt->video_codec);
 			if (!codec)
