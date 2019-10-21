@@ -1,3 +1,10 @@
+brot2 (2.0.3) bionic; urgency=low
+
+  * debian/compat v11 (for bionic)
+  * Add conditional support for building with gcc 7.3, libav* 3.4.2 (bionic)
+
+ -- Ross Younger <crazyscot@gmail.com>  Mon, 21 Oct 2019 21:57:10 +1300
+
 brot2 (2.0.2) eoan; urgency=low
 
   * Updates to build with gcc 9 against libc 2.30 and eoan's
