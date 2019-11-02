@@ -1,3 +1,9 @@
+brot2 (2.0.3ubuntu1) bionic; urgency=low
+
+  * retag; no changes
+
+ -- Ross Younger <crazyscot@gmail.com>  Thu, 31 Oct 2019 21:58:18 +1300
+
 brot2 (2.0.3) bionic; urgency=low
 
   * debian/compat v11 (for bionic)
