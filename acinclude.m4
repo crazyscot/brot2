@@ -119,13 +119,13 @@ AS_IF([test "x$with_libav" != "xno"], [
 
        AC_SUBST(LIBAV_LIBS)
        AC_SUBST(LIBAV_CFLAGS)
-       LIBAV_DEPS="libavutil libavformat libavcodec libswscale libavresample"
+       LIBAV_DEPS="libavutil libavformat libavcodec libswscale libswresample"
        if pkg-config $LIBAV_DEPS; then
                LIBAV_CFLAGS=`pkg-config --cflags $LIBAV_DEPS`
                LIBAV_LIBS=`pkg-config --libs $LIBAV_DEPS`
                HAVE_LIBAV="yes"
        else
-              AC_MSG_ERROR([The ffmpeg packages 'libavutil-dev libavformat-dev libavcodec-dev libswscale-dev libavresample-dev' were requested, but not found. Please check your installation, install any necessary dependencies or use the '--without-libav' configuration option.])
+              AC_MSG_ERROR([The ffmpeg packages 'libavutil-dev libavformat-dev libavcodec-dev libswscale-dev libswresample-dev' were requested, but not found. Please check your installation, install any necessary dependencies or use the '--without-libav' configuration option.])
        fi
 ])
 

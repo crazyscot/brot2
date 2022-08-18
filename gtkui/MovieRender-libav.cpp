@@ -41,7 +41,7 @@ extern "C" {
 #include "libavutil/log.h"
 #include "libavutil/opt.h"
 #include "libavformat/avformat.h"
-#include "libavresample/avresample.h"
+#include "libswresample/swresample.h"
 #include "libswscale/swscale.h"
 }
 
@@ -278,7 +278,7 @@ class LibAV : public Movie::Renderer {
 		bool finished_cleanly;
 
 		struct SwsContext *sws_ctx;
-		AVAudioResampleContext *avr;
+		struct SwrContext *swr_ctx;
 
 		Plot3::Plot3Plot *plot;
 		Plot3::ChunkDivider::Horizontal10px divider;
@@ -289,7 +289,7 @@ class LibAV : public Movie::Renderer {
 
 		Private(Movie::RenderJob& _job) :
 			RenderInstancePrivate(_job),
-			fmt(0), oc(0), st(0), next_pts(0), frame(0), tmp_frame(0), finished_cleanly(false), sws_ctx(0), avr(0),
+			fmt(0), oc(0), st(0), next_pts(0), frame(0), tmp_frame(0), finished_cleanly(false), sws_ctx(0), swr_ctx(0),
 			plot(0), render(0), prefs(BrotPrefs::Prefs::getMaster())
 		{
 			ConsoleOutputWindow::activate(_job._reporter, prefs);
