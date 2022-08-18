@@ -29,7 +29,7 @@ BROT2_GLIBMM_BEFORE
 BROT2_GLIBMM_AFTER
 #include "PrefsRegistry.h"
 
-struct PrefsException : BrotException {
+struct PrefsException : public BrotException {
 	PrefsException(const std::string& m) : BrotException(m) {}
 	PrefsException(const std::string& m, const std::string& f, int l) :
 		BrotException(m,f,l) {}

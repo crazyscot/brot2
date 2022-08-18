@@ -110,7 +110,7 @@ TEST_F(R2MemoryMetaTest, TestTheTestware)
 
 ///////////////////////////////////////////////////
 
-INSTANTIATE_TEST_CASE_P(AllFormats, Render2MemoryFormatP,
+INSTANTIATE_TEST_SUITE_P(AllFormats, Render2MemoryFormatP,
 	::testing::Values(Render2::pixpack_format::PACKED_RGB_24, CAIRO_FORMAT_ARGB32, CAIRO_FORMAT_RGB24));
 
 TEST_F(R2Memory, ChunkOffsetsWork) {
@@ -358,7 +358,7 @@ TEST_P(AntiAliasBase, RandomTests) {
 	}
 }
 
-INSTANTIATE_TEST_CASE_P(TwoThroughFour,
+INSTANTIATE_TEST_SUITE_P(TwoThroughFour,
                         AntiAliasBase,
                         ::testing::Values(2,3,4));
 

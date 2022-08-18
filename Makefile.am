@@ -190,7 +190,7 @@ b2test_LDADD= libgtest.a $(all_ldadd) @libpng_LIBS@
 b2test_DEPENDENCIES= libgtest.a $(all_libs)
 
 b2test_CPPFLAGS=$(AM_CPPFLAGS) -I$(GTEST_INC) @glibmm_CFLAGS@
-b2test_CXXFLAGS=
+b2test_CXXFLAGS=$(AM_CXXFLAGS) -Wno-sign-compare -Wno-undef
 
 ################################################################
 

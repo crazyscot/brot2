@@ -56,8 +56,9 @@ public:
 		impl->prepare_pixel(v.coords, data);
 		impl->plot_pixel(MAXITERS, data, GetParam());
 		EXPECT_EQ(data.iter, v.iters);
-		if (v.iters != MAXITERS)
+		if (v.iters != MAXITERS) {
 			EXPECT_TRUE(data.nomore);
+		}
 	}
 
 	void run_vectors() {
@@ -74,7 +75,7 @@ TEST_P(FractalKAT, AnswersCorrect) {
 
 #define DO_TYPES(type,name,minpix) Maths::MathsType::name,
 
-INSTANTIATE_TEST_CASE_P(AllMathTypes, FractalKAT,
+INSTANTIATE_TEST_SUITE_P(AllMathTypes, FractalKAT,
 		::testing::Values(
 				ALL_MATHS_TYPES(DO_TYPES)
 				Maths::MathsType::MAX // dummy to terminate
