@@ -477,7 +477,7 @@ class LibAV : public Movie::Renderer {
 				mypriv->frame->pts = mypriv->next_pts++;
 				AVPacket pkt;
 				memset(&pkt, 0, sizeof pkt);
-				av_init_packet(&pkt);
+				av_new_packet(&pkt, 0);
 				int ret = avcodec_send_frame(mypriv->avctx, mypriv->frame);
 				if (ret<0) THROW(AVException, "Error encoding video frame");
 				bool done = false;
@@ -509,7 +509,7 @@ class LibAV : public Movie::Renderer {
 			AVPacket pkt;
 			memset(&pkt, 0, sizeof pkt);
 			int ret;
-			av_init_packet(&pkt);
+			av_new_packet(&pkt, 0);
 			// Need some NULL frames to flush the output codec
 			ret = avcodec_send_frame(mypriv->avctx, nullptr);
 			if (ret<0) THROW(AVException, "Error encoding video frame, code "+ret);
