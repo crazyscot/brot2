@@ -143,22 +143,15 @@ brot2_CXXFLAGS+=
 
 if GTEST
 GTEST=@GTEST_SRC@/src
-#VPATH=@GTEST_SRC@:@GTEST_SRC@/src
 
 check_LIBRARIES+=libgtest.a
 
-nodist_libgtest_a_SOURCES= gtest/src/gtest_main.cc gtest/src/gtest-all.cc
-
-gtest/src/%: $(GTEST_SRC)/src/%
-	mkdir -p gtest/src
-	rm -f gtest/src/*
-	cp -a $(GTEST_SRC)/src/* gtest/src/
+nodist_libgtest_a_SOURCES=$(GTEST)/gtest_main.cc $(GTEST)/gtest-all.cc
 
 libgtest_a_CPPFLAGS= -I$(GTEST_INC) -I$(GTEST_SRC)
 libgtest_a_CXXFLAGS= $(AM_CPPFLAGS) -Wno-undef
 # Yes, include GTEST_SRC, because gtest-all includes some .cc files ...
 
-CLEANFILES+=gtest/src/*.cc gtest/src/*.h
 endif
 
 ################################################################
