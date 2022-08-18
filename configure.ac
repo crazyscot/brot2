@@ -1,20 +1,20 @@
-AC_INIT([brot2], [2.0.3+])
+AC_INIT([brot2],[2.0.3+])
 AC_CONFIG_AUX_DIR([config.aux])
 AM_INIT_AUTOMAKE([no-define silent-rules subdir-objects -Wno-portability])
 AM_SILENT_RULES
 AC_CONFIG_SRCDIR([libbrot2/Plot3Plot.cpp])
-AM_CONFIG_HEADER([config.h])
+AC_CONFIG_HEADERS([config.h])
 AC_CANONICAL_HOST
 AC_LANG([C++])
 AC_PROG_CC
 AC_PROG_CXX
 AM_PROG_AS
 AC_PROG_RANLIB
-AC_SET_MAKE
+AC_PROG_MAKE_SET
 AM_MAINTAINER_MODE([enable])
 AC_CHECK_LIB(X11, XInitThreads)
 AC_CHECK_LIB(pthread, pthread_create)
-AC_GNU_SOURCE
+AC_USE_SYSTEM_EXTENSIONS
 AC_C_BIGENDIAN
 
 pkg_cflags=""
@@ -73,7 +73,7 @@ case $host_cpu in
   *)
 	default_float=yes
 	default_double=yes
-	AC_WARN([Floating point limits are untested on this architecture; see PORTING])
+	AC_MSG_WARN(Floating point limits are untested on this architecture; see PORTING)
 	;;
 esac
 
