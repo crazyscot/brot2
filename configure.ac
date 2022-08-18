@@ -1,6 +1,7 @@
 AC_INIT([brot2],[2.0.3+])
 AC_CONFIG_AUX_DIR([config.aux])
 AM_INIT_AUTOMAKE([no-define silent-rules subdir-objects -Wno-portability])
+AC_USE_SYSTEM_EXTENSIONS
 AM_SILENT_RULES
 AC_CONFIG_SRCDIR([libbrot2/Plot3Plot.cpp])
 AC_CONFIG_HEADERS([config.h])
@@ -14,7 +15,6 @@ AC_PROG_MAKE_SET
 AM_MAINTAINER_MODE([enable])
 AC_CHECK_LIB(X11, XInitThreads)
 AC_CHECK_LIB(pthread, pthread_create)
-AC_USE_SYSTEM_EXTENSIONS
 AC_C_BIGENDIAN
 
 pkg_cflags=""
