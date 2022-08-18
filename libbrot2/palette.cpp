@@ -178,6 +178,11 @@ public:
 SimpleRegistry<DiscretePalette> DiscretePalette::all;
 int DiscretePalette::base_registered=0;
 
+#define REGISTER0(cls) do { 				\
+	cls* cls##impl = new cls();				\
+	all.reg(cls##impl->name, cls##impl);	\
+} while(0)
+
 #define REGISTER(cls, ...) do { 			\
 	cls* cls##impl = new cls(__VA_ARGS__);	\
 	all.reg(cls##impl->name, cls##impl);	\
@@ -189,7 +194,7 @@ void DiscretePalette::register_base() {
 	REGISTER(Rainbow, 32);
 	REGISTER(PastelSalad, 32);
 	REGISTER(SawtoothGradient, "Red-cyan sawtooth", 16, rgbf(0,1,1), rgbf(1,0,0));
-	REGISTER(OpticalIllusion);
+	REGISTER0(OpticalIllusion);
 	base_registered = 1;
 }
 
@@ -420,17 +425,17 @@ void SmoothPalette::register_base() {
 	base_registered = 1;
 	REGISTER(HueCycle, "Linear rainbow", 32, hsvf(0.5,1,1), hsvf(1.5,1,1));
 
-	REGISTER(LogSmoothed);
-	REGISTER(FastLogSmoothed);
+	REGISTER0(LogSmoothed);
+	REGISTER0(FastLogSmoothed);
 
-	REGISTER(SinLogSmoothed);
-	REGISTER(FastSineLog);
-	REGISTER(CosLogSmoothed);
-	REGISTER(FastCosLog);
+	REGISTER0(SinLogSmoothed);
+	REGISTER0(FastSineLog);
+	REGISTER0(CosLogSmoothed);
+	REGISTER0(FastCosLog);
 
-	REGISTER(Mandy);
-	REGISTER(MandyBlue);
+	REGISTER0(Mandy);
+	REGISTER0(MandyBlue);
 
-	REGISTER(fanfBlackFade);
-	REGISTER(fanfWhiteFade);
+	REGISTER0(fanfBlackFade);
+	REGISTER0(fanfWhiteFade);
 }

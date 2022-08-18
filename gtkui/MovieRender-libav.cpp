@@ -365,7 +365,7 @@ class LibAV : public Movie::Renderer {
 			// libav throws a rod if width and height are not multiples of 2, quietly enforce this
 			// NOTE: Must use height/width from mypriv->st->codec within the renderer as it may not equal the passed-in dimensions
 
-			mypriv->st->time_base = (AVRational){ 1, (int)mypriv->actual_fps };
+			mypriv->st->time_base = { 1, (int)mypriv->actual_fps };
 			//if (mypriv->oc->oformat->flags & AVFMT_GLOBALHEADER)
 				//c->flags |= AV_CODEC_FLAG_GLOBAL_HEADER;
 

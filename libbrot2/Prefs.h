@@ -53,7 +53,7 @@ namespace BrotPrefs {
 
 struct Action {
 #define CONSTDEF(_name,_num,_x) static const int _name = _num;
-	ALL_ACTIONS(CONSTDEF);
+	ALL_ACTIONS(CONSTDEF)
 
 	Action() : value(0) { }
 
