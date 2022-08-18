@@ -36,6 +36,7 @@
 #include <gtkmm/texttag.h>
 
 extern "C" {
+#include "libavcodec/avcodec.h"
 #include "libavutil/channel_layout.h"
 #include "libavutil/mathematics.h"
 #include "libavutil/log.h"
