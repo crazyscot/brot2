@@ -264,7 +264,7 @@ class LibAV : public Movie::Renderer {
 	class Private : public Movie::RenderInstancePrivate {
 		friend class LibAV;
 
-		AVOutputFormat *fmt;
+		const AVOutputFormat *fmt;
 		AVFormatContext *oc;
 
 		AVStream *st;
@@ -343,7 +343,7 @@ class LibAV : public Movie::Renderer {
 			mypriv->oc = avformat_alloc_context();
 			if (!mypriv->oc)
 				THROW(AVException,"Could not alloc format context");
-			mypriv->oc->oformat = mypriv->fmt;
+			mypriv->oc->oformat = const_cast<AVOutputFormat*>(mypriv->fmt);
 			std::string url = "file://" + job._filename;
 #if LIBAVFORMAT_VERSION_INT > AV_VERSION_INT(58,7,0)
 			mypriv->oc->url = strdup(url.c_str());
@@ -351,7 +351,7 @@ class LibAV : public Movie::Renderer {
             snprintf(mypriv->oc->filename, sizeof(mypriv->oc->filename), "%s", job._filename.c_str());
 #endif
 
-			AVCodec * codec = avcodec_find_encoder(mypriv->fmt->video_codec);
+			const AVCodec * codec = avcodec_find_encoder(mypriv->fmt->video_codec);
 			if (!codec)
 				THROW(AVException,"Could not find codec");
 			mypriv->st = avformat_new_stream(mypriv->oc, codec);
