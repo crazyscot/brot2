@@ -36,12 +36,13 @@
 #include <gtkmm/texttag.h>
 
 extern "C" {
+#include "libavcodec/avcodec.h"
 #include "libavutil/channel_layout.h"
 #include "libavutil/mathematics.h"
 #include "libavutil/log.h"
 #include "libavutil/opt.h"
 #include "libavformat/avformat.h"
-#include "libavresample/avresample.h"
+#include "libswresample/swresample.h"
 #include "libswscale/swscale.h"
 }
 
@@ -263,7 +264,7 @@ class LibAV : public Movie::Renderer {
 	class Private : public Movie::RenderInstancePrivate {
 		friend class LibAV;
 
-		AVOutputFormat *fmt;
+		const AVOutputFormat *fmt;
 		AVFormatContext *oc;
 
 		AVStream *st;
@@ -278,7 +279,7 @@ class LibAV : public Movie::Renderer {
 		bool finished_cleanly;
 
 		struct SwsContext *sws_ctx;
-		AVAudioResampleContext *avr;
+		struct SwrContext *swr_ctx;
 
 		Plot3::Plot3Plot *plot;
 		Plot3::ChunkDivider::Horizontal10px divider;
@@ -289,7 +290,7 @@ class LibAV : public Movie::Renderer {
 
 		Private(Movie::RenderJob& _job) :
 			RenderInstancePrivate(_job),
-			fmt(0), oc(0), st(0), next_pts(0), frame(0), tmp_frame(0), finished_cleanly(false), sws_ctx(0), avr(0),
+			fmt(0), oc(0), st(0), next_pts(0), frame(0), tmp_frame(0), finished_cleanly(false), sws_ctx(0), swr_ctx(0),
 			plot(0), render(0), prefs(BrotPrefs::Prefs::getMaster())
 		{
 			ConsoleOutputWindow::activate(_job._reporter, prefs);
@@ -342,7 +343,7 @@ class LibAV : public Movie::Renderer {
 			mypriv->oc = avformat_alloc_context();
 			if (!mypriv->oc)
 				THROW(AVException,"Could not alloc format context");
-			mypriv->oc->oformat = mypriv->fmt;
+			mypriv->oc->oformat = const_cast<AVOutputFormat*>(mypriv->fmt);
 			std::string url = "file://" + job._filename;
 #if LIBAVFORMAT_VERSION_INT > AV_VERSION_INT(58,7,0)
 			mypriv->oc->url = strdup(url.c_str());
@@ -350,7 +351,7 @@ class LibAV : public Movie::Renderer {
             snprintf(mypriv->oc->filename, sizeof(mypriv->oc->filename), "%s", job._filename.c_str());
 #endif
 
-			AVCodec * codec = avcodec_find_encoder(mypriv->fmt->video_codec);
+			const AVCodec * codec = avcodec_find_encoder(mypriv->fmt->video_codec);
 			if (!codec)
 				THROW(AVException,"Could not find codec");
 			mypriv->st = avformat_new_stream(mypriv->oc, codec);
@@ -364,7 +365,7 @@ class LibAV : public Movie::Renderer {
 			// libav throws a rod if width and height are not multiples of 2, quietly enforce this
 			// NOTE: Must use height/width from mypriv->st->codec within the renderer as it may not equal the passed-in dimensions
 
-			mypriv->st->time_base = (AVRational){ 1, (int)mypriv->actual_fps };
+			mypriv->st->time_base = { 1, (int)mypriv->actual_fps };
 			//if (mypriv->oc->oformat->flags & AVFMT_GLOBALHEADER)
 				//c->flags |= AV_CODEC_FLAG_GLOBAL_HEADER;
 
@@ -477,7 +478,7 @@ class LibAV : public Movie::Renderer {
 				mypriv->frame->pts = mypriv->next_pts++;
 				AVPacket pkt;
 				memset(&pkt, 0, sizeof pkt);
-				av_init_packet(&pkt);
+				av_new_packet(&pkt, 0);
 				int ret = avcodec_send_frame(mypriv->avctx, mypriv->frame);
 				if (ret<0) THROW(AVException, "Error encoding video frame");
 				bool done = false;
@@ -509,7 +510,7 @@ class LibAV : public Movie::Renderer {
 			AVPacket pkt;
 			memset(&pkt, 0, sizeof pkt);
 			int ret;
-			av_init_packet(&pkt);
+			av_new_packet(&pkt, 0);
 			// Need some NULL frames to flush the output codec
 			ret = avcodec_send_frame(mypriv->avctx, nullptr);
 			if (ret<0) THROW(AVException, "Error encoding video frame, code "+ret);

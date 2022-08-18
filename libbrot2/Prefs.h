@@ -29,7 +29,7 @@ BROT2_GLIBMM_BEFORE
 BROT2_GLIBMM_AFTER
 #include "PrefsRegistry.h"
 
-struct PrefsException : BrotException {
+struct PrefsException : public BrotException {
 	PrefsException(const std::string& m) : BrotException(m) {}
 	PrefsException(const std::string& m, const std::string& f, int l) :
 		BrotException(m,f,l) {}
@@ -53,7 +53,7 @@ namespace BrotPrefs {
 
 struct Action {
 #define CONSTDEF(_name,_num,_x) static const int _name = _num;
-	ALL_ACTIONS(CONSTDEF);
+	ALL_ACTIONS(CONSTDEF)
 
 	Action() : value(0) { }
 

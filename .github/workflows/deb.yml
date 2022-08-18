@@ -1,0 +1,15 @@
+name: Debian package
+
+on: [push, pull_request]
+  # - branches: [ "..." ]
+  # - branches-ignore: [ "..." ]
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    steps:
+    - uses: actions/checkout@v3
+    - name: Build Debian package
+      uses: dawidd6/action-debian-package@v1.4.0
+      #with:
+      #  source_directory: brot2
