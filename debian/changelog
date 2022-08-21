@@ -1,10 +1,10 @@
-brot2 (2.0.4) UNRELEASED; urgency=medium
+brot2 (2.0.4) jammy; urgency=low
 
   * Updates to build on jammy:
     * debian/compat v12
     * Use libswresample instead of libavresample
 
- -- Ross Younger <crazyscot@gmail.com>  Thu, 18 Aug 2022 20:43:28 +1200
+ -- Ross Younger <crazyscot@gmail.com>  Sun, 21 Aug 2022 22:58:20 +1200
 
 brot2 (2.0.3ubuntu1) bionic; urgency=low
 
