@@ -4,7 +4,19 @@
     "version": "2.0.0",
     "tasks": [
       {
-        "label": "Docker build",
+        "label": "Build (out-of-tree)",
+        "type": "shell",
+        "command": "cd ../brot2.build && make -j9",
+        "group": "build"
+      },
+      {
+        "label": "Configure (out-of-tree build)",
+        "type": "shell",
+        "command": "cd ../brot2.build && ../brot2/configure",
+        "group": "build"
+      },
+      {
+        "label": "Build (Debian package, via Docker)",
         "type": "shell",
         "command": "./docker-build.sh",
         "group": "build"
