@@ -295,6 +295,19 @@ public:
 	};
 };
 
+class SlowSineLog : public SmoothPalette {
+public:
+	SlowSineLog() : SmoothPalette("sin(log) shallow") {};
+	SlowSineLog(std::string name) : SmoothPalette(name) {};
+	rgb get(const PointData &pt) const {
+		hsvf rv;
+		rv.h = 0.5 + sin(log(pt.iterf)/3*M_PI)/2.0;
+		rv.s = 1.0;
+		rv.v = 1.0;
+		return rv;
+	};
+};
+
 class FastSineLog : public SmoothPalette {
 public:
 	FastSineLog() : SmoothPalette("sin(log) steep") {};
@@ -327,6 +340,19 @@ public:
 	}
 	rgb get(const PointData &pt) const {
 		return get_hsvf(pt);
+	};
+};
+
+class SlowCosLog : public SmoothPalette {
+public:
+	SlowCosLog() : SmoothPalette("cos(log) shallow") {};
+	SlowCosLog(std::string name) : SmoothPalette(name) {};
+	rgb get(const PointData &pt) const {
+		hsvf rv;
+		rv.h = 0.5 + cos(log(pt.iterf)/3*M_PI)/2.0;
+		rv.s = 1.0;
+		rv.v = 1.0;
+		return rv;
 	};
 };
 
@@ -430,8 +456,10 @@ void SmoothPalette::register_base() {
 
 	REGISTER0(SinLogSmoothed);
 	REGISTER0(FastSineLog);
+	REGISTER0(SlowSineLog);
 	REGISTER0(CosLogSmoothed);
 	REGISTER0(FastCosLog);
+	REGISTER0(SlowCosLog);
 
 	REGISTER0(Mandy);
 	REGISTER0(MandyBlue);
