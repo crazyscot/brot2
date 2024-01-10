@@ -123,7 +123,7 @@ void Plot3Chunk::plot() {
 				else {
 					// still alive, but has reached the current iteration
 					// limit so is effectively infinite (for now)
-					pt.iter = pt.iterf = -1;
+					pt.iterf = -1;
 				}
 			}
 			++out_index;

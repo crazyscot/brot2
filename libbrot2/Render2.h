@@ -43,7 +43,7 @@ public:
 
 // Renders a single pixel, given the current idea of infinity and the palette to use.
 inline rgb render_pixel(const Fractal::PointData data, const int local_inf, const BasePalette * pal) {
-	if (data.iter == local_inf || data.iter<0) {
+	if (data.iter == local_inf || data.iterf<0) {
 		return black; // from Palette
 	} else {
 		return pal->get(data);
