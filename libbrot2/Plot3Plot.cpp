@@ -270,6 +270,7 @@ void Plot3Plot::run() {
 			lock.lock();
 		}
 
+		if (plotted_passes >= passes_max) { _stop = true; }
 		// Now set up for next pass
 		if (passcount & 1) maxiter_scale = this_pass_maxiter / 2;
 		if (maxiter_scale<1) maxiter_scale=1;

@@ -115,8 +115,8 @@ protected:
 	bool _stop; // Set to ask the running plot to stop. PROTECT by _lock !
 
 	/* Plot statistics: */
-	int plotted_maxiter; // How far did we get before bailing?
-	int plotted_passes; // How many passes before bailing?
+	unsigned plotted_maxiter; // How far did we get before bailing?
+	unsigned plotted_passes; // How many passes before bailing?
 	unsigned passes_max; // Do we have an absolute limit on the number of passes?
 
 	void run(); // Actually does the work. Runs in its own thread (set up by constructor, called on start()).
