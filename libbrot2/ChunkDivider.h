@@ -38,7 +38,7 @@ namespace ChunkDivider {
 		virtual void dividePlot(std::list<Plot3Chunk*>& list_o,
 				IPlot3DataSink* s, const Fractal::FractalImpl& f,
 				Fractal::Point centre, Fractal::Point size,
-				unsigned width, unsigned height, unsigned max_passes,
+				unsigned width, unsigned height,
 				Fractal::Maths::MathsType ty) = 0;
 
 		virtual ~Base() {}
@@ -50,7 +50,7 @@ namespace ChunkDivider {
 		virtual void dividePlot(std::list<Plot3Chunk*>& list_o,			\
 				IPlot3DataSink* s, const Fractal::FractalImpl& f,		\
 				Fractal::Point centre, Fractal::Point size,				\
-				unsigned width, unsigned height, unsigned max_passes, 	\
+				unsigned width, unsigned height, 						\
 				Fractal::Maths::MathsType ty );	\
 	}
 
@@ -70,7 +70,7 @@ namespace ChunkDivider {
 			IPlot3DataSink* s, const Fractal::FractalImpl& f,
 			Fractal::Point centre, Fractal::Point size,
 			unsigned width, unsigned height,
-			unsigned max_passes, Fractal::Maths::MathsType ty);
+			Fractal::Maths::MathsType ty);
 	};
 
 	class SuperpixelVariable: public Superpixel {
@@ -84,7 +84,7 @@ namespace ChunkDivider {
 			IPlot3DataSink* s, const Fractal::FractalImpl& f,
 			Fractal::Point centre, Fractal::Point size,
 			unsigned width, unsigned height,
-			unsigned max_passes, Fractal::Maths::MathsType ty);
+			Fractal::Maths::MathsType ty);
 	};
 
 	// Single-type instantiator for testing

@@ -31,7 +31,7 @@ public:
 	Plot3Chunk(IPlot3DataSink* sink, const Fractal::FractalImpl& f,
 			unsigned width, unsigned height, unsigned offX, unsigned offY,
 			const Fractal::Point origin, const Fractal::Point size,
-			Fractal::Maths::MathsType ty, unsigned max_passes=0);
+			Fractal::Maths::MathsType ty);
 	Plot3Chunk(const Plot3Chunk& other);
 	virtual ~Plot3Chunk();
 
@@ -50,7 +50,7 @@ private:
 	/* Plot statistics: */
 	unsigned _plotted_passes; // How many passes before bailing?
 	unsigned _live_pixels; // How many pixels are still live? Initialised by prepare().
-	unsigned _max_passes; // Do we have an absolute limit on the number of passes?
+	unsigned _max_iters; // Iteration limit
 
 public:
 	/* What is this chunk about? */
@@ -62,7 +62,7 @@ public:
 
 	unsigned pixel_count() const { return _width * _height; }
 	const Fractal::Point centre() const { return _origin + _size/(Fractal::Value)2.0; }
-	unsigned maxiter() const { return _max_passes; }
+	unsigned maxiter() const { return _max_iters; }
 
 	/* Read-only access to the plot data. There are pixel_count() pixels. */
 	const Fractal::PointData * get_data() const { return _data; }
@@ -76,7 +76,7 @@ public:
 	const Fractal::PointData& get_pixel_point(int x, int y) const;
 
 	/** Updates our idea of the iteration limit */
-	void reset_max_passes(unsigned max);
+	void reset_max_iters(unsigned max);
 };
 
 } // namespace Plot3

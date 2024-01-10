@@ -171,7 +171,7 @@ void Plot3Plot::start() {
 
 /* Starts a plot. The actual work happens in the background. */
 void Plot3Plot::start(Fractal::Maths::MathsType arithtype) {
-	divider.dividePlot(_chunks, sink, fract, centre, size, width, height, passes_max, arithtype);
+	divider.dividePlot(_chunks, sink, fract, centre, size, width, height, arithtype);
 	std::unique_lock<std::mutex> lock(_lock);
 	_running = true;
 	_stop = false;
@@ -225,7 +225,7 @@ void Plot3Plot::run() {
 
 	while (!_stop & !_shutdown) {
 		for (auto chunk : _chunks)
-			chunk->reset_max_passes(this_pass_maxiter);
+			chunk->reset_max_iters(this_pass_maxiter);
 
 		lock.unlock();
 		pass.run();

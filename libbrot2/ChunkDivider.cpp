@@ -23,7 +23,7 @@
 	void _NAME::dividePlot(std::list<Plot3Chunk*>& list_o,			\
 			IPlot3DataSink* s, const Fractal::FractalImpl& f,		\
 			Fractal::Point centre, Fractal::Point size,				\
-			unsigned width, unsigned height, unsigned max_passes,	\
+			unsigned width, unsigned height,	\
 			Fractal::Maths::MathsType ty)
 	/*
 	 * e.g.
@@ -43,7 +43,7 @@ namespace Plot3 {
 namespace ChunkDivider {
 	_CD__BODY(OneChunk) {
 		Fractal::Point origin(centre - size / 2.0);
-		Plot3Chunk * chunk = new Plot3Chunk(s, f, width, height, 0, 0, origin, size, ty, max_passes);
+		Plot3Chunk * chunk = new Plot3Chunk(s, f, width, height, 0, 0, origin, size, ty);
 		list_o.push_back(chunk);
 	}
 
@@ -64,7 +64,7 @@ namespace ChunkDivider {
 					width, 10,
 					0, 10*i,
 					origin, sliceSize,
-					ty, max_passes);
+					ty);
 			list_o.push_front(chunk);
 			origin += step;
 		}
@@ -87,7 +87,7 @@ namespace ChunkDivider {
 					width, lastPx,
 					0, 10*nWhole,
 					origin, lastSize,
-					ty, max_passes);
+					ty);
 			list_o.push_back(chunk);
 		}
 	}
@@ -110,8 +110,7 @@ namespace ChunkDivider {
 			Plot3Chunk * chunk = new Plot3Chunk(s, f,
 					width, 1,
 					0, i,
-					origin, sliceSize,
-					max_passes);
+					origin, sliceSize);
 			list_o.push_front(chunk);
 			origin += step;
 		}
@@ -122,8 +121,7 @@ namespace ChunkDivider {
 			Plot3Chunk * chunk = new Plot3Chunk(s, f,
 					width, lastPx,
 					0, nWhole,
-					origin, lastSize,
-					max_passes);
+					origin, lastSize);
 			list_o.push_back(chunk);
 		}
 	}
@@ -145,7 +143,7 @@ namespace ChunkDivider {
 					width, 2,
 					0, 2*i,
 					origin, sliceSize,
-					ty, max_passes);
+					ty);
 			list_o.push_front(chunk);
 			origin += step;
 		}
@@ -157,7 +155,7 @@ namespace ChunkDivider {
 					width, lastPx,
 					0, 2*nWhole,
 					origin, lastSize,
-					ty, max_passes);
+					ty);
 			list_o.push_back(chunk);
 		}
 	}
@@ -176,7 +174,7 @@ namespace ChunkDivider {
 					10, height,
 					10*i, 0,
 					origin, sliceSize,
-					ty, max_passes);
+					ty);
 			list_o.push_back(chunk);
 			origin += step;
 		}
@@ -189,7 +187,7 @@ namespace ChunkDivider {
 					lastPx, height,
 					10*nWhole, 0,
 					origin, lastSize,
-					ty, max_passes);
+					ty);
 			list_o.push_back(chunk);
 		}
 	}
@@ -198,7 +196,7 @@ namespace ChunkDivider {
 			IPlot3DataSink* s, const Fractal::FractalImpl& f,
 			Fractal::Point centre, Fractal::Point size,
 			unsigned width, unsigned height,
-			unsigned max_passes, Fractal::Maths::MathsType ty) {
+			Fractal::Maths::MathsType ty) {
 
 		unsigned nX = (width-1) / SIZE, nY = (height-1) / SIZE;
 		unsigned lastXsize = width - SIZE*nX, lastYsize = height - SIZE*nY;
@@ -219,13 +217,13 @@ namespace ChunkDivider {
 			for (unsigned j=0; j<nX; j++) {
 				Plot3Chunk * chunk = new Plot3Chunk(
 						s, f, SIZE, SIZE, SIZE*j, SIZE*i,
-						thisRowOrigin, pixSize, ty, max_passes);
+						thisRowOrigin, pixSize, ty);
 				list_o.push_front(chunk);
 				thisRowOrigin += stepX;
 			}
 			Plot3Chunk * chunk = new Plot3Chunk(
 					s, f, lastXsize, SIZE, (width - lastXsize), SIZE*i,
-					thisRowOrigin, lastColSize, ty, max_passes);
+					thisRowOrigin, lastColSize, ty);
 			list_o.push_front(chunk);
 			origin += stepY;
 		}
@@ -235,13 +233,13 @@ namespace ChunkDivider {
 			for (unsigned j=0; j<nX; j++) {
 				Plot3Chunk * chunk = new Plot3Chunk(
 						s, f, SIZE, lastYsize, SIZE*j, (height-lastYsize),
-						thisRowOrigin, lastRowSize, ty, max_passes);
+						thisRowOrigin, lastRowSize, ty);
 				list_o.push_front(chunk);
 				thisRowOrigin += stepX;
 			}
 			Plot3Chunk * chunk = new Plot3Chunk(
 					s, f, lastXsize, lastYsize, (width - lastXsize),
-					(height-lastYsize), thisRowOrigin, lastCornerSize, ty, max_passes);
+					(height-lastYsize), thisRowOrigin, lastCornerSize, ty);
 			list_o.push_front(chunk);
 			origin += stepY;
 		}
@@ -251,9 +249,9 @@ namespace ChunkDivider {
 			IPlot3DataSink* s, const Fractal::FractalImpl& f,
 			Fractal::Point centre, Fractal::Point size,
 			unsigned width, unsigned height,
-			unsigned max_passes, Fractal::Maths::MathsType ty) {
+			Fractal::Maths::MathsType ty) {
         SIZE = _prefs->get(PREF(TileSize));
-        Superpixel::dividePlot(list_o, s, f, centre, size, width, height, max_passes, ty);
+        Superpixel::dividePlot(list_o, s, f, centre, size, width, height, ty);
     }
 
 } // Plot3::ChunkDivider
