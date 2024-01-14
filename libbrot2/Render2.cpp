@@ -345,7 +345,7 @@ void CSV::write(const std::string& filename) {
 }
 
 std::ostream& operator<<(std::ostream &stream, const Fractal::PointData& pd) {
-	stream << "\"" << pd.iterf << "\"";
+	stream << pd.iterf;
 	return stream;
 }
 
