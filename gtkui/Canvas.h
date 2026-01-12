@@ -25,7 +25,9 @@ class MainWindow;
 
 #include "misc.h"
 BROT2_GTKMM_BEFORE
+BROT2_GLIBMM_BEFORE
 #include <gtkmm/drawingarea.h>
+BROT2_GLIBMM_AFTER
 BROT2_GTKMM_AFTER
 #include <cairomm/cairomm.h>
 

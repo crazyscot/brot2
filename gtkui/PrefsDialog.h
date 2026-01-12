@@ -20,8 +20,10 @@
 #define PREFS_DIALOG_H
 
 #include "MainWindow.h"
+BROT2_GLIBMM_BEFORE
 #include <gtkmm/dialog.h>
 #include <gtkmm/entry.h>
+BROT2_GLIBMM_AFTER
 
 namespace PrefsDialogBits {
 	class ThresholdFrame;

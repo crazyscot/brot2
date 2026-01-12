@@ -58,6 +58,8 @@
 // Until gtkmm and friends are updated to be warning-clean, switch those warnings off:
 #define BROT2_GTKMM_BEFORE BROT2_DIAG_PUSH BROT2_DIAG_OFF(unused-variable) BROT2_DIAG_OFF(deprecated-copy)
 #define BROT2_GTKMM_AFTER BROT2_DIAG_POP
+#define BROT2_GLIBMM_BEFORE BROT2_DIAG_PUSH BROT2_DIAG_OFF(deprecated-declarations)
+#define BROT2_GLIBMM_AFTER BROT2_DIAG_POP
 
 namespace Util {
 

@@ -21,10 +21,12 @@
 
 #include "Prefs.h"
 #include "misc.h"
+BROT2_GLIBMM_BEFORE
 BROT2_GTKMM_BEFORE
 #include <gtkmm/dialog.h>
-BROT2_GTKMM_AFTER
 #include <gtkmm/entry.h>
+BROT2_GTKMM_AFTER
+BROT2_GLIBMM_AFTER
 
 class MainWindow;
 

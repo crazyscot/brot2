@@ -92,9 +92,9 @@ brot2_SOURCES= \
 	gtkui/SaveAsPNG.cpp gtkui/SaveAsPNG.h
 
 brot2_CPPFLAGS=$(AM_CPPFLAGS)
-brot2_CFLAGS=$(AM_CFLAGS) @pango_CFLAGS@ @LIBAV_CFLAGS@
-brot2_CXXFLAGS=$(AM_CXXFLAGS) @pango_CFLAGS@ @LIBAV_CFLAGS@ @gtkmm_CFLAGS@ @gdkmm_CFLAGS@ @libpng_CFLAGS@ @glibmm_CFLAGS@
-brot2_LDADD=$(all_ldadd) @pango_LIBS@ @LIBAV_LIBS@ @gtkmm_LIBS@ @gdkmm_LIBS@ @libpng_LIBS@ @glibmm_LIBS@
+brot2_CFLAGS=$(AM_CFLAGS) @pango_CFLAGS@
+brot2_CXXFLAGS=$(AM_CXXFLAGS) @pango_CFLAGS@ @gtkmm_CFLAGS@ @gdkmm_CFLAGS@ @libpng_CFLAGS@ @glibmm_CFLAGS@
+brot2_LDADD=$(all_ldadd) @pango_LIBS@ @gtkmm_LIBS@ @gdkmm_LIBS@ @libpng_LIBS@ @glibmm_LIBS@
 
 ################################################################
 
